@@ -1,0 +1,48 @@
+{
+    "project_info": {
+        "project_number": "484524389659",
+        "firebase_url": "https://atlas-crm-fe3b8.firebaseio.com",
+        "project_id": "atlas-crm-fe3b8",
+        "storage_bucket": "atlas-crm-fe3b8.appspot.com"
+    },
+    "client": [
+        {
+            "client_info": {
+                "mobilesdk_app_id": "1:484524389659:android:8cd8af75828ebce0a54fbe",
+                "android_client_info": {
+                    "package_name": "com.ces.atlascrm"
+                }
+            },
+            "oauth_client": [
+                {
+                    "client_id": "484524389659-qpjod9v1tsjjnkj7k383cral32f8hfji.apps.googleusercontent.com",
+                    "client_type": 1,
+                    "android_info": {
+                        "package_name": "com.ces.atlascrm",
+                        "certificate_hash": "12cef07ec386b77f2b1a676fade235a7fa3da530"
+                    }
+                },
+                {
+                    "client_id": "484524389659-0p15q444e8ij760jt29l102rhmk25kk2.apps.googleusercontent.com",
+                    "client_type": 3
+                }
+            ],
+            "api_key": [
+                {
+                    "current_key": "AIzaSyB-rMAdwtIjM7s_4Lb8SdRXAfhbiLTVl7s"
+                }
+            ],
+            "services": {
+                "appinvite_service": {
+                    "other_platform_oauth_client": [
+                        {
+                            "client_id": "484524389659-0p15q444e8ij760jt29l102rhmk25kk2.apps.googleusercontent.com",
+                            "client_type": 3
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "configuration_version": "1"
+}
