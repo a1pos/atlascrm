@@ -56,6 +56,7 @@ class _EmployeeMapState extends State<EmployeeMap> {
 
     if (SocketService.SOCKET != null) {
       SocketService.SOCKET.on('newLocation', (location) async {
+        print(location);
         var epoch = location["location_document"]["time"];
         var lastCheckinTime =
             new DateTime.fromMicrosecondsSinceEpoch(epoch * 1000);
