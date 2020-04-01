@@ -11,20 +11,9 @@ class CustomDrawer extends StatefulWidget {
 }
 
 class _CustomDrawerState extends State<CustomDrawer> {
-  var hasAdminAccess = false;
-
   @override
   void initState() {
     super.initState();
-
-    var currentEmployee = UserService.employee;
-    if (currentEmployee != null) {
-      var roles = List.from(currentEmployee.document["roles"]);
-
-      if (roles.contains("admin")) {
-        hasAdminAccess = true;
-      }
-    }
   }
 
   void handleSignOut() {
@@ -68,13 +57,20 @@ class _CustomDrawerState extends State<CustomDrawer> {
             },
           ),
           ListTile(
+            leading: Icon(Icons.check_box),
+            title: Text('Tasks'),
+            onTap: () {
+              Navigator.popAndPushNamed(context, "/tasks");
+            },
+          ),
+          ListTile(
             leading: Icon(Icons.attach_money),
             title: Text('Leads'),
             onTap: () {
               Navigator.popAndPushNamed(context, "/leads");
             },
           ),
-          hasAdminAccess
+          UserService.isAdmin
               ? ListTile(
                   leading: Icon(Icons.people),
                   title: Text('Employees'),

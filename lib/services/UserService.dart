@@ -12,6 +12,8 @@ import 'package:google_sign_in/google_sign_in.dart';
 class UserService {
   static Employee employee;
 
+  static bool isAdmin = false;
+
   final ApiService apiService = new ApiService();
   final SocketService socketService = new SocketService();
 
@@ -118,13 +120,15 @@ class UserService {
         var roles = List.from(employee.document["roles"]);
 
         if (roles.contains("admin")) {
+          isAdmin = true;
           socketService.initWebSocketConnection();
+        } else {
+          isAdmin = false;
         }
 
         return true;
       }
     } catch (err) {
-      // log(err);
       print(err);
     }
 

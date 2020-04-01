@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:atlascrm/components/CenteredClearLoadingScreen.dart';
-import 'package:atlascrm/components/CustomAppBar.dart';
+import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
+import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -10,16 +10,17 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:date_range_picker/date_range_picker.dart' as DateRangePicker;
 import 'package:intl/intl.dart';
 
-class EmployeeMapHistory extends StatefulWidget {
+class EmployeeMapHistoryScreen extends StatefulWidget {
   final String employeeId;
 
-  EmployeeMapHistory(this.employeeId);
+  EmployeeMapHistoryScreen(this.employeeId);
 
   @override
-  _EmployeeMapHistoryState createState() => _EmployeeMapHistoryState();
+  _EmployeeMapHistoryScreenState createState() =>
+      _EmployeeMapHistoryScreenState();
 }
 
-class _EmployeeMapHistoryState extends State<EmployeeMapHistory> {
+class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
   var isLoading = true;
   final ApiService apiService = new ApiService();
 

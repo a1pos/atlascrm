@@ -6,13 +6,15 @@ class CustomCard extends StatefulWidget {
   final IconData icon;
   final bool isClickable;
   final String route;
+  final Key key;
 
   CustomCard(
       {this.child,
       this.title,
       this.icon,
       this.isClickable = false,
-      this.route});
+      this.route,
+      this.key});
 
   @override
   _CustomCardState createState() => _CustomCardState();
@@ -22,6 +24,7 @@ class _CustomCardState extends State<CustomCard> {
   @override
   Widget build(BuildContext context) {
     return Container(
+      key: this.widget.key,
       margin: EdgeInsets.fromLTRB(0, 10, 0, 10),
       child: Card(
         elevation: 2,

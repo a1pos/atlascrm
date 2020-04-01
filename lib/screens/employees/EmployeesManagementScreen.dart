@@ -1,11 +1,10 @@
-import 'package:atlascrm/components/CustomAppBar.dart';
-import 'package:atlascrm/components/CustomCard.dart';
-import 'package:atlascrm/components/CustomDrawer.dart';
-import 'package:atlascrm/screens/employees/EmployeeList.dart';
+import 'package:atlascrm/components/shared/CustomAppBar.dart';
+import 'package:atlascrm/components/shared/CustomCard.dart';
+import 'package:atlascrm/components/shared/CustomDrawer.dart';
+import 'package:atlascrm/screens/employees/EmployeeListScreen.dart';
+import 'package:atlascrm/screens/employees/widgets/MgmtTile.dart';
 
 import 'package:flutter/material.dart';
-
-import 'MgmtTile.dart';
 
 class EmployeesManagementScreen extends StatefulWidget {
   @override
@@ -61,50 +60,13 @@ class _EmployeesManagementScreenState extends State<EmployeesManagementScreen> {
                       ],
                     ),
                   ),
-
                   CustomCard(
                     title: "Employees",
                     isClickable: true,
                     route: "/employeelist",
                     icon: Icons.people,
-                    child: EmployeeList(false),
+                    child: EmployeeListScreen(false),
                   ),
-
-                  // // Card(
-                  // //   elevation: 3,
-                  // //   child: Column(
-                  // //     children: <Widget>[
-                  // //       CardHeader('Tools', null, Icons.build),
-                  // //       Container(
-                  // //         padding: EdgeInsets.all(5),
-                  // //         color: Colors.white,
-                  // //         child: Row(
-                  // //           crossAxisAlignment: CrossAxisAlignment.start,
-                  // //           children: <Widget>[
-                  // //             MgmtTile(
-                  // //               text: "Employee Map",
-                  // //               tileColor: Colors.white,
-                  // //               icon: Icons.zoom_out_map,
-                  // //               route: "/employeemap",
-                  // //             ),
-                  // //           ],
-                  // //         ),
-                  // //       ),
-                  // //     ],
-                  // //   ),
-                  // // ),
-                  // Padding(
-                  //   padding: EdgeInsets.fromLTRB(0, 10, 0, 10),
-                  // ),
-                  // Card(
-                  //   elevation: 3,
-                  //   child: Column(
-                  //     children: <Widget>[
-                  //       CardHeader("Employees", "/employeelist", Icons.people),
-                  //       EmployeeList(false)
-                  //     ],
-                  //   ),
-                  // ),
                 ],
               )
             ],

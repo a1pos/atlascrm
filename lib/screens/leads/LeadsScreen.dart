@@ -1,10 +1,10 @@
 import 'dart:developer';
 
-import 'package:atlascrm/components/CenteredLoadingSpinner.dart';
-import 'package:atlascrm/components/CustomAppBar.dart';
-import 'package:atlascrm/components/CustomCard.dart';
-import 'package:atlascrm/components/CustomDrawer.dart';
-import 'package:atlascrm/components/Empty.dart';
+import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
+import 'package:atlascrm/components/shared/CustomAppBar.dart';
+import 'package:atlascrm/components/shared/CustomCard.dart';
+import 'package:atlascrm/components/shared/CustomDrawer.dart';
+import 'package:atlascrm/components/shared/Empty.dart';
 import 'package:atlascrm/models/Lead.dart';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';

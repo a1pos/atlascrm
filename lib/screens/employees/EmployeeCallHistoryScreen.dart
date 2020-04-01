@@ -1,23 +1,24 @@
 import 'dart:convert';
 
-import 'package:atlascrm/components/CenteredClearLoadingScreen.dart';
-import 'package:atlascrm/components/CustomAppBar.dart';
+import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
+import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class EmployeeCallHistory extends StatefulWidget {
+class EmployeeCallHistoryScreen extends StatefulWidget {
   final ApiService apiService = new ApiService();
 
   final String employeeId;
 
-  EmployeeCallHistory(this.employeeId);
+  EmployeeCallHistoryScreen(this.employeeId);
 
   @override
-  _EmployeeCallHistoryState createState() => _EmployeeCallHistoryState();
+  _EmployeeCallHistoryScreenState createState() =>
+      _EmployeeCallHistoryScreenState();
 }
 
-class _EmployeeCallHistoryState extends State<EmployeeCallHistory> {
+class _EmployeeCallHistoryScreenState extends State<EmployeeCallHistoryScreen> {
   var isLoading = true;
   var calls = [];
 

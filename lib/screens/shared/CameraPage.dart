@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:atlascrm/components/CenteredClearLoadingScreen.dart';
-import 'package:atlascrm/components/CustomAppBar.dart';
+import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
+import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

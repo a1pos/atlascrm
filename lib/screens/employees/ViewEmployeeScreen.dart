@@ -1,13 +1,11 @@
-import 'dart:convert';
 import 'dart:developer';
 
-import 'package:atlascrm/components/CustomAppBar.dart';
-import 'package:atlascrm/components/CustomCard.dart';
+import 'package:atlascrm/components/shared/CustomAppBar.dart';
+import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/models/Employee.dart';
-import 'package:atlascrm/components/CenteredClearLoadingScreen.dart';
+import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 class ViewEmployeeScreen extends StatefulWidget {
@@ -270,6 +268,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
                     CustomCard(
+                      key: Key("viewEmp1"),
                       title: "Account Information",
                       icon: Icons.account_box,
                       child: Column(
@@ -414,6 +413,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                       ),
                     ),
                     CustomCard(
+                      key: Key("viewEmp2"),
                       title: 'History Information',
                       icon: Icons.history,
                       child: Column(

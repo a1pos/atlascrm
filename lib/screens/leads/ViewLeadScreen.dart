@@ -1,9 +1,7 @@
-import 'dart:convert';
-
-import 'package:atlascrm/components/CustomAppBar.dart';
-import 'package:atlascrm/components/CustomCard.dart';
+import 'package:atlascrm/components/shared/CustomAppBar.dart';
+import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/models/Lead.dart';
-import 'package:atlascrm/components/CenteredClearLoadingScreen.dart';
+import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -179,6 +177,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
                       CustomCard(
+                        key: Key("leads1"),
                         icon: Icons.person,
                         title: "Personal Information",
                         child: Column(
@@ -195,6 +194,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                         ),
                       ),
                       CustomCard(
+                        key: Key("leads2"),
                         icon: Icons.business,
                         title: "Business Information",
                         child: Column(
@@ -211,6 +211,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                         ),
                       ),
                       CustomCard(
+                        key: Key("leads3"),
                         icon: Icons.question_answer,
                         title: "Misc Information",
                         child: Column(
@@ -218,6 +219,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                         ),
                       ),
                       CustomCard(
+                        key: Key("leads4"),
                         title: "Notes",
                         icon: Icons.note,
                         child: TextField(
@@ -237,6 +239,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                         ),
                       ),
                       CustomCard(
+                        key: Key("leads5"),
                         title: "Tools",
                         icon: Icons.build,
                         child: Row(

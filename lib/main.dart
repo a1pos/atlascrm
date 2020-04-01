@@ -1,9 +1,10 @@
 import 'package:atlascrm/screens/auth/AuthScreen.dart';
-import 'package:atlascrm/screens/dashboard/DashboardScreen.dart';
-import 'package:atlascrm/screens/employees/EmployeeCallHistory.dart';
-import 'package:atlascrm/screens/employees/EmployeeList.dart';
-import 'package:atlascrm/screens/employees/EmployeeMap.dart';
-import 'package:atlascrm/screens/employees/EmployeeMapHistory.dart';
+import 'package:atlascrm/screens/dashboard/AdminDashboardScreen.dart';
+import 'package:atlascrm/screens/dashboard/SalesDashboardScreen.dart';
+import 'package:atlascrm/screens/employees/EmployeeCallHistoryScreen.dart';
+import 'package:atlascrm/screens/employees/EmployeeListScreen.dart';
+import 'package:atlascrm/screens/employees/EmployeeMapHistoryScreen.dart';
+import 'package:atlascrm/screens/employees/EmployeeMapScreen.dart';
 import 'package:atlascrm/screens/employees/EmployeesManagementScreen.dart';
 import 'package:atlascrm/screens/employees/ViewEmployeeScreen.dart';
 import 'package:atlascrm/screens/leads/LeadsScreen.dart';
@@ -11,6 +12,7 @@ import 'package:atlascrm/screens/leads/ViewLeadScreen.dart';
 import 'package:atlascrm/screens/shared/CameraPage.dart';
 import 'package:atlascrm/screens/shared/LoadingScreen.dart';
 import 'package:atlascrm/screens/shared/SlideRightRoute.dart';
+import 'package:atlascrm/screens/tasks/TaskScreen.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
@@ -104,12 +106,19 @@ class _AtlasCRMState extends State<AtlasCRM> {
         brightness: Brightness.light,
         fontFamily: "LatoRegular",
       ),
-      home: isAuthenticated ? DashboardScreen() : AuthScreen(),
+      home: isAuthenticated
+          ? UserService.isAdmin
+              ? AdminDashboardScreen()
+              : SalesDashboardScreen()
+          : AuthScreen(),
       initialRoute: "/",
       onGenerateRoute: (RouteSettings settings) {
         switch (settings.name) {
           case '/dashboard':
-            return MaterialPageRoute(builder: (context) => DashboardScreen());
+            return MaterialPageRoute(
+                builder: (context) => UserService.isAdmin
+                    ? AdminDashboardScreen()
+                    : SalesDashboardScreen());
             break;
           case "/leads":
             return MaterialPageRoute(builder: (context) => LeadsScreen());
@@ -127,22 +136,27 @@ class _AtlasCRMState extends State<AtlasCRM> {
             break;
           case '/employeemap':
             return SlideRightRoute(
-              page: EmployeeMap(),
+              page: EmployeeMapScreen(),
             );
             break;
           case '/employeemaphistory':
             return SlideRightRoute(
-              page: EmployeeMapHistory(settings.arguments),
+              page: EmployeeMapHistoryScreen(settings.arguments),
+            );
+            break;
+          case '/tasks':
+            return SlideRightRoute(
+              page: TaskScreen(),
             );
             break;
           case '/employeelist':
             return SlideRightRoute(
-              page: EmployeeList(true),
+              page: EmployeeListScreen(true),
             );
             break;
           case '/employeecallhistory':
             return SlideRightRoute(
-              page: EmployeeCallHistory(settings.arguments),
+              page: EmployeeCallHistoryScreen(settings.arguments),
             );
             break;
           case '/viewemployee':

@@ -1,21 +1,19 @@
-import 'dart:convert';
-
-import 'package:atlascrm/components/CustomAppBar.dart';
-import 'package:atlascrm/components/Empty.dart';
+import 'package:atlascrm/components/shared/CustomAppBar.dart';
+import 'package:atlascrm/components/shared/Empty.dart';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:flutter/material.dart';
 
-class EmployeeList extends StatefulWidget {
+class EmployeeListScreen extends StatefulWidget {
   final bool isFullScreen;
 
-  EmployeeList(this.isFullScreen);
+  EmployeeListScreen(this.isFullScreen);
 
   @override
-  _EmployeeListState createState() => _EmployeeListState();
+  _EmployeeListScreenState createState() => _EmployeeListScreenState();
 }
 
-class _EmployeeListState extends State<EmployeeList> {
+class _EmployeeListScreenState extends State<EmployeeListScreen> {
   final UserService userService = new UserService();
   final ApiService apiService = new ApiService();
 

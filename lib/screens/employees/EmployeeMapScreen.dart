@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:atlascrm/components/CustomAppBar.dart';
+import 'package:atlascrm/components/shared/CustomAppBar.dart';
 
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/SocketService.dart';
@@ -11,15 +11,15 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 
-class EmployeeMap extends StatefulWidget {
+class EmployeeMapScreen extends StatefulWidget {
   final ApiService apiService = new ApiService();
   final SocketService socketService = new SocketService();
 
   @override
-  _EmployeeMapState createState() => _EmployeeMapState();
+  _EmployeeMapScreenState createState() => _EmployeeMapScreenState();
 }
 
-class _EmployeeMapState extends State<EmployeeMap> {
+class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
   Completer<GoogleMapController> _fullScreenMapController = Completer();
 
   final Set<Marker> markers = new Set<Marker>();
@@ -80,34 +80,36 @@ class _EmployeeMapState extends State<EmployeeMap> {
 
             markers.add(
               Marker(
-                  position: LatLng(
-                    location["location_document"]["latitude"],
-                    location["location_document"]["longitude"],
-                  ),
-                  markerId: markerId,
-                  infoWindow: InfoWindow(
-                    snippet: location["employee_document"]["fullName"] +
-                        " " +
-                        datetimeFmt,
-                    title: location["employee_document"]["email"],
-                  ),
-                  icon: icon),
+                position: LatLng(
+                  location["location_document"]["latitude"],
+                  location["location_document"]["longitude"],
+                ),
+                markerId: markerId,
+                infoWindow: InfoWindow(
+                  snippet: location["employee_document"]["fullName"] +
+                      " " +
+                      datetimeFmt,
+                  title: location["employee_document"]["email"],
+                ),
+                icon: icon,
+              ),
             );
           });
         } else {
           setState(() {
             markers.add(
               Marker(
-                  position: LatLng(
-                    location["location_document"]["latitude"],
-                    location["location_document"]["longitude"],
-                  ),
-                  markerId: markerId,
-                  infoWindow: InfoWindow(
-                    snippet: location["employee_document"]["fullName"],
-                    title: location["employee_document"]["email"],
-                  ),
-                  icon: icon),
+                position: LatLng(
+                  location["location_document"]["latitude"],
+                  location["location_document"]["longitude"],
+                ),
+                markerId: markerId,
+                infoWindow: InfoWindow(
+                  snippet: location["employee_document"]["fullName"],
+                  title: location["employee_document"]["email"],
+                ),
+                icon: icon,
+              ),
             );
           });
         }
@@ -134,46 +136,48 @@ class _EmployeeMapState extends State<EmployeeMap> {
         .widget
         .apiService
         .authGet(context, "/employees/lastknownlocation");
-    if (lastLocationResponse.statusCode == 200) {
-      var lastLocationArr = lastLocationResponse.data;
-      for (var item in lastLocationArr) {
-        var employeeDocument = item["employee_document"];
+    if (lastLocationResponse != null) {
+      if (lastLocationResponse.statusCode == 200) {
+        var lastLocationArr = lastLocationResponse.data;
+        for (var item in lastLocationArr) {
+          var employeeDocument = item["employee_document"];
 
-        var isActive = item["is_employee_active"];
-        if (isActive != null) {
-          if (!isActive) {
-            continue;
+          var isActive = item["is_employee_active"];
+          if (isActive != null) {
+            if (!isActive) {
+              continue;
+            }
           }
+
+          var markerId = MarkerId(item["employee"]);
+
+          var pictureUrl = employeeDocument["googleClaims"]["picture"];
+          var icon = await getMarkerImageFromCache(pictureUrl);
+
+          var epoch = item["location_document"]["time"];
+          var lastCheckinTime =
+              new DateTime.fromMicrosecondsSinceEpoch(epoch * 1000);
+
+          var dateTime = lastCheckinTime;
+          var formatter = DateFormat.yMd().add_jm();
+          String datetimeFmt = formatter.format(dateTime.toLocal());
+
+          setState(() {
+            markers.add(
+              Marker(
+                  position: LatLng(
+                    item["location_document"]["latitude"],
+                    item["location_document"]["longitude"],
+                  ),
+                  markerId: markerId,
+                  infoWindow: InfoWindow(
+                    title: employeeDocument["email"],
+                    snippet: employeeDocument["fullName"] + " " + datetimeFmt,
+                  ),
+                  icon: icon),
+            );
+          });
         }
-
-        var markerId = MarkerId(item["employee"]);
-
-        var pictureUrl = employeeDocument["googleClaims"]["picture"];
-        var icon = await getMarkerImageFromCache(pictureUrl);
-
-        var epoch = item["location_document"]["time"];
-        var lastCheckinTime =
-            new DateTime.fromMicrosecondsSinceEpoch(epoch * 1000);
-
-        var dateTime = lastCheckinTime;
-        var formatter = DateFormat.yMd().add_jm();
-        String datetimeFmt = formatter.format(dateTime.toLocal());
-
-        setState(() {
-          markers.add(
-            Marker(
-                position: LatLng(
-                  item["location_document"]["latitude"],
-                  item["location_document"]["longitude"],
-                ),
-                markerId: markerId,
-                infoWindow: InfoWindow(
-                  title: employeeDocument["email"],
-                  snippet: employeeDocument["fullName"] + " " + datetimeFmt,
-                ),
-                icon: icon),
-          );
-        });
       }
     }
   }

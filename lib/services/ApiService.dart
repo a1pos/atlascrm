@@ -66,6 +66,9 @@ class ApiService {
             "Authorization": "Google $token",
           },
           sendTimeout: TIMEOUT,
+          validateStatus: (status) {
+            return status < 500;
+          },
         ),
       ).get(url);
 
