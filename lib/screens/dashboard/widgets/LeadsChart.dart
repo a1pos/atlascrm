@@ -4,9 +4,9 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 
 class LeadsChart extends StatefulWidget {
-  final int count;
+  final dynamic data;
 
-  LeadsChart({this.count});
+  LeadsChart({this.data});
 
   @override
   _LeadsChartState createState() => _LeadsChartState();

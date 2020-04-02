@@ -1,3 +1,6 @@
+import 'package:atlascrm/components/shared/CameraPage.dart';
+import 'package:atlascrm/components/shared/LoadingScreen.dart';
+import 'package:atlascrm/components/shared/SlideRightRoute.dart';
 import 'package:atlascrm/screens/auth/AuthScreen.dart';
 import 'package:atlascrm/screens/dashboard/AdminDashboardScreen.dart';
 import 'package:atlascrm/screens/dashboard/SalesDashboardScreen.dart';
@@ -9,10 +12,8 @@ import 'package:atlascrm/screens/employees/EmployeesManagementScreen.dart';
 import 'package:atlascrm/screens/employees/ViewEmployeeScreen.dart';
 import 'package:atlascrm/screens/leads/LeadsScreen.dart';
 import 'package:atlascrm/screens/leads/ViewLeadScreen.dart';
-import 'package:atlascrm/screens/shared/CameraPage.dart';
-import 'package:atlascrm/screens/shared/LoadingScreen.dart';
-import 'package:atlascrm/screens/shared/SlideRightRoute.dart';
 import 'package:atlascrm/screens/tasks/TaskScreen.dart';
+import 'package:atlascrm/screens/tasks/ViewTaskScreen.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
@@ -162,6 +163,9 @@ class _AtlasCRMState extends State<AtlasCRM> {
           case '/viewemployee':
             return SlideRightRoute(
                 page: ViewEmployeeScreen(settings.arguments));
+            break;
+          case '/viewtask':
+            return SlideRightRoute(page: ViewTaskScreen(settings.arguments));
             break;
           case '/camera':
             return SlideRightRoute(

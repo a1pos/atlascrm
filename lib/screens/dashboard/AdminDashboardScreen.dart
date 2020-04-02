@@ -1,8 +1,11 @@
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CustomDrawer.dart';
+import 'package:atlascrm/components/shared/Spinner.dart';
+import 'package:atlascrm/screens/dashboard/widgets/LeadsChart.dart';
 import 'package:atlascrm/screens/dashboard/widgets/SalesLeaderboardChart.dart';
-import 'package:atlascrm/screens/shared/Spinner.dart';
+import 'package:atlascrm/screens/dashboard/widgets/StatementsChart.dart';
+import 'package:atlascrm/screens/dashboard/widgets/WeeklyCallsChart.dart';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -17,7 +20,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   final ApiService apiService = ApiService();
 
-  var leaderboardData = [];
+  var statsData = [];
 
   @override
   void initState() {
@@ -49,7 +52,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 });
               }
               setState(() {
-                leaderboardData = temp;
+                statsData = temp;
                 isLoading = false;
               });
             }
@@ -85,7 +88,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       child: isLoading
                           ? Spinner()
                           : SalesLeaderboardChart(
-                              data: leaderboardData,
+                              data: statsData,
                             ),
                     ),
                   ),
@@ -97,8 +100,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       height: 200,
                       child: isLoading
                           ? Spinner()
-                          : SalesLeaderboardChart(
-                              data: leaderboardData,
+                          : StatementsChart(
+                              data: statsData,
                             ),
                     ),
                   ),
@@ -110,8 +113,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       height: 200,
                       child: isLoading
                           ? Spinner()
-                          : SalesLeaderboardChart(
-                              data: leaderboardData,
+                          : WeeklyCallsChart(
+                              data: statsData,
                             ),
                     ),
                   ),
@@ -123,8 +126,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       height: 200,
                       child: isLoading
                           ? Spinner()
-                          : SalesLeaderboardChart(
-                              data: leaderboardData,
+                          : LeadsChart(
+                              data: statsData,
                             ),
                     ),
                   ),

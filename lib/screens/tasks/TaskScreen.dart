@@ -2,14 +2,21 @@ import 'dart:ui';
 
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomDrawer.dart';
+import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
 import 'package:atlascrm/components/lead/LeadsDropDown.dart';
-import 'package:atlascrm/screens/tasks/widgets/TaskPriorityHigh.dart';
-import 'package:atlascrm/screens/tasks/widgets/TaskPriorityLow.dart';
-import 'package:atlascrm/screens/tasks/widgets/TaskPriorityMedium.dart';
+import 'package:atlascrm/components/shared/LoadingScreen.dart';
+import 'package:atlascrm/components/task/TaskPriorityDropDown.dart';
+import 'package:atlascrm/components/task/TaskPriorityHigh.dart';
+import 'package:atlascrm/components/task/TaskPriorityLow.dart';
+import 'package:atlascrm/components/task/TaskPriorityMedium.dart';
+import 'package:atlascrm/components/task/TaskTypeDropDown.dart';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/UserService.dart';
+import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:flutter/material.dart';
+
+import 'package:intl/intl.dart';
 
 class TaskScreen extends StatefulWidget {
   @override
@@ -20,10 +27,8 @@ class _TaskScreenState extends State<TaskScreen> {
   final ApiService apiService = ApiService();
 
   var isEmpty = false;
+  var isLoading = true;
   var tasks = [];
-
-  var taskStatusDropDownValue;
-  var taskPriorityDropDownValue;
 
   @override
   void initState() {
@@ -48,6 +53,7 @@ class _TaskScreenState extends State<TaskScreen> {
 
             setState(() {
               tasks = temp;
+              isLoading = false;
             });
           }
         }
@@ -58,29 +64,13 @@ class _TaskScreenState extends State<TaskScreen> {
   }
 
   Future<void> openAddTaskForm() async {
-    var taskTypes = [];
-    var leadDropdownValue;
-    var taskPriorites = [
-      {"value": "0", "text": "High"},
-      {"value": "1", "text": "Medium"},
-      {"value": "2", "text": "Low"},
-    ];
+    var taskTitleController = TextEditingController();
+    var taskDescController = TextEditingController();
 
-    var taskTypesResp = await apiService.authGet(context, "/taskTypes");
-    if (taskTypesResp != null) {
-      if (taskTypesResp.statusCode == 200) {
-        var taskTypesArrDecoded = taskTypesResp.data;
-        if (taskTypesArrDecoded != null) {
-          for (var item in taskTypesArrDecoded) {
-            taskTypes.add({
-              "type": item["type"],
-              "parent": item["parent"],
-              "title": item["title"]
-            });
-          }
-        }
-      }
-    }
+    var leadDropdownValue;
+    var taskTypeDropdownValue;
+    var taskPriorityDropdownValue;
+    var employeeDropdownValue;
 
     await showDialog(
       context: context,
@@ -88,6 +78,26 @@ class _TaskScreenState extends State<TaskScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
+              actions: <Widget>[
+                MaterialButton(
+                  child: Text(
+                    'Cancel',
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                MaterialButton(
+                  child: Text(
+                    'Save',
+                    style: TextStyle(
+                      color: Colors.white,
+                    ),
+                  ),
+                  color: Color.fromARGB(500, 1, 224, 143),
+                  onPressed: () {},
+                ),
+              ],
               title: Text('Add New Task'),
               content: Container(
                 width: MediaQuery.of(context).size.width,
@@ -98,49 +108,27 @@ class _TaskScreenState extends State<TaskScreen> {
                       Column(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: <Widget>[
-                          DropdownButton<String>(
-                            isExpanded: true,
-                            value: taskStatusDropDownValue,
-                            hint: Text("Type"),
-                            items: taskTypes.map((dynamic item) {
-                              if (item["parent"] != null) {
-                                return DropdownMenuItem<String>(
-                                  value: item["type"],
-                                  child: Text('${item["title"]}'),
-                                );
-                              }
-
-                              return DropdownMenuItem<String>(
-                                value: item["type"],
-                                child: Text(
-                                  item["title"],
-                                  style: TextStyle(
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                            onChanged: (newValue) {
+                          EmployeeDropDown(
+                            value: employeeDropdownValue,
+                            callback: ((val) {
                               setState(() {
-                                taskStatusDropDownValue = newValue;
+                                employeeDropdownValue = val;
                               });
-                            },
+                            }),
                           ),
-                          DropdownButton<String>(
-                            isExpanded: true,
-                            value: taskPriorityDropDownValue,
-                            hint: Text("Priority"),
-                            items: taskPriorites.map((dynamic item) {
-                              return DropdownMenuItem<String>(
-                                value: item["value"],
-                                child: Text(
-                                  item["text"],
-                                ),
-                              );
-                            }).toList(),
-                            onChanged: (newValue) {
+                          TaskTypeDropDown(
+                            value: taskTypeDropdownValue,
+                            callback: ((val) {
                               setState(() {
-                                taskPriorityDropDownValue = newValue;
+                                taskTypeDropdownValue = val;
+                              });
+                            }),
+                          ),
+                          TaskPriorityDropDown(
+                            value: taskPriorityDropdownValue,
+                            callback: (val) {
+                              setState(() {
+                                taskPriorityDropdownValue = val;
                               });
                             },
                           ),
@@ -162,7 +150,50 @@ class _TaskScreenState extends State<TaskScreen> {
                                 child: Text('asdf'),
                               ),
                             ],
-                          )
+                          ),
+                          TextFormField(
+                            decoration: InputDecoration(labelText: "Title"),
+                            controller: taskTitleController,
+                          ),
+                          Divider(
+                            color: Colors.white,
+                          ),
+                          TextField(
+                            maxLines: 10,
+                            controller: taskDescController,
+                            decoration: InputDecoration(
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Colors.greenAccent, width: 3.0),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide:
+                                    BorderSide(color: Colors.grey, width: 0.5),
+                              ),
+                              hintText: 'Description',
+                            ),
+                          ),
+                          DateTimeField(
+                            decoration: InputDecoration(labelText: "Date"),
+                            format: DateFormat("yyyy-MM-dd HH:mm"),
+                            onShowPicker: (context, currentValue) async {
+                              final date = await showDatePicker(
+                                  context: context,
+                                  firstDate: DateTime(1900),
+                                  initialDate: currentValue ?? DateTime.now(),
+                                  lastDate: DateTime(2100));
+                              if (date != null) {
+                                final time = await showTimePicker(
+                                  context: context,
+                                  initialTime: TimeOfDay.fromDateTime(
+                                      currentValue ?? DateTime.now()),
+                                );
+                                return DateTimeField.combine(date, time);
+                              } else {
+                                return currentValue;
+                              }
+                            },
+                          ),
                         ],
                       ),
                     ],
@@ -175,9 +206,9 @@ class _TaskScreenState extends State<TaskScreen> {
       },
     ).then((val) {
       setState(() {
-        taskStatusDropDownValue = null;
         leadDropdownValue = null;
-        taskPriorityDropDownValue = null;
+        taskPriorityDropdownValue = null;
+        taskTypeDropdownValue = null;
       });
     });
   }
@@ -190,44 +221,64 @@ class _TaskScreenState extends State<TaskScreen> {
         key: Key("taskAppBar"),
         title: Text("Tasks"),
       ),
-      body: Container(
-        padding: EdgeInsets.all(10),
-        child: tasks.length == 0
-            ? Empty("No Tasks found")
-            : SingleChildScrollView(
-                child: Stack(
-                  children: <Widget>[
-                    Column(
-                      children: tasks.map((t) {
-                        switch (t["priority"]) {
-                          case 0:
-                            return TaskPriorityHigh(
-                              title: t["title"],
-                              description: t["notes"],
-                              dateTime: t["date"],
-                            );
-                            break;
-                          case 1:
-                            return TaskPriorityMedium(
-                              title: t["title"],
-                              description: t["notes"],
-                              dateTime: t["date"],
-                            );
-                            break;
-                          case 2:
-                            return TaskPriorityLow(
-                              title: t["title"],
-                              description: t["notes"],
-                              dateTime: t["date"],
-                            );
-                            break;
-                        }
-                      }).toList(),
+      body: isLoading
+          ? LoadingScreen()
+          : Container(
+              padding: EdgeInsets.all(10),
+              child: tasks.length == 0
+                  ? Empty("No Tasks found")
+                  : SingleChildScrollView(
+                      child: Stack(
+                        children: <Widget>[
+                          Column(
+                            children: tasks.map((t) {
+                              switch (t["priority"]) {
+                                case 0:
+                                  return GestureDetector(
+                                    onTap: () {
+                                      Navigator.pushNamed(context, "/viewtask",
+                                          arguments: t["task"]);
+                                    },
+                                    child: TaskPriorityHigh(
+                                      title: t["title"],
+                                      description: t["notes"],
+                                      dateTime: t["date"],
+                                    ),
+                                  );
+                                  break;
+                                case 1:
+                                  return GestureDetector(
+                                    onTap: () {
+                                      Navigator.pushNamed(context, "/viewtask",
+                                          arguments: t["task"]);
+                                    },
+                                    child: TaskPriorityMedium(
+                                      title: t["title"],
+                                      description: t["notes"],
+                                      dateTime: t["date"],
+                                    ),
+                                  );
+                                  break;
+                                case 2:
+                                  return GestureDetector(
+                                    onTap: () {
+                                      Navigator.pushNamed(context, "/viewtask",
+                                          arguments: t["task"]);
+                                    },
+                                    child: TaskPriorityLow(
+                                      title: t["title"],
+                                      description: t["notes"],
+                                      dateTime: t["date"],
+                                    ),
+                                  );
+                                  break;
+                              }
+                            }).toList(),
+                          ),
+                        ],
+                      ),
                     ),
-                  ],
-                ),
-              ),
-      ),
+            ),
       floatingActionButton: FloatingActionButton(
         onPressed: openAddTaskForm,
         backgroundColor: Color.fromARGB(500, 1, 224, 143),

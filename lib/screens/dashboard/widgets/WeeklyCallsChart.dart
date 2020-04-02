@@ -4,9 +4,9 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 
 class WeeklyCallsChart extends StatefulWidget {
-  final int count;
+  final dynamic data;
 
-  WeeklyCallsChart({this.count});
+  WeeklyCallsChart({this.data});
 
   @override
   _WeeklyCallsChartState createState() => _WeeklyCallsChartState();

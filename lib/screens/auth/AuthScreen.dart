@@ -1,4 +1,4 @@
-import 'package:atlascrm/screens/shared/LoadingScreen.dart';
+import 'package:atlascrm/components/shared/LoadingScreen.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
