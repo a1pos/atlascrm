@@ -135,7 +135,7 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
     var lastLocationResponse = await this
         .widget
         .apiService
-        .authGet(context, "/employees/lastknownlocation");
+        .authGet(context, "/employee/lastknownlocation");
     if (lastLocationResponse != null) {
       if (lastLocationResponse.statusCode == 200) {
         var lastLocationArr = lastLocationResponse.data;

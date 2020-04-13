@@ -1,37 +1,41 @@
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
 
-class EmployeeDropDown extends StatefulWidget {
+class LeadDropDown extends StatefulWidget {
   final String employeeId;
   final String value;
   final Function callback;
 
-  EmployeeDropDown({this.employeeId, this.callback, this.value});
+  LeadDropDown({this.employeeId, this.callback, this.value});
 
   @override
-  _EmployeeDropDownState createState() => _EmployeeDropDownState();
+  _LeadDropDownState createState() => _LeadDropDownState();
 }
 
-class _EmployeeDropDownState extends State<EmployeeDropDown> {
+class _LeadDropDownState extends State<LeadDropDown> {
   final ApiService apiService = ApiService();
 
-  var employees = [];
+  var leads = [];
 
   @override
   void initState() {
     super.initState();
 
-    initEmployees();
+    initLeads();
   }
 
-  Future<void> initEmployees() async {
-    var employeeResp = await apiService.authGet(context, "/employee");
-    if (employeeResp != null) {
-      if (employeeResp.statusCode == 200) {
-        var employeeArrDecoded = employeeResp.data;
-        if (employeeArrDecoded != null) {
+  Future<void> initLeads() async {
+    var leadsResp = await apiService.authGet(
+        context,
+        this.widget.employeeId == null
+            ? "/lead"
+            : "/employee/${this.widget.employeeId}/lead");
+    if (leadsResp != null) {
+      if (leadsResp.statusCode == 200) {
+        var leadsArrDecoded = leadsResp.data;
+        if (leadsArrDecoded != null) {
           setState(() {
-            employees = employeeArrDecoded;
+            leads = leadsArrDecoded;
           });
         }
       }
@@ -44,7 +48,7 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Text(
-          'Employee',
+          'Lead',
           style: TextStyle(
             color: Colors.grey,
             fontSize: 13,
@@ -54,11 +58,11 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
           isExpanded: true,
           value: this.widget.value,
           hint: Text("Please choose one"),
-          items: employees.map((dynamic item) {
+          items: leads.map((dynamic item) {
             return DropdownMenuItem<String>(
-              value: item["employee"],
+              value: item["lead"],
               child: Text(
-                item["document"]["fullName"],
+                item["document"]["businessName"],
               ),
             );
           }).toList(),

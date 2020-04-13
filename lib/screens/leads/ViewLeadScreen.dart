@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
+import 'package:atlascrm/components/shared/CustomWebView.dart';
+import 'package:atlascrm/components/shared/SlideRightRoute.dart';
 import 'package:atlascrm/models/Lead.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
 import 'package:atlascrm/services/ApiService.dart';
@@ -7,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:unicorndial/unicorndial.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 class LeadInfoEntry {
   final TextEditingController controller;
@@ -27,6 +32,9 @@ class ViewLeadScreen extends StatefulWidget {
 
 class ViewLeadScreenState extends State<ViewLeadScreen> {
   static const platform = const MethodChannel('com.ces.atlascrm.channel');
+
+  final Completer<WebViewController> _controller =
+      Completer<WebViewController>();
 
   final firstNameController = TextEditingController();
   final lastNameController = TextEditingController();
@@ -59,7 +67,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
     var resp = await this
         .widget
         .apiService
-        .authGet(context, "/leads/" + this.widget.leadId);
+        .authGet(context, "/lead/" + this.widget.leadId);
 
     if (resp.statusCode == 200) {
       var body = resp.data;
@@ -79,7 +87,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
   Future<void> updateLead(leadId) async {
     lead.firstName = firstNameController.text;
     lead.lastName = lastNameController.text;
-    lead.emailAddress = emailAddrController.text;
+    lead.emailAddr = emailAddrController.text;
     lead.phoneNumber = phoneNumberController.text;
 
     lead.businessName = businessNameController.text;
@@ -186,7 +194,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                                 firstNameController),
                             getInfoRow(
                                 "Last Name", lead.lastName, lastNameController),
-                            getInfoRow("Email Address", lead.emailAddress,
+                            getInfoRow("Email Address", lead.emailAddr,
                                 emailAddrController),
                             getInfoRow("Phone Number", lead.phoneNumber,
                                 phoneNumberController),
@@ -245,29 +253,35 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: <Widget>[
-                            // MaterialButton(
-                            //   padding: EdgeInsets.all(5),
-                            //   color: Color.fromARGB(500, 1, 224, 143),
-                            //   onPressed: () async {
-                            //     // await platform.invokeMethod("OPEN_CAMERA");
-                            //     Navigator.pushNamed(context, "/camera",
-                            //         arguments: imageResult);
-                            //   },
-                            //   child: Row(
-                            //     children: <Widget>[
-                            //       Icon(
-                            //         Icons.file_upload,
-                            //         color: Colors.white,
-                            //       ),
-                            //       Text(
-                            //         ' Statement',
-                            //         style: TextStyle(
-                            //           color: Colors.white,
-                            //         ),
-                            //       ),
-                            //     ],
-                            //   ),
-                            // ),
+                            MaterialButton(
+                              padding: EdgeInsets.all(5),
+                              color: Color.fromARGB(500, 1, 224, 143),
+                              onPressed: () async {
+                                Navigator.of(context).push(
+                                  SlideRightRoute(
+                                    page: CustomWebView(
+                                      title: "Docusigner",
+                                      selectedUrl:
+                                          "https://demo.docusign.net/Member/PowerFormSigning.aspx?PowerFormId=c04d3d47-c7be-46d5-a10a-471e8c9e531b&env=demo&acct=d805e4d3-b594-4e79-9d49-243e076e75e6&v=2",
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Row(
+                                children: <Widget>[
+                                  Icon(
+                                    Icons.file_upload,
+                                    color: Colors.white,
+                                  ),
+                                  Text(
+                                    'Docusigner',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ],
                         ),
                       ),

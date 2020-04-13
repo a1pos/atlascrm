@@ -15,8 +15,6 @@ class TaskTypeDropDown extends StatefulWidget {
 class _TaskTypeDropDownState extends State<TaskTypeDropDown> {
   final ApiService apiService = ApiService();
 
-  var dropDownValue;
-
   var types = [];
 
   @override
@@ -27,7 +25,7 @@ class _TaskTypeDropDownState extends State<TaskTypeDropDown> {
   }
 
   Future<void> initTypes() async {
-    var taskTypesResp = await apiService.authGet(context, "/taskTypes");
+    var taskTypesResp = await apiService.authGet(context, "/task/type");
     if (taskTypesResp != null) {
       if (taskTypesResp.statusCode == 200) {
         var taskTypesArrDecoded = taskTypesResp.data;
@@ -51,31 +49,43 @@ class _TaskTypeDropDownState extends State<TaskTypeDropDown> {
 
   @override
   Widget build(BuildContext context) {
-    return DropdownButton<String>(
-      isExpanded: true,
-      value: dropDownValue,
-      hint: Text("Type"),
-      items: types.map((dynamic item) {
-        if (item["parent"] != null) {
-          return DropdownMenuItem<String>(
-            value: item["type"],
-            child: Text('${item["title"]}'),
-          );
-        }
-
-        return DropdownMenuItem<String>(
-          value: item["type"],
-          child: Text(
-            item["title"],
-            style: TextStyle(
-              color: Colors.grey,
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          'Type',
+          style: TextStyle(
+            color: Colors.grey,
+            fontSize: 13,
           ),
-        );
-      }).toList(),
-      onChanged: (newValue) {
-        this.widget.callback(newValue);
-      },
+        ),
+        DropdownButton<String>(
+          isExpanded: true,
+          value: this.widget.value,
+          hint: Text("Please choose one"),
+          items: types.map((dynamic item) {
+            if (item["parent"] != null) {
+              return DropdownMenuItem<String>(
+                value: item["type"],
+                child: Text('${item["title"]}'),
+              );
+            }
+
+            return DropdownMenuItem<String>(
+              value: item["type"],
+              child: Text(
+                '> ${item["title"]}',
+                style: TextStyle(
+                  color: Colors.grey,
+                ),
+              ),
+            );
+          }).toList(),
+          onChanged: (newValue) {
+            this.widget.callback(newValue);
+          },
+        ),
+      ],
     );
   }
 }

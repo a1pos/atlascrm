@@ -7,6 +7,7 @@ import 'package:atlascrm/components/shared/CustomDrawer.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
 import 'package:atlascrm/models/Lead.dart';
 import 'package:atlascrm/services/ApiService.dart';
+import 'package:atlascrm/services/UserService.dart';
 import 'package:flutter/material.dart';
 
 import 'LeadStepper.dart';
@@ -38,7 +39,10 @@ class _LeadsScreenState extends State<LeadsScreen> {
 
   Future<void> initLeadsData() async {
     try {
-      var resp = await this.widget.apiService.authGet(context, "/leads");
+      var resp = await this
+          .widget
+          .apiService
+          .authGet(context, "/employee/${UserService.employee.employee}/lead");
       if (resp != null) {
         if (resp.statusCode == 200) {
           var leadsArrDecoded = resp.data;
@@ -202,42 +206,26 @@ class _LeadsScreenState extends State<LeadsScreen> {
                                   ),
                                 ],
                               ),
-                              Column(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  Padding(
-                                    padding: EdgeInsets.all(5),
-                                    child: Text(
-                                      lead["document"]["businessName"],
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: EdgeInsets.all(5),
-                                    child: Text(
-                                      '$fullName',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
                               Expanded(
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.end,
-                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: <Widget>[
                                     Padding(
                                       padding: EdgeInsets.all(5),
-                                      child: GestureDetector(
-                                        child: Icon(
-                                          Icons.touch_app,
-                                          size: 24,
-                                          color: Colors.grey[300],
+                                      child: Text(
+                                        lead["document"]["businessName"],
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: EdgeInsets.all(5),
+                                      child: Text(
+                                        '$fullName',
+                                        style: TextStyle(
+                                          fontSize: 14,
                                         ),
                                       ),
                                     ),

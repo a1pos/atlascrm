@@ -46,21 +46,33 @@ class _TaskStatusDropDownState extends State<TaskStatusDropDown> {
 
   @override
   Widget build(BuildContext context) {
-    return DropdownButton<String>(
-      isExpanded: true,
-      value: this.widget.value,
-      hint: Text("Lead"),
-      items: leads.map((dynamic item) {
-        return DropdownMenuItem<String>(
-          value: item["lead"],
-          child: Text(
-            item["document"]["businessName"],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          'Lead',
+          style: TextStyle(
+            color: Colors.grey,
+            fontSize: 13,
           ),
-        );
-      }).toList(),
-      onChanged: (newValue) {
-        this.widget.callback(newValue);
-      },
+        ),
+        DropdownButton<String>(
+          isExpanded: true,
+          value: this.widget.value,
+          hint: Text("Please choose one"),
+          items: leads.map((dynamic item) {
+            return DropdownMenuItem<String>(
+              value: item["lead"],
+              child: Text(
+                item["document"]["businessName"],
+              ),
+            );
+          }).toList(),
+          onChanged: (newValue) {
+            this.widget.callback(newValue);
+          },
+        ),
+      ],
     );
   }
 }

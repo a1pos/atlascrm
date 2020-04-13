@@ -1,8 +1,11 @@
+import 'package:atlascrm/components/lead/LeadDropDown.dart';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
+import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
+import 'package:atlascrm/components/task/TaskPriorityDropDown.dart';
+import 'package:atlascrm/components/task/TaskTypeDropDown.dart';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
-import 'package:unicorndial/unicorndial.dart';
 
 class ViewTaskScreen extends StatefulWidget {
   final ApiService apiService = new ApiService();
@@ -18,7 +21,14 @@ class ViewTaskScreen extends StatefulWidget {
 class ViewTaskScreenState extends State<ViewTaskScreen> {
   var isLoading = true;
 
+  var taskTitleController = TextEditingController();
+
   var task;
+
+  var employeeDropdownValue;
+  var taskTypeDropdownValue;
+  var taskPriorityDropdownValue;
+  var leadDropdownValue;
 
   @override
   void initState() {
@@ -31,13 +41,19 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
     var resp = await this
         .widget
         .apiService
-        .authGet(context, "/task/" + this.widget.taskId);
+        .authGet(context, "/tasks/" + this.widget.taskId);
 
     if (resp.statusCode == 200) {
       var body = resp.data;
       if (body != null) {
         var bodyDecoded = body;
-        task = bodyDecoded;
+        setState(() {
+          task = bodyDecoded;
+          taskTypeDropdownValue = bodyDecoded["type"];
+          employeeDropdownValue = bodyDecoded["owner"];
+          taskPriorityDropdownValue = bodyDecoded["priority"].toString();
+          taskTitleController.text = bodyDecoded["title"];
+        });
       }
     }
 
@@ -52,99 +68,89 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () {
-        Navigator.popAndPushNamed(context, '/tasks');
-
-        return Future.value(false);
-      },
-      child: Scaffold(
-        appBar: CustomAppBar(
-          key: Key("viewTasksAppBar"),
-          title: Text(isLoading ? "Loading..." : task[""]),
-        ),
-        body: isLoading
-            ? CenteredClearLoadingScreen()
-            : Container(
-                padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[],
-                  ),
+    return Scaffold(
+      appBar: CustomAppBar(
+        key: Key("viewTasksAppBar"),
+        title: Text(isLoading ? "Loading..." : task["title"]),
+      ),
+      body: isLoading
+          ? CenteredClearLoadingScreen()
+          : Container(
+              padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    TextFormField(
+                      decoration: InputDecoration(labelText: "Title"),
+                      controller: taskTitleController,
+                      // validator: validate,
+                    ),
+                    Divider(
+                      color: Colors.white,
+                    ),
+                    EmployeeDropDown(
+                      value: employeeDropdownValue,
+                      callback: ((val) {
+                        setState(() {
+                          employeeDropdownValue = val;
+                        });
+                      }),
+                    ),
+                    Divider(
+                      color: Colors.white,
+                    ),
+                    TaskTypeDropDown(
+                      value: taskTypeDropdownValue,
+                      callback: ((val) {
+                        setState(() {
+                          taskTypeDropdownValue = val;
+                        });
+                      }),
+                    ),
+                    Divider(
+                      color: Colors.white,
+                    ),
+                    TaskPriorityDropDown(
+                      value: taskPriorityDropdownValue,
+                      callback: (val) {
+                        setState(() {
+                          taskPriorityDropdownValue = val;
+                        });
+                      },
+                    ),
+                    Divider(
+                      color: Colors.white,
+                    ),
+                    Row(
+                      children: <Widget>[
+                        Expanded(
+                          flex: 8,
+                          child: LeadDropDown(
+                            value: leadDropdownValue,
+                            callback: (val) {
+                              setState(() {
+                                leadDropdownValue = val;
+                              });
+                            },
+                          ),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Text('asdf'),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-        floatingActionButton: UnicornDialer(
-          parentButtonBackground: Color.fromARGB(500, 1, 224, 143),
-          orientation: UnicornOrientation.VERTICAL,
-          parentButton: Icon(
-            Icons.add,
-            color: Colors.white,
-          ),
-          childButtons: <UnicornButton>[
-            UnicornButton(
-              hasLabel: true,
-              labelText: "Save Task",
-              currentButton: FloatingActionButton(
-                heroTag: "saveTask",
-                backgroundColor: Colors.green[300],
-                mini: true,
-                foregroundColor: Colors.white,
-                child: Icon(Icons.save),
-                onPressed: () {
-                  updateTask();
-                },
-              ),
             ),
-            UnicornButton(
-              hasLabel: true,
-              labelText: "Delete Task",
-              currentButton: FloatingActionButton(
-                heroTag: "deleteTask",
-                mini: true,
-                backgroundColor: Colors.red[300],
-                child: Icon(Icons.delete),
-                foregroundColor: Colors.white,
-                onPressed: () {
-                  deleteTask();
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget getInfoRow(label, value, controller) {
-    if (value != null) {
-      controller.text = value;
-    }
-
-    var valueFmt = value ?? "N/A";
-
-    if (valueFmt == "") {
-      valueFmt = "N/A";
-    }
-
-    return Container(
-      child: Padding(
-        padding: EdgeInsets.all(15),
-        child: Row(
-          children: <Widget>[
-            Expanded(
-              flex: 4,
-              child: Text(
-                '$label: ',
-                style: TextStyle(fontSize: 16),
-              ),
-            ),
-            Expanded(
-              flex: 8,
-              child: TextField(controller: controller),
-            ),
-          ],
-        ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          await updateTask();
+        },
+        backgroundColor: Color.fromARGB(500, 1, 224, 143),
+        child: Icon(Icons.save),
       ),
     );
   }

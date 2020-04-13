@@ -13,12 +13,6 @@ class ApiService {
   final String URLBASE = ConfigSettings.API_URL;
   final int TIMEOUT = 10000;
 
-  // http.Client client;
-
-  // ApiService() {
-  //   dio = Dio(opts);
-  // }
-
   Future<Response> publicGet(url, data) async {
     try {
       return await Dio(

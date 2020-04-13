@@ -2,7 +2,7 @@ class Lead {
   String lead;
   String firstName;
   String lastName;
-  String emailAddress;
+  String emailAddr;
   String phoneNumber;
 
   String businessName;
@@ -21,7 +21,7 @@ class Lead {
       this.lead,
       this.firstName,
       this.lastName,
-      this.emailAddress,
+      this.emailAddr,
       this.phoneNumber,
       this.businessName,
       this.dbaName,
@@ -42,7 +42,7 @@ class Lead {
       data["lead"],
       data["document"]["firstName"],
       data["document"]["lastName"],
-      data["document"]["emailAddress"],
+      data["document"]["emailAddr"],
       data["document"]["phoneNumber"],
       data["document"]["businessName"],
       data["document"]["dbaName"],
@@ -59,7 +59,7 @@ class Lead {
         'lead': lead,
         'firstName': firstName,
         'lastName': lastName,
-        'emailAddress': emailAddress,
+        'emailAddr': emailAddr,
         'phoneNumber': phoneNumber,
         'businessName': businessName,
         'dbaName': dbaName,

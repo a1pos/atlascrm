@@ -53,7 +53,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
 
   Future<void> loadEmployeeData(employeeId) async {
     var resp = await apiService.authGet(
-        context, "/employees/" + this.widget.employeeId);
+        context, "/employee/" + this.widget.employeeId);
 
     if (resp.statusCode == 200) {
       var body = resp.data;
@@ -68,18 +68,18 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
   }
 
   Future<void> loadDefaultRoles() async {
-    var resp = await apiService.authGet(context, "/employee/roles");
+    var resp = await apiService.authGet(context, "/role");
 
     if (resp.statusCode == 200) {
       var body = resp.data;
       if (body != null) {
-        var bodyDecoded = body;
-        var rolesArr = bodyDecoded["document"];
+        var rolesArr = body;
 
         var rolesFull = [];
 
         for (var i = 0; i < List.from(rolesArr).length; i++) {
-          rolesFull.add({"display": rolesArr[i], "value": rolesArr[i]});
+          rolesFull.add(
+              {"display": rolesArr[i]["title"], "value": rolesArr[i]["role"]});
         }
 
         setState(() {
@@ -92,7 +92,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
   Future<void> updateEmployee() async {
     try {
       var resp = await apiService.authPut(
-          context, "/employees/" + employee.employee, employee);
+          context, "/employee/" + employee.employee, employee);
       if (resp.statusCode == 200) {
         Fluttertoast.showToast(
             msg: "Update Successful!",
@@ -273,28 +273,6 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                       icon: Icons.account_box,
                       child: Column(
                         children: <Widget>[
-                          // Row(
-                          //   children: <Widget>[
-                          //     Expanded(
-                          //       flex: 5,
-                          //       child: getLabel("Account Status"),
-                          //     ),
-                          //     Expanded(
-                          //       flex: 1,
-                          //       child: Switch(
-                          //         value: employee.isActive,
-                          //         onChanged: (value) {
-                          //           setState(() {
-                          //             employee.isActive = value;
-                          //           });
-                          //         },
-                          //         activeTrackColor: Colors.green[200],
-                          //         activeColor: Colors.green,
-                          //       ),
-                          //     ),
-                          //   ],
-                          // ),
-                          // rowDivider(),
                           Row(
                             children: <Widget>[
                               Expanded(

@@ -29,37 +29,37 @@ class _SalesDashboardScreenState extends State<SalesDashboardScreen> {
       ),
     );
 
-    initStatistics();
+    // initStatistics();
   }
 
-  Future<void> initStatistics() async {
-    try {
-      var resp = await apiService.authGet(context, "/employees/statistics");
-      if (resp != null) {
-        if (resp.statusCode == 200) {
-          var statsArrDecoded = resp.data;
-          if (statsArrDecoded != null) {
-            var statsArr = List.from(statsArrDecoded);
-            if (statsArr.length > 0) {
-              var temp = [];
-              for (var item in statsArr) {
-                temp.add({
-                  "fullName": item["fullname"],
-                  "agreementcount": item["agreementcount"]
-                });
-              }
-              setState(() {
-                leaderboardData = temp;
-                isLoading = false;
-              });
-            }
-          }
-        }
-      }
-    } catch (err) {
-      print(err);
-    }
-  }
+  // Future<void> initStatistics() async {
+  //   try {
+  //     var resp = await apiService.authGet(context, "/employees/statistics");
+  //     if (resp != null) {
+  //       if (resp.statusCode == 200) {
+  //         var statsArrDecoded = resp.data;
+  //         if (statsArrDecoded != null) {
+  //           var statsArr = List.from(statsArrDecoded);
+  //           if (statsArr.length > 0) {
+  //             var temp = [];
+  //             for (var item in statsArr) {
+  //               temp.add({
+  //                 "fullName": item["fullname"],
+  //                 "agreementcount": item["agreementcount"]
+  //               });
+  //             }
+  //             setState(() {
+  //               leaderboardData = temp;
+  //               isLoading = false;
+  //             });
+  //           }
+  //         }
+  //       }
+  //     }
+  //   } catch (err) {
+  //     print(err);
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -82,11 +82,7 @@ class _SalesDashboardScreenState extends State<SalesDashboardScreen> {
                     icon: Icons.attach_money,
                     child: Container(
                       height: 200,
-                      child: isLoading
-                          ? Spinner()
-                          : SalesLeaderboardChart(
-                              data: leaderboardData,
-                            ),
+                      child: isLoading ? Spinner() : SalesLeaderboardChart(),
                     ),
                   ),
                   CustomCard(

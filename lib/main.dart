@@ -1,4 +1,5 @@
 import 'package:atlascrm/components/shared/CameraPage.dart';
+import 'package:atlascrm/components/shared/CustomWebView.dart';
 import 'package:atlascrm/components/shared/LoadingScreen.dart';
 import 'package:atlascrm/components/shared/SlideRightRoute.dart';
 import 'package:atlascrm/screens/auth/AuthScreen.dart';
@@ -171,6 +172,16 @@ class _AtlasCRMState extends State<AtlasCRM> {
             return SlideRightRoute(
                 page:
                     CameraPage(cameras: cameras, callback: settings.arguments));
+            break;
+          case '/docusigner':
+            return SlideRightRoute(
+              page: CustomWebView(
+                title: "Docusigner",
+                selectedUrl:
+                    "https://demo.docusign.net/Member/PowerFormSigning.aspx?PowerFormId=c04d3d47-c7be-46d5-a10a-471e8c9e531b&env=demo&acct=d805e4d3-b594-4e79-9d49-243e076e75e6&v=2",
+              ),
+            );
+
             break;
           case '/settings':
             // return MaterialPageRoute(builder: (context) => SettingsScreen());

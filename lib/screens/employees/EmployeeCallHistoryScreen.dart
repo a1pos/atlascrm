@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
@@ -32,7 +30,7 @@ class _EmployeeCallHistoryScreenState extends State<EmployeeCallHistoryScreen> {
 
   Future<void> initCallHistory() async {
     var callHistoryResponse = await this.widget.apiService.authGet(
-        context, "/employees/calllog/history/" + this.widget.employeeId);
+        context, "/employee/calllog/history/" + this.widget.employeeId);
     if (callHistoryResponse.statusCode == 200) {
       setState(() {
         calls = callHistoryResponse.data;

@@ -30,7 +30,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
   }
 
   Future<void> getEmployees() async {
-    var resp = await apiService.authGet(context, "/employees");
+    var resp = await apiService.authGet(context, "/employee");
     if (resp != null) {
       if (resp.statusCode == 200) {
         var employeeArrDecoded = resp.data;
@@ -156,25 +156,6 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
                           fontSize: 14,
                         ),
                       ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: <Widget>[
-                        Padding(
-                          padding: EdgeInsets.all(5),
-                          child: GestureDetector(
-                            child: Icon(
-                              Icons.touch_app,
-                              size: 24,
-                              color: Colors.grey[300],
-                            ),
-                          ),
-                        ),
-                      ],
                     ),
                   ),
                 ],

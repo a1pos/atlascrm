@@ -1,10 +1,10 @@
 import 'dart:ui';
 
+import 'package:atlascrm/components/lead/LeadDropDown.dart';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomDrawer.dart';
 import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
-import 'package:atlascrm/components/lead/LeadsDropDown.dart';
 import 'package:atlascrm/components/shared/LoadingScreen.dart';
 import 'package:atlascrm/components/task/TaskPriorityDropDown.dart';
 import 'package:atlascrm/components/task/TaskPriorityHigh.dart';
@@ -15,6 +15,7 @@ import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 import 'package:intl/intl.dart';
 
@@ -28,7 +29,18 @@ class _TaskScreenState extends State<TaskScreen> {
 
   var isEmpty = false;
   var isLoading = true;
+
   var tasks = [];
+  var tasksFull = [];
+
+  var taskTitleController = TextEditingController();
+  var taskDescController = TextEditingController();
+  var taskDateController = TextEditingController();
+
+  var leadDropdownValue;
+  var taskTypeDropdownValue;
+  var taskPriorityDropdownValue;
+  var employeeDropdownValue;
 
   @override
   void initState() {
@@ -40,38 +52,80 @@ class _TaskScreenState extends State<TaskScreen> {
   Future<void> initTasks() async {
     try {
       var resp = await apiService.authGet(
-          context, "/task/for/${UserService.employee.employee}");
+          context, "/employee/${UserService.employee.employee}/task");
       if (resp != null) {
         if (resp.statusCode == 200) {
           var tasksArrDecoded = resp.data;
           if (tasksArrDecoded != null) {
-            var temp = [];
-
-            for (var item in tasksArrDecoded) {
-              temp.add(item);
-            }
-
             setState(() {
-              tasks = temp;
+              tasks = tasksArrDecoded;
+              tasksFull = tasksArrDecoded;
               isLoading = false;
             });
           }
+        } else {
+          throw new Error();
         }
-      } else {}
+      } else {
+        throw new Error();
+      }
     } catch (err) {
       print(err);
+
+      Fluttertoast.showToast(
+          msg: "Failed to load tasks for employee!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0);
+    }
+  }
+
+  Future<void> createTask() async {
+    try {
+      var data = {
+        "type": taskTypeDropdownValue,
+        "employeeId": employeeDropdownValue,
+        "date": taskDateController.text,
+        "priority": taskPriorityDropdownValue,
+        "lead": leadDropdownValue,
+        "document": {
+          "title": taskTitleController.text,
+          "notes": taskDescController.text,
+        }
+      };
+
+      var resp = await apiService.authPost(
+          context, "/employee/${UserService.employee.employee}/task", data);
+      if (resp != null) {
+        if (resp.statusCode == 200) {
+          Fluttertoast.showToast(
+              msg: "Successfully create task!",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.grey[600],
+              textColor: Colors.white,
+              fontSize: 16.0);
+
+          await initTasks();
+        }
+      } else {
+        throw new Error();
+      }
+    } catch (err) {
+      print(err);
+      Fluttertoast.showToast(
+          msg: "Failed to create task for employee!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0);
     }
   }
 
   Future<void> openAddTaskForm() async {
-    var taskTitleController = TextEditingController();
-    var taskDescController = TextEditingController();
-
-    var leadDropdownValue;
-    var taskTypeDropdownValue;
-    var taskPriorityDropdownValue;
-    var employeeDropdownValue;
-
     await showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -95,7 +149,11 @@ class _TaskScreenState extends State<TaskScreen> {
                     ),
                   ),
                   color: Color.fromARGB(500, 1, 224, 143),
-                  onPressed: () {},
+                  onPressed: () async {
+                    await createTask();
+
+                    Navigator.of(context).pop();
+                  },
                 ),
               ],
               title: Text('Add New Task'),
@@ -116,6 +174,9 @@ class _TaskScreenState extends State<TaskScreen> {
                               });
                             }),
                           ),
+                          Divider(
+                            color: Colors.white,
+                          ),
                           TaskTypeDropDown(
                             value: taskTypeDropdownValue,
                             callback: ((val) {
@@ -123,6 +184,9 @@ class _TaskScreenState extends State<TaskScreen> {
                                 taskTypeDropdownValue = val;
                               });
                             }),
+                          ),
+                          Divider(
+                            color: Colors.white,
                           ),
                           TaskPriorityDropDown(
                             value: taskPriorityDropdownValue,
@@ -132,11 +196,14 @@ class _TaskScreenState extends State<TaskScreen> {
                               });
                             },
                           ),
+                          Divider(
+                            color: Colors.white,
+                          ),
                           Row(
                             children: <Widget>[
                               Expanded(
                                 flex: 8,
-                                child: LeadsDropDown(
+                                child: LeadDropDown(
                                   value: leadDropdownValue,
                                   callback: (val) {
                                     setState(() {
@@ -176,17 +243,20 @@ class _TaskScreenState extends State<TaskScreen> {
                           DateTimeField(
                             decoration: InputDecoration(labelText: "Date"),
                             format: DateFormat("yyyy-MM-dd HH:mm"),
+                            controller: taskDateController,
                             onShowPicker: (context, currentValue) async {
                               final date = await showDatePicker(
-                                  context: context,
-                                  firstDate: DateTime(1900),
-                                  initialDate: currentValue ?? DateTime.now(),
-                                  lastDate: DateTime(2100));
+                                context: context,
+                                firstDate: DateTime(1900),
+                                initialDate: currentValue ?? DateTime.now(),
+                                lastDate: DateTime(2100),
+                              );
                               if (date != null) {
                                 final time = await showTimePicker(
                                   context: context,
                                   initialTime: TimeOfDay.fromDateTime(
-                                      currentValue ?? DateTime.now()),
+                                    currentValue ?? DateTime.now(),
+                                  ),
                                 );
                                 return DateTimeField.combine(date, time);
                               } else {
@@ -206,9 +276,13 @@ class _TaskScreenState extends State<TaskScreen> {
       },
     ).then((val) {
       setState(() {
+        employeeDropdownValue = null;
         leadDropdownValue = null;
         taskPriorityDropdownValue = null;
         taskTypeDropdownValue = null;
+        taskTitleController.text = null;
+        taskDateController.text = null;
+        taskDescController.text = null;
       });
     });
   }
@@ -228,8 +302,25 @@ class _TaskScreenState extends State<TaskScreen> {
               child: tasks.length == 0
                   ? Empty("No Tasks found")
                   : SingleChildScrollView(
-                      child: Stack(
-                        children: <Widget>[
+                      child: Column(
+                        children: [
+                          TextField(
+                            decoration: InputDecoration(
+                              labelText: "Search Tasks",
+                            ),
+                            onChanged: (value) {
+                              var filtered = tasksFull.where((e) {
+                                String name = e["title"];
+                                return name
+                                    .toLowerCase()
+                                    .contains(value.toLowerCase());
+                              }).toList();
+
+                              setState(() {
+                                tasks = filtered.toList();
+                              });
+                            },
+                          ),
                           Column(
                             children: tasks.map((t) {
                               switch (t["priority"]) {

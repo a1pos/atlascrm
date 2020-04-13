@@ -1,7 +1,6 @@
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CustomDrawer.dart';
-import 'package:atlascrm/components/shared/Spinner.dart';
 import 'package:atlascrm/screens/dashboard/widgets/LeadsChart.dart';
 import 'package:atlascrm/screens/dashboard/widgets/SalesLeaderboardChart.dart';
 import 'package:atlascrm/screens/dashboard/widgets/StatementsChart.dart';
@@ -16,8 +15,6 @@ class AdminDashboardScreen extends StatefulWidget {
 }
 
 class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
-  var isLoading = true;
-
   final ApiService apiService = ApiService();
 
   var statsData = [];
@@ -32,37 +29,37 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       ),
     );
 
-    initStatistics();
+    // initStatistics();
   }
 
-  Future<void> initStatistics() async {
-    try {
-      var resp = await apiService.authGet(context, "/employees/statistics");
-      if (resp != null) {
-        if (resp.statusCode == 200) {
-          var statsArrDecoded = resp.data;
-          if (statsArrDecoded != null) {
-            var statsArr = List.from(statsArrDecoded);
-            if (statsArr.length > 0) {
-              var temp = [];
-              for (var item in statsArr) {
-                temp.add({
-                  "fullName": item["fullname"],
-                  "agreementcount": item["agreementcount"]
-                });
-              }
-              setState(() {
-                statsData = temp;
-                isLoading = false;
-              });
-            }
-          }
-        }
-      }
-    } catch (err) {
-      print(err);
-    }
-  }
+  // Future<void> initStatistics() async {
+  //   try {
+  //     var resp = await apiService.authGet(context, "/employees/statistics");
+  //     if (resp != null) {
+  //       if (resp.statusCode == 200) {
+  //         var statsArrDecoded = resp.data;
+  //         if (statsArrDecoded != null) {
+  //           var statsArr = List.from(statsArrDecoded);
+  //           if (statsArr.length > 0) {
+  //             var temp = [];
+  //             for (var item in statsArr) {
+  //               temp.add({
+  //                 "fullName": item["fullname"],
+  //                 "agreementcount": item["agreementcount"]
+  //               });
+  //             }
+  //             setState(() {
+  //               statsData = temp;
+  //               isLoading = false;
+  //             });
+  //           }
+  //         }
+  //       }
+  //     }
+  //   } catch (err) {
+  //     print(err);
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -85,11 +82,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     icon: Icons.attach_money,
                     child: Container(
                       height: 200,
-                      child: isLoading
-                          ? Spinner()
-                          : SalesLeaderboardChart(
-                              data: statsData,
-                            ),
+                      child: SalesLeaderboardChart(),
                     ),
                   ),
                   CustomCard(
@@ -98,11 +91,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     icon: Icons.subject,
                     child: Container(
                       height: 200,
-                      child: isLoading
-                          ? Spinner()
-                          : StatementsChart(
-                              data: statsData,
-                            ),
+                      child: StatementsChart(),
                     ),
                   ),
                   CustomCard(
@@ -111,11 +100,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     icon: Icons.phone,
                     child: Container(
                       height: 200,
-                      child: isLoading
-                          ? Spinner()
-                          : WeeklyCallsChart(
-                              data: statsData,
-                            ),
+                      child: WeeklyCallsChart(),
                     ),
                   ),
                   CustomCard(
@@ -124,11 +109,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     icon: Icons.person,
                     child: Container(
                       height: 200,
-                      child: isLoading
-                          ? Spinner()
-                          : LeadsChart(
-                              data: statsData,
-                            ),
+                      child: LeadsChart(),
                     ),
                   ),
                 ],

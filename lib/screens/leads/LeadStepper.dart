@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:developer';
 
 import 'package:atlascrm/models/Lead.dart';
@@ -281,24 +280,17 @@ class LeadStepperState extends State<LeadStepper> {
 
   void addLead() async {
     try {
-      var model = Lead.getEmptyLead();
+      var lead = {
+        "firstName": firstNameController.text,
+        "lastName": lastNameController.text,
+        "emailAddr": emailAddrController.text,
+        "phoneNumber": phoneNumberController.text,
+        "businessName": businessNameController.text,
+        "dbaName": dbaNameController.text,
+      };
 
-      model.firstName = firstNameController.text;
-      model.lastName = lastNameController.text;
-      model.emailAddress = emailAddrController.text;
-      model.phoneNumber = phoneNumberController.text;
-
-      model.businessName = businessNameController.text;
-      model.businessPhoneNumber = businessPhoneNumber.text;
-      model.businessAddress = businessAddrController.text;
-      model.dbaName = dbaNameController.text;
-      model.businessType = _selectedBusinessType;
-
-      model.leadSource = "";
-
-      model.employeeId = userService.getCurrentEmployee().employee;
-
-      var resp = await apiService.authPost(context, "/leads", model);
+      var resp = await apiService.authPost(
+          context, "/lead/${UserService.employee.employee}", lead);
       if (resp != null) {
         if (resp.statusCode == 201) {
           Navigator.pop(context);

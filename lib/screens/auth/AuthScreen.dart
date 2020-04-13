@@ -16,8 +16,6 @@ class _AuthScreenState extends State<AuthScreen> {
   TextEditingController _userHandleController = new TextEditingController();
   TextEditingController _passwordController = new TextEditingController();
 
-  // final _formKey = GlobalKey<FormState>();
-
   @override
   void initState() {
     super.initState();
@@ -27,22 +25,6 @@ class _AuthScreenState extends State<AuthScreen> {
 
     isLoading = false;
   }
-
-  // String hyperLinkText = "Or Register";
-
-  // void handleAuthSwitch() {
-  //   if (authType == 'LOGIN') {
-  //     setState(() {
-  //       authType = "REGISTER";
-  //       hyperLinkText = "Back to login";
-  //     });
-  //   } else {
-  //     setState(() {
-  //       authType = "LOGIN";
-  //       hyperLinkText = "Or Register";
-  //     });
-  //   }
-  // }
 
   void handleLogin() async {
     setState(() {

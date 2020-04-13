@@ -1,7 +1,7 @@
 class Employee {
   String employee;
   bool isActive;
-  String employeeAccountType;
+  int employeeAccountType;
   String employeeCompany;
   dynamic document;
 
@@ -15,18 +15,18 @@ class Employee {
   static Employee fromJson(Map<String, dynamic> data) {
     return Employee(
       data["employee"],
-      data["isactive"],
-      data["employeeAccountType"],
-      data["employeeCompany"],
+      data["is_active"],
+      data["employee_account_type"],
+      data["company"],
       data["document"],
     );
   }
 
   Map<String, dynamic> toJson() => {
         'employee': employee,
-        'isactive': isActive,
-        'employeeAccountType': employeeAccountType,
-        'employeeCompany': employeeCompany,
+        'is_active': isActive,
+        'employee_account_type': employeeAccountType,
+        'company': employeeCompany,
         'document': document,
       };
 }

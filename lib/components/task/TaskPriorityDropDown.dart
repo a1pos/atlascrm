@@ -15,8 +15,6 @@ class TaskPriorityDropDown extends StatefulWidget {
 class _TaskPriorityDropDownState extends State<TaskPriorityDropDown> {
   final ApiService apiService = ApiService();
 
-  var dropDownValue;
-
   var taskPriorites = [
     {"value": "0", "text": "High"},
     {"value": "1", "text": "Medium"},
@@ -30,21 +28,31 @@ class _TaskPriorityDropDownState extends State<TaskPriorityDropDown> {
 
   @override
   Widget build(BuildContext context) {
-    return DropdownButton<String>(
-      isExpanded: true,
-      value: dropDownValue,
-      hint: Text("Priority"),
-      items: taskPriorites.map((dynamic item) {
-        return DropdownMenuItem<String>(
-          value: item["value"],
-          child: Text(
-            item["text"],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          'Priority',
+          style: TextStyle(
+            color: Colors.grey,
+            fontSize: 13,
           ),
-        );
-      }).toList(),
-      onChanged: (newValue) {
-        this.widget.callback(newValue);
-      },
+        ),
+        DropdownButton<String>(
+          isExpanded: true,
+          value: this.widget.value,
+          hint: Text("Please choose one"),
+          items: taskPriorites.map((dynamic item) {
+            return DropdownMenuItem<String>(
+              value: item["value"],
+              child: Text(item["text"]),
+            );
+          }).toList(),
+          onChanged: (newValue) {
+            this.widget.callback(newValue);
+          },
+        ),
+      ],
     );
   }
 }

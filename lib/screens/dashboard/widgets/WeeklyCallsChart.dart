@@ -1,13 +1,10 @@
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:atlascrm/services/ApiService.dart';
+import 'package:atlascrm/services/UserService.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 
 class WeeklyCallsChart extends StatefulWidget {
-  final dynamic data;
-
-  WeeklyCallsChart({this.data});
-
   @override
   _WeeklyCallsChartState createState() => _WeeklyCallsChartState();
 }
@@ -37,11 +34,14 @@ class _WeeklyCallsChartState extends State<WeeklyCallsChart> {
       )
     ];
 
+    getWeeklyCalls();
+
     isLoading = false;
   }
 
   Future<void> getWeeklyCalls() async {
-    var resp = await apiService.authGet(context, "/employees/weeklycalls");
+    var resp = await apiService.authGet(context,
+        "/employees/statistics/weeklycalls/${UserService.employee.employee}");
     if (resp != null) {
       if (resp.statusCode == 200) {
         var employeeArrDecoded = resp.data;
