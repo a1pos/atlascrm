@@ -21,9 +21,9 @@ class _TaskPriorityMediumState extends State<TaskPriorityMedium> {
           children: <Widget>[
             ListTile(
               leading: Icon(Icons.low_priority),
-              title: Text(this.widget.title),
-              subtitle: Text(this.widget.description),
-              trailing: Text(this.widget.dateTime),
+              title: Text(this.widget.title ?? ""),
+              subtitle: Text(this.widget.description ?? ""),
+              trailing: Text(this.widget.dateTime ?? ""),
             ),
           ],
         ),

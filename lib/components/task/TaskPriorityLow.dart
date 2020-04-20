@@ -21,9 +21,9 @@ class _TaskPriorityLowState extends State<TaskPriorityLow> {
           children: <Widget>[
             ListTile(
               leading: Icon(Icons.snooze),
-              title: Text(this.widget.title),
-              subtitle: Text(this.widget.description),
-              trailing: Text(this.widget.dateTime),
+              title: Text(this.widget.title ?? ""),
+              subtitle: Text(this.widget.description ?? ""),
+              trailing: Text(this.widget.dateTime ?? ""),
             ),
           ],
         ),

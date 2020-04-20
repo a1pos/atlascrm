@@ -1,6 +1,5 @@
 import 'dart:developer';
 
-import 'package:atlascrm/models/Lead.dart';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:flutter/material.dart';

@@ -331,8 +331,8 @@ class _TaskScreenState extends State<TaskScreen> {
                                           arguments: t["task"]);
                                     },
                                     child: TaskPriorityHigh(
-                                      title: t["title"],
-                                      description: t["notes"],
+                                      title: t["document"]["title"],
+                                      description: t["document"]["notes"],
                                       dateTime: t["date"],
                                     ),
                                   );
@@ -344,8 +344,8 @@ class _TaskScreenState extends State<TaskScreen> {
                                           arguments: t["task"]);
                                     },
                                     child: TaskPriorityMedium(
-                                      title: t["title"],
-                                      description: t["notes"],
+                                      title: t["document"]["title"],
+                                      description: t["document"]["notes"],
                                       dateTime: t["date"],
                                     ),
                                   );
@@ -357,8 +357,8 @@ class _TaskScreenState extends State<TaskScreen> {
                                           arguments: t["task"]);
                                     },
                                     child: TaskPriorityLow(
-                                      title: t["title"],
-                                      description: t["notes"],
+                                      title: t["document"]["title"],
+                                      description: t["document"]["notes"],
                                       dateTime: t["date"],
                                     ),
                                   );

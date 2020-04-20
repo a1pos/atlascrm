@@ -57,7 +57,8 @@ class _EmployeeCallHistoryScreenState extends State<EmployeeCallHistoryScreen> {
               ? Empty("No calls")
               : Container(
                   child: ListView(
-                    children: calls.map((call) {
+                    children:
+                        calls.where((d) => d["document"] != null).map((call) {
                       var epoch = call["document"]["callDate"];
 
                       var lastCheckinTime =

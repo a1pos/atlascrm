@@ -41,7 +41,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
     var resp = await this
         .widget
         .apiService
-        .authGet(context, "/tasks/" + this.widget.taskId);
+        .authGet(context, "/task/" + this.widget.taskId);
 
     if (resp.statusCode == 200) {
       var body = resp.data;
@@ -52,7 +52,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
           taskTypeDropdownValue = bodyDecoded["type"];
           employeeDropdownValue = bodyDecoded["owner"];
           taskPriorityDropdownValue = bodyDecoded["priority"].toString();
-          taskTitleController.text = bodyDecoded["title"];
+          taskTitleController.text = bodyDecoded["document"]["title"];
         });
       }
     }
@@ -71,7 +71,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
     return Scaffold(
       appBar: CustomAppBar(
         key: Key("viewTasksAppBar"),
-        title: Text(isLoading ? "Loading..." : task["title"]),
+        title: Text(isLoading ? "Loading..." : task["document"]["title"]),
       ),
       body: isLoading
           ? CenteredClearLoadingScreen()

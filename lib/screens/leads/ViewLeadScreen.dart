@@ -48,11 +48,11 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
 
   var leadInfoEntries = List<LeadInfoEntry>();
 
+  var lead;
+  var leadDocument;
+
   var isLoading = true;
 
-  Lead lead;
-
-  @override
   void initState() {
     super.initState();
 
@@ -73,9 +73,11 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
       var body = resp.data;
       if (body != null) {
         var bodyDecoded = body;
-        lead = Lead.fromJson(bodyDecoded);
 
-        notesController.text = lead.notes;
+        setState(() {
+          lead = bodyDecoded;
+          leadDocument = bodyDecoded["document"];
+        });
       }
     }
 
@@ -85,22 +87,22 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
   }
 
   Future<void> updateLead(leadId) async {
-    lead.firstName = firstNameController.text;
-    lead.lastName = lastNameController.text;
-    lead.emailAddr = emailAddrController.text;
-    lead.phoneNumber = phoneNumberController.text;
-
-    lead.businessName = businessNameController.text;
-    lead.dbaName = dbaController.text;
-    lead.businessAddress = businessAddressController.text;
-    lead.businessPhoneNumber = businessPhoneNumberController.text;
-
-    lead.notes = notesController.text;
+    var leadToUpdate = {
+      "firstName": firstNameController.text,
+      "lastName": lastNameController.text,
+      "emailAddr": emailAddrController.text,
+      "phoneNumber": phoneNumberController.text,
+      "businessName": businessNameController.text,
+      "dbaName": dbaController.text,
+      "businessAddress": businessAddressController.text,
+      "businessPhoneNumber": businessPhoneNumberController.text,
+      "notes": notesController.text
+    };
 
     var resp = await this
         .widget
         .apiService
-        .authPut(context, "/leads/" + this.widget.leadId, lead);
+        .authPut(context, "/leads/" + this.widget.leadId, leadToUpdate);
 
     if (resp.statusCode == 200) {
       await loadLeadData(this.widget.leadId);
@@ -174,7 +176,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
       child: Scaffold(
         appBar: CustomAppBar(
           key: Key("viewLeadsAppBar"),
-          title: Text(isLoading ? "Loading..." : lead.businessName),
+          title: Text(isLoading ? "Loading..." : leadDocument["businessName"]),
         ),
         body: isLoading
             ? CenteredClearLoadingScreen()
@@ -190,13 +192,15 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                         title: "Personal Information",
                         child: Column(
                           children: <Widget>[
-                            getInfoRow("First Name", lead.firstName,
+                            getInfoRow("First Name", leadDocument["firstName"],
                                 firstNameController),
+                            getInfoRow("Last Name", leadDocument["lastName"],
+                                lastNameController),
+                            getInfoRow("Email Address",
+                                leadDocument["emailAddr"], emailAddrController),
                             getInfoRow(
-                                "Last Name", lead.lastName, lastNameController),
-                            getInfoRow("Email Address", lead.emailAddr,
-                                emailAddrController),
-                            getInfoRow("Phone Number", lead.phoneNumber,
+                                "Phone Number",
+                                leadDocument["phoneNumber"],
                                 phoneNumberController),
                           ],
                         ),
@@ -207,13 +211,19 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                         title: "Business Information",
                         child: Column(
                           children: <Widget>[
-                            getInfoRow("Business Name", lead.businessName,
+                            getInfoRow(
+                                "Business Name",
+                                leadDocument["businessName"],
                                 businessNameController),
-                            getInfoRow("Doing Business As", lead.dbaName,
-                                dbaController),
-                            getInfoRow("Business Address", lead.businessAddress,
+                            getInfoRow("Doing Business As",
+                                leadDocument["dbaName"], dbaController),
+                            getInfoRow(
+                                "Business Address",
+                                leadDocument["businessAddress"],
                                 businessAddressController),
-                            getInfoRow("Phone Number", lead.businessPhoneNumber,
+                            getInfoRow(
+                                "Phone Number",
+                                leadDocument["businessPhoneNumber"],
                                 businessPhoneNumberController),
                           ],
                         ),

@@ -48,6 +48,7 @@ class _AuthScreenState extends State<AuthScreen> {
         throw ('ERROR');
       }
     } catch (err) {
+      print(err);
       setState(() {
         isLoading = false;
       });

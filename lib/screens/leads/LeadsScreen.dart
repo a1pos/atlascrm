@@ -20,7 +20,6 @@ class LeadsScreen extends StatefulWidget {
 }
 
 class _LeadsScreenState extends State<LeadsScreen> {
-  var leadFormModel;
   var leads = [];
   var leadsFull = [];
 
@@ -32,17 +31,16 @@ class _LeadsScreenState extends State<LeadsScreen> {
   @override
   void initState() {
     super.initState();
-    leadFormModel = Lead.getEmptyLead();
 
     initLeadsData();
   }
 
   Future<void> initLeadsData() async {
     try {
-      var resp = await this
-          .widget
-          .apiService
-          .authGet(context, "/employee/${UserService.employee.employee}/lead");
+      var endpoint = UserService.isAdmin
+          ? "/lead"
+          : "/employee/${UserService.employee.employee}/lead";
+      var resp = await this.widget.apiService.authGet(context, endpoint);
       if (resp != null) {
         if (resp.statusCode == 200) {
           var leadsArrDecoded = resp.data;
@@ -81,6 +79,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Add New Lead'),
+          contentPadding: EdgeInsets.all(0),
           content: Container(
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height,

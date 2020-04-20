@@ -40,7 +40,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
 
   Future<void> initData() async {
     try {
-      await loadEmployeeData(this.widget.employeeId);
+      await loadEmployeeData();
       await loadDefaultRoles();
     } catch (err) {
       log(err);
@@ -51,7 +51,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
     });
   }
 
-  Future<void> loadEmployeeData(employeeId) async {
+  Future<void> loadEmployeeData() async {
     var resp = await apiService.authGet(
         context, "/employee/" + this.widget.employeeId);
 
