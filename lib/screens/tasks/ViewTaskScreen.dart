@@ -5,7 +5,13 @@ import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
 import 'package:atlascrm/components/task/TaskPriorityDropDown.dart';
 import 'package:atlascrm/components/task/TaskTypeDropDown.dart';
 import 'package:atlascrm/services/ApiService.dart';
+import 'package:atlascrm/services/UserService.dart';
 import 'package:flutter/material.dart';
+import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:atlascrm/config/ConfigSettings.dart';
+
+import 'package:intl/intl.dart';
 
 class ViewTaskScreen extends StatefulWidget {
   final ApiService apiService = new ApiService();
@@ -19,9 +25,13 @@ class ViewTaskScreen extends StatefulWidget {
 }
 
 class ViewTaskScreenState extends State<ViewTaskScreen> {
+  final ApiService apiService = ApiService();
   var isLoading = true;
 
   var taskTitleController = TextEditingController();
+  var taskDateController = TextEditingController();
+  var taskDescController = TextEditingController();
+
 
   var task;
 
@@ -29,7 +39,8 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
   var taskTypeDropdownValue;
   var taskPriorityDropdownValue;
   var leadDropdownValue;
-
+  DateTime initDate;
+  TimeOfDay initTime;
   @override
   void initState() {
     super.initState();
@@ -47,12 +58,17 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
       var body = resp.data;
       if (body != null) {
         var bodyDecoded = body;
+        initDate = DateTime.parse(bodyDecoded["date"]);
+        initTime = TimeOfDay.fromDateTime(initDate);
         setState(() {
           task = bodyDecoded;
           taskTypeDropdownValue = bodyDecoded["type"];
           employeeDropdownValue = bodyDecoded["owner"];
           taskPriorityDropdownValue = bodyDecoded["priority"].toString();
           taskTitleController.text = bodyDecoded["document"]["title"];
+          taskDateController.text = bodyDecoded["date"];
+          taskDescController.text = bodyDecoded["document"]["notes"];
+
         });
       }
     }
@@ -62,7 +78,70 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
     });
   }
 
-  Future<void> updateTask() async {}
+  Future<void> updateTask() async {
+   try {
+      var token = ConfigSettings.ACCESS_TOKEN;
+      var data = {
+        "task": task["task"],
+        "status": task["status"],
+        "type": taskTypeDropdownValue,
+        "owner": employeeDropdownValue,
+        "date": taskDateController.text,
+        "priority": taskPriorityDropdownValue,
+        "lead": leadDropdownValue,
+        "document": {
+          "title": taskTitleController.text,
+          "notes": taskDescController.text,
+          "eventid": task["document"]["eventid"],
+        }
+      };
+      var resp1 = await apiService.authPut(
+          context, "/googlecalendar/"+ token, data);
+      if (resp1 != null) {
+        if (resp1.statusCode == 200) {
+          Fluttertoast.showToast(
+              msg: "Successfully updated Calendar Event!",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.grey[600],
+              textColor: Colors.white,
+              fontSize: 16.0);
+          var event = resp1.data["eventid"];
+          print('TASK: ' + task["task"]);
+          data["document"]["eventid"] = event;
+        }
+      } else {
+        throw new Error();
+      }
+      var resp = await apiService.authPut(
+          context, "/task/" + task["task"], data);
+      if (resp != null) {
+        if (resp.statusCode == 200) {
+          Fluttertoast.showToast(
+              msg: "Successfully updated task!",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.grey[600],
+              textColor: Colors.white,
+              fontSize: 16.0);
+
+          Navigator.pushNamed(context, "/tasks");
+        }
+      } else {
+        throw new Error();
+      }
+    } catch (err) {
+      print(err);
+      Fluttertoast.showToast(
+          msg: "Failed to update task for employee!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0);
+    }
+
+  }
 
   Future<void> deleteTask() async {}
 
@@ -141,6 +220,43 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
                         ),
                       ],
                     ),
+                        DateTimeField(
+                          decoration: InputDecoration(labelText: "Date"),
+                          format: DateFormat("yyyy-MM-dd HH:mm"),
+                          controller: taskDateController,
+                          onShowPicker: (context, currentValue) async {
+                             final date = await showDatePicker(
+                              context: context,
+                              firstDate: DateTime(1900),
+                              initialDate: currentValue ?? initDate,
+                              lastDate: DateTime(2100),
+                            );
+                              if (date != null) {
+                                final time = await showTimePicker(
+                                  context: context,
+                                  initialTime: initTime
+                                );
+                                return DateTimeField.combine(date, time);
+                              } else {
+                                return currentValue;
+                              }
+                            },
+                          ),
+                          TextField(
+                            maxLines: 10,
+                            controller: taskDescController,
+                            decoration: InputDecoration(
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Colors.greenAccent, width: 3.0),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide:
+                                    BorderSide(color: Colors.grey, width: 0.5),
+                              ),
+                              hintText: 'Description',
+                            ),
+                          ),
                   ],
                 ),
               ),

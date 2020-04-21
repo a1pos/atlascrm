@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:atlascrm/config/ConfigSettings.dart';
 import 'package:atlascrm/components/lead/LeadDropDown.dart';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomDrawer.dart';
@@ -84,9 +85,11 @@ class _TaskScreenState extends State<TaskScreen> {
 
   Future<void> createTask() async {
     try {
+      var token = ConfigSettings.ACCESS_TOKEN;
       var data = {
         "type": taskTypeDropdownValue,
-        "employeeId": employeeDropdownValue,
+        "owner": employeeDropdownValue,
+        "created_by": UserService.employee.employee,
         "date": taskDateController.text,
         "priority": taskPriorityDropdownValue,
         "lead": leadDropdownValue,
@@ -95,13 +98,30 @@ class _TaskScreenState extends State<TaskScreen> {
           "notes": taskDescController.text,
         }
       };
-
+      var resp1 = await apiService.authPost(
+          context, "/googlecalendar/"+ token +"/${UserService.employee.employee}", data);
+      if (resp1 != null) {
+        if (resp1.statusCode == 200) {
+          Fluttertoast.showToast(
+              msg: "Successfully created Calendar Event!",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.grey[600],
+              textColor: Colors.white,
+              fontSize: 16.0);
+          var event = await resp1.data["eventid"];
+          print('EVENT: ' + event);
+          data["document"]["eventid"] = event;
+        }
+      } else {
+        throw new Error();
+      }
       var resp = await apiService.authPost(
           context, "/employee/${UserService.employee.employee}/task", data);
       if (resp != null) {
         if (resp.statusCode == 200) {
           Fluttertoast.showToast(
-              msg: "Successfully create task!",
+              msg: "Successfully created task!",
               toastLength: Toast.LENGTH_SHORT,
               gravity: ToastGravity.BOTTOM,
               backgroundColor: Colors.grey[600],

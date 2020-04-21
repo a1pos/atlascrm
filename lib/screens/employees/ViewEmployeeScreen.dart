@@ -102,7 +102,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
             textColor: Colors.white,
             fontSize: 16.0);
 
-        await loadEmployeeData(this.widget.employeeId);
+        await loadEmployeeData();
       } else {
         throw ('ERROR');
       }
@@ -115,7 +115,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
           textColor: Colors.white,
           fontSize: 16.0);
 
-      await loadEmployeeData(this.widget.employeeId);
+      await loadEmployeeData();
     }
   }
 

@@ -65,6 +65,7 @@ class UserService {
       assert(user.uid == currentUser.uid);
 
       await storageService.save("token", googleSignInAuthentication.idToken);
+      await storageService.save("access_token", googleSignInAuthentication.accessToken);
 
       return true;
     } catch (err) {
@@ -76,12 +77,13 @@ class UserService {
 
   Future<void> signOutGoogle() async {
     await storageService.delete("token");
+    await storageService.delete("access_token");
+
     await googleSignIn.signOut();
   }
 
   Future<Response> linkGoogleAccount() async {
     var user = await _auth.currentUser();
-
     var idToken = await user.getIdToken();
 
     var provider = user.providerData
@@ -110,8 +112,11 @@ class UserService {
       var employeeAuthResp = await apiService.authGet(context, "/authorize");
       if (employeeAuthResp.statusCode == 200) {
         var token = await storageService.read("token");
+        var accessToken = await storageService.read("access_token");
         if (token != null) {
           ConfigSettings.GOOGLE_TOKEN = token;
+          ConfigSettings.ACCESS_TOKEN = accessToken;
+
         }
 
         var empDecoded = employeeAuthResp.data;
