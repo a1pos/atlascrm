@@ -1,8 +1,15 @@
+import 'package:atlascrm/components/lead/LeadDropDown.dart';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
+import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
+import 'package:atlascrm/components/task/TaskPriorityDropDown.dart';
+import 'package:atlascrm/components/task/TaskTypeDropDown.dart';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
+import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:atlascrm/config/ConfigSettings.dart';
+
 import 'package:intl/intl.dart';
 
 class ViewTaskScreen extends StatefulWidget {
@@ -16,11 +23,11 @@ class ViewTaskScreen extends StatefulWidget {
   ViewTaskScreenState createState() => ViewTaskScreenState();
 }
 
-class ViewTaskScreenState extends State<ViewTaskScreen> with TickerProviderStateMixin{
+class ViewTaskScreenState extends State<ViewTaskScreen> {
   final ApiService apiService = ApiService();
   var isLoading = true;
 
-  var taskTitle;
+  var taskTitleController = TextEditingController();
   var taskDateController = TextEditingController();
   var taskDescController = TextEditingController();
 
@@ -33,20 +40,10 @@ class ViewTaskScreenState extends State<ViewTaskScreen> with TickerProviderState
   var leadDropdownValue;
   DateTime initDate;
   TimeOfDay initTime;
-
-AnimationController _controller;
-
-  static const List<IconData> icons = const [ Icons.edit, Icons.done ];
-
-
-
   @override
   void initState() {
     super.initState();
-    _controller = new AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    );
+
     loadTaskData();
   }
 
@@ -67,11 +64,10 @@ AnimationController _controller;
           taskTypeDropdownValue = bodyDecoded["type"];
           employeeDropdownValue = bodyDecoded["owner"];
           taskPriorityDropdownValue = bodyDecoded["priority"].toString();
-          taskTitle = bodyDecoded["document"]["title"];
+          taskTitleController.text = bodyDecoded["document"]["title"];
           taskDateController.text = bodyDecoded["date"];
           taskDescController.text = bodyDecoded["document"]["notes"];
           leadDropdownValue = bodyDecoded["lead"];
-
         });
       }
     }
@@ -81,6 +77,71 @@ AnimationController _controller;
     });
   }
 
+  Future<void> updateTask() async {
+   try {
+      var token = ConfigSettings.ACCESS_TOKEN;
+      var data = {
+        "task": task["task"],
+        "status": task["status"],
+        "type": taskTypeDropdownValue,
+        "owner": employeeDropdownValue,
+        "date": taskDateController.text,
+        "priority": taskPriorityDropdownValue,
+        "lead": leadDropdownValue,
+        "document": {
+          "title": taskTitleController.text,
+          "notes": taskDescController.text,
+          "eventid": task["document"]["eventid"],
+        }
+      };
+      var resp1 = await apiService.authPut(
+          context, "/googlecalendar/"+ token, data);
+      if (resp1 != null) {
+        if (resp1.statusCode == 200) {
+          Fluttertoast.showToast(
+              msg: "Successfully updated Calendar Event!",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.grey[600],
+              textColor: Colors.white,
+              fontSize: 16.0);
+          var event = resp1.data["eventid"];
+          print('TASK: ' + task["task"]);
+          data["document"]["eventid"] = event;
+        }
+      } else {
+        throw new Error();
+      }
+      var resp = await apiService.authPut(
+          context, "/task/" + task["task"], data);
+      if (resp != null) {
+        if (resp.statusCode == 200) {
+          Fluttertoast.showToast(
+              msg: "Successfully updated task!",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.grey[600],
+              textColor: Colors.white,
+              fontSize: 16.0);
+
+          Navigator.pushNamed(context, "/tasks");
+        }
+      } else {
+        throw new Error();
+      }
+    } catch (err) {
+      print(err);
+      Fluttertoast.showToast(
+          msg: "Failed to update task for employee!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0);
+    }
+
+  }
+
   Future<void> deleteTask() async {}
 
   @override
@@ -88,36 +149,53 @@ AnimationController _controller;
     return Scaffold(
       appBar: CustomAppBar(
         key: Key("viewTasksAppBar"),
-        title: Text(isLoading ? "Loading..." : task["document"]["title"]),
+        title: Text(isLoading ? "Loading..." : "Edit: " + task['document']['title']),
       ),
       body: isLoading
           ? CenteredClearLoadingScreen()
           : Container(
-              padding: EdgeInsets.fromLTRB(10, 5, 10, 0),
+              padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
-                    Text(
-                    "Title: $taskTitle"
+                    TextFormField(
+                      decoration: InputDecoration(labelText: "Title"),
+                      controller: taskTitleController,
+                      // validator: validate,
                     ),
                     Divider(
                       color: Colors.white,
                     ),
-                    Text(
-                      "Employee: $employeeDropdownValue"
+                    EmployeeDropDown(
+                      value: employeeDropdownValue,
+                      callback: ((val) {
+                        setState(() {
+                          employeeDropdownValue = val;
+                        });
+                      }),
                     ),
                     Divider(
                       color: Colors.white,
                     ),
-                    Text(
-                      "Type: $taskTypeDropdownValue"
+                    TaskTypeDropDown(
+                      value: taskTypeDropdownValue,
+                      callback: ((val) {
+                        setState(() {
+                          taskTypeDropdownValue = val;
+                        });
+                      }),
                     ),
                     Divider(
                       color: Colors.white,
                     ),
-                    Text(
-                      "Priority: $taskPriorityDropdownValue"
+                    TaskPriorityDropDown(
+                      value: taskPriorityDropdownValue,
+                      callback: (val) {
+                        setState(() {
+                          taskPriorityDropdownValue = val;
+                        });
+                      },
                     ),
                     Divider(
                       color: Colors.white,
@@ -126,8 +204,13 @@ AnimationController _controller;
                       children: <Widget>[
                         Expanded(
                           flex: 8,
-                          child: Text(
-                            "Lead: $leadDropdownValue"
+                          child: LeadDropDown(
+                            value: leadDropdownValue,
+                            callback: (val) {
+                              setState(() {
+                                leadDropdownValue = val;
+                              });
+                            },
                           ),
                         ),
                         Expanded(
@@ -136,20 +219,35 @@ AnimationController _controller;
                         ),
                       ],
                     ),
-                    Container(
-                      padding: EdgeInsets.fromLTRB(0, 15, 0, 15),
-                      child:Text(
-                      "Date: $initDate"
-                      ),
-                    ),
-                    TextField(
-                      maxLines: 10,
-                      readOnly: true,
-                      controller: taskDescController,
-                      decoration: InputDecoration(
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                              color: Colors.greenAccent, width: 3.0),
+                        DateTimeField(
+                          decoration: InputDecoration(labelText: "Date"),
+                          format: DateFormat("yyyy-MM-dd HH:mm"),
+                          controller: taskDateController,
+                          onShowPicker: (context, currentValue) async {
+                             final date = await showDatePicker(
+                              context: context,
+                              firstDate: DateTime(1900),
+                              initialDate: currentValue ?? initDate,
+                              lastDate: DateTime(2100),
+                            );
+                              if (date != null) {
+                                final time = await showTimePicker(
+                                  context: context,
+                                  initialTime: initTime
+                                );
+                                return DateTimeField.combine(date, time);
+                              } else {
+                                return currentValue;
+                              }
+                            },
+                          ),
+                          TextField(
+                            maxLines: 10,
+                            controller: taskDescController,
+                            decoration: InputDecoration(
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Colors.greenAccent, width: 3.0),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderSide:
@@ -162,60 +260,12 @@ AnimationController _controller;
                 ),
               ),
             ),
-      floatingActionButton: new Column(
-        mainAxisSize: MainAxisSize.min,
-        children: new List.generate(icons.length, (int index) {
-          Widget child = new Container(
-            height: 70.0,
-            width: 56.0,
-            alignment: FractionalOffset.topCenter,
-            child: new ScaleTransition(
-              scale: new CurvedAnimation(
-                parent: _controller,
-                curve: new Interval(
-                  0.0,
-                  1.0 - index / icons.length / 2.0,
-                  curve: Curves.easeOut
-                ),
-              ),
-              child: new FloatingActionButton(
-                heroTag: null,
-                backgroundColor: Color.fromARGB(500, 1, 224, 143),
-                mini: true,
-                child: new Icon(icons[index], color: Colors.white),
-                onPressed: () {
-                  if (index == 0){
-                    Navigator.pushNamed(context, "/edittask",
-                    arguments: task["task"]);
-                  }
-                },
-              ),
-            ),
-          );
-          return child;
-        }).toList()..add(
-          new FloatingActionButton(
-            heroTag: null,
-            backgroundColor: Color.fromARGB(500, 1, 224, 143),
-            child: new AnimatedBuilder(
-              animation: _controller,
-              builder: (BuildContext context, Widget child) {
-                return new Transform(
-                  transform: new Matrix4.rotationZ(_controller.value * 0.5 * math.pi),
-                  alignment: FractionalOffset.center,
-                  child: new Icon(_controller.isDismissed ? Icons.dehaze : Icons.close),
-                );
-              },
-            ),
-            onPressed: () {
-              if (_controller.isDismissed) {
-                _controller.forward();
-              } else {
-                _controller.reverse();
-              }
-            },
-          ),
-        ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          await updateTask();
+        },
+        backgroundColor: Color.fromARGB(500, 1, 224, 143),
+        child: Icon(Icons.save),
       ),
     );
   }

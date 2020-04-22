@@ -15,7 +15,6 @@ import 'package:atlascrm/screens/leads/LeadsScreen.dart';
 import 'package:atlascrm/screens/leads/ViewLeadScreen.dart';
 import 'package:atlascrm/screens/tasks/TaskScreen.dart';
 import 'package:atlascrm/screens/tasks/ViewTaskScreen.dart';
-import 'package:atlascrm/screens/tasks/EditTaskScreen.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
@@ -168,9 +167,6 @@ class _AtlasCRMState extends State<AtlasCRM> {
             break;
           case '/viewtask':
             return SlideRightRoute(page: ViewTaskScreen(settings.arguments));
-            break;
-          case '/edittask':
-            return SlideRightRoute(page: EditTaskScreen(settings.arguments));
             break;
           case '/camera':
             return SlideRightRoute(
