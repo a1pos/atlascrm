@@ -110,7 +110,6 @@ class _TaskScreenState extends State<TaskScreen> {
               textColor: Colors.white,
               fontSize: 16.0);
           var event = await resp1.data["eventid"];
-          print('EVENT: ' + event);
           data["document"]["eventid"] = event;
         }
       } else {
