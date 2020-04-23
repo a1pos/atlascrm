@@ -149,7 +149,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
     return Scaffold(
       appBar: CustomAppBar(
         key: Key("viewTasksAppBar"),
-        title: Text(isLoading ? "Loading..." : "Edit: " + task['document']['title']),
+        title: Text(isLoading ? "Loading..." : task['document']['title']),
       ),
       body: isLoading
           ? CenteredClearLoadingScreen()
@@ -171,7 +171,15 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
                       value: employeeDropdownValue,
                       callback: ((val) {
                         setState(() {
-                          employeeDropdownValue = val;
+                          val = null;
+                          Fluttertoast.showToast(
+                            msg: "Employee can not be changed for tasks!",
+                            toastLength: Toast.LENGTH_SHORT,
+                            gravity: ToastGravity.BOTTOM,
+                            backgroundColor: Colors.grey[600],
+                            textColor: Colors.white,
+                            fontSize: 16.0
+                            );
                         });
                       }),
                     ),
@@ -208,7 +216,15 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
                             value: leadDropdownValue,
                             callback: (val) {
                               setState(() {
-                                leadDropdownValue = val;
+                                val = null;
+                                Fluttertoast.showToast(
+                                  msg: "Lead can not be changed for tasks!",
+                                  toastLength: Toast.LENGTH_SHORT,
+                                  gravity: ToastGravity.BOTTOM,
+                                  backgroundColor: Colors.grey[600],
+                                  textColor: Colors.white,
+                                  fontSize: 16.0
+                                  );
                               });
                             },
                           ),

@@ -38,7 +38,13 @@ class _TaskPriorityDropDownState extends State<TaskPriorityDropDown> {
             fontSize: 13,
           ),
         ),
-        DropdownButton<String>(
+        DropdownButtonFormField<String>(
+          validator: (value) {
+            if (value == null) {
+              return 'Please select a task priority';
+            }
+            return null;
+          },
           isExpanded: true,
           value: this.widget.value,
           hint: Text("Please choose one"),

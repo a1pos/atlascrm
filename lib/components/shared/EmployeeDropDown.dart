@@ -50,7 +50,13 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
             fontSize: 13,
           ),
         ),
-        DropdownButton<String>(
+        DropdownButtonFormField<String>(
+          validator: (value) {
+            if (value == null) {
+              return 'Please select an employee';
+            }
+            return null;
+          },
           isExpanded: true,
           value: this.widget.value,
           hint: Text("Please choose one"),
