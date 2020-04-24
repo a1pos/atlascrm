@@ -367,6 +367,9 @@ class _TaskScreenState extends State<TaskScreen> {
                           ),
                           Column(
                             children: tasks.map((t) {
+                              var tDate = DateFormat("EEE, MMM d, ''yy")
+                                  .add_jm()
+                                  .format(DateTime.parse(t['date']));
                               return GestureDetector(
                                 onTap: () {
                                   Navigator.pushNamed(context, "/viewtask",
@@ -375,7 +378,7 @@ class _TaskScreenState extends State<TaskScreen> {
                                 child: TaskItem(
                                     title: t["document"]["title"],
                                     description: t["document"]["notes"],
-                                    dateTime: t["date"],
+                                    dateTime: tDate,
                                     type: t["typetitle"],
                                     priority: t["priority"]),
                               );

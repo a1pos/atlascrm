@@ -1,5 +1,4 @@
 import 'package:atlascrm/components/lead/LeadDropDown.dart';
-import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
 import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
 import 'package:atlascrm/components/task/TaskPriorityDropDown.dart';
@@ -32,7 +31,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
   var taskDescController = TextEditingController();
 
   var task;
-
+  bool isChanged = false;
   var employeeDropdownValue;
   var taskTypeDropdownValue;
   var taskPriorityDropdownValue;
@@ -44,6 +43,12 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
     super.initState();
 
     loadTaskData();
+  }
+
+  changeButton() {
+    setState(() {
+      isChanged = true;
+    });
   }
 
   Future<void> loadTaskData() async {
@@ -58,14 +63,18 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
         var bodyDecoded = body;
         initDate = DateTime.parse(bodyDecoded["date"]);
         initTime = TimeOfDay.fromDateTime(initDate);
+        var viewDate = DateFormat("yyyy-MM-dd HH:mm").format(initDate);
         setState(() {
           task = bodyDecoded;
           taskTypeDropdownValue = bodyDecoded["type"];
           employeeDropdownValue = bodyDecoded["owner"];
           taskPriorityDropdownValue = bodyDecoded["priority"].toString();
           taskTitleController.text = bodyDecoded["document"]["title"];
-          taskDateController.text = bodyDecoded["date"];
+          taskTitleController.addListener(changeButton);
+          taskDateController.text = viewDate;
+          taskDateController.addListener(changeButton);
           taskDescController.text = bodyDecoded["document"]["notes"];
+          taskDescController.addListener(changeButton);
           leadDropdownValue = bodyDecoded["lead"];
         });
       }
@@ -140,7 +149,50 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
     }
   }
 
-  Future<void> deleteTask() async {}
+  Future<void> deleteCheck() async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Delete this Task?'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('Are you sure you want to delete this task?'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('Delete',
+                  style: TextStyle(fontSize: 17, color: Colors.red)),
+              onPressed: () {
+                deleteTask();
+
+                Navigator.of(context).pop();
+              },
+            ),
+            FlatButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> deleteTask() async {
+    Fluttertoast.showToast(
+        msg: "This happens on delete",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.grey[600],
+        textColor: Colors.white,
+        fontSize: 16.0);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -150,23 +202,12 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
         title: Text(isLoading ? "Loading..." : task['document']['title']),
         actions: <Widget>[
           Padding(
-            padding: const EdgeInsets.fromLTRB(5, 8, 30, 8),
-            child: RaisedButton(
+            padding: const EdgeInsets.fromLTRB(5, 8, 10, 8),
+            child: IconButton(
               onPressed: () {
-                Fluttertoast.showToast(
-                    msg: "Clicky clicky",
-                    toastLength: Toast.LENGTH_SHORT,
-                    gravity: ToastGravity.BOTTOM,
-                    backgroundColor: Colors.grey[600],
-                    textColor: Colors.white,
-                    fontSize: 16.0);
+                deleteCheck();
               },
-              child: Padding(
-                padding: const EdgeInsets.all(1.0),
-                child: Text("Resolve",
-                    style: TextStyle(color: Colors.white, fontSize: 15)),
-              ),
-              color: Color.fromARGB(500, 1, 224, 143),
+              icon: Icon(Icons.delete, color: Colors.white),
             ),
           )
         ],
@@ -211,6 +252,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
                       callback: ((val) {
                         setState(() {
                           taskTypeDropdownValue = val;
+                          changeButton();
                         });
                       }),
                     ),
@@ -222,6 +264,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
                       callback: (val) {
                         setState(() {
                           taskPriorityDropdownValue = val;
+                          changeButton();
                         });
                       },
                     ),
@@ -295,10 +338,20 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          await updateTask();
+          if (isChanged) {
+            await updateTask();
+          } else {
+            Fluttertoast.showToast(
+                msg: "This happens on resolve",
+                toastLength: Toast.LENGTH_SHORT,
+                gravity: ToastGravity.BOTTOM,
+                backgroundColor: Colors.grey[600],
+                textColor: Colors.white,
+                fontSize: 16.0);
+          }
         },
         backgroundColor: Color.fromARGB(500, 1, 224, 143),
-        child: Icon(Icons.save),
+        child: isChanged ? Icon(Icons.save) : Icon(Icons.done),
       ),
     );
   }
