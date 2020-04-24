@@ -8,9 +8,7 @@ import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
 import 'package:atlascrm/components/shared/LoadingScreen.dart';
 import 'package:atlascrm/components/task/TaskPriorityDropDown.dart';
-import 'package:atlascrm/components/task/TaskPriorityHigh.dart';
-import 'package:atlascrm/components/task/TaskPriorityLow.dart';
-import 'package:atlascrm/components/task/TaskPriorityMedium.dart';
+import 'package:atlascrm/components/task/TaskItem.dart';
 import 'package:atlascrm/components/task/TaskTypeDropDown.dart';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/UserService.dart';
@@ -137,6 +135,7 @@ class _TaskScreenState extends State<TaskScreen> {
           textColor: Colors.white,
           fontSize: 16.0);
     }
+    _formKey.currentState.reset();
   }
 
   Future<void> openAddTaskForm() async {
@@ -322,15 +321,16 @@ class _TaskScreenState extends State<TaskScreen> {
         );
       },
     ).then((val) {
-      // setState(() {
-      //   employeeDropdownValue = null;
-      //   leadDropdownValue = null;
-      //   taskPriorityDropdownValue = null;
-      //   taskTypeDropdownValue = null;
-      //   taskTitleController.text = null;
-      //   taskDateController.text = null;
-      //   taskDescController.text = null;
-      // });
+      _formKey.currentState.reset();
+      setState(() {
+        employeeDropdownValue = null;
+        leadDropdownValue = null;
+        taskPriorityDropdownValue = null;
+        taskTypeDropdownValue = null;
+        taskTitleController.text = null;
+        taskDateController.text = null;
+        taskDescController.text = null;
+      });
     });
   }
 
@@ -338,10 +338,7 @@ class _TaskScreenState extends State<TaskScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: CustomDrawer(),
-      appBar: CustomAppBar(
-        key: Key("taskAppBar"),
-        title: Text("Tasks"),
-      ),
+      appBar: CustomAppBar(key: Key("taskAppBar"), title: Text("Tasks")),
       body: isLoading
           ? LoadingScreen()
           : Container(
@@ -370,47 +367,18 @@ class _TaskScreenState extends State<TaskScreen> {
                           ),
                           Column(
                             children: tasks.map((t) {
-                              switch (t["priority"]) {
-                                case 0:
-                                  return GestureDetector(
-                                    onTap: () {
-                                      Navigator.pushNamed(context, "/viewtask",
-                                          arguments: t["task"]);
-                                    },
-                                    child: TaskPriorityHigh(
-                                      title: t["document"]["title"],
-                                      description: t["document"]["notes"],
-                                      dateTime: t["date"],
-                                    ),
-                                  );
-                                  break;
-                                case 1:
-                                  return GestureDetector(
-                                    onTap: () {
-                                      Navigator.pushNamed(context, "/viewtask",
-                                          arguments: t["task"]);
-                                    },
-                                    child: TaskPriorityMedium(
-                                      title: t["document"]["title"],
-                                      description: t["document"]["notes"],
-                                      dateTime: t["date"],
-                                    ),
-                                  );
-                                  break;
-                                case 2:
-                                  return GestureDetector(
-                                    onTap: () {
-                                      Navigator.pushNamed(context, "/viewtask",
-                                          arguments: t["task"]);
-                                    },
-                                    child: TaskPriorityLow(
-                                      title: t["document"]["title"],
-                                      description: t["document"]["notes"],
-                                      dateTime: t["date"],
-                                    ),
-                                  );
-                                  break;
-                              }
+                              return GestureDetector(
+                                onTap: () {
+                                  Navigator.pushNamed(context, "/viewtask",
+                                      arguments: t["task"]);
+                                },
+                                child: TaskItem(
+                                    title: t["document"]["title"],
+                                    description: t["document"]["notes"],
+                                    dateTime: t["date"],
+                                    type: t["typetitle"],
+                                    priority: t["priority"]),
+                              );
                             }).toList(),
                           ),
                         ],

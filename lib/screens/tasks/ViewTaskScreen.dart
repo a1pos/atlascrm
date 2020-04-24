@@ -31,7 +31,6 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
   var taskDateController = TextEditingController();
   var taskDescController = TextEditingController();
 
-
   var task;
 
   var employeeDropdownValue;
@@ -78,7 +77,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
   }
 
   Future<void> updateTask() async {
-   try {
+    try {
       var token = ConfigSettings.ACCESS_TOKEN;
       var data = {
         "task": task["task"],
@@ -94,8 +93,8 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
           "eventid": task["document"]["eventid"],
         }
       };
-      var resp1 = await apiService.authPut(
-          context, "/googlecalendar/"+ token, data);
+      var resp1 =
+          await apiService.authPut(context, "/googlecalendar/" + token, data);
       if (resp1 != null) {
         if (resp1.statusCode == 200) {
           Fluttertoast.showToast(
@@ -112,8 +111,8 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
       } else {
         throw new Error();
       }
-      var resp = await apiService.authPut(
-          context, "/task/" + task["task"], data);
+      var resp =
+          await apiService.authPut(context, "/task/" + task["task"], data);
       if (resp != null) {
         if (resp.statusCode == 200) {
           Fluttertoast.showToast(
@@ -139,7 +138,6 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
           textColor: Colors.white,
           fontSize: 16.0);
     }
-
   }
 
   Future<void> deleteTask() async {}
@@ -147,9 +145,32 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(
+      appBar: AppBar(
         key: Key("viewTasksAppBar"),
         title: Text(isLoading ? "Loading..." : task['document']['title']),
+        actions: <Widget>[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(5, 8, 30, 8),
+            child: RaisedButton(
+              onPressed: () {
+                Fluttertoast.showToast(
+                    msg: "Clicky clicky",
+                    toastLength: Toast.LENGTH_SHORT,
+                    gravity: ToastGravity.BOTTOM,
+                    backgroundColor: Colors.grey[600],
+                    textColor: Colors.white,
+                    fontSize: 16.0);
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(1.0),
+                child: Text("Resolve",
+                    style: TextStyle(color: Colors.white, fontSize: 15)),
+              ),
+              color: Color.fromARGB(500, 1, 224, 143),
+            ),
+          )
+        ],
+        backgroundColor: Color.fromARGB(500, 1, 56, 112),
       ),
       body: isLoading
           ? CenteredClearLoadingScreen()
@@ -173,13 +194,12 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
                         setState(() {
                           val = null;
                           Fluttertoast.showToast(
-                            msg: "Employee can not be changed for tasks!",
-                            toastLength: Toast.LENGTH_SHORT,
-                            gravity: ToastGravity.BOTTOM,
-                            backgroundColor: Colors.grey[600],
-                            textColor: Colors.white,
-                            fontSize: 16.0
-                            );
+                              msg: "Employee can not be changed for tasks!",
+                              toastLength: Toast.LENGTH_SHORT,
+                              gravity: ToastGravity.BOTTOM,
+                              backgroundColor: Colors.grey[600],
+                              textColor: Colors.white,
+                              fontSize: 16.0);
                         });
                       }),
                     ),
@@ -218,13 +238,12 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
                               setState(() {
                                 val = null;
                                 Fluttertoast.showToast(
-                                  msg: "Lead can not be changed for tasks!",
-                                  toastLength: Toast.LENGTH_SHORT,
-                                  gravity: ToastGravity.BOTTOM,
-                                  backgroundColor: Colors.grey[600],
-                                  textColor: Colors.white,
-                                  fontSize: 16.0
-                                  );
+                                    msg: "Lead can not be changed for tasks!",
+                                    toastLength: Toast.LENGTH_SHORT,
+                                    gravity: ToastGravity.BOTTOM,
+                                    backgroundColor: Colors.grey[600],
+                                    textColor: Colors.white,
+                                    fontSize: 16.0);
                               });
                             },
                           ),
@@ -235,43 +254,41 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
                         ),
                       ],
                     ),
-                        DateTimeField(
-                          decoration: InputDecoration(labelText: "Date"),
-                          format: DateFormat("yyyy-MM-dd HH:mm"),
-                          controller: taskDateController,
-                          onShowPicker: (context, currentValue) async {
-                             final date = await showDatePicker(
-                              context: context,
-                              firstDate: DateTime(1900),
-                              initialDate: currentValue ?? initDate,
-                              lastDate: DateTime(2100),
-                            );
-                              if (date != null) {
-                                final time = await showTimePicker(
-                                  context: context,
-                                  initialTime: initTime
-                                );
-                                return DateTimeField.combine(date, time);
-                              } else {
-                                return currentValue;
-                              }
-                            },
-                          ),
-                          TextField(
-                            maxLines: 10,
-                            controller: taskDescController,
-                            decoration: InputDecoration(
-                              focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: Colors.greenAccent, width: 3.0),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderSide:
-                                    BorderSide(color: Colors.grey, width: 0.5),
-                              ),
-                              hintText: 'Description',
-                            ),
-                          ),
+                    DateTimeField(
+                      decoration: InputDecoration(labelText: "Date"),
+                      format: DateFormat("yyyy-MM-dd HH:mm"),
+                      controller: taskDateController,
+                      onShowPicker: (context, currentValue) async {
+                        final date = await showDatePicker(
+                          context: context,
+                          firstDate: DateTime(1900),
+                          initialDate: currentValue ?? initDate,
+                          lastDate: DateTime(2100),
+                        );
+                        if (date != null) {
+                          final time = await showTimePicker(
+                              context: context, initialTime: initTime);
+                          return DateTimeField.combine(date, time);
+                        } else {
+                          return currentValue;
+                        }
+                      },
+                    ),
+                    TextField(
+                      maxLines: 10,
+                      controller: taskDescController,
+                      decoration: InputDecoration(
+                        focusedBorder: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(color: Colors.greenAccent, width: 3.0),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(color: Colors.grey, width: 0.5),
+                        ),
+                        hintText: 'Description',
+                      ),
+                    ),
                   ],
                 ),
               ),

@@ -55,12 +55,6 @@ class _LeadDropDownState extends State<LeadDropDown> {
           ),
         ),
         DropdownButtonFormField<String>(
-          validator: (value) {
-            if (value == null) {
-              return 'Please select a task type';
-            }
-            return null;
-          },
           isExpanded: true,
           value: this.widget.value,
           hint: Text("Please choose one"),
