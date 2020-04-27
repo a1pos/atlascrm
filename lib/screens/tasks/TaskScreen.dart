@@ -15,6 +15,7 @@ import 'package:atlascrm/services/UserService.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:atlascrm/screens/leads/LeadStepper.dart';
 
 import 'package:intl/intl.dart';
 
@@ -86,7 +87,9 @@ class _TaskScreenState extends State<TaskScreen> {
       var token = ConfigSettings.ACCESS_TOKEN;
       var data = {
         "type": taskTypeDropdownValue,
-        "owner": employeeDropdownValue,
+        "owner": UserService.isAdmin == true
+            ? employeeDropdownValue
+            : UserService.employee.employee,
         "created_by": UserService.employee.employee,
         "date": taskDateController.text,
         "priority": taskPriorityDropdownValue,
@@ -94,6 +97,7 @@ class _TaskScreenState extends State<TaskScreen> {
         "document": {
           "title": taskTitleController.text,
           "notes": taskDescController.text,
+          "active": true
         }
       };
       var resp1 = await apiService.authPost(
@@ -136,6 +140,25 @@ class _TaskScreenState extends State<TaskScreen> {
           fontSize: 16.0);
     }
     _formKey.currentState.reset();
+  }
+
+  void openAddLeadForm() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Add New Lead'),
+          contentPadding: EdgeInsets.all(0),
+          content: Container(
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height,
+            child: LeadStepper(successCallback: () {
+              initTasks();
+            }),
+          ),
+        );
+      },
+    );
   }
 
   Future<void> openAddTaskForm() async {
@@ -187,14 +210,17 @@ class _TaskScreenState extends State<TaskScreen> {
                               Column(
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 children: <Widget>[
-                                  EmployeeDropDown(
-                                    value: employeeDropdownValue,
-                                    callback: ((val) {
-                                      setState(() {
-                                        employeeDropdownValue = val;
-                                      });
-                                    }),
-                                  ),
+                                  Container(
+                                      child: UserService.isAdmin == true
+                                          ? EmployeeDropDown(
+                                              value: employeeDropdownValue,
+                                              callback: ((val) {
+                                                setState(() {
+                                                  employeeDropdownValue = val;
+                                                });
+                                              }),
+                                            )
+                                          : Container()),
                                   Divider(
                                     color: Colors.white,
                                   ),
@@ -225,6 +251,10 @@ class _TaskScreenState extends State<TaskScreen> {
                                       Expanded(
                                         flex: 8,
                                         child: LeadDropDown(
+                                          employeeId: UserService.isAdmin ==
+                                                  true
+                                              ? employeeDropdownValue
+                                              : UserService.employee.employee,
                                           value: leadDropdownValue,
                                           callback: (val) {
                                             setState(() {
@@ -235,7 +265,18 @@ class _TaskScreenState extends State<TaskScreen> {
                                       ),
                                       Expanded(
                                         flex: 2,
-                                        child: Text('asdf'),
+                                        child: Padding(
+                                          padding: const EdgeInsets.fromLTRB(
+                                              15, 13, 0, 0),
+                                          child: IconButton(
+                                            icon: Icon(Icons.add),
+                                            color: Color.fromARGB(
+                                                500, 1, 224, 143),
+                                            onPressed: (() {
+                                              openAddLeadForm();
+                                            }),
+                                          ),
+                                        ),
                                       ),
                                     ],
                                   ),

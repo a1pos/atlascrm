@@ -201,17 +201,19 @@ class LeadStepperState extends State<LeadStepper> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: <Widget>[
-                RaisedButton.icon(
-                  onPressed: () {
-                    Stepper stepper = _stepperKey.currentWidget;
-                    stepper.onStepCancel();
-                  },
-                  label: Padding(
-                    padding: EdgeInsets.all(20),
-                    child: Text('Back'),
-                  ),
-                  icon: Icon(Icons.arrow_back),
-                ),
+                _currentStep > 0
+                    ? RaisedButton.icon(
+                        onPressed: () {
+                          Stepper stepper = _stepperKey.currentWidget;
+                          stepper.onStepCancel();
+                        },
+                        label: Padding(
+                          padding: EdgeInsets.all(20),
+                          child: Text('Back'),
+                        ),
+                        icon: Icon(Icons.arrow_back),
+                      )
+                    : Container(),
                 RaisedButton.icon(
                   onPressed: () {
                     if (_currentStep == stepsLength - 1) {
@@ -291,7 +293,7 @@ class LeadStepperState extends State<LeadStepper> {
       var resp = await apiService.authPost(
           context, "/lead/${UserService.employee.employee}", lead);
       if (resp != null) {
-        if (resp.statusCode == 201) {
+        if (resp.statusCode == 200) {
           Navigator.pop(context);
 
           Fluttertoast.showToast(
