@@ -217,6 +217,7 @@ class _TaskScreenState extends State<TaskScreen> {
                                               callback: ((val) {
                                                 setState(() {
                                                   employeeDropdownValue = val;
+                                                  leadDropdownValue = null;
                                                 });
                                               }),
                                             )
@@ -384,50 +385,7 @@ class _TaskScreenState extends State<TaskScreen> {
           ? LoadingScreen()
           : Container(
               padding: EdgeInsets.all(10),
-              child: tasks.length == 0
-                  ? Empty("No Tasks found")
-                  : SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          TextField(
-                            decoration: InputDecoration(
-                              labelText: "Search Tasks",
-                            ),
-                            onChanged: (value) {
-                              var filtered = tasksFull.where((e) {
-                                String name = e["title"];
-                                return name
-                                    .toLowerCase()
-                                    .contains(value.toLowerCase());
-                              }).toList();
-
-                              setState(() {
-                                tasks = filtered.toList();
-                              });
-                            },
-                          ),
-                          Column(
-                            children: tasks.map((t) {
-                              var tDate = DateFormat("EEE, MMM d, ''yy")
-                                  .add_jm()
-                                  .format(DateTime.parse(t['date']));
-                              return GestureDetector(
-                                onTap: () {
-                                  Navigator.pushNamed(context, "/viewtask",
-                                      arguments: t["task"]);
-                                },
-                                child: TaskItem(
-                                    title: t["document"]["title"],
-                                    description: t["document"]["notes"],
-                                    dateTime: tDate,
-                                    type: t["typetitle"],
-                                    priority: t["priority"]),
-                              );
-                            }).toList(),
-                          ),
-                        ],
-                      ),
-                    ),
+              child: getTasks(),
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: openAddTaskForm,
@@ -437,5 +395,50 @@ class _TaskScreenState extends State<TaskScreen> {
         splashColor: Colors.white,
       ),
     );
+  }
+
+  Widget getTasks() {
+    return isEmpty
+        ? Empty("No Tasks found")
+        : SingleChildScrollView(
+            child: Column(
+              children: [
+                TextField(
+                  decoration: InputDecoration(
+                    labelText: "Search Tasks",
+                  ),
+                  onChanged: (value) {
+                    var filtered = tasksFull.where((e) {
+                      String name = e["document"]["title"];
+                      return name.toLowerCase().contains(value.toLowerCase());
+                    }).toList();
+
+                    setState(() {
+                      tasks = filtered.toList();
+                    });
+                  },
+                ),
+                Column(
+                  children: tasks.map((t) {
+                    var tDate = DateFormat("EEE, MMM d, ''yy")
+                        .add_jm()
+                        .format(DateTime.parse(t['date']));
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(context, "/viewtask",
+                            arguments: t["task"]);
+                      },
+                      child: TaskItem(
+                          title: t["document"]["title"],
+                          description: t["document"]["notes"],
+                          dateTime: tDate,
+                          type: t["typetitle"],
+                          priority: t["priority"]),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+          );
   }
 }

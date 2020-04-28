@@ -100,6 +100,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
           "title": taskTitleController.text,
           "notes": taskDescController.text,
           "eventid": task["document"]["eventid"],
+          "active": true,
         }
       };
       var resp1 =
@@ -276,20 +277,14 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
                         Expanded(
                           flex: 8,
                           child: LeadDropDown(
-                            value: leadDropdownValue,
-                            callback: (val) {
-                              setState(() {
-                                val = null;
-                                Fluttertoast.showToast(
-                                    msg: "Lead can not be changed for tasks!",
-                                    toastLength: Toast.LENGTH_SHORT,
-                                    gravity: ToastGravity.BOTTOM,
-                                    backgroundColor: Colors.grey[600],
-                                    textColor: Colors.white,
-                                    fontSize: 16.0);
-                              });
-                            },
-                          ),
+                              value: leadDropdownValue,
+                              callback: (val) {
+                                setState(() {
+                                  leadDropdownValue = val;
+                                  changeButton();
+                                });
+                              },
+                              employeeId: employeeDropdownValue),
                         ),
                         Expanded(
                           flex: 2,

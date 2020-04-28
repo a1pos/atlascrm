@@ -2,11 +2,11 @@ import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
 
 class LeadDropDown extends StatefulWidget {
+  LeadDropDown({this.employeeId, this.callback, this.value});
+
   final String employeeId;
   final String value;
   final Function callback;
-
-  LeadDropDown({this.employeeId, this.callback, this.value});
 
   @override
   _LeadDropDownState createState() => _LeadDropDownState();
@@ -20,23 +20,21 @@ class _LeadDropDownState extends State<LeadDropDown> {
   @override
   void initState() {
     super.initState();
-
-    initLeads();
+    initLeads(this.widget.employeeId);
   }
 
-  Future<void> initLeads() async {
-    var leadsResp = await apiService.authGet(
-        context,
-        this.widget.employeeId == null
-            ? "/lead"
-            : "/employee/${this.widget.employeeId}/lead");
+  Future<void> initLeads(e) async {
+    var leadsResp = await apiService.authGet(context,
+        this.widget.employeeId == null ? "/lead" : "/employee/$e/lead");
     if (leadsResp != null) {
       if (leadsResp.statusCode == 200) {
         var leadsArrDecoded = leadsResp.data;
         if (leadsArrDecoded != null) {
-          setState(() {
-            leads = leadsArrDecoded;
-          });
+          if (this.mounted) {
+            setState(() {
+              leads = leadsArrDecoded;
+            });
+          }
         }
       }
     }
@@ -44,6 +42,7 @@ class _LeadDropDownState extends State<LeadDropDown> {
 
   @override
   Widget build(BuildContext context) {
+    initLeads(this.widget.employeeId);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
