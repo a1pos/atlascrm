@@ -12,7 +12,7 @@ import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:unicorndial/unicorndial.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import 'package:atlascrm/screens/agreement/ContactInfo.dart';
+import 'package:atlascrm/screens/agreement/AgreementBuilder.dart';
 
 class LeadInfoEntry {
   final TextEditingController controller;
@@ -33,9 +33,6 @@ class ViewLeadScreen extends StatefulWidget {
 
 class ViewLeadScreenState extends State<ViewLeadScreen> {
   static const platform = const MethodChannel('com.ces.atlascrm.channel');
-
-  final Completer<WebViewController> _controller =
-      Completer<WebViewController>();
 
   final firstNameController = TextEditingController();
   final lastNameController = TextEditingController();
@@ -103,7 +100,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
     var resp = await this
         .widget
         .apiService
-        .authPut(context, "/leads/" + this.widget.leadId, leadToUpdate);
+        .authPut(context, "/lead/" + this.widget.leadId, leadToUpdate);
 
     if (resp.statusCode == 200) {
       await loadLeadData(this.widget.leadId);
@@ -131,7 +128,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
       FileImage fileImage = image.image;
       var bytes = fileImage.file.readAsBytesSync();
       var resp = await this.widget.apiService.authFilePost(
-          context, "/leads/${this.widget.leadId}/statement", fileImage.file);
+          context, "/lead/${this.widget.leadId}/statement", fileImage.file);
     } catch (err) {
       print(err);
     }
@@ -270,7 +267,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                               onPressed: () async {
                                 Navigator.of(context).push(
                                   SlideRightRoute(
-                                    page: ContactInfoPage(),
+                                    page: AgreementBuilder(lead["lead"]),
                                   ),
                                 );
                               },
@@ -281,7 +278,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                                     color: Colors.white,
                                   ),
                                   Text(
-                                    'Docusigner',
+                                    'Agreement Builder',
                                     style: TextStyle(
                                       color: Colors.white,
                                     ),
