@@ -12,6 +12,7 @@ import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:unicorndial/unicorndial.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:atlascrm/screens/agreement/ContactInfo.dart';
 
 class LeadInfoEntry {
   final TextEditingController controller;
@@ -269,11 +270,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                               onPressed: () async {
                                 Navigator.of(context).push(
                                   SlideRightRoute(
-                                    page: CustomWebView(
-                                      title: "Docusigner",
-                                      selectedUrl:
-                                          "https://demo.docusign.net/Member/PowerFormSigning.aspx?PowerFormId=c04d3d47-c7be-46d5-a10a-471e8c9e531b&env=demo&acct=d805e4d3-b594-4e79-9d49-243e076e75e6&v=2",
-                                    ),
+                                    page: ContactInfoPage(),
                                   ),
                                 );
                               },
