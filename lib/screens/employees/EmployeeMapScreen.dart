@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
@@ -7,6 +8,7 @@ import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/SocketService.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:flutter_pusher/pusher.dart';
 
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
@@ -40,81 +42,77 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
   void dispose() {
     super.dispose();
 
-    if (SocketService.SOCKET != null) {
-      if (SocketService.SOCKET.hasListeners("newLocation")) {
-        SocketService.SOCKET.off("newLocation");
-      }
-    }
+    // if (SocketService.SOCKET != null) {
+    //   if (SocketService.SOCKET.hasListeners("newLocation")) {
+    //     SocketService.SOCKET.off("newLocation");
+    //   }
+    // }
   }
 
   void initSocketListener() async {
-    if (SocketService.SOCKET == null) {
-      await this.widget.socketService.initWebSocketConnection();
-    }
-
     await initBaseMap();
 
-    if (SocketService.SOCKET != null) {
-      SocketService.SOCKET.on('newLocation', (location) async {
-        print(location);
-        var epoch = location["location_document"]["time"];
-        var lastCheckinTime =
-            new DateTime.fromMicrosecondsSinceEpoch(epoch * 1000);
+    var channel = await Pusher.subscribe("location");
 
-        var dateTime = lastCheckinTime;
+    await channel.bind('new-location', (event) async {
+      var location = jsonDecode(event.data);
+      print(location);
+      var epoch = location["location_document"]["time"];
+      var lastCheckinTime =
+          new DateTime.fromMicrosecondsSinceEpoch(epoch * 1000);
 
-        var formatter = DateFormat.yMd().add_jm();
-        String datetimeFmt = formatter.format(dateTime.toLocal());
+      var dateTime = lastCheckinTime;
 
-        var markerId = MarkerId(location["employee_id"]);
-        var currentEmployeeMarker =
-            markers.where((marker) => marker.markerId.value == markerId.value);
+      var formatter = DateFormat.yMd().add_jm();
+      String datetimeFmt = formatter.format(dateTime.toLocal());
 
-        var pictureUrl =
-            location["employee_document"]["googleClaims"]["picture"];
-        var icon = await getMarkerImageFromCache(pictureUrl);
+      var markerId = MarkerId(location["employee_id"]);
+      var currentEmployeeMarker =
+          markers.where((marker) => marker.markerId.value == markerId.value);
 
-        if (currentEmployeeMarker.length > 0) {
-          setState(() {
-            markers.removeAll(currentEmployeeMarker.toList());
+      var pictureUrl = location["employee_document"]["googleClaims"]["picture"];
+      var icon = await getMarkerImageFromCache(pictureUrl);
 
-            markers.add(
-              Marker(
-                position: LatLng(
-                  location["location_document"]["latitude"],
-                  location["location_document"]["longitude"],
-                ),
-                markerId: markerId,
-                infoWindow: InfoWindow(
-                  snippet: location["employee_document"]["fullName"] +
-                      " " +
-                      datetimeFmt,
-                  title: location["employee_document"]["email"],
-                ),
-                icon: icon,
+      if (currentEmployeeMarker.length > 0) {
+        setState(() {
+          markers.removeAll(currentEmployeeMarker.toList());
+
+          markers.add(
+            Marker(
+              position: LatLng(
+                location["location_document"]["latitude"],
+                location["location_document"]["longitude"],
               ),
-            );
-          });
-        } else {
-          setState(() {
-            markers.add(
-              Marker(
-                position: LatLng(
-                  location["location_document"]["latitude"],
-                  location["location_document"]["longitude"],
-                ),
-                markerId: markerId,
-                infoWindow: InfoWindow(
-                  snippet: location["employee_document"]["fullName"],
-                  title: location["employee_document"]["email"],
-                ),
-                icon: icon,
+              markerId: markerId,
+              infoWindow: InfoWindow(
+                snippet: location["employee_document"]["fullName"] +
+                    " " +
+                    datetimeFmt,
+                title: location["employee_document"]["email"],
               ),
-            );
-          });
-        }
-      });
-    }
+              icon: icon,
+            ),
+          );
+        });
+      } else {
+        setState(() {
+          markers.add(
+            Marker(
+              position: LatLng(
+                location["location_document"]["latitude"],
+                location["location_document"]["longitude"],
+              ),
+              markerId: markerId,
+              infoWindow: InfoWindow(
+                snippet: location["employee_document"]["fullName"],
+                title: location["employee_document"]["email"],
+              ),
+              icon: icon,
+            ),
+          );
+        });
+      }
+    });
   }
 
   Future<void> initBaseMap() async {

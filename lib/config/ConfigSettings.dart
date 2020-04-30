@@ -2,10 +2,12 @@ import 'package:flutter/foundation.dart';
 
 class ConfigSettings {
   static String API_URL = kReleaseMode
-      ? "http://35.199.31.18:3002/api/v1/"
-      : "http://192.168.1.45:3002/api/v1/";
+      ? "http://butlerbizsys.com/api/v1/"
+      : "http://192.168.1.30:3002/api/v1/";
   static String WS_URL =
-      kReleaseMode ? "ws://35.199.31.18:3003" : "ws://192.168.1.45:3003";
+      !kReleaseMode ? "wss://butlerbizsys.com" : "ws://192.168.1.30:3002";
+
+  static String PUSHER_KEY = '78b022eea08a75c792e5';
 
   static String GOOGLE_TOKEN = "";
 

@@ -31,8 +31,6 @@ class ViewLeadScreen extends StatefulWidget {
 }
 
 class ViewLeadScreenState extends State<ViewLeadScreen> {
-  static const platform = const MethodChannel('com.ces.atlascrm.channel');
-
   final Completer<WebViewController> _controller =
       Completer<WebViewController>();
 
