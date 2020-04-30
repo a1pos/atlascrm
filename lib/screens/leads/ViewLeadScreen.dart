@@ -13,6 +13,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:unicorndial/unicorndial.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:atlascrm/screens/agreement/AgreementBuilder.dart';
+import 'package:atlascrm/components/shared/AddressSearch.dart';
 
 class LeadInfoEntry {
   final TextEditingController controller;
@@ -48,8 +49,12 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
   final businessAddressController = TextEditingController();
   final businessPhoneNumberController = TextEditingController();
   final notesController = TextEditingController();
+  final leadSourceController = TextEditingController();
 
   var leadInfoEntries = List<LeadInfoEntry>();
+
+  List businessAddress;
+  String addressText;
 
   var lead;
   var leadDocument;
@@ -87,6 +92,15 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
     setState(() {
       isLoading = false;
     });
+    if (leadDocument["address"] != null && leadDocument["address"] != "") {
+      addressText = leadDocument["address"] +
+          ", " +
+          leadDocument["city"] +
+          ", " +
+          leadDocument["state"] +
+          ", " +
+          leadDocument["zipCode"];
+    }
   }
 
   Future<void> updateLead(leadId) async {
@@ -97,9 +111,12 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
       "phoneNumber": phoneNumberController.text,
       "businessName": businessNameController.text,
       "dbaName": dbaController.text,
-      "businessAddress": businessAddressController.text,
       "businessPhoneNumber": businessPhoneNumberController.text,
-      "notes": notesController.text
+      "notes": notesController.text,
+      "address": businessAddress[0],
+      "city": businessAddress[1],
+      "state": businessAddress[2],
+      "zipCode": businessAddress[3]
     };
 
     var resp = await this
@@ -220,10 +237,26 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                                 businessNameController),
                             getInfoRow("Doing Business As",
                                 leadDocument["dbaName"], dbaController),
-                            getInfoRow(
-                                "Business Address",
-                                leadDocument["businessAddress"],
-                                businessAddressController),
+                            Container(
+                                child: Padding(
+                                    padding: EdgeInsets.all(15),
+                                    child: Row(
+                                      children: <Widget>[
+                                        Expanded(
+                                          flex: 4,
+                                          child: Text(
+                                            'Business Address:',
+                                            style: TextStyle(fontSize: 16),
+                                          ),
+                                        ),
+                                        Expanded(
+                                            flex: 8,
+                                            child: AddressSearch(
+                                                locationValue: addressText,
+                                                onAddressChange: (val) =>
+                                                    businessAddress = val)),
+                                      ],
+                                    ))),
                             getInfoRow(
                                 "Phone Number",
                                 leadDocument["businessPhoneNumber"],
@@ -236,7 +269,12 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                         icon: Icons.question_answer,
                         title: "Misc Information",
                         child: Column(
-                          children: <Widget>[],
+                          children: <Widget>[
+                            getInfoRow(
+                                "Lead Source",
+                                leadDocument["leadSource"],
+                                leadSourceController),
+                          ],
                         ),
                       ),
                       CustomCard(

@@ -4,6 +4,7 @@ import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:atlascrm/components/shared/AddressSearch.dart';
 
 class LeadStepper extends StatefulWidget {
   final Function successCallback;
@@ -38,6 +39,8 @@ class LeadStepperState extends State<LeadStepper> {
   var dbaNameController = new TextEditingController();
   var businessAddrController = new TextEditingController();
   var businessPhoneNumber = new TextEditingController();
+
+  List businessAddress;
 
   var _selectedBusinessType;
 
@@ -145,11 +148,10 @@ class LeadStepperState extends State<LeadStepper> {
                         controller: businessPhoneNumber,
                         // validator: validate,
                       ),
-                      TextFormField(
-                        decoration:
-                            InputDecoration(labelText: "Business Address"),
-                        controller: businessAddrController,
-                        // validator: validate,
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 32, 0, 0),
+                        child: AddressSearch(
+                            onAddressChange: (val) => businessAddress = val),
                       ),
                       Text(""),
                       DropdownButton<String>(
@@ -288,6 +290,10 @@ class LeadStepperState extends State<LeadStepper> {
         "phoneNumber": phoneNumberController.text,
         "businessName": businessNameController.text,
         "dbaName": dbaNameController.text,
+        "address": businessAddress[0],
+        "city": businessAddress[1],
+        "state": businessAddress[2],
+        "zipCode": businessAddress[3]
       };
 
       var resp = await apiService.authPost(
