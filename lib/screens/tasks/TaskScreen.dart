@@ -32,6 +32,7 @@ class _TaskScreenState extends State<TaskScreen> {
 
   var tasks = [];
   var tasksFull = [];
+  var activeTasks = [];
 
   var taskTitleController = TextEditingController();
   var taskDescController = TextEditingController();
@@ -59,7 +60,9 @@ class _TaskScreenState extends State<TaskScreen> {
           if (tasksArrDecoded != null) {
             setState(() {
               tasks = tasksArrDecoded;
-              tasksFull = tasksArrDecoded;
+              activeTasks =
+                  tasks.where((e) => e["document"]["active"]).toList();
+              tasksFull = activeTasks;
               isLoading = false;
             });
           }
@@ -409,17 +412,21 @@ class _TaskScreenState extends State<TaskScreen> {
                   ),
                   onChanged: (value) {
                     var filtered = tasksFull.where((e) {
-                      String name = e["document"]["title"];
-                      return name.toLowerCase().contains(value.toLowerCase());
+                      String title = e["document"]["title"];
+                      String notes = e["document"]["notes"];
+                      return title
+                              .toLowerCase()
+                              .contains(value.toLowerCase()) ||
+                          notes.toLowerCase().contains(value.toLowerCase());
                     }).toList();
 
                     setState(() {
-                      tasks = filtered.toList();
+                      activeTasks = filtered.toList();
                     });
                   },
                 ),
                 Column(
-                  children: tasks.map((t) {
+                  children: activeTasks.map((t) {
                     var tDate = DateFormat("EEE, MMM d, ''yy")
                         .add_jm()
                         .format(DateTime.parse(t['date']));

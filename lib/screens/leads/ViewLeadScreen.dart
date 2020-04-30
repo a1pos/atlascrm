@@ -12,6 +12,7 @@ import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:unicorndial/unicorndial.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:atlascrm/screens/agreement/AgreementBuilder.dart';
 
 class LeadInfoEntry {
   final TextEditingController controller;
@@ -31,8 +32,12 @@ class ViewLeadScreen extends StatefulWidget {
 }
 
 class ViewLeadScreenState extends State<ViewLeadScreen> {
+<<<<<<< HEAD
   final Completer<WebViewController> _controller =
       Completer<WebViewController>();
+=======
+  static const platform = const MethodChannel('com.ces.atlascrm.channel');
+>>>>>>> b19d41a6a89ff3f7900c0dc1da82c3bbc8558798
 
   final firstNameController = TextEditingController();
   final lastNameController = TextEditingController();
@@ -100,7 +105,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
     var resp = await this
         .widget
         .apiService
-        .authPut(context, "/leads/" + this.widget.leadId, leadToUpdate);
+        .authPut(context, "/lead/" + this.widget.leadId, leadToUpdate);
 
     if (resp.statusCode == 200) {
       await loadLeadData(this.widget.leadId);
@@ -128,7 +133,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
       FileImage fileImage = image.image;
       var bytes = fileImage.file.readAsBytesSync();
       var resp = await this.widget.apiService.authFilePost(
-          context, "/leads/${this.widget.leadId}/statement", fileImage.file);
+          context, "/lead/${this.widget.leadId}/statement", fileImage.file);
     } catch (err) {
       print(err);
     }
@@ -267,11 +272,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                               onPressed: () async {
                                 Navigator.of(context).push(
                                   SlideRightRoute(
-                                    page: CustomWebView(
-                                      title: "Docusigner",
-                                      selectedUrl:
-                                          "https://demo.docusign.net/Member/PowerFormSigning.aspx?PowerFormId=c04d3d47-c7be-46d5-a10a-471e8c9e531b&env=demo&acct=d805e4d3-b594-4e79-9d49-243e076e75e6&v=2",
-                                    ),
+                                    page: AgreementBuilder(lead["lead"]),
                                   ),
                                 );
                               },
@@ -282,7 +283,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                                     color: Colors.white,
                                   ),
                                   Text(
-                                    'Docusigner',
+                                    'Agreement Builder',
                                     style: TextStyle(
                                       color: Colors.white,
                                     ),
