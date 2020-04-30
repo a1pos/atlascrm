@@ -41,12 +41,6 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
   @override
   void dispose() {
     super.dispose();
-
-    // if (SocketService.SOCKET != null) {
-    //   if (SocketService.SOCKET.hasListeners("newLocation")) {
-    //     SocketService.SOCKET.off("newLocation");
-    //   }
-    // }
   }
 
   void initSocketListener() async {
