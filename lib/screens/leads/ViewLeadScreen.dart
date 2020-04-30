@@ -11,7 +11,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:unicorndial/unicorndial.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 import 'package:atlascrm/screens/agreement/AgreementBuilder.dart';
 import 'package:atlascrm/components/shared/AddressSearch.dart';
 
@@ -33,13 +32,6 @@ class ViewLeadScreen extends StatefulWidget {
 }
 
 class ViewLeadScreenState extends State<ViewLeadScreen> {
-<<<<<<< HEAD
-  final Completer<WebViewController> _controller =
-      Completer<WebViewController>();
-=======
-  static const platform = const MethodChannel('com.ces.atlascrm.channel');
->>>>>>> b19d41a6a89ff3f7900c0dc1da82c3bbc8558798
-
   final firstNameController = TextEditingController();
   final lastNameController = TextEditingController();
   final emailAddrController = TextEditingController();
