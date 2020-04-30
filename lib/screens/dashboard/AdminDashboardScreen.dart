@@ -4,6 +4,7 @@ import 'package:atlascrm/components/shared/CustomDrawer.dart';
 import 'package:atlascrm/screens/dashboard/widgets/LeadsChart.dart';
 import 'package:atlascrm/screens/dashboard/widgets/SalesLeaderboardChart.dart';
 import 'package:atlascrm/screens/dashboard/widgets/StatementsChart.dart';
+import 'package:atlascrm/screens/dashboard/widgets/Tasks.dart';
 import 'package:atlascrm/screens/dashboard/widgets/WeeklyCallsChart.dart';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
@@ -83,6 +84,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     child: Container(
                       height: 200,
                       child: SalesLeaderboardChart(),
+                    ),
+                  ),
+                  CustomCard(
+                    key: Key("adminLeaderboard5"),
+                    title: "Tasks",
+                    icon: Icons.subject,
+                    child: Container(
+                      height: 200,
+                      child: Tasks(),
                     ),
                   ),
                   CustomCard(
