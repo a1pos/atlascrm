@@ -1,5 +1,5 @@
 import 'dart:async';
-
+import 'dart:convert';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
@@ -102,14 +102,13 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
       "phoneNumber": phoneNumberController.text,
       "businessName": businessNameController.text,
       "dbaName": dbaController.text,
-      "businessPhoneNumber": businessPhoneNumberController.text,
+      "phoneNumber": businessPhoneNumberController.text,
       "notes": notesController.text,
       "address": businessAddress["address"],
       "city": businessAddress["city"],
       "state": businessAddress["state"],
-      "zipCode": businessAddress["zipcode"]
+      "zipCode": businessAddress["zipcode"],
     };
-
     var resp = await this
         .widget
         .apiService
@@ -119,12 +118,13 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
       await loadLeadData(this.widget.leadId);
 
       Fluttertoast.showToast(
-          msg: "Successful update!",
+          msg: "Lead Updated!",
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.grey[600],
           textColor: Colors.white,
           fontSize: 16.0);
+      Navigator.pushNamed(context, '/leads');
     } else {
       Fluttertoast.showToast(
           msg: "Failed to udpate lead!",

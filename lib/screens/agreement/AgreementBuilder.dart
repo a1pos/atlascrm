@@ -6,7 +6,6 @@ import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/components/shared/AddressSearch.dart';
-import 'package:atlascrm/components/shared/SlideRightRoute.dart';
 
 class AgreementBuilder extends StatefulWidget {
   final ApiService apiService = new ApiService();
@@ -17,6 +16,27 @@ class AgreementBuilder extends StatefulWidget {
 
   @override
   AgreementBuilderState createState() => AgreementBuilderState();
+}
+
+class Item {
+  Item({
+    this.expandedValue,
+    this.headerValue,
+    this.isExpanded = false,
+  });
+
+  String expandedValue;
+  String headerValue;
+  bool isExpanded;
+}
+
+List<Item> generateItems(int numberOfItems) {
+  return List.generate(numberOfItems, (int index) {
+    return Item(
+      headerValue: 'Panel $index',
+      expandedValue: 'This is item number $index',
+    );
+  });
 }
 
 class AgreementBuilderState extends State<AgreementBuilder>
@@ -173,7 +193,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
         "/agreement_builder/" + agreementBuilderId, agreementBuilderObj);
 
     if (resp.statusCode == 200) {
-      await loadLeadData(this.widget.leadId);
+      await loadAgreementData(this.widget.leadId);
 
       Fluttertoast.showToast(
           msg: "Agreement Builder Saved!",
@@ -225,6 +245,8 @@ class AgreementBuilderState extends State<AgreementBuilder>
       },
     );
   }
+
+  List<Item> _data = generateItems(8);
 
   @override
   Widget build(BuildContext context) {
@@ -344,6 +366,37 @@ class AgreementBuilderState extends State<AgreementBuilder>
                             title: "Owner Info",
                             child: Column(
                               children: <Widget>[
+                                ExpansionPanelList(
+                                  expansionCallback:
+                                      (int index, bool isExpanded) {
+                                    setState(() {
+                                      _data[index].isExpanded = !isExpanded;
+                                    });
+                                  },
+                                  children:
+                                      _data.map<ExpansionPanel>((Item item) {
+                                    return ExpansionPanel(
+                                      headerBuilder: (BuildContext context,
+                                          bool isExpanded) {
+                                        return ListTile(
+                                          title: Text(item.headerValue),
+                                        );
+                                      },
+                                      body: ListTile(
+                                          title: Text(item.expandedValue),
+                                          subtitle: Text(
+                                              'To delete this panel, tap the trash can icon'),
+                                          trailing: Icon(Icons.delete),
+                                          onTap: () {
+                                            setState(() {
+                                              _data.removeWhere((currentItem) =>
+                                                  item == currentItem);
+                                            });
+                                          }),
+                                      isExpanded: item.isExpanded,
+                                    );
+                                  }).toList(),
+                                )
                                 //PUT GET INFO ROWS HERE
                               ],
                             ),

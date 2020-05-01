@@ -56,7 +56,6 @@ class _AddressSearchState extends State<AddressSearch> {
           await _places.getDetailsByPlaceId(p.placeId);
       Map addressInfo = {"address": "", "city": "", "state": "", "zipcode": ""};
       List newAddress = detail.result.addressComponents;
-      print(detail.result.addressComponents[7].types);
       newAddress.forEach((element) {
         element.types.forEach((type) {
           switch (type) {
