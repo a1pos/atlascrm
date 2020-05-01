@@ -40,7 +40,7 @@ class LeadStepperState extends State<LeadStepper> {
   var businessAddrController = new TextEditingController();
   var businessPhoneNumber = new TextEditingController();
 
-  List businessAddress;
+  Map businessAddress = {"address": "", "city": "", "state": "", "zipcode": ""};
 
   var _selectedBusinessType;
 
@@ -290,10 +290,10 @@ class LeadStepperState extends State<LeadStepper> {
         "phoneNumber": phoneNumberController.text,
         "businessName": businessNameController.text,
         "dbaName": dbaNameController.text,
-        "address": businessAddress[0],
-        "city": businessAddress[1],
-        "state": businessAddress[2],
-        "zipCode": businessAddress[3]
+        "address": businessAddress["address"],
+        "city": businessAddress["city"],
+        "state": businessAddress["state"],
+        "zipCode": businessAddress["zipcode"]
       };
 
       var resp = await apiService.authPost(

@@ -2,16 +2,11 @@ import 'dart:async';
 
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
-import 'package:atlascrm/components/shared/CustomWebView.dart';
-import 'package:atlascrm/components/shared/SlideRightRoute.dart';
-import 'package:atlascrm/models/Lead.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:unicorndial/unicorndial.dart';
-import 'package:atlascrm/screens/agreement/AgreementBuilder.dart';
 import 'package:atlascrm/components/shared/AddressSearch.dart';
 
 class LeadInfoEntry {
@@ -45,7 +40,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
 
   var leadInfoEntries = List<LeadInfoEntry>();
 
-  List businessAddress = List(4);
+  Map businessAddress = {"address": "", "city": "", "state": "", "zipcode": ""};
   String addressText;
 
   var lead;
@@ -92,10 +87,10 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
           leadDocument["state"] +
           ", " +
           leadDocument["zipCode"];
-      businessAddress[0] = leadDocument["address"];
-      businessAddress[1] = leadDocument["city"];
-      businessAddress[2] = leadDocument["state"];
-      businessAddress[3] = leadDocument["zipCode"];
+      businessAddress["address"] = leadDocument["address"];
+      businessAddress["city"] = leadDocument["city"];
+      businessAddress["state"] = leadDocument["state"];
+      businessAddress["zipcode"] = leadDocument["zipCode"];
     }
   }
 
@@ -109,10 +104,10 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
       "dbaName": dbaController.text,
       "businessPhoneNumber": businessPhoneNumberController.text,
       "notes": notesController.text,
-      "address": businessAddress[0],
-      "city": businessAddress[1],
-      "state": businessAddress[2],
-      "zipCode": businessAddress[3]
+      "address": businessAddress["address"],
+      "city": businessAddress["city"],
+      "state": businessAddress["state"],
+      "zipCode": businessAddress["zipcode"]
     };
 
     var resp = await this
