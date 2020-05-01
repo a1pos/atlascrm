@@ -1,16 +1,12 @@
 import 'dart:async';
 
-import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:unicorndial/unicorndial.dart';
 import 'package:atlascrm/components/shared/AddressSearch.dart';
 import 'package:atlascrm/components/shared/SlideRightRoute.dart';
-import 'package:search_map_place/search_map_place.dart';
 
 class AgreementBuilder extends StatefulWidget {
   final ApiService apiService = new ApiService();
@@ -25,8 +21,6 @@ class AgreementBuilder extends StatefulWidget {
 
 class AgreementBuilderState extends State<AgreementBuilder>
     with TickerProviderStateMixin {
-  static const platform = const MethodChannel('com.ces.atlascrm.channel');
-
   final firstNameController = TextEditingController();
   final lastNameController = TextEditingController();
   final emailAddrController = TextEditingController();
@@ -35,16 +29,18 @@ class AgreementBuilderState extends State<AgreementBuilder>
   final dbaController = TextEditingController();
   final businessAddressController = TextEditingController();
   final leadSourceController = TextEditingController();
-  List businessAddress;
 
+  Map businessAddress = {"address": "", "city": "", "state": "", "zipcode": ""};
+  var agreementBuilder;
+  var agreementDocument;
   var lead;
   var leadDocument;
-
+  var addressText;
   var isLoading = true;
 
   void initState() {
     super.initState();
-    loadLeadData(this.widget.leadId);
+    loadAgreementData(this.widget.leadId);
   }
 
   Future<void> loadLeadData(leadId) async {
@@ -64,14 +60,101 @@ class AgreementBuilderState extends State<AgreementBuilder>
         });
       }
     }
-
-    setState(() {
-      isLoading = false;
-    });
   }
 
-  Future<void> updateLead(leadId) async {
-    var leadToUpdate = {
+  Future<void> loadAgreementData(leadId) async {
+    var resp = await this
+        .widget
+        .apiService
+        .authGet(context, "/lead/" + this.widget.leadId + "/agreement_builder");
+
+    if (resp.statusCode == 200) {
+      var body = resp.data;
+      if (body["agreement_builder"] != null) {
+        var bodyDecoded = body;
+        setState(() {
+          agreementBuilder = bodyDecoded;
+          agreementDocument = bodyDecoded["document"];
+        });
+        setState(() {
+          isLoading = false;
+          if (agreementDocument["address"] != null &&
+              agreementDocument["address"] != "") {
+            addressText = agreementDocument["address"] +
+                ", " +
+                agreementDocument["city"] +
+                ", " +
+                agreementDocument["state"] +
+                ", " +
+                agreementDocument["zipCode"];
+            businessAddress["address"] = agreementDocument["address"];
+            businessAddress["city"] = agreementDocument["city"];
+            businessAddress["state"] = agreementDocument["state"];
+            businessAddress["zipcode"] = agreementDocument["zipCode"];
+            print(businessAddress);
+          }
+          isLoading = false;
+        });
+      } else {
+        generateAgreement();
+      }
+    }
+  }
+
+  generateAgreement() async {
+    await loadLeadData(this.widget.leadId);
+    print(lead);
+    print(this.widget.leadId);
+    agreementBuilder = {
+      "employee": lead["employee"],
+      "lead": lead["lead"],
+      "document": lead["document"]
+    };
+
+    var resp1 = await this
+        .widget
+        .apiService
+        .authPost(context, "/agreement_builder", agreementBuilder);
+    if (resp1 != null) {
+      if (resp1.statusCode == 200) {
+        Fluttertoast.showToast(
+            msg: "Agreement Builder Created!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0);
+      }
+    } else {
+      throw new Error();
+    }
+
+    setState(() {
+      agreementDocument = agreementBuilder["document"];
+      print(agreementDocument);
+      if (agreementDocument["address"] != null &&
+          agreementDocument["address"] != "") {
+        addressText = agreementDocument["address"] +
+            ", " +
+            agreementDocument["city"] +
+            ", " +
+            agreementDocument["state"] +
+            ", " +
+            agreementDocument["zipCode"];
+        businessAddress["address"] = agreementDocument["address"];
+        businessAddress["city"] = agreementDocument["city"];
+        businessAddress["state"] = agreementDocument["state"];
+        businessAddress["zipcode"] = agreementDocument["zipCode"];
+        print(businessAddress);
+      }
+      isLoading = false;
+    });
+    print("GENERATE");
+  }
+
+  Future<void> updateAgreement(agreementBuilderId) async {
+    var agreementBuilderObj = {
+      //Business Info Section
       "firstName": firstNameController.text,
       "lastName": lastNameController.text,
       "emailAddr": emailAddrController.text,
@@ -80,22 +163,20 @@ class AgreementBuilderState extends State<AgreementBuilder>
       "dbaName": dbaController.text,
       "businessAddress": businessAddressController.text,
       "leadSource": leadSourceController.text,
-      "address": businessAddress[0],
-      "city": businessAddress[1],
-      "state": businessAddress[2],
-      "zipCode": businessAddress[3]
+      "address": businessAddress["address"],
+      "city": businessAddress["city"],
+      "state": businessAddress["state"],
+      "zipCode": businessAddress["zipcode"]
     };
 
-    var resp = await this
-        .widget
-        .apiService
-        .authPut(context, "/lead/" + this.widget.leadId, leadToUpdate);
+    var resp = await this.widget.apiService.authPut(context,
+        "/agreement_builder/" + agreementBuilderId, agreementBuilderObj);
 
     if (resp.statusCode == 200) {
       await loadLeadData(this.widget.leadId);
 
       Fluttertoast.showToast(
-          msg: "Successful update!",
+          msg: "Agreement Builder Saved!",
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.grey[600],
@@ -103,7 +184,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
           fontSize: 16.0);
     } else {
       Fluttertoast.showToast(
-          msg: "Failed to udpate lead!",
+          msg: "Failed to Save!",
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.grey[600],
@@ -198,26 +279,28 @@ class AgreementBuilderState extends State<AgreementBuilder>
                               children: <Widget>[
                                 getInfoRow(
                                     "First Name",
-                                    leadDocument["firstName"],
+                                    agreementDocument["firstName"],
                                     firstNameController),
                                 getInfoRow(
                                     "Last Name",
-                                    leadDocument["lastName"],
+                                    agreementDocument["lastName"],
                                     lastNameController),
                                 getInfoRow(
                                     "Email Address",
-                                    leadDocument["emailAddr"],
+                                    agreementDocument["emailAddr"],
                                     emailAddrController),
                                 getInfoRow(
                                     "Phone Number",
-                                    leadDocument["phoneNumber"],
+                                    agreementDocument["phoneNumber"],
                                     phoneNumberController),
                                 getInfoRow(
                                     "Business Name",
-                                    leadDocument["businessName"],
+                                    agreementDocument["businessName"],
                                     businessNameController),
-                                getInfoRow("Doing Business As",
-                                    leadDocument["dbaName"], dbaController),
+                                getInfoRow(
+                                    "Doing Business As",
+                                    agreementDocument["dbaName"],
+                                    dbaController),
                                 Container(
                                     child: Padding(
                                         padding: EdgeInsets.all(15),
@@ -233,15 +316,14 @@ class AgreementBuilderState extends State<AgreementBuilder>
                                             Expanded(
                                                 flex: 8,
                                                 child: AddressSearch(
-                                                    locationValue:
-                                                        leadDocument["address"],
+                                                    locationValue: addressText,
                                                     onAddressChange: (val) =>
                                                         businessAddress = val)),
                                           ],
                                         ))),
                                 getInfoRow(
                                     "Lead Source",
-                                    leadDocument["leadSource"],
+                                    agreementDocument["leadSource"],
                                     leadSourceController),
                               ],
                             ),
@@ -262,32 +344,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
                             title: "Owner Info",
                             child: Column(
                               children: <Widget>[
-                                getInfoRow(
-                                    "First Name",
-                                    leadDocument["firstName"],
-                                    firstNameController),
-                                getInfoRow(
-                                    "Last Name",
-                                    leadDocument["lastName"],
-                                    lastNameController),
-                                getInfoRow(
-                                    "Email Address",
-                                    leadDocument["emailAddr"],
-                                    emailAddrController),
-                                getInfoRow(
-                                    "Phone Number",
-                                    leadDocument["phoneNumber"],
-                                    phoneNumberController),
-                                getInfoRow(
-                                    "Business Name",
-                                    leadDocument["businessName"],
-                                    businessNameController),
-                                getInfoRow("Doing Business As",
-                                    leadDocument["dbaName"], dbaController),
-                                getInfoRow(
-                                    "Business Address",
-                                    leadDocument["address"],
-                                    businessAddressController),
+                                //PUT GET INFO ROWS HERE
                               ],
                             ),
                           ),
@@ -307,32 +364,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
                             title: "Rate Review",
                             child: Column(
                               children: <Widget>[
-                                getInfoRow(
-                                    "First Name",
-                                    leadDocument["firstName"],
-                                    firstNameController),
-                                getInfoRow(
-                                    "Last Name",
-                                    leadDocument["lastName"],
-                                    lastNameController),
-                                getInfoRow(
-                                    "Email Address",
-                                    leadDocument["emailAddr"],
-                                    emailAddrController),
-                                getInfoRow(
-                                    "Phone Number",
-                                    leadDocument["phoneNumber"],
-                                    phoneNumberController),
-                                getInfoRow(
-                                    "Business Name",
-                                    leadDocument["businessName"],
-                                    businessNameController),
-                                getInfoRow("Doing Business As",
-                                    leadDocument["dbaName"], dbaController),
-                                getInfoRow(
-                                    "Business Address",
-                                    leadDocument["businessAddress"],
-                                    businessAddressController),
+                                //PUT GET INFO ROWS HERE
                               ],
                             ),
                           ),
@@ -343,7 +375,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
                 ]),
           floatingActionButton: FloatingActionButton(
             onPressed: () async {
-              updateLead(this.widget.leadId);
+              updateAgreement(agreementBuilder["agreement_builder"]);
             },
             backgroundColor: Color.fromARGB(500, 1, 224, 143),
             child: Icon(Icons.save),

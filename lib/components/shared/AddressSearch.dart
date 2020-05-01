@@ -10,7 +10,6 @@ class AddressSearch extends StatefulWidget {
   final String locationValue;
   final Function onAddressChange;
   final TextEditingController controller;
-
   AddressSearch({this.locationValue, this.onAddressChange, this.controller});
 
   @override
@@ -55,15 +54,32 @@ class _AddressSearchState extends State<AddressSearch> {
     if (p != null) {
       PlacesDetailsResponse detail =
           await _places.getDetailsByPlaceId(p.placeId);
-
+      Map addressInfo = {"address": "", "city": "", "state": "", "zipcode": ""};
       List newAddress = detail.result.addressComponents;
+      print(detail.result.addressComponents[7].types);
+      newAddress.forEach((element) {
+        element.types.forEach((type) {
+          switch (type) {
+            case "street_number":
+              addressInfo["address"] = element.shortName;
+              print(element.shortName);
+              break;
+            case "route":
+              addressInfo["address"] += " " + element.shortName;
+              break;
+            case "locality":
+              addressInfo["city"] = element.shortName;
+              break;
+            case "administrative_area_level_1":
+              addressInfo["state"] = element.shortName;
+              break;
+            case "postal_code":
+              addressInfo["zipcode"] = element.shortName;
+              break;
+          }
+        });
+      });
 
-      List addressInfo = [
-        newAddress[0].shortName + " " + newAddress[1].longName,
-        newAddress[2].shortName,
-        newAddress[5].shortName,
-        newAddress[7].shortName,
-      ];
       print(addressInfo);
       setState(() {
         locationText = detail.result.formattedAddress;

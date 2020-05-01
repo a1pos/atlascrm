@@ -45,7 +45,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
 
   var leadInfoEntries = List<LeadInfoEntry>();
 
-  List businessAddress;
+  List businessAddress = List(4);
   String addressText;
 
   var lead;
@@ -92,6 +92,10 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
           leadDocument["state"] +
           ", " +
           leadDocument["zipCode"];
+      businessAddress[0] = leadDocument["address"];
+      businessAddress[1] = leadDocument["city"];
+      businessAddress[2] = leadDocument["state"];
+      businessAddress[3] = leadDocument["zipCode"];
     }
   }
 
@@ -299,12 +303,10 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                             MaterialButton(
                               padding: EdgeInsets.all(5),
                               color: Color.fromARGB(500, 1, 224, 143),
-                              onPressed: () async {
-                                Navigator.of(context).push(
-                                  SlideRightRoute(
-                                    page: AgreementBuilder(lead["lead"]),
-                                  ),
-                                );
+                              onPressed: () {
+                                Navigator.pushNamed(
+                                    context, "/agreementbuilder",
+                                    arguments: lead["lead"]);
                               },
                               child: Row(
                                 children: <Widget>[
