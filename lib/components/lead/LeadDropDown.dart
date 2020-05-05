@@ -28,7 +28,7 @@ class _LeadDropDownState extends State<LeadDropDown> {
         this.widget.employeeId == null ? "/lead" : "/employee/$e/lead");
     if (leadsResp != null) {
       if (leadsResp.statusCode == 200) {
-        var leadsArrDecoded = leadsResp.data;
+        var leadsArrDecoded = leadsResp.data["data"];
         if (leadsArrDecoded != null) {
           if (this.mounted) {
             setState(() {

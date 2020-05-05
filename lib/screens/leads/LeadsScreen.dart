@@ -43,7 +43,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
       var resp = await this.widget.apiService.authGet(context, endpoint);
       if (resp != null) {
         if (resp.statusCode == 200) {
-          var leadsArrDecoded = resp.data;
+          var leadsArrDecoded = resp.data["data"];
           if (leadsArrDecoded != null) {
             var leadsArr = List.from(leadsArrDecoded);
             if (leadsArr.length > 0) {

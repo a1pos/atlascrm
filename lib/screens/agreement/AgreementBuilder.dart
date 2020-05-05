@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
@@ -6,6 +7,7 @@ import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/components/shared/AddressSearch.dart';
+import 'package:atlascrm/components/agreement/OwnerPanel.dart';
 
 class AgreementBuilder extends StatefulWidget {
   final ApiService apiService = new ApiService();
@@ -18,26 +20,42 @@ class AgreementBuilder extends StatefulWidget {
   AgreementBuilderState createState() => AgreementBuilderState();
 }
 
+class Owner {
+  Owner(
+      {String name,
+      String address,
+      String city,
+      String state,
+      String phone,
+      String email});
+}
+
 class Item {
-  Item({
-    this.expandedValue,
-    this.headerValue,
-    this.isExpanded = false,
-  });
+  Item(
+      {this.expandedValue,
+      this.headerValue,
+      this.isExpanded = false,
+      this.contentCard = const Text("nocontent")});
 
   String expandedValue;
   String headerValue;
   bool isExpanded;
+  Widget contentCard;
 }
 
-List<Item> generateItems(int numberOfItems) {
-  return List.generate(numberOfItems, (int index) {
-    return Item(
-      headerValue: 'Panel $index',
-      expandedValue: 'This is item number $index',
-    );
-  });
-}
+List<Item> ownerList = [
+  Item(
+      expandedValue: "Owner 1",
+      headerValue: "Owner 1 text",
+      contentCard: Card(
+          child: Column(children: <Widget>[
+        TextField(),
+        TextField(),
+        TextField(),
+        TextField(),
+      ]))),
+  Item(expandedValue: "Owner 2", headerValue: "Owner 2 text")
+];
 
 class AgreementBuilderState extends State<AgreementBuilder>
     with TickerProviderStateMixin {
@@ -49,6 +67,11 @@ class AgreementBuilderState extends State<AgreementBuilder>
   final dbaController = TextEditingController();
   final businessAddressController = TextEditingController();
   final leadSourceController = TextEditingController();
+  //OWNER FIELDS
+  final ownerNameController = TextEditingController();
+  final ownerAddressController = TextEditingController();
+  final ownerPhoneController = TextEditingController();
+  final ownerEmailController = TextEditingController();
 
   Map businessAddress = {"address": "", "city": "", "state": "", "zipcode": ""};
   var agreementBuilder;
@@ -57,6 +80,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
   var leadDocument;
   var addressText;
   var isLoading = true;
+  List owners;
 
   void initState() {
     super.initState();
@@ -82,7 +106,42 @@ class AgreementBuilderState extends State<AgreementBuilder>
     }
   }
 
+  Future<void> loadOwnersData(leadId) async {
+    try {
+      var resp = await this
+          .widget
+          .apiService
+          .authGet(context, "/lead/" + this.widget.leadId + "/business_owner");
+      print(resp);
+      if (resp != null) {
+        if (resp.statusCode == 200) {
+          var ownersArrDecoded = resp.data["data"];
+          if (ownersArrDecoded != null) {
+            var ownersArr = List.from(ownersArrDecoded);
+            if (ownersArr.length > 0) {
+              setState(() {
+                isLoading = false;
+                owners = ownersArr;
+              });
+            } else {
+              setState(() {
+                isLoading = false;
+                ownersArr = [];
+                owners = ownersArr;
+              });
+            }
+            print(owners);
+          }
+        }
+      }
+      print("test");
+    } catch (err) {
+      log(err);
+    }
+  }
+
   Future<void> loadAgreementData(leadId) async {
+    loadOwnersData(this.widget.leadId);
     var resp = await this
         .widget
         .apiService
@@ -98,21 +157,21 @@ class AgreementBuilderState extends State<AgreementBuilder>
         });
         setState(() {
           isLoading = false;
-          if (agreementDocument["address"] != null &&
-              agreementDocument["address"] != "") {
-            addressText = agreementDocument["address"] +
-                ", " +
-                agreementDocument["city"] +
-                ", " +
-                agreementDocument["state"] +
-                ", " +
-                agreementDocument["zipCode"];
-            businessAddress["address"] = agreementDocument["address"];
-            businessAddress["city"] = agreementDocument["city"];
-            businessAddress["state"] = agreementDocument["state"];
-            businessAddress["zipcode"] = agreementDocument["zipCode"];
-            print(businessAddress);
-          }
+          // if (agreementDocument["address"] != null &&
+          //     agreementDocument["address"] != "") {
+          //   addressText = agreementDocument["address"] +
+          //       ", " +
+          //       agreementDocument["city"] +
+          //       ", " +
+          //       agreementDocument["state"] +
+          //       ", " +
+          //       agreementDocument["zipCode"];
+          //   businessAddress["address"] = agreementDocument["address"];
+          //   businessAddress["city"] = agreementDocument["city"];
+          //   businessAddress["state"] = agreementDocument["state"];
+          //   businessAddress["zipcode"] = agreementDocument["zipCode"];
+          //   print(businessAddress);
+          // }
           isLoading = false;
         });
       } else {
@@ -246,8 +305,6 @@ class AgreementBuilderState extends State<AgreementBuilder>
     );
   }
 
-  List<Item> _data = generateItems(8);
-
   @override
   Widget build(BuildContext context) {
     final _tabController = TabController(vsync: this, length: 3);
@@ -338,7 +395,23 @@ class AgreementBuilderState extends State<AgreementBuilder>
                                             Expanded(
                                                 flex: 8,
                                                 child: AddressSearch(
-                                                    locationValue: addressText,
+                                                    locationValue: (agreementDocument[
+                                                                    "address"] !=
+                                                                null &&
+                                                            agreementDocument[
+                                                                    "address"] !=
+                                                                "")
+                                                        ? agreementDocument["address"] +
+                                                            ", " +
+                                                            agreementDocument[
+                                                                "city"] +
+                                                            ", " +
+                                                            agreementDocument[
+                                                                "state"] +
+                                                            ", " +
+                                                            agreementDocument[
+                                                                "zipCode"]
+                                                        : null,
                                                     onAddressChange: (val) =>
                                                         businessAddress = val)),
                                           ],
@@ -361,42 +434,25 @@ class AgreementBuilderState extends State<AgreementBuilder>
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: <Widget>[
                           CustomCard(
-                            key: Key("leads1"),
+                            key: Key("owners1"),
                             icon: Icons.people,
                             title: "Owner Info",
                             child: Column(
                               children: <Widget>[
-                                ExpansionPanelList(
-                                  expansionCallback:
-                                      (int index, bool isExpanded) {
-                                    setState(() {
-                                      _data[index].isExpanded = !isExpanded;
-                                    });
-                                  },
-                                  children:
-                                      _data.map<ExpansionPanel>((Item item) {
-                                    return ExpansionPanel(
-                                      headerBuilder: (BuildContext context,
-                                          bool isExpanded) {
-                                        return ListTile(
-                                          title: Text(item.headerValue),
-                                        );
-                                      },
-                                      body: ListTile(
-                                          title: Text(item.expandedValue),
-                                          subtitle: Text(
-                                              'To delete this panel, tap the trash can icon'),
-                                          trailing: Icon(Icons.delete),
-                                          onTap: () {
-                                            setState(() {
-                                              _data.removeWhere((currentItem) =>
-                                                  item == currentItem);
-                                            });
-                                          }),
-                                      isExpanded: item.isExpanded,
-                                    );
-                                  }).toList(),
-                                )
+                                OwnerPanel("1"),
+                                Card(
+                                    child: ExpansionTile(
+                                  title: Text("test"),
+                                  initiallyExpanded: false,
+                                  children: <Widget>[Text("description")],
+                                )),
+                                Card(
+                                    child: ExpansionTile(
+                                  title: Text("test2"),
+                                  initiallyExpanded: false,
+                                  children: <Widget>[Text("description2")],
+                                )),
+
                                 //PUT GET INFO ROWS HERE
                               ],
                             ),
@@ -412,7 +468,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: <Widget>[
                           CustomCard(
-                            key: Key("leads1"),
+                            key: Key("rates1"),
                             icon: Icons.attach_money,
                             title: "Rate Review",
                             child: Column(
