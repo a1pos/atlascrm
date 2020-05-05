@@ -7,50 +7,37 @@ import 'package:atlascrm/components/shared/AddressSearch.dart';
 class OwnerPanel extends StatefulWidget {
   final ApiService apiService = new ApiService();
 
-  final String leadId;
+  final Map _owner;
 
-  OwnerPanel(this.leadId);
+  OwnerPanel(this._owner);
 
   @override
-  OwnerPanelState createState() => OwnerPanelState();
+  _OwnerPanelState createState() => _OwnerPanelState();
 }
 
 class Owner {
-  Owner(
-      {String name,
-      String address,
-      String city,
-      String state,
-      String phone,
-      String email});
-}
-
-class Item {
-  Item({
-    this.expandedValue,
-    this.headerValue,
-    this.isExpanded = false,
-    this.contentCard,
+  Owner({
+    this.business_owner,
+    this.lead,
+    this.document,
   });
-
-  String expandedValue;
-  String headerValue;
-  bool isExpanded;
-  Widget contentCard;
+  String business_owner;
+  String lead;
+  Map document;
 }
 
 //OWNER CONTROLLER FIELDS
 final _ownerNameController = TextEditingController();
-final _ownerAddressController = TextEditingController();
-final _ownerPhoneController = TextEditingController();
-final _ownerEmailController = TextEditingController();
+// final _ownerAddressController = TextEditingController();
+// final _ownerPhoneController = TextEditingController();
+// final _ownerEmailController = TextEditingController();
 
-Widget getInfoRow(label, value, controller) {
-  if (value != null) {
-    controller.text = value;
+Widget getInfoRow(_label, _value, _controller) {
+  if (_value != null) {
+    _controller.text = _value;
   }
 
-  var valueFmt = value ?? "N/A";
+  var valueFmt = _value ?? "N/A";
 
   if (valueFmt == "") {
     valueFmt = "N/A";
@@ -64,13 +51,13 @@ Widget getInfoRow(label, value, controller) {
           Expanded(
             flex: 4,
             child: Text(
-              '$label: ',
+              '$_label: ',
               style: TextStyle(fontSize: 16),
             ),
           ),
           Expanded(
             flex: 8,
-            child: TextField(controller: controller),
+            child: TextField(controller: _controller),
           ),
         ],
       ),
@@ -78,61 +65,22 @@ Widget getInfoRow(label, value, controller) {
   );
 }
 
-List<Item> ownerList = [
-  Item(
-      expandedValue: "Owner 1",
-      headerValue: "Owner 1 text",
-      contentCard: Card(
-          child: Column(children: <Widget>[
-        getInfoRow("Name", "owner", _ownerNameController),
-      ]))),
-  Item(expandedValue: "Owner 2", headerValue: "Owner 2 text")
-];
-
-class OwnerPanelState extends State<OwnerPanel> {
+class _OwnerPanelState extends State<OwnerPanel> {
   void initState() {
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    Map _ownerDoc = this.widget._owner["document"];
+    var _name = _ownerDoc["name"];
+
     return Card(
         child: ExpansionTile(
-      title: Text("Ownerpanel"),
-      initiallyExpanded: false,
-    ));
-  }
-
-  Widget getInfoRow(label, value, controller) {
-    if (value != null) {
-      controller.text = value;
-    }
-
-    var valueFmt = value ?? "N/A";
-
-    if (valueFmt == "") {
-      valueFmt = "N/A";
-    }
-
-    return Container(
-      child: Padding(
-        padding: EdgeInsets.all(15),
-        child: Row(
-          children: <Widget>[
-            Expanded(
-              flex: 4,
-              child: Text(
-                '$label: ',
-                style: TextStyle(fontSize: 16),
-              ),
-            ),
-            Expanded(
-              flex: 8,
-              child: TextField(controller: controller),
-            ),
-          ],
-        ),
-      ),
-    );
+            title: Text("Ownerpanel"),
+            initiallyExpanded: false,
+            children: <Widget>[
+          getInfoRow("Name", _name, _ownerNameController),
+        ]));
   }
 }

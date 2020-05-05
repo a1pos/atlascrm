@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 class ConfigSettings {
-  static String API_URL = !kReleaseMode
+  static String API_URL = kReleaseMode
       ? "https://butlerbizsys.com/api/v1/"
       : "http://192.168.1.45:3002/api/v1/";
   static String WS_URL =

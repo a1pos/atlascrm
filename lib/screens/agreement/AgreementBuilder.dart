@@ -20,15 +20,13 @@ class AgreementBuilder extends StatefulWidget {
   AgreementBuilderState createState() => AgreementBuilderState();
 }
 
-class Owner {
-  Owner(
-      {String name,
-      String address,
-      String city,
-      String state,
-      String phone,
-      String email});
-}
+// class Owner {
+//   Owner({
+//     String business_owner,
+//     String lead,
+//     List document,
+//   });
+// }
 
 class Item {
   Item(
@@ -68,10 +66,10 @@ class AgreementBuilderState extends State<AgreementBuilder>
   final businessAddressController = TextEditingController();
   final leadSourceController = TextEditingController();
   //OWNER FIELDS
-  final ownerNameController = TextEditingController();
-  final ownerAddressController = TextEditingController();
-  final ownerPhoneController = TextEditingController();
-  final ownerEmailController = TextEditingController();
+  // final ownerNameController = TextEditingController();
+  // final ownerAddressController = TextEditingController();
+  // final ownerPhoneController = TextEditingController();
+  // final ownerEmailController = TextEditingController();
 
   Map businessAddress = {"address": "", "city": "", "state": "", "zipcode": ""};
   var agreementBuilder;
@@ -81,6 +79,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
   var addressText;
   var isLoading = true;
   List owners;
+  Map testOwner;
 
   void initState() {
     super.initState();
@@ -115,26 +114,25 @@ class AgreementBuilderState extends State<AgreementBuilder>
       print(resp);
       if (resp != null) {
         if (resp.statusCode == 200) {
-          var ownersArrDecoded = resp.data["data"];
+          var ownersArrDecoded = resp.data;
           if (ownersArrDecoded != null) {
             var ownersArr = List.from(ownersArrDecoded);
             if (ownersArr.length > 0) {
               setState(() {
                 isLoading = false;
                 owners = ownersArr;
+                testOwner = ownersArr[0];
               });
             } else {
               setState(() {
                 isLoading = false;
                 ownersArr = [];
-                owners = ownersArr;
+                owners = [];
               });
             }
-            print(owners);
           }
         }
       }
-      print("test");
     } catch (err) {
       log(err);
     }
@@ -427,39 +425,15 @@ class AgreementBuilderState extends State<AgreementBuilder>
                       ),
                     ),
                   ),
-                  Container(
-                    padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
-                    child: SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: <Widget>[
-                          CustomCard(
-                            key: Key("owners1"),
-                            icon: Icons.people,
-                            title: "Owner Info",
-                            child: Column(
-                              children: <Widget>[
-                                OwnerPanel("1"),
-                                Card(
-                                    child: ExpansionTile(
-                                  title: Text("test"),
-                                  initiallyExpanded: false,
-                                  children: <Widget>[Text("description")],
-                                )),
-                                Card(
-                                    child: ExpansionTile(
-                                  title: Text("test2"),
-                                  initiallyExpanded: false,
-                                  children: <Widget>[Text("description2")],
-                                )),
-
-                                //PUT GET INFO ROWS HERE
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                  Column(
+                    children: <Widget>[
+                      Expanded(
+                        child: ListView(
+                            children: owners.map((owner) {
+                          return OwnerPanel(owner);
+                        }).toList()),
+                      )
+                    ],
                   ),
                   Container(
                     padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
