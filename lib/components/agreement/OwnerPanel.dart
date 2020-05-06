@@ -8,11 +8,11 @@ class OwnerPanel extends StatefulWidget {
   final ApiService apiService = new ApiService();
 
   final Map _owner;
-
-  OwnerPanel(this._owner);
+  final Key key;
+  OwnerPanel(this._owner, this.key);
 
   @override
-  _OwnerPanelState createState() => _OwnerPanelState();
+  _OwnerPanelState createState() => _OwnerPanelState(owner: _owner, key: key);
 }
 
 class Owner {
@@ -25,12 +25,6 @@ class Owner {
   String lead;
   Map document;
 }
-
-//OWNER CONTROLLER FIELDS
-final _ownerNameController = TextEditingController();
-// final _ownerAddressController = TextEditingController();
-// final _ownerPhoneController = TextEditingController();
-// final _ownerEmailController = TextEditingController();
 
 Widget getInfoRow(_label, _value, _controller) {
   if (_value != null) {
@@ -66,21 +60,63 @@ Widget getInfoRow(_label, _value, _controller) {
 }
 
 class _OwnerPanelState extends State<OwnerPanel> {
+  Map ownerAddress = {"address": "", "city": "", "state": "", "zipcode": ""};
+  final Map owner;
+  final Key key;
+  Map _ownerDoc;
+  var _name;
+//OWNER CONTROLLER FIELDS
+// final _ownerAddressController = TextEditingController();
+// final _ownerPhoneController = TextEditingController();
+// final _ownerEmailController = TextEditingController();
+  final _ownerNameController = TextEditingController();
+
+  _OwnerPanelState({this.owner, this.key});
   void initState() {
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    Map _ownerDoc = this.widget._owner["document"];
-    var _name = _ownerDoc["name"];
-
+    setState(() {
+      _ownerDoc = this.widget._owner["document"];
+      _name = _ownerDoc["name"];
+      print("SETTING STATE " + _name);
+    });
     return Card(
         child: ExpansionTile(
-            title: Text("Ownerpanel"),
+            title: Text(_name),
             initiallyExpanded: false,
             children: <Widget>[
           getInfoRow("Name", _name, _ownerNameController),
+          Container(
+              child: Padding(
+                  padding: EdgeInsets.all(15),
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                        flex: 4,
+                        child: Text(
+                          'Business Address:',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ),
+                      Expanded(
+                          flex: 8,
+                          child: AddressSearch(
+                              locationValue: (_ownerDoc["address"] != null &&
+                                      _ownerDoc["address"] != "")
+                                  ? _ownerDoc["address"] +
+                                      ", " +
+                                      _ownerDoc["city"] +
+                                      ", " +
+                                      _ownerDoc["state"] +
+                                      ", " +
+                                      _ownerDoc["zipCode"]
+                                  : null,
+                              onAddressChange: (val) => ownerAddress = val)),
+                    ],
+                  ))),
         ]));
   }
 }

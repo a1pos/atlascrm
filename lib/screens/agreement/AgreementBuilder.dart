@@ -110,7 +110,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
       var resp = await this
           .widget
           .apiService
-          .authGet(context, "/lead/" + this.widget.leadId + "/business_owner");
+          .authGet(context, "/lead/" + this.widget.leadId + "/businessowner");
       print(resp);
       if (resp != null) {
         if (resp.statusCode == 200) {
@@ -143,7 +143,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
     var resp = await this
         .widget
         .apiService
-        .authGet(context, "/lead/" + this.widget.leadId + "/agreement_builder");
+        .authGet(context, "/lead/" + this.widget.leadId + "/agreementbuilder");
 
     if (resp.statusCode == 200) {
       var body = resp.data;
@@ -191,7 +191,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
     var resp1 = await this
         .widget
         .apiService
-        .authPost(context, "/agreement_builder", agreementBuilder);
+        .authPost(context, "/agreementbuilder", agreementBuilder);
     if (resp1 != null) {
       if (resp1.statusCode == 200) {
         Fluttertoast.showToast(
@@ -247,7 +247,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
     };
 
     var resp = await this.widget.apiService.authPut(context,
-        "/agreement_builder/" + agreementBuilderId, agreementBuilderObj);
+        "/agreementbuilder/" + agreementBuilderId, agreementBuilderObj);
 
     if (resp.statusCode == 200) {
       await loadAgreementData(this.widget.leadId);
@@ -430,7 +430,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
                       Expanded(
                         child: ListView(
                             children: owners.map((owner) {
-                          return OwnerPanel(owner);
+                          return OwnerPanel(owner, UniqueKey());
                         }).toList()),
                       )
                     ],
