@@ -80,6 +80,21 @@ class AgreementBuilderState extends State<AgreementBuilder>
   var isLoading = true;
   List owners;
   Map testOwner;
+  Map emptyOwner = {
+    "new": "owner",
+    "business_owner": "",
+    "lead": "",
+    "document": {
+      "city": "",
+      "name": "",
+      "email": "",
+      "state": "",
+      "address": "",
+      "zipCode": "",
+      "phoneNumber": ""
+    }
+  };
+  List<Widget> displayList;
 
   void initState() {
     super.initState();
@@ -121,7 +136,8 @@ class AgreementBuilderState extends State<AgreementBuilder>
               setState(() {
                 isLoading = false;
                 owners = ownersArr;
-                testOwner = ownersArr[0];
+                // testOwner = ownersArr[0];
+                // emptyOwner["lead"] = lead["leadId"];
               });
             } else {
               setState(() {
@@ -155,22 +171,6 @@ class AgreementBuilderState extends State<AgreementBuilder>
         });
         setState(() {
           isLoading = false;
-          // if (agreementDocument["address"] != null &&
-          //     agreementDocument["address"] != "") {
-          //   addressText = agreementDocument["address"] +
-          //       ", " +
-          //       agreementDocument["city"] +
-          //       ", " +
-          //       agreementDocument["state"] +
-          //       ", " +
-          //       agreementDocument["zipCode"];
-          //   businessAddress["address"] = agreementDocument["address"];
-          //   businessAddress["city"] = agreementDocument["city"];
-          //   businessAddress["state"] = agreementDocument["state"];
-          //   businessAddress["zipcode"] = agreementDocument["zipCode"];
-          //   print(businessAddress);
-          // }
-          isLoading = false;
         });
       } else {
         generateAgreement();
@@ -178,7 +178,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
     }
   }
 
-  generateAgreement() async {
+  Future<void> generateAgreement() async {
     await loadLeadData(this.widget.leadId);
     print(lead);
     print(this.widget.leadId);
@@ -268,6 +268,34 @@ class AgreementBuilderState extends State<AgreementBuilder>
           textColor: Colors.white,
           fontSize: 16.0);
     }
+    updateOwners();
+  }
+
+  Future<void> updateOwners() async {
+    var resp = await this
+        .widget
+        .apiService
+        .authPost(context, "/businessowner", owners);
+
+    if (resp.statusCode == 200) {
+      print("OWNERS SAVED");
+      Fluttertoast.showToast(
+          msg: "Owners Saved!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0);
+    } else {
+      print("SOMETHING FUCKED UP SAVING THE OWNERS");
+      Fluttertoast.showToast(
+          msg: "Failed to Save Owners!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0);
+    }
   }
 
   Future<void> leaveCheck() async {
@@ -305,6 +333,15 @@ class AgreementBuilderState extends State<AgreementBuilder>
 
   @override
   Widget build(BuildContext context) {
+    addOwner() {
+      // displayList.add(OwnerPanel(key: UniqueKey()));
+      // print(displayList);
+      setState(() {
+        owners.add(emptyOwner);
+      });
+      print("new owner" + (emptyOwner).toString());
+    }
+
     final _tabController = TabController(vsync: this, length: 3);
     _tabController.addListener(() {
       print(_tabController.index);
@@ -429,10 +466,29 @@ class AgreementBuilderState extends State<AgreementBuilder>
                     children: <Widget>[
                       Expanded(
                         child: ListView(
-                            children: owners.map((owner) {
-                          return OwnerPanel(owner, UniqueKey());
+                            children: displayList = owners.map((owner) {
+                          return OwnerPanel(
+                              owner: owner,
+                              key: UniqueKey(),
+                              onOwnerChange: (val) => () {
+                                    // setState(() {
+                                    //   var editIndex = owners.indexWhere(
+                                    //       (item) =>
+                                    //           item["business_owner"] ==
+                                    //           owner["business_owner"]);
+                                    //   owners[editIndex] = val;
+                                    // });
+                                    print("PRINTING OWNER BELOW");
+                                    print(val);
+                                  });
                         }).toList()),
-                      )
+                      ),
+                      FlatButton(
+                          onPressed: () {
+                            addOwner();
+                            print("addOwner Attempt");
+                          },
+                          child: Text("Add Owner"))
                     ],
                   ),
                   Container(
