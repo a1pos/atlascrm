@@ -150,11 +150,46 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
     Navigator.pop(context);
   }
 
+  Future<void> deleteCheck(leadId) async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Delete this Lead?'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('Are you sure you want to delete this lead?'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('Delete',
+                  style: TextStyle(fontSize: 17, color: Colors.red)),
+              onPressed: () {
+                deleteLead(leadId);
+
+                Navigator.of(context).pop();
+              },
+            ),
+            FlatButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> deleteLead(leadId) async {
     var resp = await this
         .widget
         .apiService
-        .authDelete(context, "/leads/" + this.widget.leadId, null);
+        .authDelete(context, "/lead/" + this.widget.leadId, null);
 
     if (resp.statusCode == 200) {
       Navigator.popAndPushNamed(context, "/leads");
@@ -186,9 +221,21 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
         return Future.value(false);
       },
       child: Scaffold(
-        appBar: CustomAppBar(
-          key: Key("viewLeadsAppBar"),
+        appBar: AppBar(
+          key: Key("viewTasksAppBar"),
           title: Text(isLoading ? "Loading..." : leadDocument["businessName"]),
+          actions: <Widget>[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(5, 8, 10, 8),
+              child: IconButton(
+                onPressed: () {
+                  deleteCheck(this.widget.leadId);
+                },
+                icon: Icon(Icons.delete, color: Colors.white),
+              ),
+            )
+          ],
+          backgroundColor: Color.fromARGB(500, 1, 56, 112),
         ),
         body: isLoading
             ? CenteredClearLoadingScreen()
@@ -312,43 +359,12 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                   ),
                 ),
               ),
-        floatingActionButton: UnicornDialer(
-          parentButtonBackground: Color.fromARGB(500, 1, 224, 143),
-          orientation: UnicornOrientation.VERTICAL,
-          parentButton: Icon(
-            Icons.add,
-            color: Colors.white,
-          ),
-          childButtons: <UnicornButton>[
-            UnicornButton(
-              hasLabel: true,
-              labelText: "Save Lead",
-              currentButton: FloatingActionButton(
-                heroTag: "saveLead",
-                backgroundColor: Colors.green[300],
-                mini: true,
-                foregroundColor: Colors.white,
-                child: Icon(Icons.save),
-                onPressed: () {
-                  updateLead(this.widget.leadId);
-                },
-              ),
-            ),
-            UnicornButton(
-              hasLabel: true,
-              labelText: "Delete Lead",
-              currentButton: FloatingActionButton(
-                heroTag: "deleteLead",
-                mini: true,
-                backgroundColor: Colors.red[300],
-                child: Icon(Icons.delete),
-                foregroundColor: Colors.white,
-                onPressed: () {
-                  deleteLead(this.widget.leadId);
-                },
-              ),
-            ),
-          ],
+        floatingActionButton: FloatingActionButton(
+          onPressed: () async {
+            updateLead(this.widget.leadId);
+          },
+          backgroundColor: Color.fromARGB(500, 1, 224, 143),
+          child: Icon(Icons.save),
         ),
       ),
     );
