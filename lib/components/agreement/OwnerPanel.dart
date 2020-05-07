@@ -94,7 +94,7 @@ class _OwnerPanelState extends State<OwnerPanel> {
 
   @override
   Widget build(BuildContext context) {
-    updateOwner() {
+    Future<Null> updateOwner() async {
       var ownerObj;
       if (owner["new"] != null) {
         ownerObj = {

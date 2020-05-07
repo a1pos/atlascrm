@@ -466,20 +466,20 @@ class AgreementBuilderState extends State<AgreementBuilder>
                     children: <Widget>[
                       Expanded(
                         child: ListView(
-                            children: displayList = owners.map((owner) {
+                            children: displayList = owners.map((_owner) {
                           return OwnerPanel(
-                              owner: owner,
+                              owner: _owner,
                               key: UniqueKey(),
-                              onOwnerChange: (val) => () {
-                                    // setState(() {
-                                    //   var editIndex = owners.indexWhere(
-                                    //       (item) =>
-                                    //           item["business_owner"] ==
-                                    //           owner["business_owner"]);
-                                    //   owners[editIndex] = val;
-                                    // });
-                                    print("PRINTING OWNER BELOW");
-                                    print(val);
+                              onOwnerChange: (_val) => () {
+                                    setState(() {
+                                      var _editIndex = owners.indexWhere(
+                                          (item) =>
+                                              item["business_owner"] ==
+                                              _val["business_owner"]);
+                                      owners[_editIndex] = _val;
+                                      print("PRINTING OWNER BELOW");
+                                      print(_val);
+                                    });
                                   });
                         }).toList()),
                       ),
@@ -487,6 +487,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
                           onPressed: () {
                             addOwner();
                             print("addOwner Attempt");
+                            print(displayList);
                           },
                           child: Text("Add Owner"))
                     ],
