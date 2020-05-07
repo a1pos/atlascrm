@@ -3,6 +3,7 @@ import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomDrawer.dart';
 import 'package:atlascrm/components/shared/Spinner.dart';
 import 'package:atlascrm/screens/dashboard/widgets/SalesLeaderboardChart.dart';
+import 'package:atlascrm/screens/dashboard/widgets/Tasks.dart';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -82,7 +83,7 @@ class _SalesDashboardScreenState extends State<SalesDashboardScreen> {
                     icon: Icons.attach_money,
                     child: Container(
                       height: 200,
-                      child: isLoading ? Spinner() : SalesLeaderboardChart(),
+                      child: SalesLeaderboardChart(),
                     ),
                   ),
                   CustomCard(
@@ -91,7 +92,7 @@ class _SalesDashboardScreenState extends State<SalesDashboardScreen> {
                     icon: Icons.track_changes,
                     child: Container(
                       height: 200,
-                      child: Spinner(),
+                      child: Tasks(),
                     ),
                   ),
                 ],

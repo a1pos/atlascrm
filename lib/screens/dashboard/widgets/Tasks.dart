@@ -17,7 +17,7 @@ class _TasksState extends State<Tasks> {
   var isEmpty = true;
   var isLoading = true;
   var tasks = [];
-
+  var activeTasks = [];
   @override
   void initState() {
     super.initState();
@@ -35,6 +35,8 @@ class _TasksState extends State<Tasks> {
           if (tasksArrDecoded != null && tasksArrDecoded.length > 0) {
             setState(() {
               tasks = tasksArrDecoded;
+              activeTasks =
+                  tasks.where((e) => e["document"]["active"]).toList();
               isLoading = false;
               isEmpty = false;
             });
@@ -72,7 +74,7 @@ class _TasksState extends State<Tasks> {
                   child: Column(
                     children: [
                       Column(
-                        children: tasks.map((t) {
+                        children: activeTasks.map((t) {
                           var tDate = DateFormat("EEE, MMM d, ''yy")
                               .add_jm()
                               .format(DateTime.parse(t['date']));

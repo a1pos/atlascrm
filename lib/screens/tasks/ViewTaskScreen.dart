@@ -174,7 +174,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
               },
             ),
             FlatButton(
-              child: Text('Cancel'),
+              child: Text('Cancel', style: TextStyle(fontSize: 17)),
               onPressed: () {
                 Navigator.of(context).pop();
               },
