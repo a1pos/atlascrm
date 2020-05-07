@@ -10,6 +10,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:unicorndial/unicorndial.dart';
 import 'package:atlascrm/components/shared/AddressSearch.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
+import 'package:atlascrm/components/shared/Notes.dart';
 
 class LeadInfoEntry {
   final TextEditingController controller;
@@ -47,59 +48,16 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
 
   var lead;
   var leadDocument;
-  List notes;
-  List notesDisplay;
   var isLoading = true;
-  var notesEmpty = true;
 
   void initState() {
     super.initState();
 
     loadLeadData(this.widget.leadId);
-    loadNotes(this.widget.leadId);
-
     initializeTools();
   }
 
   Future<void> initializeTools() async {}
-
-  Future<void> loadNotes(leadId) async {
-    var resp = await this
-        .widget
-        .apiService
-        .authGet(context, "/lead/" + this.widget.leadId + "/note");
-
-    if (resp.statusCode == 200) {
-      var body = resp.data;
-      if (body != null) {
-        var bodyDecoded = body;
-
-        setState(() {
-          notes = bodyDecoded.toList();
-          notesEmpty = false;
-        });
-      }
-    }
-  }
-
-  Future<void> saveNote(newNote) async {
-    var sendNote = {"text": newNote};
-    var resp = await this
-        .widget
-        .apiService
-        .authPost(context, "/lead/" + lead["lead"] + "/note", sendNote);
-
-    if (resp.statusCode == 200) {
-      var body = resp.data;
-      if (body != null) {
-        var bodyDecoded = body;
-
-        setState(() {
-          loadNotes(lead["lead"]);
-        });
-      }
-    }
-  }
 
   Future<void> loadLeadData(leadId) async {
     var resp = await this
@@ -316,62 +274,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                           key: Key("leads4"),
                           title: "Notes",
                           icon: Icons.note,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              Row(children: <Widget>[
-                                Expanded(
-                                  child: TextField(
-                                    controller: notesController,
-                                    decoration: InputDecoration(
-                                      focusedBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color: Colors.greenAccent,
-                                            width: 3.0),
-                                      ),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color: Colors.grey, width: 0.5),
-                                      ),
-                                      hintText: 'Additional Notes.',
-                                    ),
-                                  ),
-                                ),
-                                IconButton(
-                                  icon: Icon(Icons.send),
-                                  onPressed: () {
-                                    saveNote(notesController.text);
-                                    notesController.text = "";
-                                  },
-                                )
-                              ]),
-                              !notesEmpty
-                                  ? Column(
-                                      children: notesDisplay =
-                                          notes.map((note) {
-                                        var viewDate =
-                                            DateFormat("yyyy-MM-dd HH:mm")
-                                                .add_jm()
-                                                .format(DateTime.parse(
-                                                    note["created_at"]));
-                                        return Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: Card(
-                                              child: Container(
-                                                  child: ListTile(
-                                                      title: Text(
-                                                          note["note_text"]),
-                                                      subtitle: Text(viewDate,
-                                                          style: TextStyle(
-                                                              color:
-                                                                  Colors.grey,
-                                                              fontSize: 10))))),
-                                        );
-                                      }).toList(),
-                                    )
-                                  : Empty("no notes"),
-                            ],
-                          )),
+                          child: Notes(type: "lead", object: lead["lead"])),
                       CustomCard(
                         key: Key("leads5"),
                         title: "Tools",
