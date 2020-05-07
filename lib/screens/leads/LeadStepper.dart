@@ -142,12 +142,12 @@ class LeadStepperState extends State<LeadStepper> {
                         controller: dbaNameController,
                         // validator: validate,
                       ),
-                      TextFormField(
-                        decoration:
-                            InputDecoration(labelText: "Business Phone"),
-                        controller: businessPhoneNumber,
-                        // validator: validate,
-                      ),
+                      // TextFormField(
+                      //   decoration:
+                      //       InputDecoration(labelText: "Business Phone"),
+                      //   controller: businessPhoneNumber,
+                      //   // validator: validate,
+                      // ),
                       Padding(
                         padding: const EdgeInsets.fromLTRB(0, 32, 0, 0),
                         child: AddressSearch(
@@ -283,11 +283,14 @@ class LeadStepperState extends State<LeadStepper> {
 
   void addLead() async {
     try {
+      String rawNumber = phoneNumberController.text;
+      var filteredNumber = rawNumber.replaceAll(RegExp("[^0-9]"), "");
+      print(filteredNumber);
       var lead = {
         "firstName": firstNameController.text,
         "lastName": lastNameController.text,
         "emailAddr": emailAddrController.text,
-        "phoneNumber": phoneNumberController.text,
+        "phoneNumber": filteredNumber,
         "businessName": businessNameController.text,
         "dbaName": dbaNameController.text,
         "address": businessAddress["address"],

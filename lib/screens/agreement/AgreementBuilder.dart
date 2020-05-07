@@ -278,7 +278,6 @@ class AgreementBuilderState extends State<AgreementBuilder>
         .authPost(context, "/businessowner", owners);
 
     if (resp.statusCode == 200) {
-      print("OWNERS SAVED");
       Fluttertoast.showToast(
           msg: "Owners Saved!",
           toastLength: Toast.LENGTH_SHORT,
@@ -287,7 +286,6 @@ class AgreementBuilderState extends State<AgreementBuilder>
           textColor: Colors.white,
           fontSize: 16.0);
     } else {
-      print("SOMETHING FUCKED UP SAVING THE OWNERS");
       Fluttertoast.showToast(
           msg: "Failed to Save Owners!",
           toastLength: Toast.LENGTH_SHORT,
@@ -470,17 +468,20 @@ class AgreementBuilderState extends State<AgreementBuilder>
                           return OwnerPanel(
                               owner: _owner,
                               key: UniqueKey(),
-                              onOwnerChange: (_val) => () {
-                                    setState(() {
-                                      var _editIndex = owners.indexWhere(
-                                          (item) =>
-                                              item["business_owner"] ==
-                                              _val["business_owner"]);
+                              onOwnerChange: (_val) => setState(() {
+                                    var _editIndex = owners.indexWhere((item) =>
+                                        item["business_owner"] ==
+                                        _val["business_owner"]);
+                                    if (_editIndex != -1) {
+                                      print(_editIndex);
+                                      print(owners[_editIndex]);
                                       owners[_editIndex] = _val;
-                                      print("PRINTING OWNER BELOW");
-                                      print(_val);
-                                    });
-                                  });
+                                    } else {
+                                      owners.add(_val);
+                                    }
+                                    print("PRINTING OWNER BELOW");
+                                    print(_val);
+                                  }));
                         }).toList()),
                       ),
                       FlatButton(

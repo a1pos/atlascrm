@@ -37,7 +37,6 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
   final businessNameController = TextEditingController();
   final dbaController = TextEditingController();
   final businessAddressController = TextEditingController();
-  final businessPhoneNumberController = TextEditingController();
   final notesController = TextEditingController();
   final leadSourceController = TextEditingController();
 
@@ -96,15 +95,17 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
   }
 
   Future<void> updateLead(leadId) async {
+    String rawNumber = phoneNumberController.text;
+    var filteredNumber = rawNumber.replaceAll(RegExp("[^0-9]"), "");
+    print(filteredNumber);
     var leadToUpdate = {
       "businessName": businessNameController.text,
       "businessType": "",
       "firstName": firstNameController.text,
       "lastName": lastNameController.text,
       "emailAddr": emailAddrController.text,
-      "phoneNumber": phoneNumberController.text,
+      "phoneNumber": filteredNumber,
       "dbaName": dbaController.text,
-      "phoneNumber": businessPhoneNumberController.text,
       "address": businessAddress["address"],
       "city": businessAddress["city"],
       "state": businessAddress["state"],
@@ -297,10 +298,6 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                                                     businessAddress = val)),
                                       ],
                                     ))),
-                            getInfoRow(
-                                "Phone Number",
-                                leadDocument["businessPhoneNumber"],
-                                businessPhoneNumberController),
                           ],
                         ),
                       ),

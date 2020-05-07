@@ -96,12 +96,13 @@ class _OwnerPanelState extends State<OwnerPanel> {
   Widget build(BuildContext context) {
     Future<Null> updateOwner() async {
       var ownerObj;
+
       if (owner["new"] != null) {
         ownerObj = {
           "new": owner["new"],
           "lead": owner["lead"],
           "document": {
-            "firstName": _ownerNameController.text,
+            "name": _ownerNameController.text,
             "phoneNumber": _ownerPhoneController.text,
             "email": _ownerEmailController.text,
             "address": ownerAddress["address"],
@@ -115,7 +116,7 @@ class _OwnerPanelState extends State<OwnerPanel> {
           "business_owner": owner["business_owner"],
           "lead": owner["lead"],
           "document": {
-            "firstName": _ownerNameController.text,
+            "name": _ownerNameController.text,
             "phoneNumber": _ownerPhoneController.text,
             "email": _ownerEmailController.text,
             "address": ownerAddress["address"],
@@ -125,9 +126,6 @@ class _OwnerPanelState extends State<OwnerPanel> {
           }
         };
       }
-
-      print("Owner updated!");
-      print(ownerObj);
       this.widget.onOwnerChange(ownerObj);
     }
 
@@ -138,11 +136,9 @@ class _OwnerPanelState extends State<OwnerPanel> {
     setState(() {
       _ownerNameController.text = this.owner["document"]["name"];
       _ownerNameController.addListener(() {
-        print(_ownerNameController.text);
         tileTitle = _ownerNameController.text;
-        updateOwner();
+        // updateOwner();
       });
-      print("SETTING STATE " + _name);
     });
     return Card(
         child: ExpansionTile(
@@ -176,6 +172,9 @@ class _OwnerPanelState extends State<OwnerPanel> {
                                       _ownerDoc["zipCode"]
                                   : null,
                               onAddressChange: (val) => ownerAddress = val)),
+                      FlatButton(
+                          onPressed: () => updateOwner(),
+                          child: Text("Save Owner"))
                     ],
                   ))),
         ]));
