@@ -97,7 +97,7 @@ class LeadStepperState extends State<LeadStepper> {
               },
               steps: [
                 Step(
-                  title: Text('Personal Info'),
+                  title: Text('Contact Info'),
                   content: Column(
                     children: [
                       TextFormField(

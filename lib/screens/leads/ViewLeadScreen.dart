@@ -249,7 +249,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                       CustomCard(
                         key: Key("leads1"),
                         icon: Icons.person,
-                        title: "Personal Information",
+                        title: "Contact Information",
                         child: Column(
                           children: <Widget>[
                             getInfoRow("First Name", leadDocument["firstName"],
