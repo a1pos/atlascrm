@@ -97,14 +97,14 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
 
   Future<void> updateLead(leadId) async {
     var leadToUpdate = {
+      "businessName": businessNameController.text,
+      "businessType": "",
       "firstName": firstNameController.text,
       "lastName": lastNameController.text,
       "emailAddr": emailAddrController.text,
       "phoneNumber": phoneNumberController.text,
-      "businessName": businessNameController.text,
       "dbaName": dbaController.text,
       "phoneNumber": businessPhoneNumberController.text,
-      "notes": notesController.text,
       "address": businessAddress["address"],
       "city": businessAddress["city"],
       "state": businessAddress["state"],
