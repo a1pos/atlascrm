@@ -85,7 +85,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
     });
   }
 
-  Future<void> updateTask() async {
+  Future<void> updateTask(complete) async {
     try {
       var token = ConfigSettings.ACCESS_TOKEN;
       var data = {
@@ -96,12 +96,19 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
         "date": taskDateController.text,
         "priority": taskPriorityDropdownValue,
         "lead": leadDropdownValue,
-        "document": {
-          "title": taskTitleController.text,
-          "notes": taskDescController.text,
-          "eventid": task["document"]["eventid"],
-          "active": true,
-        }
+        "document": !complete
+            ? {
+                "title": taskTitleController.text,
+                "notes": taskDescController.text,
+                "eventid": task["document"]["eventid"],
+                "active": true,
+              }
+            : {
+                "title": taskTitleController.text,
+                "notes": taskDescController.text,
+                "eventid": task["document"]["eventid"],
+                "active": false,
+              }
       };
       var resp1 =
           await apiService.authPut(context, "/googlecalendar/" + token, data);
@@ -125,13 +132,21 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
           await apiService.authPut(context, "/task/" + task["task"], data);
       if (resp != null) {
         if (resp.statusCode == 200) {
-          Fluttertoast.showToast(
-              msg: "Successfully updated task!",
-              toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.grey[600],
-              textColor: Colors.white,
-              fontSize: 16.0);
+          !complete
+              ? Fluttertoast.showToast(
+                  msg: "Successfully updated task!",
+                  toastLength: Toast.LENGTH_SHORT,
+                  gravity: ToastGravity.BOTTOM,
+                  backgroundColor: Colors.grey[600],
+                  textColor: Colors.white,
+                  fontSize: 16.0)
+              : Fluttertoast.showToast(
+                  msg: "Successfully resolved task!",
+                  toastLength: Toast.LENGTH_SHORT,
+                  gravity: ToastGravity.BOTTOM,
+                  backgroundColor: Colors.grey[600],
+                  textColor: Colors.white,
+                  fontSize: 16.0);
 
           Navigator.pushNamed(context, "/tasks");
         }
@@ -201,17 +216,17 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
       appBar: AppBar(
         key: Key("viewTasksAppBar"),
         title: Text(isLoading ? "Loading..." : task['document']['title']),
-        actions: <Widget>[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(5, 8, 10, 8),
-            child: IconButton(
-              onPressed: () {
-                deleteCheck();
-              },
-              icon: Icon(Icons.delete, color: Colors.white),
-            ),
-          )
-        ],
+        // actions: <Widget>[
+        //   Padding(
+        //     padding: const EdgeInsets.fromLTRB(5, 8, 10, 8),
+        //     child: IconButton(
+        //       onPressed: () {
+        //         deleteCheck();
+        //       },
+        //       icon: Icon(Icons.delete, color: Colors.white),
+        //     ),
+        //   )
+        // ],
         backgroundColor: Color.fromARGB(500, 1, 56, 112),
       ),
       body: isLoading
@@ -286,10 +301,10 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
                               },
                               employeeId: employeeDropdownValue),
                         ),
-                        Expanded(
-                          flex: 2,
-                          child: Text('asdf'),
-                        ),
+                        // Expanded(
+                        //   flex: 2,
+                        //   child: Text('asdf'),
+                        // ),
                       ],
                     ),
                     DateTimeField(
@@ -334,15 +349,9 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           if (isChanged) {
-            await updateTask();
+            await updateTask(false);
           } else {
-            Fluttertoast.showToast(
-                msg: "This happens on resolve",
-                toastLength: Toast.LENGTH_SHORT,
-                gravity: ToastGravity.BOTTOM,
-                backgroundColor: Colors.grey[600],
-                textColor: Colors.white,
-                fontSize: 16.0);
+            await updateTask(true);
           }
         },
         backgroundColor: Color.fromARGB(500, 1, 224, 143),
