@@ -18,11 +18,12 @@ class LeadStepper extends StatefulWidget {
 class LeadStepperState extends State<LeadStepper> {
   final _formKey = GlobalKey<FormState>();
   final _stepperKey = GlobalKey<FormState>();
+  bool isSaveDisabled;
 
   @override
   void initState() {
     super.initState();
-
+    isSaveDisabled = false;
     _currentStep = 0;
     _selectedBusinessType = null;
   }
@@ -216,25 +217,30 @@ class LeadStepperState extends State<LeadStepper> {
                         icon: Icon(Icons.arrow_back),
                       )
                     : Container(),
-                RaisedButton.icon(
-                  onPressed: () {
-                    if (_currentStep == stepsLength - 1) {
-                      addLead();
-                    } else {
-                      Stepper stepper = _stepperKey.currentWidget;
-                      stepper.onStepContinue();
-                    }
-                  },
-                  label: Padding(
-                    padding: EdgeInsets.all(20),
-                    child: _currentStep == stepsLength - 1
-                        ? Text('Save')
-                        : Text('Next'),
-                  ),
-                  icon: _currentStep == stepsLength - 1
-                      ? Icon(Icons.save)
-                      : Icon(Icons.arrow_forward),
-                ),
+                !isSaveDisabled
+                    ? RaisedButton.icon(
+                        onPressed: () {
+                          if (_currentStep == stepsLength - 1) {
+                            setState(() {
+                              isSaveDisabled = true;
+                            });
+                            addLead();
+                          } else {
+                            Stepper stepper = _stepperKey.currentWidget;
+                            stepper.onStepContinue();
+                          }
+                        },
+                        label: Padding(
+                          padding: EdgeInsets.all(20),
+                          child: _currentStep == stepsLength - 1
+                              ? Text('Save')
+                              : Text('Next'),
+                        ),
+                        icon: _currentStep == stepsLength - 1
+                            ? Icon(Icons.save)
+                            : Icon(Icons.arrow_forward),
+                      )
+                    : Container(),
               ],
             ),
           ),
@@ -327,5 +333,6 @@ class LeadStepperState extends State<LeadStepper> {
     } catch (err) {
       log(err);
     }
+    isSaveDisabled = false;
   }
 }

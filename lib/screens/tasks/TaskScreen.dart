@@ -43,10 +43,11 @@ class _TaskScreenState extends State<TaskScreen> {
   var taskPriorityDropdownValue;
   var employeeDropdownValue;
 
+  bool isSaveDisabled;
   @override
   void initState() {
     super.initState();
-
+    isSaveDisabled = false;
     initTasks();
   }
 
@@ -180,22 +181,37 @@ class _TaskScreenState extends State<TaskScreen> {
                     Navigator.of(context).pop();
                   },
                 ),
-                MaterialButton(
-                  child: Text(
-                    'Save',
-                    style: TextStyle(
-                      color: Colors.white,
-                    ),
-                  ),
-                  color: Color.fromARGB(500, 1, 224, 143),
-                  onPressed: () async {
-                    if (_formKey.currentState.validate()) {
-                      await createTask();
+                !isSaveDisabled
+                    ? MaterialButton(
+                        child: Text(
+                          'Save',
+                          style: TextStyle(
+                            color: Colors.white,
+                          ),
+                        ),
+                        color: Color.fromARGB(500, 1, 224, 143),
+                        onPressed: () async {
+                          if (_formKey.currentState.validate()) {
+                            setState(() {
+                              isSaveDisabled = true;
+                            });
+                            await createTask();
 
-                      Navigator.of(context).pop();
-                    }
-                  },
-                ),
+                            Navigator.of(context).pop();
+                            isSaveDisabled = false;
+                          }
+                        },
+                      )
+                    : MaterialButton(
+                        child: Text(
+                          'Saving',
+                          style: TextStyle(
+                            color: Colors.white,
+                          ),
+                        ),
+                        color: Colors.grey[600],
+                        onPressed: null,
+                      ),
               ],
               title: Text('Add New Task'),
               content: Form(
