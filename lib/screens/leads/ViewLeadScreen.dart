@@ -79,6 +79,21 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
     setState(() {
       isLoading = false;
     });
+    if (leadDocument?.isEmpty ?? true) {
+      leadDocument = {
+        "businessName": "",
+        "businessType": "",
+        "firstName": "",
+        "lastName": "",
+        "emailAddr": "",
+        "phoneNumber": "",
+        "dbaName": "",
+        "address": "",
+        "city": "",
+        "state": "",
+        "zipCode": "",
+      };
+    }
     if (leadDocument["address"] != null && leadDocument["address"] != "") {
       addressText = leadDocument["address"] +
           ", " +

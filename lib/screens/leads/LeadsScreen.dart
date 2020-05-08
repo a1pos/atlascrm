@@ -167,15 +167,23 @@ class _LeadsScreenState extends State<LeadsScreen> {
                   flex: 6,
                   child: ListView(
                     children: leads.map((lead) {
-                      var fullName = lead["document"]["firstName"] +
-                          " " +
-                          lead["document"]["lastName"];
+                      var fullName;
+                      var businessName;
+                      if (lead["document"]?.isEmpty ?? true) {
+                        fullName = "";
+                        businessName = "";
+                      } else {
+                        fullName = lead["document"]["firstName"] +
+                            " " +
+                            lead["document"]["lastName"];
+                        businessName = lead["document"]["businessName"];
+                      }
                       return GestureDetector(
                         onTap: () {
                           openLead(lead);
                         },
                         child: CustomCard(
-                          title: lead["document"]["businessName"],
+                          title: businessName,
                           icon: Icons.arrow_forward_ios,
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -213,7 +221,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
                                     Padding(
                                       padding: EdgeInsets.all(5),
                                       child: Text(
-                                        lead["document"]["businessName"],
+                                        businessName,
                                         style: TextStyle(
                                           fontSize: 14,
                                         ),
