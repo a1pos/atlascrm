@@ -37,6 +37,12 @@ class _TaskItemState extends State<TaskItem> {
     ];
     var index =
         _types.indexWhere((typeObj) => typeObj.name == this.widget.type);
+    Icon taskIcon;
+    if (index != -1) {
+      taskIcon = Icon(_types[index].icon);
+    } else {
+      taskIcon = Icon(Icons.category);
+    }
     return Center(
       child: Card(
         child: Column(
@@ -45,7 +51,7 @@ class _TaskItemState extends State<TaskItem> {
             Container(
               color: _colors[this.widget.priority],
               child: ListTile(
-                leading: Icon(_types[index].icon),
+                leading: taskIcon,
                 title: Text(this.widget.title ?? ""),
                 subtitle: Text(this.widget.description ?? ""),
                 trailing: Text(this.widget.dateTime ?? ""),
