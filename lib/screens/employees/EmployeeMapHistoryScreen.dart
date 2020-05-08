@@ -27,6 +27,7 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
   Completer<GoogleMapController> _fullScreenMapController = Completer();
 
   final Set<Marker> _markers = new Set<Marker>();
+  final Set<Polyline> _polyline = new Set<Polyline>();
 
   var employeeName = "";
 
@@ -51,7 +52,7 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
     var homeIcon = await BitmapDescriptor.fromAssetImage(
         ImageConfiguration(size: Size(5, 5)), 'assets/home.png');
 
-    var url = "/employees/locationdata/" + this.widget.employeeId;
+    var url = "/employee/locationdata/" + this.widget.employeeId;
 
     if (startDate != null && endDate != null) {
       if (startDate.day == endDate.day) {
@@ -110,7 +111,7 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
             var timeDiff =
                 previousLocationDateTime.difference(locationDateTime);
 
-            if (timeDiff > Duration(minutes: 5)) {
+            if (timeDiff > Duration(minutes: 3)) {
               setState(() {
                 if (_kGooglePlex == null) {
                   _kGooglePlex = CameraPosition(
@@ -144,16 +145,15 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
               zoom: 13.0,
             );
           }
-
-          // _polyline.add(
-          //   Polyline(
-          //     polylineId: PolylineId("polyLineId"),
-          //     visible: true,
-          //     points: latLngs,
-          //     color: Colors.blue,
-          //     width: 2,
-          //   ),
-          // );
+          _polyline.add(
+            Polyline(
+              polylineId: PolylineId("polyLineId"),
+              visible: true,
+              points: latLngs,
+              color: Colors.blue,
+              width: 2,
+            ),
+          );
         });
       }
     } else {
@@ -250,7 +250,7 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
                     myLocationEnabled: true,
                     mapType: MapType.normal,
                     markers: _markers,
-                    // polylines: _polyline,
+                    polylines: _polyline,
                     initialCameraPosition: _kGooglePlex,
                     onMapCreated: (GoogleMapController controller) async {
                       if (!_fullScreenMapController.isCompleted) {
