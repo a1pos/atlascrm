@@ -27,7 +27,7 @@ class TaskScreen extends StatefulWidget {
 class _TaskScreenState extends State<TaskScreen> {
   final ApiService apiService = ApiService();
   final _formKey = GlobalKey<FormState>();
-  var isEmpty = false;
+  var isEmpty = true;
   var isLoading = true;
 
   var tasks = [];
@@ -64,6 +64,9 @@ class _TaskScreenState extends State<TaskScreen> {
               activeTasks =
                   tasks.where((e) => e["document"]["active"]).toList();
               tasksFull = activeTasks;
+              if (activeTasks.length > 0) {
+                isEmpty = false;
+              }
               isLoading = false;
             });
           }
@@ -235,8 +238,8 @@ class _TaskScreenState extends State<TaskScreen> {
                                               value: employeeDropdownValue,
                                               callback: ((val) {
                                                 setState(() {
-                                                  employeeDropdownValue = val;
                                                   leadDropdownValue = null;
+                                                  employeeDropdownValue = val;
                                                 });
                                               }),
                                             )
@@ -418,7 +421,7 @@ class _TaskScreenState extends State<TaskScreen> {
 
   Widget getTasks() {
     return isEmpty
-        ? Empty("No Tasks found")
+        ? Empty("No Active Tasks found")
         : SingleChildScrollView(
             child: Column(
               children: [

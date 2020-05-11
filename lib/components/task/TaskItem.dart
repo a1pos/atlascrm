@@ -27,7 +27,7 @@ class _TaskItemState extends State<TaskItem> {
       Type('Phone Call', Icons.phone),
       Type('Appointment', Icons.calendar_today),
       Type('Corporate Meeting', Icons.business),
-      Type('Physical Stop', Icons.person),
+      Type('Physical Stop', Icons.store_mall_directory),
       Type('Quota Goal', Icons.trending_up)
     ];
     List<Color> _colors = [
