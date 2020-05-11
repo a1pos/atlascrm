@@ -52,8 +52,12 @@ class _TaskItemState extends State<TaskItem> {
               color: _colors[this.widget.priority],
               child: ListTile(
                 leading: taskIcon,
-                title: Text(this.widget.title ?? ""),
-                subtitle: Text(this.widget.description ?? ""),
+                title: Text(
+                  this.widget.title ?? "",
+                ),
+                subtitle: Text(
+                  this.widget.description ?? "",
+                ),
                 trailing: Text(this.widget.dateTime ?? ""),
               ),
             ),

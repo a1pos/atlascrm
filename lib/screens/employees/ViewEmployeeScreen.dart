@@ -7,6 +7,7 @@ import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:atlascrm/screens/employees/widgets/Tasks.dart';
 
 class ViewEmployeeScreen extends StatefulWidget {
   final String employeeId;
@@ -440,6 +441,14 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                         ],
                       ),
                     ),
+                    CustomCard(
+                      title: "Tasks",
+                      icon: Icons.track_changes,
+                      child: Container(
+                        height: 200,
+                        child: Tasks(employeeId: this.widget.employeeId),
+                      ),
+                    )
                   ],
                 ),
               ),
