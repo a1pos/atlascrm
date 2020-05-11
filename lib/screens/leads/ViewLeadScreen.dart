@@ -343,13 +343,13 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                           children: <Widget>[
                             MaterialButton(
                               padding: EdgeInsets.all(5),
-                              // color: Color.fromARGB(500, 1, 224, 143),
-                              color: Colors.grey[300],
+                              color: Color.fromARGB(500, 1, 224, 143),
+                              // color: Colors.grey[300],
                               onPressed: () {
-                                return null;
-                                // Navigator.pushNamed(
-                                //     context, "/agreementbuilder",
-                                //     arguments: lead["lead"]);
+                                // return null;
+                                Navigator.pushNamed(
+                                    context, "/agreementbuilder",
+                                    arguments: lead["lead"]);
                               },
                               child: Row(
                                 children: <Widget>[
