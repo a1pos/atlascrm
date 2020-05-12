@@ -68,6 +68,13 @@ class _NotesState extends State<Notes> {
   }
 
   Widget build(BuildContext context) {
+    if (!notesEmpty) {
+      notes.sort((a, b) {
+        var adate = a["created_at"];
+        var bdate = b["created_at"];
+        return -adate.compareTo(bdate);
+      });
+    }
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
