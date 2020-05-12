@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/config/ConfigSettings.dart';
+import 'package:atlascrm/services/UserService.dart';
 
 import 'package:intl/intl.dart';
 
@@ -114,19 +115,25 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
           await apiService.authPut(context, "/googlecalendar/" + token, data);
       if (resp1 != null) {
         if (resp1.statusCode == 200) {
-          Fluttertoast.showToast(
-              msg: "Successfully updated Calendar Event!",
-              toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.grey[600],
-              textColor: Colors.white,
-              fontSize: 16.0);
+          // Fluttertoast.showToast(
+          //     msg: "Successfully updated Calendar Event!",
+          //     toastLength: Toast.LENGTH_SHORT,
+          //     gravity: ToastGravity.BOTTOM,
+          //     backgroundColor: Colors.grey[600],
+          //     textColor: Colors.white,
+          //     fontSize: 16.0);
           var event = resp1.data["eventid"];
           print('TASK: ' + task["task"]);
           data["document"]["eventid"] = event;
         }
       } else {
-        throw new Error();
+        Fluttertoast.showToast(
+            msg: "Couldn't update Calendar Event",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0);
       }
       var resp =
           await apiService.authPut(context, "/task/" + task["task"], data);
@@ -219,12 +226,14 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
         // actions: <Widget>[
         //   Padding(
         //     padding: const EdgeInsets.fromLTRB(5, 8, 10, 8),
-        //     child: IconButton(
-        //       onPressed: () {
-        //         deleteCheck();
-        //       },
-        //       icon: Icon(Icons.delete, color: Colors.white),
-        //     ),
+        //     child: UserService.isAdmin
+        //         ? IconButton(
+        //             onPressed: () {
+        //               deleteCheck();
+        //             },
+        //             icon: Icon(Icons.delete, color: Colors.white),
+        //           )
+        //         : Container(),
         //   )
         // ],
         backgroundColor: Color.fromARGB(500, 1, 56, 112),

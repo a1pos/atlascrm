@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'dart:developer';
 
 import 'package:atlascrm/config/ConfigSettings.dart';
 import 'package:atlascrm/components/lead/LeadDropDown.dart';
@@ -89,43 +90,59 @@ class _TaskScreenState extends State<TaskScreen> {
     }
   }
 
-  Future<void> createTask() async {
-    try {
-      var token = ConfigSettings.ACCESS_TOKEN;
-      var data = {
-        "type": taskTypeDropdownValue,
-        "owner": UserService.isAdmin == true
-            ? employeeDropdownValue
-            : UserService.employee.employee,
-        "created_by": UserService.employee.employee,
-        "date": taskDateController.text,
-        "priority": taskPriorityDropdownValue,
-        "lead": leadDropdownValue,
-        "document": {
-          "title": taskTitleController.text,
-          "notes": taskDescController.text,
-          "active": true
-        }
-      };
-      var resp1 = await apiService.authPost(
-          context,
-          "/googlecalendar/" + token + "/${UserService.employee.employee}",
-          data);
-      if (resp1 != null) {
-        if (resp1.statusCode == 200) {
-          var event = await resp1.data["eventid"];
-          data["document"]["eventid"] = event;
-        }
+  Future newCalendarEvent(token, data) async {
+    var taskOwner = UserService.isAdmin
+        ? employeeDropdownValue
+        : UserService.employee.employee;
+    var resp1 = await apiService.authPost(
+        context, "/googlecalendar/" + token + "/" + taskOwner, data);
+    if (resp1 != null) {
+      if (resp1.statusCode == 200) {
+        var event = await resp1.data["eventid"];
+        return event;
       } else {
-        throw new Error();
+        return null;
       }
+    } else {
+      return null;
+    }
+  }
+
+  Future<void> createTask() async {
+    var successMsg = "Task created, but couldn't add Calendar Event!";
+    var msgLength = Toast.LENGTH_SHORT;
+    var taskOwner = UserService.isAdmin
+        ? employeeDropdownValue
+        : UserService.employee.employee;
+    var token = ConfigSettings.ACCESS_TOKEN;
+    var data = {
+      "type": taskTypeDropdownValue,
+      "owner": taskOwner,
+      "created_by": UserService.employee.employee,
+      "date": taskDateController.text,
+      "priority": taskPriorityDropdownValue,
+      "lead": leadDropdownValue,
+      "document": {
+        "title": taskTitleController.text,
+        "notes": taskDescController.text,
+        "active": true,
+      }
+    };
+    var event = await newCalendarEvent(token, data);
+    if (event != null) {
+      data["document"]["eventid"] = event;
+      successMsg = "Successfully created task!";
+      msgLength = Toast.LENGTH_LONG;
+    }
+
+    try {
       var resp = await apiService.authPost(
-          context, "/employee/${UserService.employee.employee}/task", data);
+          context, "/employee/" + taskOwner + "/task", data);
       if (resp != null) {
         if (resp.statusCode == 200) {
           Fluttertoast.showToast(
-              msg: "Successfully created task!",
-              toastLength: Toast.LENGTH_SHORT,
+              msg: successMsg,
+              toastLength: msgLength,
               gravity: ToastGravity.BOTTOM,
               backgroundColor: Colors.grey[600],
               textColor: Colors.white,
@@ -134,6 +151,7 @@ class _TaskScreenState extends State<TaskScreen> {
           await initTasks();
         }
       } else {
+        print(new Error());
         throw new Error();
       }
     } catch (err) {
@@ -205,16 +223,7 @@ class _TaskScreenState extends State<TaskScreen> {
                           }
                         },
                       )
-                    : MaterialButton(
-                        child: Text(
-                          'Saving',
-                          style: TextStyle(
-                            color: Colors.white,
-                          ),
-                        ),
-                        color: Colors.grey[600],
-                        onPressed: null,
-                      ),
+                    : Container(),
               ],
               title: Text('Add New Task'),
               content: Form(
