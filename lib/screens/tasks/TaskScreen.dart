@@ -61,6 +61,7 @@ class _TaskScreenState extends State<TaskScreen> {
 
   Future<void> fillEvents() async {
     setState(() {
+      _calendarEvents = {};
       for (var item in tasks) {
         var itemDate = DateTime.parse(item["date"]);
         itemDate = DateTime(
