@@ -134,14 +134,12 @@ class AgreementBuilderState extends State<AgreementBuilder>
             var ownersArr = List.from(ownersArrDecoded);
             if (ownersArr.length > 0) {
               setState(() {
-                isLoading = false;
                 owners = ownersArr;
                 // testOwner = ownersArr[0];
                 // emptyOwner["lead"] = lead["leadId"];
               });
             } else {
               setState(() {
-                isLoading = false;
                 ownersArr = [];
                 owners = [];
               });

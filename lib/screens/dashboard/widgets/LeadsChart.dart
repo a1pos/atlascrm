@@ -40,9 +40,11 @@ class _LeadsChartState extends State<LeadsChart> {
       charts.Series<SalesPerson, String>(
         id: 'Sales',
         colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
-        domainFn: (SalesPerson sales, _) => sales.year,
-        measureFn: (SalesPerson sales, _) => sales.sales,
+        domainFn: (SalesPerson path, _) => path.person,
+        measureFn: (SalesPerson path, _) => path.count,
         data: statsData,
+        labelAccessorFn: (SalesPerson path, _) =>
+            '${path.person}: ${path.count.toString()}',
       )
     ];
     return Container(
@@ -59,8 +61,8 @@ class _LeadsChartState extends State<LeadsChart> {
 }
 
 class SalesPerson {
-  final String year;
-  final int sales;
+  final String person;
+  final int count;
 
-  SalesPerson(this.year, this.sales);
+  SalesPerson(this.person, this.count);
 }

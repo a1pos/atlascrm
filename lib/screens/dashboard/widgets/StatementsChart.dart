@@ -42,8 +42,8 @@ class _StatementsChartState extends State<StatementsChart> {
       charts.Series<SalesPerson, String>(
         id: 'Statements',
         colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
-        domainFn: (SalesPerson statements, _) => statements.person,
-        measureFn: (SalesPerson statements, _) => statements.statements,
+        domainFn: (SalesPerson path, _) => path.person,
+        measureFn: (SalesPerson path, _) => path.statements,
         data: statsData,
       )
     ];

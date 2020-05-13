@@ -341,29 +341,32 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: <Widget>[
-                            MaterialButton(
-                              padding: EdgeInsets.all(5),
-                              color: Color.fromARGB(500, 1, 224, 143),
-                              // color: Colors.grey[300],
-                              onPressed: () {
-                                // return null;
-                                Navigator.pushNamed(
-                                    context, "/agreementbuilder",
-                                    arguments: lead["lead"]);
-                              },
-                              child: Row(
-                                children: <Widget>[
-                                  Icon(
-                                    Icons.file_upload,
-                                    color: Colors.white,
-                                  ),
-                                  Text(
-                                    'Agreement Builder',
-                                    style: TextStyle(
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(0, 0, 0, 200),
+                              child: MaterialButton(
+                                padding: EdgeInsets.all(5),
+                                color: Color.fromARGB(500, 1, 224, 143),
+                                // color: Colors.grey[300],
+                                onPressed: () {
+                                  // return null;
+                                  Navigator.pushNamed(
+                                      context, "/agreementbuilder",
+                                      arguments: lead["lead"]);
+                                },
+                                child: Row(
+                                  children: <Widget>[
+                                    Icon(
+                                      Icons.file_upload,
                                       color: Colors.white,
                                     ),
-                                  ),
-                                ],
+                                    Text(
+                                      'Agreement Builder',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ],

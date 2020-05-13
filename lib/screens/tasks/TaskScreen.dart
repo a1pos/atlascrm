@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'dart:developer';
+import 'dart:convert';
 
 import 'package:atlascrm/config/ConfigSettings.dart';
 import 'package:atlascrm/components/lead/LeadDropDown.dart';
@@ -17,6 +18,7 @@ import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/screens/leads/LeadStepper.dart';
+import 'package:table_calendar/table_calendar.dart';
 
 import 'package:intl/intl.dart';
 
@@ -26,6 +28,9 @@ class TaskScreen extends StatefulWidget {
 }
 
 class _TaskScreenState extends State<TaskScreen> {
+  CalendarController _calendarController;
+  Map<DateTime, List<dynamic>> _calendarEvents;
+
   final ApiService apiService = ApiService();
   final _formKey = GlobalKey<FormState>();
   var isEmpty = true;
@@ -49,7 +54,26 @@ class _TaskScreenState extends State<TaskScreen> {
   void initState() {
     super.initState();
     isSaveDisabled = false;
+    _calendarController = CalendarController();
+    _calendarEvents = {};
     initTasks();
+  }
+
+  Future<void> fillEvents() async {
+    setState(() {
+      for (var item in tasks) {
+        var itemDate = DateTime.parse(item["date"]);
+        itemDate = DateTime(
+            itemDate.year, itemDate.month, itemDate.day, 12, 0, 0, 0, 0);
+        // var itemMap = json.decode(item);
+        if (_calendarEvents[itemDate] == null) {
+          _calendarEvents[itemDate] = [item];
+        } else {
+          _calendarEvents[itemDate].add(item);
+        }
+      }
+    });
+    print(_calendarEvents);
   }
 
   Future<void> initTasks() async {
@@ -70,6 +94,7 @@ class _TaskScreenState extends State<TaskScreen> {
               }
               isLoading = false;
             });
+            await fillEvents();
           }
         } else {
           throw new Error();
@@ -450,6 +475,18 @@ class _TaskScreenState extends State<TaskScreen> {
 
                     setState(() {
                       activeTasks = filtered.toList();
+                    });
+                  },
+                ),
+                TableCalendar(
+                  initialSelectedDay: DateTime.now(),
+                  events: _calendarEvents,
+                  calendarController: _calendarController,
+                  headerStyle: HeaderStyle(formatButtonShowsNext: false),
+                  calendarStyle: CalendarStyle(),
+                  onDaySelected: (date, events) {
+                    setState(() {
+                      activeTasks = events;
                     });
                   },
                 ),

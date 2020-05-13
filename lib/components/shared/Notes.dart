@@ -19,16 +19,26 @@ class Notes extends StatefulWidget {
   _NotesState createState() => _NotesState();
 }
 
+bool isFocused = false;
 var notesController = TextEditingController();
 List notes;
 List notesDisplay;
 var notesEmpty = true;
 
 class _NotesState extends State<Notes> {
+  FocusNode _focus = new FocusNode();
   @override
   void initState() {
     super.initState();
     loadNotes(this.widget.object, this.widget.type);
+    _focus.addListener(_onFocusChange);
+  }
+
+  void _onFocusChange() {
+    debugPrint("Focus: " + _focus.hasFocus.toString());
+    setState(() {
+      isFocused = _focus.hasFocus;
+    });
   }
 
   Future<void> loadNotes(objectId, type) async {
@@ -81,6 +91,14 @@ class _NotesState extends State<Notes> {
         Row(children: <Widget>[
           Expanded(
             child: TextField(
+              onEditingComplete: () {
+                saveNote(
+                    type: this.widget.type,
+                    object: this.widget.object,
+                    newNote: notesController.text);
+                notesController.text = "";
+              },
+              focusNode: _focus,
               controller: notesController,
               decoration: InputDecoration(
                 focusedBorder: OutlineInputBorder(
