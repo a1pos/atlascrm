@@ -44,6 +44,7 @@ dependencies:
   flutter_pusher: ^1.0.2
   flutter_google_places: ^0.2.4
   search_map_place: ^0.3.0
+  table_calendar: ^2.2.3
 
 dev_dependencies:
   flutter_test:

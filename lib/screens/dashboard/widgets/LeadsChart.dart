@@ -4,6 +4,8 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 
 class LeadsChart extends StatefulWidget {
+  LeadsChart({this.data});
+  final List data;
   @override
   _LeadsChartState createState() => _LeadsChartState();
 }
@@ -13,31 +15,36 @@ class _LeadsChartState extends State<LeadsChart> {
   final ApiService apiService = ApiService();
 
   var seriesList;
+  var statsData = List<SalesPerson>();
 
   @override
   void initState() {
     super.initState();
-
-    seriesList = [
-      charts.Series<OrdinalSales, String>(
-        id: 'Sales',
-        colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
-        domainFn: (OrdinalSales sales, _) => sales.year,
-        measureFn: (OrdinalSales sales, _) => sales.sales,
-        data: [
-          OrdinalSales('2014', 5),
-          OrdinalSales('2015', 25),
-          OrdinalSales('2016', 100),
-          OrdinalSales('2017', 75),
-        ],
-      )
-    ];
 
     isLoading = false;
   }
 
   @override
   Widget build(BuildContext context) {
+    if (this.widget.data.length > 0) {
+      var temp = List<SalesPerson>();
+      for (var item in this.widget.data) {
+        temp.add(SalesPerson(item["fullname"], int.parse(item["leadcount"])));
+      }
+      setState(() {
+        statsData = temp;
+        isLoading = false;
+      });
+    }
+    seriesList = [
+      charts.Series<SalesPerson, String>(
+        id: 'Sales',
+        colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
+        domainFn: (SalesPerson sales, _) => sales.year,
+        measureFn: (SalesPerson sales, _) => sales.sales,
+        data: statsData,
+      )
+    ];
     return Container(
       child: isLoading
           ? Expanded(
@@ -51,9 +58,9 @@ class _LeadsChartState extends State<LeadsChart> {
   }
 }
 
-class OrdinalSales {
+class SalesPerson {
   final String year;
   final int sales;
 
-  OrdinalSales(this.year, this.sales);
+  SalesPerson(this.year, this.sales);
 }

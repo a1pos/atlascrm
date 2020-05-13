@@ -9,6 +9,7 @@ import 'package:atlascrm/screens/dashboard/widgets/WeeklyCallsChart.dart';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   @override
@@ -19,7 +20,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   final ApiService apiService = ApiService();
 
   var statsData = [];
-
+  bool isLoading = true;
   @override
   void initState() {
     super.initState();
@@ -30,37 +31,28 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       ),
     );
 
-    // initStatistics();
+    initStatistics();
   }
 
-  // Future<void> initStatistics() async {
-  //   try {
-  //     var resp = await apiService.authGet(context, "/employees/statistics");
-  //     if (resp != null) {
-  //       if (resp.statusCode == 200) {
-  //         var statsArrDecoded = resp.data;
-  //         if (statsArrDecoded != null) {
-  //           var statsArr = List.from(statsArrDecoded);
-  //           if (statsArr.length > 0) {
-  //             var temp = [];
-  //             for (var item in statsArr) {
-  //               temp.add({
-  //                 "fullName": item["fullname"],
-  //                 "agreementcount": item["agreementcount"]
-  //               });
-  //             }
-  //             setState(() {
-  //               statsData = temp;
-  //               isLoading = false;
-  //             });
-  //           }
-  //         }
-  //       }
-  //     }
-  //   } catch (err) {
-  //     print(err);
-  //   }
-  // }
+  Future<void> initStatistics() async {
+    try {
+      var resp = await apiService.authGet(context, "/employee/statistics");
+      if (resp != null) {
+        if (resp.statusCode == 200) {
+          var statsArrDecoded = resp.data;
+          if (statsArrDecoded != null) {
+            var statsArr = List.from(statsArrDecoded);
+            setState(() {
+              statsData = statsArr;
+              isLoading = false;
+            });
+          }
+        }
+      }
+    } catch (err) {
+      print(err);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +75,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     icon: Icons.attach_money,
                     child: Container(
                       height: 200,
-                      child: SalesLeaderboardChart(),
+                      child: SalesLeaderboardChart(data: statsData),
                     ),
                   ),
                   CustomCard(
@@ -101,7 +93,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     icon: Icons.subject,
                     child: Container(
                       height: 200,
-                      child: StatementsChart(),
+                      child: StatementsChart(data: statsData),
                     ),
                   ),
                   CustomCard(
@@ -119,7 +111,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     icon: Icons.person,
                     child: Container(
                       height: 200,
-                      child: LeadsChart(),
+                      child: LeadsChart(data: statsData),
                     ),
                   ),
                 ],

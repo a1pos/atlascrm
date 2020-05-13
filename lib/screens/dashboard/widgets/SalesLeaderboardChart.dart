@@ -2,6 +2,8 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 
 class SalesLeaderboardChart extends StatefulWidget {
+  SalesLeaderboardChart({this.data});
+  final List data;
   @override
   _SalesLeaderboardChartState createState() => _SalesLeaderboardChartState();
 }
@@ -17,10 +19,10 @@ class _SalesLeaderboardChartState extends State<SalesLeaderboardChart> {
 
     var leaderboardPathData = List<LeaderBoardPath>();
 
-    // for (var item in this.widget.data) {
-    //   leaderboardPathData.add(
-    //       LeaderBoardPath(item["fullName"], int.parse(item["agreementcount"])));
-    // }
+    for (var item in this.widget.data) {
+      leaderboardPathData.add(
+          LeaderBoardPath(item["fullName"], int.parse(item["statementcount"])));
+    }
 
     seriesList = [
       charts.Series<LeaderBoardPath, String>(
