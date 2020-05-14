@@ -54,6 +54,7 @@ class _LeadsChartState extends State<LeadsChart> {
             )
           : charts.BarChart(
               seriesList,
+              vertical: false,
               animate: false,
             ),
     );

@@ -87,15 +87,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       child: Tasks(),
                     ),
                   ),
-                  CustomCard(
-                    key: Key("adminLeaderboard2"),
-                    title: "Statements",
-                    icon: Icons.subject,
-                    child: Container(
-                      height: 200,
-                      child: StatementsChart(data: statsData),
-                    ),
-                  ),
+                  // CustomCard(
+                  //   key: Key("adminLeaderboard2"),
+                  //   title: "Statements",
+                  //   icon: Icons.subject,
+                  //   child: Container(
+                  //     height: 200,
+                  //     child: StatementsChart(data: statsData),
+                  //   ),
+                  // ),
                   CustomCard(
                     key: Key("adminLeaderboard3"),
                     title: "Weekly Calls",

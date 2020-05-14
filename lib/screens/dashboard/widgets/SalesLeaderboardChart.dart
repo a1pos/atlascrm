@@ -1,5 +1,6 @@
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
+import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 
 class SalesLeaderboardChart extends StatefulWidget {
   SalesLeaderboardChart({this.data});
@@ -12,46 +13,90 @@ class _SalesLeaderboardChartState extends State<SalesLeaderboardChart> {
   var isLoading = true;
 
   var seriesList;
+  var statementData = List<LeaderboardData>();
+  var agreementData = List<LeaderboardData>();
 
   @override
   void initState() {
     super.initState();
 
-    var leaderboardPathData = List<LeaderBoardPath>();
-
-    for (var item in this.widget.data) {
-      leaderboardPathData.add(
-          LeaderBoardPath(item["fullName"], int.parse(item["statementcount"])));
-    }
-
-    seriesList = [
-      charts.Series<LeaderBoardPath, String>(
-        id: 'Sales',
-        colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
-        domainFn: (LeaderBoardPath path, _) => path.person,
-        measureFn: (LeaderBoardPath path, _) => path.count,
-        data: leaderboardPathData,
-        labelAccessorFn: (LeaderBoardPath path, _) =>
-            '${path.person}: ${path.count.toString()}',
-      )
-    ];
+    isLoading = false;
   }
 
   @override
   Widget build(BuildContext context) {
-    return charts.BarChart(
-      seriesList,
-      vertical: false,
-      barRendererDecorator: charts.BarLabelDecorator<String>(),
-      domainAxis: charts.OrdinalAxisSpec(renderSpec: charts.NoneRenderSpec()),
-      animate: false,
+    if (this.widget.data.length > 0) {
+      var temp1 = List<LeaderboardData>();
+      var temp2 = List<LeaderboardData>();
+
+      for (var item in this.widget.data) {
+        temp1.add(LeaderboardData(
+            item["fullname"], int.parse(item["statementcount"])));
+        temp2.add(LeaderboardData(
+            item["fullname"], int.parse(item["agreementcount"])));
+      }
+
+      setState(() {
+        statementData = temp1;
+        agreementData = temp2;
+        isLoading = false;
+      });
+    }
+
+    List<charts.Series<LeaderboardData, String>> _createSampleData() {
+      final statements = statementData;
+      final agreements = agreementData;
+
+      return [
+        new charts.Series<LeaderboardData, String>(
+          id: 'Agreements',
+          domainFn: (LeaderboardData sales, _) => sales.person,
+          measureFn: (LeaderboardData sales, _) => sales.count,
+          data: agreements,
+        ),
+        new charts.Series<LeaderboardData, String>(
+          id: 'Statements',
+          domainFn: (LeaderboardData sales, _) => sales.person,
+          measureFn: (LeaderboardData sales, _) => sales.count,
+          data: statements,
+        ),
+      ];
+    }
+
+    return Container(
+      child: isLoading
+          ? Expanded(
+              child: CenteredLoadingSpinner(),
+            )
+          : GroupedBarChart(
+              _createSampleData(),
+              animate: true,
+            ),
     );
   }
 }
 
-class LeaderBoardPath {
+class LeaderboardData {
   final String person;
   final int count;
 
-  LeaderBoardPath(this.person, this.count);
+  LeaderboardData(this.person, this.count);
+}
+
+class GroupedBarChart extends StatelessWidget {
+  final List<charts.Series> seriesList;
+  final bool animate;
+
+  GroupedBarChart(this.seriesList, {this.animate});
+
+  @override
+  Widget build(BuildContext context) {
+    return new charts.BarChart(
+      seriesList,
+      animate: animate,
+      vertical: false,
+      barGroupingType: charts.BarGroupingType.grouped,
+      behaviors: [charts.SeriesLegend()],
+    );
+  }
 }

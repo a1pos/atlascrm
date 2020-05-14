@@ -73,7 +73,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
           UserService.isAdmin
               ? ListTile(
                   leading: Icon(Icons.people),
-                  title: Text('Employees'),
+                  title: Text('Users'),
                   onTap: () {
                     Navigator.popAndPushNamed(context, "/employeemgmt");
                   },

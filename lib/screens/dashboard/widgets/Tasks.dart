@@ -38,7 +38,9 @@ class _TasksState extends State<Tasks> {
               activeTasks =
                   tasks.where((e) => e["document"]["active"]).toList();
               isLoading = false;
-              isEmpty = false;
+              if (activeTasks.length > 0) {
+                isEmpty = false;
+              }
             });
           } else {
             setState(() {
@@ -69,7 +71,7 @@ class _TasksState extends State<Tasks> {
               ],
             )
           : isEmpty
-              ? Empty("No Tasks found")
+              ? Empty("No Active Tasks found")
               : SingleChildScrollView(
                   child: Column(
                     children: [
