@@ -66,7 +66,6 @@ class _TaskScreenState extends State<TaskScreen> {
         var itemDate = DateTime.parse(item["date"]);
         itemDate = DateTime(
             itemDate.year, itemDate.month, itemDate.day, 12, 0, 0, 0, 0);
-        // var itemMap = json.decode(item);
         if (_calendarEvents[itemDate] == null) {
           _calendarEvents[itemDate] = [item];
         } else {
@@ -74,7 +73,74 @@ class _TaskScreenState extends State<TaskScreen> {
         }
       }
     });
-    print(_calendarEvents);
+  }
+
+  Widget _buildCalendar() {
+    return TableCalendar(
+      initialSelectedDay: DateTime.now(),
+      events: _calendarEvents,
+      calendarController: _calendarController,
+      headerStyle: HeaderStyle(formatButtonShowsNext: false),
+      calendarStyle: CalendarStyle(),
+      onDaySelected: (date, events) {
+        setState(() {
+          activeTasks = events;
+        });
+      },
+      // code to replace bubbles with numbers on calendar
+      // builders: CalendarBuilders(
+      //   markersBuilder: (context, date, events, holidays) {
+      //     final children = <Widget>[];
+
+      //     if (events.isNotEmpty) {
+      //       children.add(
+      //         Positioned(
+      //           right: 1,
+      //           bottom: 1,
+      //           child: AnimatedContainer(
+      //             duration: const Duration(milliseconds: 300),
+      //             decoration: BoxDecoration(
+      //               shape: BoxShape.rectangle,
+      //               color: _calendarController.isSelected(date)
+      //                   ? Colors.orange[500]
+      //                   : _calendarController.isToday(date)
+      //                       ? Colors.orange[300]
+      //                       : Colors.blue[400],
+      //             ),
+      //             width: 16.0,
+      //             height: 16.0,
+      //             child: Center(
+      //               child: Text(
+      //                 '${events.length}',
+      //                 style: TextStyle().copyWith(
+      //                   color: Colors.white,
+      //                   fontSize: 12.0,
+      //                 ),
+      //               ),
+      //             ),
+      //           ),
+      //         ),
+      //       );
+      //     }
+
+      //     if (holidays.isNotEmpty) {
+      //       children.add(
+      //         Positioned(
+      //           right: -2,
+      //           top: -2,
+      //           child: Icon(
+      //             Icons.add_box,
+      //             size: 20.0,
+      //             color: Colors.blueGrey[800],
+      //           ),
+      //         ),
+      //       );
+      //     }
+
+      //     return children;
+      //   },
+      // )
+    );
   }
 
   Future<void> initTasks() async {
@@ -455,43 +521,30 @@ class _TaskScreenState extends State<TaskScreen> {
   }
 
   Widget getTasks() {
-    return isEmpty
-        ? Empty("No Active Tasks found")
-        : SingleChildScrollView(
-            child: Column(
-              children: [
-                TextField(
-                  decoration: InputDecoration(
-                    labelText: "Search Tasks",
-                  ),
-                  onChanged: (value) {
-                    var filtered = tasksFull.where((e) {
-                      String title = e["document"]["title"];
-                      String notes = e["document"]["notes"];
-                      return title
-                              .toLowerCase()
-                              .contains(value.toLowerCase()) ||
-                          notes.toLowerCase().contains(value.toLowerCase());
-                    }).toList();
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          TextField(
+            decoration: InputDecoration(
+              labelText: "Search Tasks",
+            ),
+            onChanged: (value) {
+              var filtered = tasksFull.where((e) {
+                String title = e["document"]["title"];
+                String notes = e["document"]["notes"];
+                return title.toLowerCase().contains(value.toLowerCase()) ||
+                    notes.toLowerCase().contains(value.toLowerCase());
+              }).toList();
 
-                    setState(() {
-                      activeTasks = filtered.toList();
-                    });
-                  },
-                ),
-                TableCalendar(
-                  initialSelectedDay: DateTime.now(),
-                  events: _calendarEvents,
-                  calendarController: _calendarController,
-                  headerStyle: HeaderStyle(formatButtonShowsNext: false),
-                  calendarStyle: CalendarStyle(),
-                  onDaySelected: (date, events) {
-                    setState(() {
-                      activeTasks = events;
-                    });
-                  },
-                ),
-                Column(
+              setState(() {
+                activeTasks = filtered.toList();
+              });
+            },
+          ),
+          _buildCalendar(),
+          isEmpty
+              ? Empty("No Active Tasks found")
+              : Column(
                   children: activeTasks.map((t) {
                     var tDate = DateFormat("EEE, MMM d, ''yy")
                         .add_jm()
@@ -510,8 +563,8 @@ class _TaskScreenState extends State<TaskScreen> {
                     );
                   }).toList(),
                 ),
-              ],
-            ),
-          );
+        ],
+      ),
+    );
   }
 }
