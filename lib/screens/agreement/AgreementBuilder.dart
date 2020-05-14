@@ -65,11 +65,6 @@ class AgreementBuilderState extends State<AgreementBuilder>
   final dbaController = TextEditingController();
   final businessAddressController = TextEditingController();
   final leadSourceController = TextEditingController();
-  //OWNER FIELDS
-  // final ownerNameController = TextEditingController();
-  // final ownerAddressController = TextEditingController();
-  // final ownerPhoneController = TextEditingController();
-  // final ownerEmailController = TextEditingController();
 
   Map businessAddress = {"address": "", "city": "", "state": "", "zipcode": ""};
   var agreementBuilder;
@@ -80,25 +75,13 @@ class AgreementBuilderState extends State<AgreementBuilder>
   var isLoading = true;
   List owners;
   Map testOwner;
-  Map emptyOwner = {
-    "new": "owner",
-    "business_owner": "",
-    "lead": "",
-    "document": {
-      "city": "",
-      "name": "",
-      "email": "",
-      "state": "",
-      "address": "",
-      "zipCode": "",
-      "phoneNumber": ""
-    }
-  };
+  Map emptyOwner;
   List<Widget> displayList;
 
   void initState() {
     super.initState();
     loadAgreementData(this.widget.leadId);
+    loadOwnersData(this.widget.leadId);
   }
 
   Future<void> loadLeadData(leadId) async {
@@ -153,7 +136,6 @@ class AgreementBuilderState extends State<AgreementBuilder>
   }
 
   Future<void> loadAgreementData(leadId) async {
-    loadOwnersData(this.widget.leadId);
     var resp = await this
         .widget
         .apiService
@@ -174,6 +156,20 @@ class AgreementBuilderState extends State<AgreementBuilder>
         generateAgreement();
       }
     }
+    emptyOwner = {
+      "new": "owner",
+      "business_owner": "",
+      "lead": this.widget.leadId,
+      "document": {
+        "city": "",
+        "name": "",
+        "email": "",
+        "state": "",
+        "address": "",
+        "zipCode": "",
+        "phoneNumber": ""
+      }
+    };
   }
 
   Future<void> generateAgreement() async {
@@ -270,6 +266,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
   }
 
   Future<void> updateOwners() async {
+    print("SENDING OWNERS: $owners");
     var resp = await this
         .widget
         .apiService
@@ -466,29 +463,34 @@ class AgreementBuilderState extends State<AgreementBuilder>
                           return OwnerPanel(
                               owner: _owner,
                               key: UniqueKey(),
-                              onOwnerChange: (_val) => setState(() {
+                              onOwnerChange: (val) => setState(() {
                                     var _editIndex = owners.indexWhere((item) =>
                                         item["business_owner"] ==
-                                        _val["business_owner"]);
+                                        val["business_owner"]);
                                     if (_editIndex != -1) {
                                       print(_editIndex);
                                       print(owners[_editIndex]);
-                                      owners[_editIndex] = _val;
+                                      owners[_editIndex] = val;
                                     } else {
-                                      owners.add(_val);
+                                      owners[owners.length - 1] = val;
+                                      print("OWNERS:");
+                                      print(owners);
                                     }
-                                    print("PRINTING OWNER BELOW");
-                                    print(_val);
+                                    print("PRINTING OWNERS BELOW");
+                                    print(owners);
                                   }));
                         }).toList()),
                       ),
                       FlatButton(
+                          color: Colors.blue[500],
                           onPressed: () {
                             addOwner();
                             print("addOwner Attempt");
+                            print(owners);
                             print(displayList);
                           },
-                          child: Text("Add Owner"))
+                          child: Text("Add Owner",
+                              style: TextStyle(color: Colors.white)))
                     ],
                   ),
                   Container(

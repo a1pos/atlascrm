@@ -35,6 +35,8 @@ class _OwnerPanelState extends State<OwnerPanel> {
   final Function onOwnerChange;
   Map _ownerDoc;
   var _name;
+  var _email;
+  String tileTitle;
 //OWNER CONTROLLER FIELDS
   final _ownerPhoneController = TextEditingController();
   final _ownerEmailController = TextEditingController();
@@ -94,6 +96,10 @@ class _OwnerPanelState extends State<OwnerPanel> {
 
   @override
   Widget build(BuildContext context) {
+    _ownerDoc = this.widget.owner["document"];
+
+    tileTitle = _name;
+
     Future<Null> updateOwner() async {
       var ownerObj;
 
@@ -126,26 +132,32 @@ class _OwnerPanelState extends State<OwnerPanel> {
           }
         };
       }
+      setState(() {
+        tileTitle = _ownerNameController.text;
+      });
       this.widget.onOwnerChange(ownerObj);
     }
 
-    _ownerDoc = this.widget.owner["document"];
-    _name = _ownerDoc["name"];
-    String tileTitle = _name;
-
+    // _ownerNameController.addListener(() {
+    //   setState(() {});
+    // });
     setState(() {
       _ownerNameController.text = this.owner["document"]["name"];
-      _ownerNameController.addListener(() {
-        tileTitle = _ownerNameController.text;
-        // updateOwner();
-      });
+      _ownerEmailController.text = this.owner["document"]["email"];
     });
     return Card(
         child: ExpansionTile(
-            title: Text(tileTitle),
+            title: Row(children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 0, 10, 0),
+                child: Icon(Icons.person),
+              ),
+              Text(_ownerNameController.text)
+            ]),
             initiallyExpanded: false,
             children: <Widget>[
           getInfoRow("Name", _name, _ownerNameController),
+          getInfoRow("Email", _email, _ownerEmailController),
           Container(
               child: Padding(
                   padding: EdgeInsets.all(15),

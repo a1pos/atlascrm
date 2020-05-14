@@ -43,7 +43,7 @@ class _SalesLeaderboardChartState extends State<SalesLeaderboardChart> {
       });
     }
 
-    List<charts.Series<LeaderboardData, String>> _createSampleData() {
+    List<charts.Series<LeaderboardData, String>> _displayData() {
       final statements = statementData;
       final agreements = agreementData;
 
@@ -69,7 +69,7 @@ class _SalesLeaderboardChartState extends State<SalesLeaderboardChart> {
               child: CenteredLoadingSpinner(),
             )
           : GroupedBarChart(
-              _createSampleData(),
+              _displayData(),
               animate: true,
             ),
     );
