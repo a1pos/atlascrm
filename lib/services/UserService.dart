@@ -18,7 +18,8 @@ class UserService {
   final SocketService socketService = new SocketService();
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn googleSignIn = GoogleSignIn();
+  final GoogleSignIn googleSignIn =
+      GoogleSignIn(scopes: ['https://www.googleapis.com/auth/calendar']);
   final StorageService storageService = new StorageService();
 
   Future<bool> isAuthenticated(context) async {
@@ -65,7 +66,8 @@ class UserService {
       assert(user.uid == currentUser.uid);
 
       await storageService.save("token", googleSignInAuthentication.idToken);
-      await storageService.save("access_token", googleSignInAuthentication.accessToken);
+      await storageService.save(
+          "access_token", googleSignInAuthentication.accessToken);
 
       return true;
     } catch (err) {
@@ -116,7 +118,6 @@ class UserService {
         if (token != null) {
           ConfigSettings.GOOGLE_TOKEN = token;
           ConfigSettings.ACCESS_TOKEN = accessToken;
-
         }
 
         var empDecoded = employeeAuthResp.data;

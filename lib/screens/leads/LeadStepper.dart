@@ -113,9 +113,6 @@ class LeadStepperState extends State<LeadStepper> {
           }
         }
       }
-      setState(() {
-        isLoading = false;
-      });
     } catch (err) {
       log(err);
     }
@@ -132,11 +129,49 @@ class LeadStepperState extends State<LeadStepper> {
               child: Card(
                 child: SingleChildScrollView(
                   child: Column(
-                    children: addressObj["nearbyResults"].map<Widget>((place) {
-                      return GestureDetector(
+                    children: <Widget>[
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 20, 0, 15),
+                        child: Text("Select a Business",
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold)),
+                      ),
+                      Divider(),
+                      Column(
+                        children:
+                            addressObj["nearbyResults"].map<Widget>((place) {
+                          return GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  businessNameController.text = place.name;
+                                  businessAddress = addressObj["address"];
+                                  isAddress = true;
+                                });
+                                Navigator.of(context).pop();
+                              },
+                              child: Card(
+                                child: ListTile(
+                                  title: Row(
+                                    children: <Widget>[
+                                      Padding(
+                                        padding: const EdgeInsets.fromLTRB(
+                                            0, 0, 10, 0),
+                                        child: Icon(Icons.business),
+                                      ),
+                                      Expanded(
+                                        child: Text(
+                                          place.name,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ));
+                        }).toList(),
+                      ),
+                      GestureDetector(
                           onTap: () {
                             setState(() {
-                              businessNameController.text = place.name;
                               businessAddress = addressObj["address"];
                               isAddress = true;
                             });
@@ -144,10 +179,14 @@ class LeadStepperState extends State<LeadStepper> {
                           },
                           child: Card(
                             child: ListTile(
-                              title: Text(place.name),
+                              title: Text("Not Listed",
+                                  style: TextStyle(
+                                      color: Colors.blue,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold)),
                             ),
-                          ));
-                    }).toList(),
+                          ))
+                    ],
                   ),
                 ),
               ),
@@ -167,8 +206,7 @@ class LeadStepperState extends State<LeadStepper> {
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text(
-                    'There is already a lead recorded at this address. Please try a different lead.'),
+                Text('A lead already exists at this address!'),
               ],
             ),
           ),
@@ -246,32 +284,6 @@ class LeadStepperState extends State<LeadStepper> {
                                   child: AddressSearch(
                                       onAddressChange: (val) {
                                         addressCheck(val);
-                                        // bool uniqueAddr = true;
-                                        // for (var lead in leads) {
-                                        //   Map leadAddr = {
-                                        //     "address": lead["document"]
-                                        //         ["address"],
-                                        //     "city": lead["document"]["city"],
-                                        //     "state": lead["document"]["state"],
-                                        //     "zipcode": lead["document"]
-                                        //         ["zipCode"],
-                                        //   };
-                                        //   print(mapEquals(
-                                        //       leadAddr, val["address"]));
-                                        //   if (mapEquals(
-                                        //       leadAddr, val["address"])) {
-                                        //     uniqueAddr = false;
-                                        //   }
-                                        // }
-                                        // if (!uniqueAddr) {
-                                        //   dupeLead();
-                                        // } else {
-                                        //   businessAddress = val["address"];
-                                        //   nearbySelect(val["nearbyResults"]);
-                                        //   setState(() {
-                                        //     isAddress = true;
-                                        //   });
-                                        // }
                                       },
                                       returnNearby: true),
                                 ),
