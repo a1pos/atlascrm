@@ -93,8 +93,6 @@ class _AddressSearchState extends State<AddressSearch> {
           }
         });
       });
-
-      print(addressInfo);
       setState(() {
         locationText = detail.result.formattedAddress;
       });

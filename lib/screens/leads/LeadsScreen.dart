@@ -29,6 +29,9 @@ class _LeadsScreenState extends State<LeadsScreen> {
   var isLoading = true;
   var isEmpty = true;
 
+  ScrollController _scrollController = ScrollController();
+  TextEditingController _searchController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -36,13 +39,28 @@ class _LeadsScreenState extends State<LeadsScreen> {
       initEmployeeData();
     }
     initLeadsData();
+
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels ==
+          _scrollController.position.maxScrollExtent) {
+        initLeadsData();
+      }
+    });
   }
 
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  var pageNum = 1;
+  bool isSearching = false;
   Future<void> initLeadsData() async {
     try {
       var endpoint = UserService.isAdmin
-          ? "/lead"
-          : "/employee/${UserService.employee.employee}/lead";
+          ? "/lead?page=$pageNum&size=10"
+          : "/employee/${UserService.employee.employee}/lead?page=$pageNum&size=10";
       var resp = await this.widget.apiService.authGet(context, endpoint);
       if (resp != null) {
         if (resp.statusCode == 200) {
@@ -53,15 +71,18 @@ class _LeadsScreenState extends State<LeadsScreen> {
               setState(() {
                 isEmpty = false;
                 isLoading = false;
-                leads = leadsArr;
-                leadsFull = leadsArr;
+                leads += leadsArr;
+                leadsFull += leadsArr;
+                pageNum++;
               });
             } else {
               setState(() {
-                isEmpty = true;
+                if (pageNum == 1) {
+                  isEmpty = true;
+                  leadsArr = [];
+                  leadsFull = [];
+                }
                 isLoading = false;
-                leadsArr = [];
-                leadsFull = [];
               });
             }
           }
@@ -74,6 +95,61 @@ class _LeadsScreenState extends State<LeadsScreen> {
     } catch (err) {
       log(err);
     }
+  }
+
+  Future<void> searchLeads(searchString) async {
+    pageNum = 1;
+    var searchItem = Uri.encodeComponent(searchString);
+    try {
+      var endpoint = UserService.isAdmin
+          ? "/lead?searchString=$searchItem&page=$pageNum&size=10"
+          : "/employee/${UserService.employee.employee}/lead?searchString=$searchItem&page=$pageNum&size=10";
+      var resp = await this.widget.apiService.authGet(context, endpoint);
+      if (resp != null) {
+        if (resp.statusCode == 200) {
+          var leadsArrDecoded = resp.data["data"];
+          if (leadsArrDecoded != null) {
+            var leadsArr = List.from(leadsArrDecoded);
+            if (leadsArr.length > 0) {
+              setState(() {
+                isEmpty = false;
+                isLoading = false;
+                leads = leadsArr;
+                leadsFull = leadsArr;
+                pageNum++;
+              });
+            } else {
+              setState(() {
+                if (pageNum == 1) {
+                  isEmpty = true;
+                  leadsArr = [];
+                  leadsFull = [];
+                }
+                isLoading = false;
+              });
+            }
+          }
+        }
+      }
+
+      setState(() {
+        isLoading = false;
+        isSearching = true;
+      });
+    } catch (err) {
+      log(err);
+    }
+  }
+
+  Future<void> clearSearch() async {
+    setState(() {
+      pageNum = 1;
+      isSearching = false;
+      _searchController.clear();
+      leads = [];
+      leadsFull = [];
+    });
+    initLeadsData();
   }
 
   Future<void> initEmployeeData() async {
@@ -165,42 +241,70 @@ class _LeadsScreenState extends State<LeadsScreen> {
   }
 
   Widget getDataTable() {
-    return isEmpty
-        ? Empty("No leads found")
-        : Container(
-            child: Column(
-              children: <Widget>[
-                Expanded(
-                  flex: 1,
-                  child: TextField(
-                    decoration: InputDecoration(
-                      labelText: "Search Leads",
-                    ),
-                    onChanged: (value) {
-                      var filtered = leadsFull.where((e) {
-                        String firstName = e["document"]["firstName"];
-                        String lastName = e["document"]["lastName"];
-                        String businessName = e["document"]["businessName"];
-                        return firstName
-                                .toLowerCase()
-                                .contains(value.toLowerCase()) ||
-                            lastName
-                                .toLowerCase()
-                                .contains(value.toLowerCase()) ||
-                            businessName
-                                .toLowerCase()
-                                .contains(value.toLowerCase());
-                      }).toList();
+    return Container(
+      child: Column(
+        children: <Widget>[
+          // Expanded(
+          //   flex: 1,
+          //   child: TextField(
+          //     decoration: InputDecoration(
+          //       labelText: "Search Leads",
+          //     ),
+          //     onChanged: (value) {
+          //       var filtered = leadsFull.where((e) {
+          //         String firstName = e["document"]["firstName"];
+          //         String lastName = e["document"]["lastName"];
+          //         String businessName = e["document"]["businessName"];
+          //         return firstName
+          //                 .toLowerCase()
+          //                 .contains(value.toLowerCase()) ||
+          //             lastName
+          //                 .toLowerCase()
+          //                 .contains(value.toLowerCase()) ||
+          //             businessName
+          //                 .toLowerCase()
+          //                 .contains(value.toLowerCase());
+          //       }).toList();
 
-                      setState(() {
-                        leads = filtered.toList();
-                      });
-                    },
+          //       setState(() {
+          //         leads = filtered.toList();
+          //       });
+          //     },
+          //   ),
+          // ),
+          Row(
+            children: <Widget>[
+              Expanded(
+                flex: 1,
+                child: TextField(
+                  controller: _searchController,
+                  onEditingComplete: () => searchLeads(_searchController.text),
+                  decoration: InputDecoration(
+                    labelText: "Search Leads",
                   ),
                 ),
-                Expanded(
+              ),
+              isSearching
+                  ? IconButton(
+                      icon: Icon(Icons.clear),
+                      onPressed: () {
+                        clearSearch();
+                      },
+                    )
+                  : IconButton(
+                      icon: Icon(Icons.search),
+                      onPressed: () {
+                        searchLeads(_searchController.text);
+                      },
+                    ),
+            ],
+          ),
+          isEmpty
+              ? Empty("No leads found")
+              : Expanded(
                   flex: 6,
                   child: ListView(
+                    controller: _scrollController,
                     children: leads.map((lead) {
                       var employeeName;
                       var nameIndex;
@@ -307,8 +411,8 @@ class _LeadsScreenState extends State<LeadsScreen> {
                     }).toList(),
                   ),
                 ),
-              ],
-            ),
-          );
+        ],
+      ),
+    );
   }
 }

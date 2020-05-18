@@ -405,12 +405,15 @@ class _TaskScreenState extends State<TaskScreen> {
                                     ],
                                   ),
                                   TextFormField(
+                                    onEditingComplete: () =>
+                                        FocusScope.of(context).nextFocus(),
                                     validator: (value) {
                                       if (value.isEmpty) {
                                         return 'Please enter a title';
                                       }
                                       return null;
                                     },
+                                    textInputAction: TextInputAction.next,
                                     decoration:
                                         InputDecoration(labelText: "Title"),
                                     controller: taskTitleController,
@@ -419,6 +422,8 @@ class _TaskScreenState extends State<TaskScreen> {
                                     color: Colors.white,
                                   ),
                                   DateTimeField(
+                                    onEditingComplete: () =>
+                                        FocusScope.of(context).nextFocus(),
                                     validator: (DateTime dateTime) {
                                       if (dateTime == null) {
                                         return 'Please select a date';

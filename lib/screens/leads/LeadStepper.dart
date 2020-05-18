@@ -103,12 +103,8 @@ class LeadStepperState extends State<LeadStepper> {
       if (resp != null || resp2 != null) {
         if (resp.statusCode == 200 || resp2.statusCode == 200) {
           if (resp.data["data"].length > 0 || resp2.data["data"].length > 0) {
-            print("DUPE");
-            print(resp.data["data"]);
             dupeLead();
           } else {
-            print("NODUPE");
-            print(resp.data["data"]);
             nearbySelect(addressObj);
           }
         }
@@ -484,7 +480,6 @@ class LeadStepperState extends State<LeadStepper> {
     try {
       String rawNumber = phoneNumberController.text;
       var filteredNumber = rawNumber.replaceAll(RegExp("[^0-9]"), "");
-      print(filteredNumber);
       var lead = {
         "firstName": firstNameController.text,
         "lastName": lastNameController.text,
