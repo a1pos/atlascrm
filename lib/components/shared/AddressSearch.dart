@@ -10,7 +10,12 @@ class AddressSearch extends StatefulWidget {
   final String locationValue;
   final Function onAddressChange;
   final TextEditingController controller;
-  AddressSearch({this.locationValue, this.onAddressChange, this.controller});
+  final bool returnNearby;
+  AddressSearch(
+      {this.locationValue,
+      this.onAddressChange,
+      this.controller,
+      this.returnNearby});
 
   @override
   _AddressSearchState createState() => _AddressSearchState();
@@ -51,20 +56,30 @@ class _AddressSearchState extends State<AddressSearch> {
   }
 
   Future<Null> displayPrediction(Prediction p) async {
+    List nearbyResults;
     if (p != null) {
       PlacesDetailsResponse detail =
           await _places.getDetailsByPlaceId(p.placeId);
+      if (this.widget.returnNearby) {
+        PlacesSearchResponse respo = await _places.searchNearbyWithRadius(
+            new Location(detail.result.geometry.location.lat,
+                detail.result.geometry.location.lng),
+            200);
+        nearbyResults = respo.results;
+      }
       Map addressInfo = {"address": "", "city": "", "state": "", "zipcode": ""};
+      Map shortAddress = {"address": ""};
       List newAddress = detail.result.addressComponents;
       newAddress.forEach((element) {
         element.types.forEach((type) {
           switch (type) {
             case "street_number":
               addressInfo["address"] = element.shortName;
-              print(element.shortName);
+              shortAddress["address"] = element.shortName;
               break;
             case "route":
-              addressInfo["address"] += " " + element.shortName;
+              addressInfo["address"] += " " + element.longName;
+              shortAddress["address"] += " " + element.shortName;
               break;
             case "locality":
               addressInfo["city"] = element.shortName;
@@ -83,7 +98,16 @@ class _AddressSearchState extends State<AddressSearch> {
       setState(() {
         locationText = detail.result.formattedAddress;
       });
-      this.widget.onAddressChange(addressInfo);
+      if (this.widget.returnNearby) {
+        Map mixedReply = {
+          "address": addressInfo,
+          "nearbyResults": nearbyResults,
+          "shortaddress": shortAddress
+        };
+        this.widget.onAddressChange(mixedReply);
+      } else {
+        this.widget.onAddressChange(addressInfo);
+      }
     }
   }
 }

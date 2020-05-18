@@ -332,12 +332,12 @@ class AgreementBuilderState extends State<AgreementBuilder>
       setState(() {
         owners.add(emptyOwner);
       });
-      print("new owner" + (emptyOwner).toString());
+      print("new owner: " + (emptyOwner).toString());
     }
 
     final _tabController = TabController(vsync: this, length: 3);
     _tabController.addListener(() {
-      print(_tabController.index);
+      // print(_tabController.index);
       Fluttertoast.showToast(
           msg: "Scrolled to index: ${_tabController.index}",
           toastLength: Toast.LENGTH_SHORT,
@@ -468,27 +468,26 @@ class AgreementBuilderState extends State<AgreementBuilder>
                                         item["business_owner"] ==
                                         val["business_owner"]);
                                     if (_editIndex != -1) {
-                                      print(_editIndex);
-                                      print(owners[_editIndex]);
+                                      // print(_editIndex);
+                                      // print(owners[_editIndex]);
                                       owners[_editIndex] = val;
                                     } else {
                                       owners[owners.length - 1] = val;
-                                      print("OWNERS:");
-                                      print(owners);
+                                      // print("OWNERS:");
+                                      // print(owners);
                                     }
-                                    print("PRINTING OWNERS BELOW");
-                                    print(owners);
+                                    // print("PRINTING OWNERS BELOW");
+                                    // print(owners);
                                   }));
                         }).toList()),
                       ),
                       FlatButton(
                           color: Colors.blue[500],
-                          onPressed: () {
-                            addOwner();
-                            print("addOwner Attempt");
-                            print(owners);
-                            print(displayList);
-                          },
+                          onPressed: () => addOwner()
+                          // print("addOwner Attempt");
+                          // print(owners);
+                          // print(displayList);
+                          ,
                           child: Text("Add Owner",
                               style: TextStyle(color: Colors.white)))
                     ],

@@ -139,7 +139,7 @@ class _OwnerPanelState extends State<OwnerPanel> {
     }
 
     // _ownerNameController.addListener(() {
-    //   setState(() {});
+    //   updateOwner();
     // });
     setState(() {
       _ownerNameController.text = this.owner["document"]["name"];
@@ -184,11 +184,12 @@ class _OwnerPanelState extends State<OwnerPanel> {
                                       _ownerDoc["zipCode"]
                                   : null,
                               onAddressChange: (val) => ownerAddress = val)),
-                      FlatButton(
-                          onPressed: () => updateOwner(),
-                          child: Text("Save Owner"))
                     ],
                   ))),
+          FlatButton(
+              color: Colors.blue,
+              onPressed: () => updateOwner(),
+              child: Text("Save", style: TextStyle(color: Colors.white)))
         ]));
   }
 }
