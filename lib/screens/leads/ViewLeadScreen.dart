@@ -262,25 +262,6 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
                       CustomCard(
-                        key: Key("leads1"),
-                        icon: Icons.person,
-                        title: "Contact Information",
-                        child: Column(
-                          children: <Widget>[
-                            getInfoRow("First Name", leadDocument["firstName"],
-                                firstNameController),
-                            getInfoRow("Last Name", leadDocument["lastName"],
-                                lastNameController),
-                            getInfoRow("Email Address",
-                                leadDocument["emailAddr"], emailAddrController),
-                            getInfoRow(
-                                "Phone Number",
-                                leadDocument["phoneNumber"],
-                                phoneNumberController),
-                          ],
-                        ),
-                      ),
-                      CustomCard(
                         key: Key("leads2"),
                         icon: Icons.business,
                         title: "Business Information",
@@ -313,6 +294,25 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                                                     businessAddress = val)),
                                       ],
                                     ))),
+                          ],
+                        ),
+                      ),
+                      CustomCard(
+                        key: Key("leads1"),
+                        icon: Icons.person,
+                        title: "Contact Information",
+                        child: Column(
+                          children: <Widget>[
+                            getInfoRow("First Name", leadDocument["firstName"],
+                                firstNameController),
+                            getInfoRow("Last Name", leadDocument["lastName"],
+                                lastNameController),
+                            getInfoRow("Email Address",
+                                leadDocument["emailAddr"], emailAddrController),
+                            getInfoRow(
+                                "Phone Number",
+                                leadDocument["phoneNumber"],
+                                phoneNumberController),
                           ],
                         ),
                       ),

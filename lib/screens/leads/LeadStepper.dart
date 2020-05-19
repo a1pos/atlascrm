@@ -19,6 +19,12 @@ class LeadStepper extends StatefulWidget {
 
 class LeadStepperState extends State<LeadStepper> {
   final _formKey = GlobalKey<FormState>();
+  List<GlobalKey<FormState>> _formKeys = [
+    GlobalKey<FormState>(),
+    GlobalKey<FormState>(),
+    GlobalKey<FormState>()
+  ];
+
   final _stepperKey = GlobalKey<FormState>();
   bool isSaveDisabled;
   bool isAddress = false;
@@ -295,68 +301,67 @@ class LeadStepperState extends State<LeadStepper> {
   Widget build(BuildContext context) {
     return isLoading
         ? CenteredLoadingSpinner()
-        : Form(
-            key: _formKey,
-            child: Column(
-              children: <Widget>[
-                Expanded(
-                  child: Stepper(
-                    controlsBuilder: (BuildContext context,
-                        {VoidCallback onStepContinue,
-                        VoidCallback onStepCancel}) {
-                      return Row(
-                        children: <Widget>[
-                          Container(
-                            child: null,
-                          ),
-                          Container(
-                            child: null,
-                          ),
-                        ],
-                      );
-                    },
-                    type: StepperType.vertical,
-                    currentStep: _currentStep,
-                    key: this._stepperKey,
-                    onStepTapped: (int step) {
-                      if (validationPassed()) {
-                        setState(() {
-                          _currentStep = step;
-                        });
-                      }
-                    },
-                    onStepContinue: () {
-                      if (validationPassed()) {
-                        setState(() {
-                          _currentStep < stepsLength - 1
-                              ? _currentStep += 1
-                              : null;
-                        });
-                      }
-                    },
-                    onStepCancel: () {
-                      if (validationPassed()) {
-                        setState(() {
-                          _currentStep > 0 ? _currentStep -= 1 : null;
-                        });
-                      }
-                    },
-                    steps: [
-                      Step(
-                        title: Text('Business Info'),
-                        content: !isAddress
-                            ? Column(children: [
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.fromLTRB(0, 32, 0, 0),
-                                  child: AddressSearch(
-                                      onAddressChange: (val) {
-                                        addressCheck(val);
-                                      },
-                                      returnNearby: true),
-                                ),
-                              ])
-                            : Column(
+        : Column(
+            children: <Widget>[
+              Expanded(
+                child: Stepper(
+                  controlsBuilder: (BuildContext context,
+                      {VoidCallback onStepContinue,
+                      VoidCallback onStepCancel}) {
+                    return Row(
+                      children: <Widget>[
+                        Container(
+                          child: null,
+                        ),
+                        Container(
+                          child: null,
+                        ),
+                      ],
+                    );
+                  },
+                  type: StepperType.vertical,
+                  currentStep: _currentStep,
+                  key: this._stepperKey,
+                  onStepTapped: (int step) {
+                    if (validationPassed()) {
+                      setState(() {
+                        _currentStep = step;
+                      });
+                    }
+                  },
+                  onStepContinue: () {
+                    if (_formKeys[_currentStep].currentState.validate()) {
+                      setState(() {
+                        _currentStep < stepsLength - 1
+                            ? _currentStep += 1
+                            : null;
+                      });
+                    }
+                  },
+                  onStepCancel: () {
+                    if (_formKeys[_currentStep].currentState.validate()) {
+                      setState(() {
+                        _currentStep > 0 ? _currentStep -= 1 : null;
+                      });
+                    }
+                  },
+                  steps: [
+                    Step(
+                      title: Text('Business Info'),
+                      content: !isAddress
+                          ? Column(children: [
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(0, 32, 0, 0),
+                                child: AddressSearch(
+                                    onAddressChange: (val) {
+                                      addressCheck(val);
+                                    },
+                                    returnNearby: true),
+                              ),
+                            ])
+                          : Form(
+                              key: _formKeys[0],
+                              child: Column(
                                 children: [
                                   Padding(
                                     padding:
@@ -370,7 +375,12 @@ class LeadStepperState extends State<LeadStepper> {
                                     decoration: InputDecoration(
                                         labelText: "Business Name"),
                                     controller: businessNameController,
-                                    // validator: validate,
+                                    validator: (value) {
+                                      if (value.isEmpty) {
+                                        return 'Please enter a business name';
+                                      }
+                                      return null;
+                                    },
                                   ),
                                   TextFormField(
                                     decoration: InputDecoration(
@@ -399,26 +409,39 @@ class LeadStepperState extends State<LeadStepper> {
                                   ),
                                 ],
                               ),
-                        isActive: _currentStep >= 0,
-                        state: _currentStep >= 0
-                            ? StepState.complete
-                            : StepState.disabled,
-                      ),
-                      Step(
-                        title: Text('Contact Info'),
-                        content: Column(
+                            ),
+                      isActive: _currentStep >= 0,
+                      state: _currentStep >= 0
+                          ? StepState.complete
+                          : StepState.disabled,
+                    ),
+                    Step(
+                      title: Text('Contact Info'),
+                      content: Form(
+                        key: _formKeys[1],
+                        child: Column(
                           children: [
                             TextFormField(
                               decoration:
                                   InputDecoration(labelText: "First Name"),
                               controller: firstNameController,
-                              // validator: validate,
+                              validator: (value) {
+                                if (value.isEmpty) {
+                                  return 'Please enter a contact first name';
+                                }
+                                return null;
+                              },
                             ),
                             TextFormField(
                               decoration:
                                   InputDecoration(labelText: "Last Name"),
                               controller: lastNameController,
-                              // validator: validate,
+                              validator: (value) {
+                                if (value.isEmpty) {
+                                  return 'Please enter a contact last name';
+                                }
+                                return null;
+                              },
                             ),
                             TextFormField(
                               decoration:
@@ -434,14 +457,17 @@ class LeadStepperState extends State<LeadStepper> {
                             ),
                           ],
                         ),
-                        isActive: _currentStep >= 0,
-                        state: _currentStep >= 1
-                            ? StepState.complete
-                            : StepState.disabled,
                       ),
-                      Step(
-                        title: Text('Misc Info'),
-                        content: Column(
+                      isActive: _currentStep >= 0,
+                      state: _currentStep >= 1
+                          ? StepState.complete
+                          : StepState.disabled,
+                    ),
+                    Step(
+                      title: Text('Misc Info'),
+                      content: Form(
+                        key: _formKeys[2],
+                        child: Column(
                           children: <Widget>[
                             TextFormField(
                               decoration:
@@ -450,64 +476,67 @@ class LeadStepperState extends State<LeadStepper> {
                             ),
                           ],
                         ),
-                        isActive: _currentStep >= 0,
-                        state: _currentStep >= 2
-                            ? StepState.complete
-                            : StepState.disabled,
                       ),
-                    ],
-                  ),
+                      isActive: _currentStep >= 0,
+                      state: _currentStep >= 2
+                          ? StepState.complete
+                          : StepState.disabled,
+                    ),
+                  ],
                 ),
-                // custom stepper buttons
-                Container(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: <Widget>[
-                      _currentStep > 0
-                          ? RaisedButton.icon(
-                              onPressed: () {
-                                Stepper stepper = _stepperKey.currentWidget;
-                                stepper.onStepCancel();
-                              },
-                              label: Padding(
-                                padding: EdgeInsets.all(20),
-                                child: Text('Back'),
-                              ),
-                              icon: Icon(Icons.arrow_back),
-                            )
-                          : Container(),
-                      !isSaveDisabled
-                          ? RaisedButton.icon(
-                              onPressed: () {
-                                if (_currentStep == stepsLength - 1) {
-                                  setState(() {
-                                    isSaveDisabled = true;
-                                  });
-                                  addLead();
-                                } else {
-                                  if (isAddress) {
-                                    Stepper stepper = _stepperKey.currentWidget;
-                                    stepper.onStepContinue();
-                                  }
+              ),
+              // custom stepper buttons
+              Container(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: <Widget>[
+                    _currentStep > 0
+                        ? RaisedButton.icon(
+                            onPressed: () {
+                              Stepper stepper = _stepperKey.currentWidget;
+                              stepper.onStepCancel();
+                            },
+                            label: Padding(
+                              padding: EdgeInsets.all(20),
+                              child: Text('Back'),
+                            ),
+                            icon: Icon(Icons.arrow_back),
+                          )
+                        : Container(),
+                    !isSaveDisabled
+                        ? RaisedButton.icon(
+                            onPressed: () {
+                              if (_currentStep == stepsLength - 1 &&
+                                  _formKeys[_currentStep]
+                                      .currentState
+                                      .validate()) {
+                                setState(() {
+                                  isSaveDisabled = true;
+                                });
+                                addLead();
+                              } else {
+                                if (isAddress) {
+                                  Stepper stepper = _stepperKey.currentWidget;
+                                  stepper.onStepContinue();
                                 }
-                              },
-                              label: Padding(
-                                padding: EdgeInsets.all(20),
-                                child: _currentStep == stepsLength - 1
-                                    ? Text('Save')
-                                    : Text('Next'),
-                              ),
-                              icon: _currentStep == stepsLength - 1
-                                  ? Icon(Icons.save)
-                                  : Icon(Icons.arrow_forward),
-                            )
-                          : Container(),
-                    ],
-                  ),
+                              }
+                            },
+                            label: Padding(
+                              padding: EdgeInsets.all(20),
+                              child: _currentStep == stepsLength - 1
+                                  ? Text('Save')
+                                  : Text('Next'),
+                            ),
+                            icon: _currentStep == stepsLength - 1
+                                ? Icon(Icons.save)
+                                : Icon(Icons.arrow_forward),
+                          )
+                        : Container(),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           );
   }
 
