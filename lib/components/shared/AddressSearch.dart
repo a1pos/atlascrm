@@ -56,11 +56,17 @@ class _AddressSearchState extends State<AddressSearch> {
   }
 
   Future<Null> displayPrediction(Prediction p) async {
+    var nearbyCheck;
+    if (this.widget.returnNearby == null || this.widget.returnNearby == false) {
+      nearbyCheck = false;
+    } else {
+      nearbyCheck = true;
+    }
     List nearbyResults;
     if (p != null) {
       PlacesDetailsResponse detail =
           await _places.getDetailsByPlaceId(p.placeId);
-      if (this.widget.returnNearby) {
+      if (nearbyCheck) {
         PlacesSearchResponse respo = await _places.searchNearbyWithRadius(
             new Location(detail.result.geometry.location.lat,
                 detail.result.geometry.location.lng),
@@ -96,7 +102,7 @@ class _AddressSearchState extends State<AddressSearch> {
       setState(() {
         locationText = detail.result.formattedAddress;
       });
-      if (this.widget.returnNearby) {
+      if (nearbyCheck) {
         Map mixedReply = {
           "address": addressInfo,
           "nearbyResults": nearbyResults,
