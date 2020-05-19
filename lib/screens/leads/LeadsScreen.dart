@@ -28,6 +28,8 @@ class _LeadsScreenState extends State<LeadsScreen> {
 
   var isLoading = true;
   var isEmpty = true;
+  bool isSearching = false;
+  var currentSearch;
 
   ScrollController _scrollController = ScrollController();
   TextEditingController _searchController = TextEditingController();
@@ -43,7 +45,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
     _scrollController.addListener(() {
       if (_scrollController.position.pixels ==
           _scrollController.position.maxScrollExtent) {
-        initLeadsData();
+        isSearching ? searchLeads(currentSearch) : initLeadsData();
       }
     });
   }
@@ -55,7 +57,6 @@ class _LeadsScreenState extends State<LeadsScreen> {
   }
 
   var pageNum = 1;
-  bool isSearching = false;
   Future<void> initLeadsData() async {
     try {
       var endpoint = UserService.isAdmin
@@ -98,7 +99,11 @@ class _LeadsScreenState extends State<LeadsScreen> {
   }
 
   Future<void> searchLeads(searchString) async {
-    pageNum = 1;
+    if (isSearching == false || searchString != currentSearch) {
+      pageNum = 1;
+      leads = [];
+      leadsFull = [];
+    }
     var searchItem = Uri.encodeComponent(searchString);
     try {
       var endpoint = UserService.isAdmin
@@ -114,8 +119,8 @@ class _LeadsScreenState extends State<LeadsScreen> {
               setState(() {
                 isEmpty = false;
                 isLoading = false;
-                leads = leadsArr;
-                leadsFull = leadsArr;
+                leads += leadsArr;
+                leadsFull += leadsArr;
                 pageNum++;
               });
             } else {
@@ -278,7 +283,10 @@ class _LeadsScreenState extends State<LeadsScreen> {
                 flex: 1,
                 child: TextField(
                   controller: _searchController,
-                  onEditingComplete: () => searchLeads(_searchController.text),
+                  onEditingComplete: () {
+                    searchLeads(_searchController.text);
+                    currentSearch = _searchController.text;
+                  },
                   decoration: InputDecoration(
                     labelText: "Search Leads",
                   ),
@@ -294,123 +302,130 @@ class _LeadsScreenState extends State<LeadsScreen> {
                   : IconButton(
                       icon: Icon(Icons.search),
                       onPressed: () {
+                        currentSearch = _searchController.text;
                         searchLeads(_searchController.text);
                       },
                     ),
             ],
           ),
-          isEmpty
-              ? Empty("No leads found")
-              : Expanded(
-                  flex: 6,
-                  child: ListView(
-                    controller: _scrollController,
-                    children: leads.map((lead) {
-                      var employeeName;
-                      var nameIndex;
+          isLoading
+              ? CenteredLoadingSpinner()
+              : isEmpty
+                  ? Empty("No leads found")
+                  : Expanded(
+                      flex: 6,
+                      child: ListView(
+                        controller: _scrollController,
+                        children: leads.map((lead) {
+                          var employeeName;
+                          var nameIndex;
 
-                      if (UserService.isAdmin) {
-                        nameIndex = employees.indexWhere(
-                            (e) => e["employee"] == lead["employee"]);
-                        if (nameIndex != -1) {
-                          employeeName = employees[nameIndex]["title"];
-                        } else {
-                          employeeName = "Not Found";
-                        }
-                      }
-                      var fullName;
-                      var businessName;
-                      if (lead["document"]?.isEmpty ?? true) {
-                        fullName = "";
-                        businessName = "";
-                      } else {
-                        fullName = lead["document"]["firstName"] +
-                            " " +
-                            lead["document"]["lastName"];
-                        businessName = lead["document"]["businessName"];
-                      }
+                          if (UserService.isAdmin) {
+                            nameIndex = employees.indexWhere(
+                                (e) => e["employee"] == lead["employee"]);
+                            if (nameIndex != -1) {
+                              employeeName = employees[nameIndex]["title"];
+                            } else {
+                              employeeName = "Not Found";
+                            }
+                          }
+                          var fullName;
+                          var businessName;
+                          if (lead["document"]?.isEmpty ?? true) {
+                            fullName = "";
+                            businessName = "";
+                          } else {
+                            fullName = lead["document"]["firstName"] +
+                                " " +
+                                lead["document"]["lastName"];
+                            businessName = lead["document"]["businessName"];
+                          }
 
-                      return GestureDetector(
-                        onTap: () {
-                          openLead(lead);
-                        },
-                        child: CustomCard(
-                          title: businessName,
-                          icon: Icons.arrow_forward_ios,
-                          child: Column(
-                            children: <Widget>[
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
+                          return GestureDetector(
+                            onTap: () {
+                              openLead(lead);
+                            },
+                            child: CustomCard(
+                              title: businessName,
+                              icon: Icons.arrow_forward_ios,
+                              child: Column(
                                 children: <Widget>[
-                                  Column(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
                                     children: <Widget>[
-                                      Padding(
-                                        padding: EdgeInsets.all(5),
-                                        child: Text(
-                                          'Business:',
-                                          style: TextStyle(
-                                            fontSize: 16,
+                                      Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.end,
+                                        children: <Widget>[
+                                          Padding(
+                                            padding: EdgeInsets.all(5),
+                                            child: Text(
+                                              'Business:',
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                              ),
+                                            ),
                                           ),
-                                        ),
+                                          Padding(
+                                            padding: EdgeInsets.all(5),
+                                            child: Text(
+                                              'Full Name:',
+                                              style: TextStyle(
+                                                fontSize: 15,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                      Padding(
-                                        padding: EdgeInsets.all(5),
-                                        child: Text(
-                                          'Full Name:',
-                                          style: TextStyle(
-                                            fontSize: 15,
-                                          ),
+                                      Expanded(
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.end,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: <Widget>[
+                                            Padding(
+                                              padding: EdgeInsets.all(5),
+                                              child: Text(
+                                                businessName,
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                            ),
+                                            Padding(
+                                              padding: EdgeInsets.all(5),
+                                              child: Text(
+                                                '$fullName',
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ],
                                   ),
-                                  Expanded(
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: <Widget>[
-                                        Padding(
-                                          padding: EdgeInsets.all(5),
-                                          child: Text(
-                                            businessName,
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                        ),
-                                        Padding(
-                                          padding: EdgeInsets.all(5),
-                                          child: Text(
-                                            '$fullName',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                                  UserService.isAdmin
+                                      ? Divider(thickness: 2)
+                                      : Container(),
+                                  UserService.isAdmin
+                                      ? Text("Employee: " + employeeName,
+                                          style: TextStyle(),
+                                          textAlign: TextAlign.right)
+                                      : Container(),
                                 ],
                               ),
-                              UserService.isAdmin
-                                  ? Divider(thickness: 2)
-                                  : Container(),
-                              UserService.isAdmin
-                                  ? Text("Employee: " + employeeName,
-                                      style: TextStyle(),
-                                      textAlign: TextAlign.right)
-                                  : Container(),
-                            ],
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
         ],
       ),
     );
