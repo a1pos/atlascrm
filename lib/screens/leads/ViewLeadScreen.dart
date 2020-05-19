@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/components/shared/AddressSearch.dart';
 import 'package:atlascrm/components/shared/Notes.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class LeadInfoEntry {
   final TextEditingController controller;
@@ -41,19 +42,25 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
 
   Map businessAddress = {"address": "", "city": "", "state": "", "zipcode": ""};
   String addressText;
-
+  bool isChanged = false;
   var lead;
   var leadDocument;
   var isLoading = true;
   var displayPhone;
   void initState() {
     super.initState();
-
     loadLeadData(this.widget.leadId);
     initializeTools();
   }
 
   Future<void> initializeTools() async {}
+
+  // Future<void> showSave() async {
+  //   setState(() {
+  //     print("something was changed");
+  //     isChanged = true;
+  //   });
+  // }
 
   Future<void> loadLeadData(leadId) async {
     var resp = await this
@@ -318,6 +325,52 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                                 leadDocument["emailAddr"], emailAddrController),
                             getInfoRow("Phone Number", displayPhone,
                                 phoneNumberController),
+                            Divider(),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: RaisedButton(
+                                    color: Color.fromARGB(500, 1, 224, 143),
+                                    child: Row(
+                                      children: <Widget>[
+                                        Icon(Icons.mail, color: Colors.white),
+                                        Text("Email",
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold))
+                                      ],
+                                    ),
+                                    onPressed: () {
+                                      var launchURL1 =
+                                          'mailto:${emailAddrController.text}?subject=Followup about ${businessNameController.text}';
+                                      launch(launchURL1);
+                                    },
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: RaisedButton(
+                                    color: Color.fromARGB(500, 1, 224, 143),
+                                    child: Row(
+                                      children: <Widget>[
+                                        Icon(Icons.call, color: Colors.white),
+                                        Text("Call",
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold))
+                                      ],
+                                    ),
+                                    onPressed: () {
+                                      var launchURL2 =
+                                          'tel:${phoneNumberController.text}';
+                                      launch(launchURL2);
+                                    },
+                                  ),
+                                )
+                              ],
+                            ),
                           ],
                         ),
                       ),
@@ -417,7 +470,16 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
             ),
             Expanded(
               flex: 8,
-              child: TextField(controller: controller),
+              child: TextField(
+                controller: controller,
+                // onTap: () {
+                //   if (!isChanged) {
+                //     showSave();
+                //     controller.selection = TextSelection.collapsed(
+                //         offset: controller.text.length - 1);
+                //   }
+                // }
+              ),
             ),
           ],
         ),
