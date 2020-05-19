@@ -348,28 +348,31 @@ class LeadStepperState extends State<LeadStepper> {
                   steps: [
                     Step(
                       title: Text('Business Info'),
-                      content: !isAddress
-                          ? Column(children: [
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(0, 32, 0, 0),
-                                child: AddressSearch(
-                                    onAddressChange: (val) {
-                                      addressCheck(val);
-                                    },
-                                    returnNearby: true),
-                              ),
-                            ])
-                          : Form(
-                              key: _formKeys[0],
-                              child: Column(
+                      content: Form(
+                        key: _formKeys[0],
+                        child: !isAddress
+                            ? Column(children: [
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.fromLTRB(0, 32, 0, 0),
+                                  child: AddressSearch(
+                                      onAddressChange: (val) {
+                                        addressCheck(val);
+                                      },
+                                      returnNearby: true),
+                                ),
+                              ])
+                            : Column(
                                 children: [
                                   Padding(
                                     padding:
                                         const EdgeInsets.fromLTRB(0, 32, 0, 0),
                                     child: AddressSearch(
-                                        onAddressChange: (val) =>
-                                            addressCheck(val),
-                                        returnNearby: true),
+                                      onAddressChange: (val) {
+                                        addressCheck(val);
+                                      },
+                                      returnNearby: true,
+                                    ),
                                   ),
                                   TextFormField(
                                     decoration: InputDecoration(
@@ -409,7 +412,7 @@ class LeadStepperState extends State<LeadStepper> {
                                   ),
                                 ],
                               ),
-                            ),
+                      ),
                       isActive: _currentStep >= 0,
                       state: _currentStep >= 0
                           ? StepState.complete

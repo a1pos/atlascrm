@@ -79,7 +79,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     ),
                   ),
                   CustomCard(
-                    key: Key("adminLeaderboard5"),
+                    key: Key("adminLeaderboard2"),
                     title: "Tasks",
                     icon: Icons.subject,
                     child: Container(
@@ -98,20 +98,20 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   // ),
                   CustomCard(
                     key: Key("adminLeaderboard3"),
-                    title: "Weekly Calls",
-                    icon: Icons.phone,
-                    child: Container(
-                      height: 200,
-                      child: WeeklyCallsChart(),
-                    ),
-                  ),
-                  CustomCard(
-                    key: Key("adminLeaderboard4"),
                     title: "Leads",
                     icon: Icons.person,
                     child: Container(
                       height: 200,
                       child: LeadsChart(data: statsData),
+                    ),
+                  ),
+                  CustomCard(
+                    key: Key("adminLeaderboard4"),
+                    title: "Weekly Calls",
+                    icon: Icons.phone,
+                    child: Container(
+                      height: 200,
+                      child: WeeklyCallsChart(),
                     ),
                   ),
                 ],

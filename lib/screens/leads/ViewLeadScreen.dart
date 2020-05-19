@@ -1,15 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:intl/intl.dart';
-import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:unicorndial/unicorndial.dart';
 import 'package:atlascrm/components/shared/AddressSearch.dart';
-import 'package:atlascrm/components/shared/Empty.dart';
 import 'package:atlascrm/components/shared/Notes.dart';
 
 class LeadInfoEntry {
@@ -48,7 +45,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
   var lead;
   var leadDocument;
   var isLoading = true;
-
+  var displayPhone;
   void initState() {
     super.initState();
 
@@ -106,6 +103,16 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
       businessAddress["city"] = leadDocument["city"];
       businessAddress["state"] = leadDocument["state"];
       businessAddress["zipcode"] = leadDocument["zipCode"];
+    }
+    if (leadDocument["phoneNumber"] != null ||
+        leadDocument["phoneNumber"] != "") {
+      setState(() {
+        displayPhone = leadDocument["phoneNumber"].substring(0, 3) +
+            "-" +
+            leadDocument["phoneNumber"].substring(3, 6) +
+            "-" +
+            leadDocument["phoneNumber"].substring(6, 10);
+      });
     }
   }
 
@@ -309,9 +316,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                                 lastNameController),
                             getInfoRow("Email Address",
                                 leadDocument["emailAddr"], emailAddrController),
-                            getInfoRow(
-                                "Phone Number",
-                                leadDocument["phoneNumber"],
+                            getInfoRow("Phone Number", displayPhone,
                                 phoneNumberController),
                           ],
                         ),
