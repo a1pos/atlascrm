@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
+import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CustomDrawer.dart';
@@ -30,6 +31,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
   var isEmpty = true;
   bool isSearching = false;
   var currentSearch;
+  var pageNum = 1;
 
   ScrollController _scrollController = ScrollController();
   TextEditingController _searchController = TextEditingController();
@@ -56,7 +58,6 @@ class _LeadsScreenState extends State<LeadsScreen> {
     super.dispose();
   }
 
-  var pageNum = 1;
   Future<void> initLeadsData() async {
     try {
       var endpoint = UserService.isAdmin
@@ -229,7 +230,8 @@ class _LeadsScreenState extends State<LeadsScreen> {
                 ? CenteredLoadingSpinner()
                 : Container(
                     child: Expanded(
-                      child: getDataTable(),
+                      child:
+                          isLoading ? CenteredLoadingSpinner() : getDataTable(),
                     ),
                   ),
           ],
@@ -308,124 +310,118 @@ class _LeadsScreenState extends State<LeadsScreen> {
                     ),
             ],
           ),
-          isLoading
-              ? CenteredLoadingSpinner()
-              : isEmpty
-                  ? Empty("No leads found")
-                  : Expanded(
-                      flex: 6,
-                      child: ListView(
-                        controller: _scrollController,
-                        children: leads.map((lead) {
-                          var employeeName;
-                          var nameIndex;
+          isEmpty
+              ? Empty("No leads found")
+              : Expanded(
+                  flex: 6,
+                  child: ListView(
+                    controller: _scrollController,
+                    children: leads.map((lead) {
+                      var employeeName;
+                      var nameIndex;
 
-                          if (UserService.isAdmin) {
-                            nameIndex = employees.indexWhere(
-                                (e) => e["employee"] == lead["employee"]);
-                            if (nameIndex != -1) {
-                              employeeName = employees[nameIndex]["title"];
-                            } else {
-                              employeeName = "Not Found";
-                            }
-                          }
-                          var fullName;
-                          var businessName;
-                          if (lead["document"]?.isEmpty ?? true) {
-                            fullName = "";
-                            businessName = "";
-                          } else {
-                            fullName = lead["document"]["firstName"] +
-                                " " +
-                                lead["document"]["lastName"];
-                            businessName = lead["document"]["businessName"];
-                          }
+                      if (UserService.isAdmin) {
+                        nameIndex = employees.indexWhere(
+                            (e) => e["employee"] == lead["employee"]);
+                        if (nameIndex != -1) {
+                          employeeName = employees[nameIndex]["title"];
+                        } else {
+                          employeeName = "Not Found";
+                        }
+                      }
+                      var fullName;
+                      var businessName;
+                      if (lead["document"]?.isEmpty ?? true) {
+                        fullName = "";
+                        businessName = "";
+                      } else {
+                        fullName = lead["document"]["firstName"] +
+                            " " +
+                            lead["document"]["lastName"];
+                        businessName = lead["document"]["businessName"];
+                      }
 
-                          return GestureDetector(
-                            onTap: () {
-                              openLead(lead);
-                            },
-                            child: CustomCard(
-                              title: businessName,
-                              icon: Icons.arrow_forward_ios,
-                              child: Column(
+                      return GestureDetector(
+                        onTap: () {
+                          openLead(lead);
+                        },
+                        child: CustomCard(
+                          title: businessName,
+                          icon: Icons.arrow_forward_ios,
+                          child: Column(
+                            children: <Widget>[
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
                                 children: <Widget>[
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
+                                  Column(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.end,
                                     children: <Widget>[
-                                      Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.end,
-                                        children: <Widget>[
-                                          Padding(
-                                            padding: EdgeInsets.all(5),
-                                            child: Text(
-                                              'Business:',
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                              ),
-                                            ),
+                                      Padding(
+                                        padding: EdgeInsets.all(5),
+                                        child: Text(
+                                          'Business:',
+                                          style: TextStyle(
+                                            fontSize: 16,
                                           ),
-                                          Padding(
-                                            padding: EdgeInsets.all(5),
-                                            child: Text(
-                                              'Full Name:',
-                                              style: TextStyle(
-                                                fontSize: 15,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
+                                        ),
                                       ),
-                                      Expanded(
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.end,
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: <Widget>[
-                                            Padding(
-                                              padding: EdgeInsets.all(5),
-                                              child: Text(
-                                                businessName,
-                                                style: TextStyle(
-                                                  fontSize: 14,
-                                                ),
-                                              ),
-                                            ),
-                                            Padding(
-                                              padding: EdgeInsets.all(5),
-                                              child: Text(
-                                                '$fullName',
-                                                style: TextStyle(
-                                                  fontSize: 14,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
+                                      Padding(
+                                        padding: EdgeInsets.all(5),
+                                        child: Text(
+                                          'Full Name:',
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                          ),
                                         ),
                                       ),
                                     ],
                                   ),
-                                  UserService.isAdmin
-                                      ? Divider(thickness: 2)
-                                      : Container(),
-                                  UserService.isAdmin
-                                      ? Text("Employee: " + employeeName,
-                                          style: TextStyle(),
-                                          textAlign: TextAlign.right)
-                                      : Container(),
+                                  Expanded(
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: <Widget>[
+                                        Padding(
+                                          padding: EdgeInsets.all(5),
+                                          child: Text(
+                                            businessName,
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ),
+                                        Padding(
+                                          padding: EdgeInsets.all(5),
+                                          child: Text(
+                                            '$fullName',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ],
                               ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
+                              UserService.isAdmin
+                                  ? Divider(thickness: 2)
+                                  : Container(),
+                              UserService.isAdmin
+                                  ? Text("Employee: " + employeeName,
+                                      style: TextStyle(),
+                                      textAlign: TextAlign.right)
+                                  : Container(),
+                            ],
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
         ],
       ),
     );

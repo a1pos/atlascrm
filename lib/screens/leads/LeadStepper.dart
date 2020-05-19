@@ -25,6 +25,26 @@ class LeadStepperState extends State<LeadStepper> {
   bool isLoading = true;
   var leads;
 
+  final UserService userService = new UserService();
+  final ApiService apiService = new ApiService();
+
+  var firstNameController = new TextEditingController();
+  var lastNameController = new TextEditingController();
+  var emailAddrController = new TextEditingController();
+  var phoneNumberController = new TextEditingController();
+
+  var businessNameController = new TextEditingController();
+  var dbaNameController = new TextEditingController();
+  var businessAddrController = new TextEditingController();
+  var businessPhoneNumber = new TextEditingController();
+
+  Map businessAddress = {"address": "", "city": "", "state": "", "zipcode": ""};
+
+  var _selectedBusinessType;
+  var _currentStep = 0;
+  var stepsLength = 3;
+  var businessTypes = [];
+
   @override
   void initState() {
     initLeadsData();
@@ -65,29 +85,6 @@ class LeadStepperState extends State<LeadStepper> {
     }
   }
 
-  final UserService userService = new UserService();
-  final ApiService apiService = new ApiService();
-
-  var firstNameController = new TextEditingController();
-  var lastNameController = new TextEditingController();
-  var emailAddrController = new TextEditingController();
-  var phoneNumberController = new TextEditingController();
-
-  var businessNameController = new TextEditingController();
-  var dbaNameController = new TextEditingController();
-  var businessAddrController = new TextEditingController();
-  var businessPhoneNumber = new TextEditingController();
-
-  Map businessAddress = {"address": "", "city": "", "state": "", "zipcode": ""};
-
-  var _selectedBusinessType;
-
-  var _currentStep = 0;
-
-  var stepsLength = 3;
-
-  var businessTypes = [];
-
   Future<void> addressCheck(addressObj) async {
     var address = Uri.encodeComponent(addressObj["address"]["address"]);
     var zip = Uri.encodeComponent(addressObj["address"]["zipcode"]);
@@ -103,6 +100,10 @@ class LeadStepperState extends State<LeadStepper> {
       if (resp != null || resp2 != null) {
         if (resp.statusCode == 200 || resp2.statusCode == 200) {
           if (resp.data["data"].length > 0 || resp2.data["data"].length > 0) {
+            setState(() {
+              isAddress = false;
+              businessNameController.clear();
+            });
             dupeLead();
           } else {
             nearbySelect(addressObj);
@@ -219,6 +220,77 @@ class LeadStepperState extends State<LeadStepper> {
     );
   }
 
+  Future<void> initBusinessTypes() async {
+    try {
+      _selectedBusinessType = null;
+
+      var resp = await apiService.authGet(context, "/business/types");
+      if (resp != null) {
+        if (resp.statusCode == 200) {
+          var bizTypesArrDecoded = resp.data;
+          if (bizTypesArrDecoded != null) {
+            var bizTypesArr = List.from(bizTypesArrDecoded);
+            if (bizTypesArr.length > 0) {
+              setState(() {
+                businessTypes = bizTypesArr;
+              });
+            }
+          }
+        }
+      }
+    } catch (err) {
+      log(err);
+    }
+  }
+
+  Future<void> addLead() async {
+    try {
+      String rawNumber = phoneNumberController.text;
+      var filteredNumber = rawNumber.replaceAll(RegExp("[^0-9]"), "");
+      var lead = {
+        "firstName": firstNameController.text,
+        "lastName": lastNameController.text,
+        "emailAddr": emailAddrController.text,
+        "phoneNumber": filteredNumber,
+        "businessName": businessNameController.text,
+        "dbaName": dbaNameController.text,
+        "address": businessAddress["address"],
+        "city": businessAddress["city"],
+        "state": businessAddress["state"],
+        "zipCode": businessAddress["zipcode"]
+      };
+
+      var resp = await apiService.authPost(
+          context, "/lead/${UserService.employee.employee}", lead);
+      if (resp != null) {
+        if (resp.statusCode == 200) {
+          Navigator.pop(context);
+
+          Fluttertoast.showToast(
+              msg: "Successfully added lead!",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.grey[600],
+              textColor: Colors.white,
+              fontSize: 16.0);
+
+          await this.widget.successCallback();
+        }
+      } else {
+        Fluttertoast.showToast(
+            msg: "Failed to add lead!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0);
+      }
+    } catch (err) {
+      log(err);
+    }
+    isSaveDisabled = false;
+  }
+
   @override
   Widget build(BuildContext context) {
     return isLoading
@@ -291,7 +363,8 @@ class LeadStepperState extends State<LeadStepper> {
                                         const EdgeInsets.fromLTRB(0, 32, 0, 0),
                                     child: AddressSearch(
                                         onAddressChange: (val) =>
-                                            businessAddress = val),
+                                            addressCheck(val),
+                                        returnNearby: true),
                                   ),
                                   TextFormField(
                                     decoration: InputDecoration(
@@ -442,7 +515,6 @@ class LeadStepperState extends State<LeadStepper> {
     if (_formKey.currentState.validate()) {
       return true;
     }
-
     return false;
   }
 
@@ -451,76 +523,5 @@ class LeadStepperState extends State<LeadStepper> {
       return 'Please enter some text';
     }
     return null;
-  }
-
-  Future<void> initBusinessTypes() async {
-    try {
-      _selectedBusinessType = null;
-
-      var resp = await apiService.authGet(context, "/business/types");
-      if (resp != null) {
-        if (resp.statusCode == 200) {
-          var bizTypesArrDecoded = resp.data;
-          if (bizTypesArrDecoded != null) {
-            var bizTypesArr = List.from(bizTypesArrDecoded);
-            if (bizTypesArr.length > 0) {
-              setState(() {
-                businessTypes = bizTypesArr;
-              });
-            }
-          }
-        }
-      }
-    } catch (err) {
-      log(err);
-    }
-  }
-
-  void addLead() async {
-    try {
-      String rawNumber = phoneNumberController.text;
-      var filteredNumber = rawNumber.replaceAll(RegExp("[^0-9]"), "");
-      var lead = {
-        "firstName": firstNameController.text,
-        "lastName": lastNameController.text,
-        "emailAddr": emailAddrController.text,
-        "phoneNumber": filteredNumber,
-        "businessName": businessNameController.text,
-        "dbaName": dbaNameController.text,
-        "address": businessAddress["address"],
-        "city": businessAddress["city"],
-        "state": businessAddress["state"],
-        "zipCode": businessAddress["zipcode"]
-      };
-
-      var resp = await apiService.authPost(
-          context, "/lead/${UserService.employee.employee}", lead);
-      if (resp != null) {
-        if (resp.statusCode == 200) {
-          Navigator.pop(context);
-
-          Fluttertoast.showToast(
-              msg: "Successfully added lead!",
-              toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.grey[600],
-              textColor: Colors.white,
-              fontSize: 16.0);
-
-          await this.widget.successCallback();
-        }
-      } else {
-        Fluttertoast.showToast(
-            msg: "Failed to add lead!",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.grey[600],
-            textColor: Colors.white,
-            fontSize: 16.0);
-      }
-    } catch (err) {
-      log(err);
-    }
-    isSaveDisabled = false;
   }
 }

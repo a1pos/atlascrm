@@ -9,12 +9,10 @@ class CenteredLoadingSpinner extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       key: this.key,
-      child: Expanded(
-        child: Center(
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            valueColor: AlwaysStoppedAnimation(Colors.green),
-          ),
+      child: Center(
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          valueColor: AlwaysStoppedAnimation(Colors.green),
         ),
       ),
     );
