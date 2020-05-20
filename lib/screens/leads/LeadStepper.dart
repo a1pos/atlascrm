@@ -7,6 +7,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/components/shared/AddressSearch.dart';
 import 'package:flutter/foundation.dart';
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
 class LeadStepper extends StatefulWidget {
   final Function successCallback;
@@ -45,7 +46,8 @@ class LeadStepperState extends State<LeadStepper> {
   var businessPhoneNumber = new TextEditingController();
 
   Map businessAddress = {"address": "", "city": "", "state": "", "zipcode": ""};
-
+  var maskFormatter = new MaskTextInputFormatter(
+      mask: '###-###-####', filter: {"#": RegExp(r'[0-9]')});
   var _selectedBusinessType;
   var _currentStep = 0;
   var stepsLength = 3;
@@ -453,6 +455,7 @@ class LeadStepperState extends State<LeadStepper> {
                               // validator: validate,
                             ),
                             TextFormField(
+                              inputFormatters: [maskFormatter],
                               decoration:
                                   InputDecoration(labelText: "Phone Number"),
                               controller: phoneNumberController,
