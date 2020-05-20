@@ -9,6 +9,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/components/shared/AddressSearch.dart';
 import 'package:atlascrm/components/shared/Notes.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_masked_text/flutter_masked_text.dart';
 
 class LeadInfoEntry {
   final TextEditingController controller;
@@ -28,15 +29,15 @@ class ViewLeadScreen extends StatefulWidget {
 }
 
 class ViewLeadScreenState extends State<ViewLeadScreen> {
-  final firstNameController = TextEditingController();
-  final lastNameController = TextEditingController();
-  final emailAddrController = TextEditingController();
-  final phoneNumberController = TextEditingController();
-  final businessNameController = TextEditingController();
-  final dbaController = TextEditingController();
-  final businessAddressController = TextEditingController();
-  final notesController = TextEditingController();
-  final leadSourceController = TextEditingController();
+  var firstNameController = TextEditingController();
+  var lastNameController = TextEditingController();
+  var emailAddrController = TextEditingController();
+  var phoneNumberController = MaskedTextController(mask: '000-000-0000');
+  var businessNameController = TextEditingController();
+  var dbaController = TextEditingController();
+  var businessAddressController = TextEditingController();
+  var notesController = TextEditingController();
+  var leadSourceController = TextEditingController();
 
   var leadInfoEntries = List<LeadInfoEntry>();
 
@@ -54,13 +55,6 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
   }
 
   Future<void> initializeTools() async {}
-
-  // Future<void> showSave() async {
-  //   setState(() {
-  //     print("something was changed");
-  //     isChanged = true;
-  //   });
-  // }
 
   Future<void> loadLeadData(leadId) async {
     var resp = await this
@@ -114,11 +108,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
     if (leadDocument["phoneNumber"] != null ||
         leadDocument["phoneNumber"] != "") {
       setState(() {
-        displayPhone = leadDocument["phoneNumber"].substring(0, 3) +
-            "-" +
-            leadDocument["phoneNumber"].substring(3, 6) +
-            "-" +
-            leadDocument["phoneNumber"].substring(6, 10);
+        phoneNumberController.updateText(leadDocument["phoneNumber"]);
       });
     }
   }
@@ -323,8 +313,28 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                                 lastNameController),
                             getInfoRow("Email Address",
                                 leadDocument["emailAddr"], emailAddrController),
-                            getInfoRow("Phone Number", displayPhone,
-                                phoneNumberController),
+                            Container(
+                              child: Padding(
+                                padding: EdgeInsets.all(15),
+                                child: Row(
+                                  children: <Widget>[
+                                    Expanded(
+                                      flex: 4,
+                                      child: Text(
+                                        'Phone Number',
+                                        style: TextStyle(fontSize: 16),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      flex: 8,
+                                      child: TextField(
+                                        controller: phoneNumberController,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
                             Divider(),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -472,13 +482,6 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
               flex: 8,
               child: TextField(
                 controller: controller,
-                // onTap: () {
-                //   if (!isChanged) {
-                //     showSave();
-                //     controller.selection = TextSelection.collapsed(
-                //         offset: controller.text.length - 1);
-                //   }
-                // }
               ),
             ),
           ],

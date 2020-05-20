@@ -44,7 +44,7 @@ class _LeadsChartState extends State<LeadsChart> {
         measureFn: (SalesPerson path, _) => path.count,
         data: statsData,
         labelAccessorFn: (SalesPerson path, _) =>
-            '${path.person}: ${path.count.toString()}',
+            path.count > 0 ? '${path.count.toString()}' : '',
       )
     ];
     return Container(
@@ -56,6 +56,7 @@ class _LeadsChartState extends State<LeadsChart> {
               seriesList,
               vertical: false,
               animate: false,
+              barRendererDecorator: new charts.BarLabelDecorator<String>(),
             ),
     );
   }

@@ -53,12 +53,16 @@ class _SalesLeaderboardChartState extends State<SalesLeaderboardChart> {
           domainFn: (LeaderboardData sales, _) => sales.person,
           measureFn: (LeaderboardData sales, _) => sales.count,
           data: agreements,
+          labelAccessorFn: (LeaderboardData path, _) =>
+              path.count > 0 ? '${path.count.toString()}' : '',
         ),
         new charts.Series<LeaderboardData, String>(
           id: 'Statements',
           domainFn: (LeaderboardData sales, _) => sales.person,
           measureFn: (LeaderboardData sales, _) => sales.count,
           data: statements,
+          labelAccessorFn: (LeaderboardData path, _) =>
+              path.count > 0 ? '${path.count.toString()}' : '',
         ),
       ];
     }
@@ -97,6 +101,7 @@ class GroupedBarChart extends StatelessWidget {
       vertical: false,
       barGroupingType: charts.BarGroupingType.grouped,
       behaviors: [charts.SeriesLegend()],
+      barRendererDecorator: new charts.BarLabelDecorator<String>(),
     );
   }
 }
