@@ -353,9 +353,20 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                                       ],
                                     ),
                                     onPressed: () {
-                                      var launchURL1 =
-                                          'mailto:${emailAddrController.text}?subject=Followup about ${businessNameController.text}';
-                                      launch(launchURL1);
+                                      if (emailAddrController.text != null &&
+                                          emailAddrController.text != "") {
+                                        var launchURL1 =
+                                            'mailto:${emailAddrController.text}?subject=Followup about ${businessNameController.text}';
+                                        launch(launchURL1);
+                                      } else {
+                                        Fluttertoast.showToast(
+                                            msg: "No email specified!",
+                                            toastLength: Toast.LENGTH_SHORT,
+                                            gravity: ToastGravity.BOTTOM,
+                                            backgroundColor: Colors.grey[600],
+                                            textColor: Colors.white,
+                                            fontSize: 16.0);
+                                      }
                                     },
                                   ),
                                 ),
@@ -373,9 +384,20 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                                       ],
                                     ),
                                     onPressed: () {
-                                      var launchURL2 =
-                                          'tel:${phoneNumberController.text}';
-                                      launch(launchURL2);
+                                      if (phoneNumberController.text != null &&
+                                          phoneNumberController.text != "") {
+                                        var launchURL2 =
+                                            'tel:${phoneNumberController.text}';
+                                        launch(launchURL2);
+                                      } else {
+                                        Fluttertoast.showToast(
+                                            msg: "No phone number specified!",
+                                            toastLength: Toast.LENGTH_SHORT,
+                                            gravity: ToastGravity.BOTTOM,
+                                            backgroundColor: Colors.grey[600],
+                                            textColor: Colors.white,
+                                            fontSize: 16.0);
+                                      }
                                     },
                                   ),
                                 )
