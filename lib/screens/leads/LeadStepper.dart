@@ -323,13 +323,13 @@ class LeadStepperState extends State<LeadStepper> {
                   type: StepperType.vertical,
                   currentStep: _currentStep,
                   key: this._stepperKey,
-                  onStepTapped: (int step) {
-                    if (validationPassed()) {
-                      setState(() {
-                        _currentStep = step;
-                      });
-                    }
-                  },
+                  // onStepTapped: (int step) {
+                  //   if (validationPassed()) {
+                  //     setState(() {
+                  //       _currentStep = step;
+                  //     });
+                  //   }
+                  // },
                   onStepContinue: () {
                     if (_formKeys[_currentStep].currentState.validate()) {
                       setState(() {
@@ -451,7 +451,12 @@ class LeadStepperState extends State<LeadStepper> {
                               decoration:
                                   InputDecoration(labelText: "Email Address"),
                               controller: emailAddrController,
-                              // validator: validate,
+                              validator: (value) {
+                                if (value.isNotEmpty && !value.contains('@')) {
+                                  return 'Please enter a valid email';
+                                }
+                                return null;
+                              },
                             ),
                             TextFormField(
                               decoration:
