@@ -8,6 +8,7 @@ import 'package:atlascrm/components/shared/AddressSearch.dart';
 import 'package:flutter/foundation.dart';
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
+import 'package:atlascrm/components/shared/PlacesSuggestions.dart';
 
 class LeadStepper extends StatefulWidget {
   final Function successCallback;
@@ -51,7 +52,7 @@ class LeadStepperState extends State<LeadStepper> {
   var _currentStep = 0;
   var stepsLength = 3;
   var businessTypes = [];
-
+  var locationValue;
   @override
   void initState() {
     initLeadsData();
@@ -113,7 +114,32 @@ class LeadStepperState extends State<LeadStepper> {
             });
             dupeLead();
           } else {
-            nearbySelect(addressObj);
+            // nearbySelect(addressObj);
+            if (addressObj["place"] != null) {
+              if (addressObj["place"].formattedPhoneNumber != null &&
+                  addressObj["place"].formattedPhoneNumber != "") {
+                var phoneNumb = addressObj["place"]
+                    .formattedPhoneNumber
+                    .replaceAll(RegExp("[^0-9]"), "");
+                setState(() {
+                  phoneNumberController.updateText(phoneNumb);
+                });
+              }
+              setState(() {
+                businessNameController.text = addressObj["place"].name;
+                locationValue = addressObj["place"].formattedAddress;
+                businessAddress = addressObj["address"];
+                isAddress = true;
+              });
+            } else {
+              setState(() {
+                locationValue = addressObj["formattedaddr"];
+                businessNameController.clear();
+                phoneNumberController.clear();
+                businessAddress = addressObj["address"];
+                isAddress = true;
+              });
+            }
           }
         }
       }
@@ -126,76 +152,13 @@ class LeadStepperState extends State<LeadStepper> {
     return showDialog<void>(
       context: context,
       builder: (BuildContext context) {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Expanded(
-              child: Card(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: <Widget>[
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(0, 20, 0, 15),
-                        child: Text("Select a Business",
-                            style: TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.bold)),
-                      ),
-                      Divider(),
-                      Column(
-                        children:
-                            addressObj["nearbyResults"].map<Widget>((place) {
-                          return GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  businessNameController.text = place.name;
-                                  businessAddress = addressObj["address"];
-                                  isAddress = true;
-                                });
-                                Navigator.of(context).pop();
-                              },
-                              child: Card(
-                                child: ListTile(
-                                  title: Row(
-                                    children: <Widget>[
-                                      Padding(
-                                        padding: const EdgeInsets.fromLTRB(
-                                            0, 0, 10, 0),
-                                        child: Icon(Icons.business),
-                                      ),
-                                      Expanded(
-                                        child: Text(
-                                          place.name,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ));
-                        }).toList(),
-                      ),
-                      GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              businessAddress = addressObj["address"];
-                              isAddress = true;
-                            });
-                            Navigator.of(context).pop();
-                          },
-                          child: Card(
-                            child: ListTile(
-                              title: Text("Not Listed",
-                                  style: TextStyle(
-                                      color: Colors.blue,
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold)),
-                            ),
-                          ))
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
+        return PlacesSuggestions(
+          addressSearchObj: addressObj,
+          onPlaceSelect: (val) {
+            if (val != null) {
+              addressCheck(val);
+            }
+          },
         );
       },
     );
@@ -323,13 +286,13 @@ class LeadStepperState extends State<LeadStepper> {
                   type: StepperType.vertical,
                   currentStep: _currentStep,
                   key: this._stepperKey,
-                  // onStepTapped: (int step) {
-                  //   if (validationPassed()) {
-                  //     setState(() {
-                  //       _currentStep = step;
-                  //     });
-                  //   }
-                  // },
+                  onStepTapped: (int step) {
+                    if (validationPassed()) {
+                      setState(() {
+                        _currentStep = step;
+                      });
+                    }
+                  },
                   onStepContinue: () {
                     if (_formKeys[_currentStep].currentState.validate()) {
                       setState(() {
@@ -358,9 +321,10 @@ class LeadStepperState extends State<LeadStepper> {
                                       const EdgeInsets.fromLTRB(0, 32, 0, 0),
                                   child: AddressSearch(
                                       onAddressChange: (val) {
-                                        addressCheck(val);
+                                        nearbySelect(val);
                                       },
-                                      returnNearby: true),
+                                      returnNearby: true,
+                                      locationValue: locationValue),
                                 ),
                               ])
                             : Column(
@@ -370,9 +334,10 @@ class LeadStepperState extends State<LeadStepper> {
                                         const EdgeInsets.fromLTRB(0, 32, 0, 0),
                                     child: AddressSearch(
                                       onAddressChange: (val) {
-                                        addressCheck(val);
+                                        nearbySelect(val);
                                       },
                                       returnNearby: true,
+                                      locationValue: locationValue,
                                     ),
                                   ),
                                   TextFormField(

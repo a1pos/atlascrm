@@ -31,7 +31,6 @@ class _AddressSearchState extends State<AddressSearch> {
   @override
   void initState() {
     super.initState();
-    initLocationText();
   }
 
   initLocationText() {
@@ -43,6 +42,7 @@ class _AddressSearchState extends State<AddressSearch> {
   }
 
   Widget build(BuildContext context) {
+    initLocationText();
     return GestureDetector(
         onTap: () async {
           Prediction p = await PlacesAutocomplete.show(
@@ -104,6 +104,7 @@ class _AddressSearchState extends State<AddressSearch> {
       });
       if (nearbyCheck) {
         Map mixedReply = {
+          "formattedaddr": detail.result.formattedAddress,
           "address": addressInfo,
           "nearbyResults": nearbyResults,
           "shortaddress": shortAddress
