@@ -5,6 +5,7 @@ import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CustomDrawer.dart';
+import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
 import 'package:atlascrm/models/Lead.dart';
 import 'package:atlascrm/services/ApiService.dart';
@@ -29,9 +30,13 @@ class _LeadsScreenState extends State<LeadsScreen> {
 
   var isLoading = true;
   var isEmpty = true;
+
   bool isSearching = false;
-  var currentSearch;
+  bool isFiltering = false;
+
+  var currentSearch = "";
   var pageNum = 1;
+  var filterEmployee = "";
 
   ScrollController _scrollController = ScrollController();
   TextEditingController _searchController = TextEditingController();
@@ -47,7 +52,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
     _scrollController.addListener(() {
       if (_scrollController.position.pixels ==
           _scrollController.position.maxScrollExtent) {
-        isSearching ? searchLeads(currentSearch) : initLeadsData();
+        onScroll();
       }
     });
   }
@@ -99,17 +104,26 @@ class _LeadsScreenState extends State<LeadsScreen> {
     }
   }
 
-  Future<void> searchLeads(searchString) async {
-    if (isSearching == false || searchString != currentSearch) {
-      pageNum = 1;
-      leads = [];
-      leadsFull = [];
-    }
-    var searchItem = Uri.encodeComponent(searchString);
+  Future<void> onScroll() async {
     try {
-      var endpoint = UserService.isAdmin
-          ? "/lead?searchString=$searchItem&page=$pageNum&size=10"
-          : "/employee/${UserService.employee.employee}/lead?searchString=$searchItem&page=$pageNum&size=10";
+      var endpoint;
+      if (UserService.isAdmin) {
+        endpoint = "/lead?page=$pageNum&size=10";
+        if (isSearching) {
+          endpoint = "/lead?searchString=$currentSearch&page=$pageNum&size=10";
+        }
+        if (isFiltering) {
+          endpoint = "/employee/$filterEmployee/lead?page=$pageNum&size=10";
+        }
+        if (isSearching && isFiltering) {
+          endpoint =
+              "/employee/$filterEmployee/lead?searchString=$currentSearch&page=$pageNum&size=10";
+        }
+      } else {
+        endpoint =
+            "/employee/${UserService.employee.employee}/lead?page=$pageNum&size=10";
+      }
+
       var resp = await this.widget.apiService.authGet(context, endpoint);
       if (resp != null) {
         if (resp.statusCode == 200) {
@@ -140,22 +154,44 @@ class _LeadsScreenState extends State<LeadsScreen> {
 
       setState(() {
         isLoading = false;
-        isSearching = true;
       });
     } catch (err) {
       log(err);
     }
   }
 
+  Future<void> searchLeads(searchString) async {
+    setState(() {
+      currentSearch = searchString;
+      pageNum = 1;
+      isSearching = true;
+      leads = [];
+      leadsFull = [];
+      onScroll();
+    });
+  }
+
+  Future<void> filterByEmployee(employeeId) async {
+    setState(() {
+      filterEmployee = employeeId;
+      pageNum = 1;
+      isFiltering = true;
+      leads = [];
+      leadsFull = [];
+      onScroll();
+    });
+  }
+
   Future<void> clearSearch() async {
     setState(() {
       pageNum = 1;
+      currentSearch = "";
       isSearching = false;
       _searchController.clear();
       leads = [];
       leadsFull = [];
     });
-    initLeadsData();
+    onScroll();
   }
 
   Future<void> initEmployeeData() async {
@@ -309,6 +345,14 @@ class _LeadsScreenState extends State<LeadsScreen> {
                       },
                     ),
             ],
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
+            child: UserService.isAdmin
+                ? EmployeeDropDown(callback: (val) {
+                    filterByEmployee(val);
+                  })
+                : Container(),
           ),
           isEmpty
               ? Empty("No leads found")
