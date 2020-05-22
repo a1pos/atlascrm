@@ -23,8 +23,13 @@ class _SalesLeaderboardChartState extends State<SalesLeaderboardChart> {
     isLoading = false;
   }
 
+  int agreementTotal = 0;
+  int statementTotal = 0;
+
   @override
   Widget build(BuildContext context) {
+    agreementTotal = 0;
+    statementTotal = 0;
     if (this.widget.data.length > 0) {
       var temp1 = List<LeaderboardData>();
       var temp2 = List<LeaderboardData>();
@@ -34,6 +39,8 @@ class _SalesLeaderboardChartState extends State<SalesLeaderboardChart> {
             item["fullname"], int.parse(item["statementcount"])));
         temp2.add(LeaderboardData(
             item["fullname"], int.parse(item["agreementcount"])));
+        agreementTotal += int.parse(item["agreementcount"]);
+        statementTotal += int.parse(item["statementcount"]);
       }
 
       setState(() {
@@ -49,7 +56,7 @@ class _SalesLeaderboardChartState extends State<SalesLeaderboardChart> {
 
       return [
         new charts.Series<LeaderboardData, String>(
-          id: 'Agreements',
+          id: 'Agreements: $agreementTotal',
           domainFn: (LeaderboardData sales, _) => sales.person,
           measureFn: (LeaderboardData sales, _) => sales.count,
           data: agreements,
@@ -57,7 +64,7 @@ class _SalesLeaderboardChartState extends State<SalesLeaderboardChart> {
               path.count > 0 ? '${path.count.toString()}' : '',
         ),
         new charts.Series<LeaderboardData, String>(
-          id: 'Statements',
+          id: 'Statements: $statementTotal',
           domainFn: (LeaderboardData sales, _) => sales.person,
           measureFn: (LeaderboardData sales, _) => sales.count,
           data: statements,
@@ -67,16 +74,31 @@ class _SalesLeaderboardChartState extends State<SalesLeaderboardChart> {
       ];
     }
 
-    return Container(
-      child: isLoading
+    return Column(children: <Widget>[
+      isLoading
           ? Expanded(
               child: CenteredLoadingSpinner(),
             )
-          : GroupedBarChart(
-              _displayData(),
-              animate: true,
+          : Expanded(
+              child: GroupedBarChart(
+                _displayData(),
+                animate: true,
+              ),
             ),
-    );
+      // Row(
+      //   mainAxisAlignment: MainAxisAlignment.center,
+      //   children: <Widget>[
+      //     Padding(
+      //       padding: const EdgeInsets.all(8.0),
+      //       child: Text("agreements: $agreementTotal"),
+      //     ),
+      //     Padding(
+      //       padding: const EdgeInsets.all(8.0),
+      //       child: Text("statements: $statementTotal"),
+      //     )
+      //   ],
+      // )
+    ]);
   }
 }
 
