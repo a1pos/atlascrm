@@ -119,7 +119,6 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
   Future<void> updateLead(leadId) async {
     String rawNumber = phoneNumberController.text;
     var filteredNumber = rawNumber.replaceAll(RegExp("[^0-9]"), "");
-    print(filteredNumber);
     var leadToUpdate = {
       "businessName": businessNameController.text,
       "businessType": "",

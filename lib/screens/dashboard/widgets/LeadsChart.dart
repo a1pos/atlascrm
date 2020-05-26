@@ -17,6 +17,12 @@ class _LeadsChartState extends State<LeadsChart> {
   var seriesList;
   var statsData = List<SalesPerson>();
 
+  var filterItems = [
+    {"text": "Today", "value": "leadcounttoday"},
+    {"text": "This Week", "value": "leadcountweek"},
+    {"text": "All Time", "value": "leadcount"}
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -24,12 +30,14 @@ class _LeadsChartState extends State<LeadsChart> {
     isLoading = false;
   }
 
+  String dropdownValue = "leadcounttoday";
+
   @override
   Widget build(BuildContext context) {
     if (this.widget.data.length > 0) {
       var temp = List<SalesPerson>();
       for (var item in this.widget.data) {
-        temp.add(SalesPerson(item["fullname"], int.parse(item["leadcount"])));
+        temp.add(SalesPerson(item["fullname"], int.parse(item[dropdownValue])));
       }
       setState(() {
         statsData = temp;
@@ -47,18 +55,37 @@ class _LeadsChartState extends State<LeadsChart> {
             path.count > 0 ? '${path.count.toString()}' : '',
       )
     ];
-    return Container(
-      child: isLoading
+    return Column(children: <Widget>[
+      Padding(
+        padding: const EdgeInsets.all(0),
+        child: DropdownButton<String>(
+          value: dropdownValue,
+          items: filterItems.map((dynamic item) {
+            return DropdownMenuItem<String>(
+              value: item["value"],
+              child: Text(item["text"]),
+            );
+          }).toList(),
+          onChanged: (String newValue) {
+            setState(() {
+              dropdownValue = newValue;
+            });
+          },
+        ),
+      ),
+      isLoading
           ? Expanded(
               child: CenteredLoadingSpinner(),
             )
-          : charts.BarChart(
-              seriesList,
-              vertical: false,
-              animate: false,
-              barRendererDecorator: new charts.BarLabelDecorator<String>(),
+          : Expanded(
+              child: charts.BarChart(
+                seriesList,
+                vertical: false,
+                animate: false,
+                barRendererDecorator: new charts.BarLabelDecorator<String>(),
+              ),
             ),
-    );
+    ]);
   }
 }
 

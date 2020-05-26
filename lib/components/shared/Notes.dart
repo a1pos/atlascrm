@@ -3,6 +3,7 @@ import 'package:atlascrm/services/ApiService.dart';
 import 'dart:async';
 import 'package:intl/intl.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class Notes extends StatefulWidget {
   final ApiService apiService = new ApiService();
@@ -114,10 +115,20 @@ class _NotesState extends State<Notes> {
           IconButton(
             icon: Icon(Icons.send),
             onPressed: () {
-              saveNote(
-                  type: this.widget.type,
-                  object: this.widget.object,
-                  newNote: notesController.text);
+              if (notesController.text == null || notesController.text == "") {
+                Fluttertoast.showToast(
+                    msg: "Cannot add blank note!",
+                    toastLength: Toast.LENGTH_SHORT,
+                    gravity: ToastGravity.BOTTOM,
+                    backgroundColor: Colors.grey[600],
+                    textColor: Colors.white,
+                    fontSize: 16.0);
+              } else {
+                saveNote(
+                    type: this.widget.type,
+                    object: this.widget.object,
+                    newNote: notesController.text);
+              }
               notesController.text = "";
             },
           )
