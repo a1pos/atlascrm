@@ -29,6 +29,8 @@ class ViewLeadScreen extends StatefulWidget {
 }
 
 class ViewLeadScreenState extends State<ViewLeadScreen> {
+  final _leadFormKey = GlobalKey<FormState>();
+
   var firstNameController = TextEditingController();
   var lastNameController = TextEditingController();
   var emailAddrController = TextEditingController();
@@ -70,6 +72,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
         setState(() {
           lead = bodyDecoded;
           leadDocument = bodyDecoded["document"];
+          firstNameController.text = leadDocument["firstName"];
         });
       }
     }
@@ -262,213 +265,246 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
             : Container(
                 padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
                 child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      CustomCard(
-                        key: Key("leads2"),
-                        icon: Icons.business,
-                        title: "Business Information",
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: <Widget>[
-                            getInfoRow(
-                                "Business Name",
-                                leadDocument["businessName"],
-                                businessNameController),
-                            getInfoRow("Doing Business As",
-                                leadDocument["dbaName"], dbaController),
-                            Container(
-                                child: Padding(
-                                    padding: EdgeInsets.all(15),
-                                    child: Row(
-                                      children: <Widget>[
-                                        Expanded(
-                                          flex: 4,
-                                          child: Text(
-                                            'Business Address:',
-                                            style: TextStyle(fontSize: 16),
+                  child: Form(
+                    key: _leadFormKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        CustomCard(
+                          key: Key("leads2"),
+                          icon: Icons.business,
+                          title: "Business Information",
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              validatorRow(
+                                  "Business Name",
+                                  leadDocument["businessName"],
+                                  businessNameController, (val) {
+                                if (val.isEmpty) {
+                                  return 'Please enter a business name';
+                                }
+                                return null;
+                              }),
+                              getInfoRow("Doing Business As",
+                                  leadDocument["dbaName"], dbaController),
+                              Container(
+                                  child: Padding(
+                                      padding: EdgeInsets.all(15),
+                                      child: Row(
+                                        children: <Widget>[
+                                          Expanded(
+                                            flex: 4,
+                                            child: Text(
+                                              'Business Address:',
+                                              style: TextStyle(fontSize: 16),
+                                            ),
                                           ),
-                                        ),
-                                        Expanded(
-                                            flex: 8,
-                                            child: AddressSearch(
-                                                locationValue: addressText,
-                                                onAddressChange: (val) =>
-                                                    businessAddress = val)),
-                                      ],
-                                    ))),
-                          ],
+                                          Expanded(
+                                              flex: 8,
+                                              child: AddressSearch(
+                                                  locationValue: addressText,
+                                                  onAddressChange: (val) =>
+                                                      businessAddress = val)),
+                                        ],
+                                      ))),
+                            ],
+                          ),
                         ),
-                      ),
-                      CustomCard(
-                        key: Key("leads1"),
-                        icon: Icons.person,
-                        title: "Contact Information",
-                        child: Column(
-                          children: <Widget>[
-                            getInfoRow("First Name", leadDocument["firstName"],
-                                firstNameController),
-                            getInfoRow("Last Name", leadDocument["lastName"],
-                                lastNameController),
-                            getInfoRow("Email Address",
-                                leadDocument["emailAddr"], emailAddrController),
-                            Container(
-                              child: Padding(
-                                padding: EdgeInsets.all(15),
-                                child: Row(
-                                  children: <Widget>[
-                                    Expanded(
-                                      flex: 4,
-                                      child: Text(
-                                        'Phone Number',
-                                        style: TextStyle(fontSize: 16),
+                        CustomCard(
+                          key: Key("leads1"),
+                          icon: Icons.person,
+                          title: "Contact Information",
+                          child: Column(
+                            children: <Widget>[
+                              validatorRow(
+                                  "First Name",
+                                  leadDocument["firstName"],
+                                  firstNameController, (val) {
+                                if (val.isEmpty) {
+                                  return 'Please enter a contact first name';
+                                }
+                                return null;
+                              }),
+                              validatorRow(
+                                  "Last Name",
+                                  leadDocument["lastName"],
+                                  lastNameController, (val) {
+                                if (val.isEmpty) {
+                                  return 'Please enter a contact last name';
+                                }
+                                return null;
+                              }),
+                              validatorRow(
+                                  "Email Address",
+                                  leadDocument["emailAddr"],
+                                  emailAddrController, (value) {
+                                if (value.isNotEmpty && !value.contains('@')) {
+                                  return 'Please enter a valid email';
+                                }
+                                return null;
+                              }),
+                              Container(
+                                child: Padding(
+                                  padding: EdgeInsets.all(15),
+                                  child: Row(
+                                    children: <Widget>[
+                                      Expanded(
+                                        flex: 4,
+                                        child: Text(
+                                          'Phone Number',
+                                          style: TextStyle(fontSize: 16),
+                                        ),
                                       ),
-                                    ),
-                                    Expanded(
-                                      flex: 8,
-                                      child: TextField(
-                                        controller: phoneNumberController,
+                                      Expanded(
+                                        flex: 8,
+                                        child: TextField(
+                                          controller: phoneNumberController,
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                            Divider(),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: <Widget>[
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: RaisedButton(
-                                    color: Color.fromARGB(500, 1, 224, 143),
-                                    child: Row(
-                                      children: <Widget>[
-                                        Icon(Icons.mail, color: Colors.white),
-                                        Text("Email",
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold))
-                                      ],
+                              Divider(),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: <Widget>[
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: RaisedButton(
+                                      color: Color.fromARGB(500, 1, 224, 143),
+                                      child: Row(
+                                        children: <Widget>[
+                                          Icon(Icons.mail, color: Colors.white),
+                                          Text("Email",
+                                              style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold))
+                                        ],
+                                      ),
+                                      onPressed: () {
+                                        if (emailAddrController.text != null &&
+                                            emailAddrController.text != "") {
+                                          var launchURL1 =
+                                              'mailto:${emailAddrController.text}?subject=Followup about ${businessNameController.text}';
+                                          launch(launchURL1);
+                                        } else {
+                                          Fluttertoast.showToast(
+                                              msg: "No email specified!",
+                                              toastLength: Toast.LENGTH_SHORT,
+                                              gravity: ToastGravity.BOTTOM,
+                                              backgroundColor: Colors.grey[600],
+                                              textColor: Colors.white,
+                                              fontSize: 16.0);
+                                        }
+                                      },
                                     ),
-                                    onPressed: () {
-                                      if (emailAddrController.text != null &&
-                                          emailAddrController.text != "") {
-                                        var launchURL1 =
-                                            'mailto:${emailAddrController.text}?subject=Followup about ${businessNameController.text}';
-                                        launch(launchURL1);
-                                      } else {
-                                        Fluttertoast.showToast(
-                                            msg: "No email specified!",
-                                            toastLength: Toast.LENGTH_SHORT,
-                                            gravity: ToastGravity.BOTTOM,
-                                            backgroundColor: Colors.grey[600],
-                                            textColor: Colors.white,
-                                            fontSize: 16.0);
-                                      }
-                                    },
                                   ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: RaisedButton(
-                                    color: Color.fromARGB(500, 1, 224, 143),
-                                    child: Row(
-                                      children: <Widget>[
-                                        Icon(Icons.call, color: Colors.white),
-                                        Text("Call",
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold))
-                                      ],
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: RaisedButton(
+                                      color: Color.fromARGB(500, 1, 224, 143),
+                                      child: Row(
+                                        children: <Widget>[
+                                          Icon(Icons.call, color: Colors.white),
+                                          Text("Call",
+                                              style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold))
+                                        ],
+                                      ),
+                                      onPressed: () {
+                                        if (phoneNumberController.text !=
+                                                null &&
+                                            phoneNumberController.text != "") {
+                                          var launchURL2 =
+                                              'tel:${phoneNumberController.text}';
+                                          launch(launchURL2);
+                                        } else {
+                                          Fluttertoast.showToast(
+                                              msg: "No phone number specified!",
+                                              toastLength: Toast.LENGTH_SHORT,
+                                              gravity: ToastGravity.BOTTOM,
+                                              backgroundColor: Colors.grey[600],
+                                              textColor: Colors.white,
+                                              fontSize: 16.0);
+                                        }
+                                      },
                                     ),
-                                    onPressed: () {
-                                      if (phoneNumberController.text != null &&
-                                          phoneNumberController.text != "") {
-                                        var launchURL2 =
-                                            'tel:${phoneNumberController.text}';
-                                        launch(launchURL2);
-                                      } else {
-                                        Fluttertoast.showToast(
-                                            msg: "No phone number specified!",
-                                            toastLength: Toast.LENGTH_SHORT,
-                                            gravity: ToastGravity.BOTTOM,
-                                            backgroundColor: Colors.grey[600],
-                                            textColor: Colors.white,
-                                            fontSize: 16.0);
-                                      }
-                                    },
-                                  ),
-                                )
-                              ],
-                            ),
-                          ],
+                                  )
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      CustomCard(
-                        key: Key("leads3"),
-                        icon: Icons.question_answer,
-                        title: "Misc Information",
-                        child: Column(
-                          children: <Widget>[
-                            getInfoRow(
-                                "Lead Source",
-                                leadDocument["leadSource"],
-                                leadSourceController),
-                          ],
+                        CustomCard(
+                          key: Key("leads3"),
+                          icon: Icons.question_answer,
+                          title: "Misc Information",
+                          child: Column(
+                            children: <Widget>[
+                              getInfoRow(
+                                  "Lead Source",
+                                  leadDocument["leadSource"],
+                                  leadSourceController),
+                            ],
+                          ),
                         ),
-                      ),
-                      CustomCard(
-                          key: Key("leads4"),
-                          title: "Notes",
-                          icon: Icons.note,
-                          child: Notes(type: "lead", object: lead["lead"])),
-                      CustomCard(
-                        key: Key("leads5"),
-                        title: "Tools",
-                        icon: Icons.build,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: <Widget>[
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(0, 0, 0, 200),
-                              child: MaterialButton(
-                                padding: EdgeInsets.all(5),
-                                color: Color.fromARGB(500, 1, 224, 143),
-                                // color: Colors.grey[300],
-                                onPressed: () {
-                                  // return null;
-                                  Navigator.pushNamed(
-                                      context, "/agreementbuilder",
-                                      arguments: lead["lead"]);
-                                },
-                                child: Row(
-                                  children: <Widget>[
-                                    Icon(
-                                      Icons.file_upload,
-                                      color: Colors.white,
-                                    ),
-                                    Text(
-                                      'Agreement Builder',
-                                      style: TextStyle(
+                        CustomCard(
+                            key: Key("leads4"),
+                            title: "Notes",
+                            icon: Icons.note,
+                            child: Notes(type: "lead", object: lead["lead"])),
+                        CustomCard(
+                          key: Key("leads5"),
+                          title: "Tools",
+                          icon: Icons.build,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: <Widget>[
+                              Padding(
+                                padding:
+                                    const EdgeInsets.fromLTRB(0, 0, 0, 200),
+                                child: MaterialButton(
+                                  padding: EdgeInsets.all(5),
+                                  color: Color.fromARGB(500, 1, 224, 143),
+                                  // color: Colors.grey[300],
+                                  onPressed: () {
+                                    // return null;
+                                    Navigator.pushNamed(
+                                        context, "/agreementbuilder",
+                                        arguments: lead["lead"]);
+                                  },
+                                  child: Row(
+                                    children: <Widget>[
+                                      Icon(
+                                        Icons.file_upload,
                                         color: Colors.white,
                                       ),
-                                    ),
-                                  ],
+                                      Text(
+                                        'Agreement Builder',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
         floatingActionButton: FloatingActionButton(
           onPressed: () async {
-            updateLead(this.widget.leadId);
+            if (_leadFormKey.currentState.validate()) {
+              updateLead(this.widget.leadId);
+            }
           },
           backgroundColor: Color.fromARGB(500, 1, 224, 143),
           child: Icon(Icons.save),
@@ -504,6 +540,42 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
               flex: 8,
               child: TextField(
                 controller: controller,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget validatorRow(label, value, controller, validator) {
+    if (value != null) {
+      controller.text = value;
+    }
+
+    var valueFmt = value ?? "N/A";
+
+    if (valueFmt == "") {
+      valueFmt = "N/A";
+    }
+
+    return Container(
+      child: Padding(
+        padding: EdgeInsets.all(15),
+        child: Row(
+          children: <Widget>[
+            Expanded(
+              flex: 4,
+              child: Text(
+                '$label: ',
+                style: TextStyle(fontSize: 16),
+              ),
+            ),
+            Expanded(
+              flex: 8,
+              child: TextFormField(
+                controller: controller,
+                validator: validator,
               ),
             ),
           ],
