@@ -4,8 +4,9 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 
 class LeadsChart extends StatefulWidget {
-  LeadsChart({this.data});
+  LeadsChart({this.data, this.time});
   final List data;
+  final String time;
   @override
   _LeadsChartState createState() => _LeadsChartState();
 }
@@ -17,12 +18,6 @@ class _LeadsChartState extends State<LeadsChart> {
   var seriesList;
   var statsData = List<SalesPerson>();
 
-  var filterItems = [
-    {"text": "Today", "value": "leadcounttoday"},
-    {"text": "This Week", "value": "leadcountweek"},
-    {"text": "All Time", "value": "leadcount"}
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -30,14 +25,13 @@ class _LeadsChartState extends State<LeadsChart> {
     isLoading = false;
   }
 
-  String dropdownValue = "leadcounttoday";
-
   @override
   Widget build(BuildContext context) {
     if (this.widget.data.length > 0) {
       var temp = List<SalesPerson>();
       for (var item in this.widget.data) {
-        temp.add(SalesPerson(item["fullname"], int.parse(item[dropdownValue])));
+        temp.add(
+            SalesPerson(item["fullname"], int.parse(item[this.widget.time])));
       }
       setState(() {
         statsData = temp;
@@ -58,20 +52,6 @@ class _LeadsChartState extends State<LeadsChart> {
     return Column(children: <Widget>[
       Padding(
         padding: const EdgeInsets.all(0),
-        child: DropdownButton<String>(
-          value: dropdownValue,
-          items: filterItems.map((dynamic item) {
-            return DropdownMenuItem<String>(
-              value: item["value"],
-              child: Text(item["text"]),
-            );
-          }).toList(),
-          onChanged: (String newValue) {
-            setState(() {
-              dropdownValue = newValue;
-            });
-          },
-        ),
       ),
       isLoading
           ? Expanded(

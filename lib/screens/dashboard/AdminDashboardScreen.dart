@@ -19,6 +19,13 @@ class AdminDashboardScreen extends StatefulWidget {
 class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   final ApiService apiService = ApiService();
 
+  var dropdownValue = "leadcounttoday";
+  var filterItems = [
+    {"text": "Today", "value": "leadcounttoday"},
+    {"text": "This Week", "value": "leadcountweek"},
+    {"text": "All Time", "value": "leadcount"}
+  ];
+
   var statsData = [];
   bool isLoading = true;
   @override
@@ -96,15 +103,75 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   //     child: StatementsChart(data: statsData),
                   //   ),
                   // ),
-                  CustomCard(
-                    key: Key("adminLeaderboard3"),
-                    title: "Leads",
-                    icon: Icons.person,
-                    child: Container(
-                      height: 200,
-                      child: LeadsChart(data: statsData),
+                  Container(
+                    key: this.widget.key,
+                    margin: EdgeInsets.fromLTRB(0, 10, 0, 10),
+                    child: Card(
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15.0),
+                      ),
+                      child: Column(
+                        children: <Widget>[
+                          ListTile(
+                            leading: Icon(
+                              Icons.person,
+                              size: 25,
+                              color: Color.fromARGB(500, 1, 224, 143),
+                            ),
+                            title: Text(
+                              "Leads",
+                              style: TextStyle(
+                                fontSize: 22,
+                                color: Color.fromARGB(500, 1, 224, 143),
+                              ),
+                            ),
+                            trailing: DropdownButton<String>(
+                              value: dropdownValue,
+                              items: filterItems.map((dynamic item) {
+                                return DropdownMenuItem<String>(
+                                  value: item["value"],
+                                  child: Text(item["text"]),
+                                );
+                              }).toList(),
+                              onChanged: (String newValue) {
+                                setState(() {
+                                  dropdownValue = newValue;
+                                });
+                              },
+                            ),
+                          ),
+                          Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                width: 0.1,
+                                color: Color.fromARGB(500, 1, 224, 143),
+                              ),
+                            ),
+                          ),
+                          Container(
+                            padding: EdgeInsets.all(15),
+                            child: Container(
+                              height: 200,
+                              child: LeadsChart(
+                                  data: statsData, time: dropdownValue),
+                            ),
+                          )
+                        ],
+                      ),
                     ),
                   ),
+
+                  // CustomCard(
+                  //   key: Key("adminLeaderboard3"),
+                  //   title: "Leads",
+                  //   icon: Icons.person,
+                  //   child: Container(
+                  //     height: 200,
+                  //     child: LeadsChart(data: statsData),
+                  //   ),
+                  // ),
+
                   CustomCard(
                     key: Key("adminLeaderboard4"),
                     title: "Weekly Calls",
