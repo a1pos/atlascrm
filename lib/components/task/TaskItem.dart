@@ -31,9 +31,9 @@ class _TaskItemState extends State<TaskItem> {
       Type('Quota Goal', Icons.trending_up)
     ];
     List<Color> _colors = [
-      Color(0x9Fef9a9a), //Light Red
-      Color(0x9Ffff59d), //Light Yellow
-      Color(0x9Fa5d6a7), //Light Green
+      Colors.red[100], //Light Red
+      Colors.yellow[100], //Light Yellow
+      Colors.green[100], //Light Green
     ];
     var index =
         _types.indexWhere((typeObj) => typeObj.name == this.widget.type);
@@ -45,22 +45,31 @@ class _TaskItemState extends State<TaskItem> {
     }
     return Center(
       child: Card(
+        color: _colors[this.widget.priority],
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             Container(
-              color: _colors[this.widget.priority],
               child: ListTile(
                 leading: taskIcon,
                 title: Text(
                   this.widget.title ?? "",
+                  overflow: TextOverflow.ellipsis,
                 ),
                 subtitle: Text(
                   this.widget.description ?? "",
+                  overflow: TextOverflow.ellipsis,
                 ),
-                trailing: Text(this.widget.dateTime ?? ""),
+                // trailing: Text("" ?? "", style: TextStyle(fontSize: 11)),
               ),
             ),
+            Divider(),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0, 0, 0, 8),
+              child: Text(
+                this.widget.dateTime,
+              ),
+            )
           ],
         ),
       ),

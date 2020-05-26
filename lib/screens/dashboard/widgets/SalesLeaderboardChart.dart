@@ -117,12 +117,18 @@ class GroupedBarChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    MediaQueryData queryData;
+
+    queryData = MediaQuery.of(context);
+    var deviceWidth = queryData.size.width;
     return new charts.BarChart(
       seriesList,
       animate: animate,
       vertical: false,
       barGroupingType: charts.BarGroupingType.grouped,
-      behaviors: [charts.SeriesLegend()],
+      behaviors: [
+        charts.SeriesLegend(horizontalFirst: deviceWidth < 370 ? false : true)
+      ],
       barRendererDecorator: new charts.BarLabelDecorator<String>(),
     );
   }
