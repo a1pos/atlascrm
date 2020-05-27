@@ -38,6 +38,8 @@ class _LeadsScreenState extends State<LeadsScreen> {
   var pageNum = 1;
   var filterEmployee = "";
 
+  var sortQuery =
+      "sorters%5B0%5D%5Bfield%5D=document.businessName&sorters%5B0%5D%5Bdir%5D=asc";
   ScrollController _scrollController = ScrollController();
   TextEditingController _searchController = TextEditingController();
 
@@ -66,8 +68,8 @@ class _LeadsScreenState extends State<LeadsScreen> {
   Future<void> initLeadsData() async {
     try {
       var endpoint = UserService.isAdmin
-          ? "/lead?page=$pageNum&size=10"
-          : "/employee/${UserService.employee.employee}/lead?page=$pageNum&size=10";
+          ? "/lead?page=$pageNum&size=10&$sortQuery"
+          : "/employee/${UserService.employee.employee}/lead?page=$pageNum&size=10&$sortQuery";
       var resp = await this.widget.apiService.authGet(context, endpoint);
       if (resp != null) {
         if (resp.statusCode == 200) {
@@ -108,20 +110,22 @@ class _LeadsScreenState extends State<LeadsScreen> {
     try {
       var endpoint;
       if (UserService.isAdmin) {
-        endpoint = "/lead?page=$pageNum&size=10";
+        endpoint = "/lead?page=$pageNum&size=10&$sortQuery";
         if (isSearching) {
-          endpoint = "/lead?searchString=$currentSearch&page=$pageNum&size=10";
+          endpoint =
+              "/lead?searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
         }
         if (isFiltering) {
-          endpoint = "/employee/$filterEmployee/lead?page=$pageNum&size=10";
+          endpoint =
+              "/employee/$filterEmployee/lead?page=$pageNum&size=10&$sortQuery";
         }
         if (isSearching && isFiltering) {
           endpoint =
-              "/employee/$filterEmployee/lead?searchString=$currentSearch&page=$pageNum&size=10";
+              "/employee/$filterEmployee/lead?searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
         }
       } else {
         endpoint =
-            "/employee/${UserService.employee.employee}/lead?page=$pageNum&size=10";
+            "/employee/${UserService.employee.employee}/lead?page=$pageNum&size=10&$sortQuery";
       }
 
       var resp = await this.widget.apiService.authGet(context, endpoint);
