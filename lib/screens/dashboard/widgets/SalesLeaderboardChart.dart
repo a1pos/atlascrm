@@ -1,6 +1,9 @@
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:atlascrm/services/ApiService.dart';
+import 'package:atlascrm/services/UserService.dart';
 
 class SalesLeaderboardChart extends StatefulWidget {
   SalesLeaderboardChart({this.data});
@@ -10,11 +13,16 @@ class SalesLeaderboardChart extends StatefulWidget {
 }
 
 class _SalesLeaderboardChartState extends State<SalesLeaderboardChart> {
+  final ApiService apiService = ApiService();
+  final UserService userService = UserService();
+
   var isLoading = true;
 
   var seriesList;
   var statementData = List<LeaderboardData>();
   var agreementData = List<LeaderboardData>();
+  var statements;
+  var agreements;
 
   @override
   void initState() {
@@ -25,6 +33,164 @@ class _SalesLeaderboardChartState extends State<SalesLeaderboardChart> {
 
   int agreementTotal = 0;
   int statementTotal = 0;
+
+  Future<void> addStatement(employeeId) async {
+    try {
+      var resp = await apiService.authPost(
+          context,
+          "/employees/$employeeId/statements",
+          {"leadId": "00000000-0000-0000-0000-000000000000"});
+      if (resp != null) {
+        if (resp.statusCode == 200) {
+          var tasksArrDecoded = resp.data;
+          if (tasksArrDecoded != null) {
+            Fluttertoast.showToast(
+                msg: "Added statement",
+                toastLength: Toast.LENGTH_SHORT,
+                gravity: ToastGravity.BOTTOM,
+                backgroundColor: Colors.grey[600],
+                textColor: Colors.white,
+                fontSize: 16.0);
+          }
+        } else {
+          throw new Error();
+        }
+      } else {
+        throw new Error();
+      }
+    } catch (err) {
+      print(err);
+
+      Fluttertoast.showToast(
+          msg: "Failed to add statement for employee!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0);
+    }
+  }
+
+  Future<void> resetStatements() async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Reset statements?'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('Are you sure you want to reset all statements?'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('Reset',
+                  style: TextStyle(fontSize: 17, color: Colors.red)),
+              onPressed: () async {
+                var resp =
+                    await apiService.authPost(context, "/statement/reset", "");
+                if (resp != null) {
+                  if (resp.statusCode == 200) {
+                    Fluttertoast.showToast(
+                        msg: "Reset statements!",
+                        toastLength: Toast.LENGTH_SHORT,
+                        gravity: ToastGravity.BOTTOM,
+                        backgroundColor: Colors.grey[600],
+                        textColor: Colors.white,
+                        fontSize: 16.0);
+                    setState(() {
+                      for (var s in this.widget.data) {
+                        s["statementcount"] = "0";
+                      }
+                    });
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
+                  }
+                }
+              },
+            ),
+            FlatButton(
+              child: Text('Cancel', style: TextStyle(fontSize: 17)),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> openStatementAdd() async {
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('Add Statements'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: <Widget>[
+                    Container(
+                      width: MediaQuery.of(context).size.width,
+                      child: SingleChildScrollView(
+                          child: Column(
+                        children: <Widget>[
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(0, 20, 0, 20),
+                            child: Column(
+                              children: this.widget.data.map((item) {
+                                return Card(
+                                    child: Column(children: <Widget>[
+                                  CircleAvatar(
+                                      backgroundImage:
+                                          NetworkImage(item["avatar"])),
+                                  Text(item["fullname"]),
+                                  Text(item["statementcount"]),
+                                  FlatButton(
+                                      onPressed: () {
+                                        addStatement(item["employee"]);
+                                        setState(() {
+                                          var currentCount = int.parse(
+                                                  item["statementcount"]) +
+                                              1;
+                                          item["statementcount"] =
+                                              currentCount.toString();
+                                        });
+                                      },
+                                      child: Icon(Icons.add)),
+                                ]));
+                              }).toList(),
+                            ),
+                          ),
+                          RaisedButton(
+                            color: Color.fromARGB(500, 1, 224, 143),
+                            child: Text("Reset Statements",
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold)),
+                            onPressed: () {
+                              resetStatements();
+                            },
+                          )
+                        ],
+                      )),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    ).then((val) {
+      setState(() {});
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,9 +217,8 @@ class _SalesLeaderboardChartState extends State<SalesLeaderboardChart> {
     }
 
     List<charts.Series<LeaderboardData, String>> _displayData() {
-      final statements = statementData;
-      final agreements = agreementData;
-
+      statements = statementData;
+      agreements = agreementData;
       return [
         new charts.Series<LeaderboardData, String>(
           id: 'Agreements: $agreementTotal',
@@ -85,6 +250,14 @@ class _SalesLeaderboardChartState extends State<SalesLeaderboardChart> {
                 animate: true,
               ),
             ),
+      UserService.isAdmin
+          ? IconButton(
+              color: Colors.green,
+              icon: Icon(Icons.add),
+              onPressed: () {
+                openStatementAdd();
+              })
+          : Container()
       // Row(
       //   mainAxisAlignment: MainAxisAlignment.center,
       //   children: <Widget>[
