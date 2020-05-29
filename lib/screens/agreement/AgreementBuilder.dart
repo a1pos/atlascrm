@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/components/shared/AddressSearch.dart';
 import 'package:atlascrm/components/agreement/OwnerPanel.dart';
+import 'package:atlascrm/components/agreement/BusinessInfo.dart';
 
 class AgreementBuilder extends StatefulWidget {
   final ApiService apiService = new ApiService();
@@ -55,6 +56,47 @@ List<Item> ownerList = [
   Item(expandedValue: "Owner 2", headerValue: "Owner 2 text")
 ];
 
+final List businessControllerNames = [
+  "ClientDbaName",
+  "LegalName",
+  "NumberOfLocation",
+  "StateIncorporated",
+  "CurrentStmntProvided",
+  "RetrievalFaxRptCodeRefValue",
+  "CorporateContact",
+  "BusinessStartDate",
+  "BusinessType",
+  "StatementHoldRefValue",
+  "multiAddress", //?
+  "CorporateAddress", //?
+  "SendMonthlyStmntTo",
+  "SendRetRequestTo",
+  "SendCBTo",
+  "IrsName",
+  "BusinessEmailAddress",
+  "LocationPhone",
+  "ProductsSold",
+  "BusinessCategory",
+  "FederalTaxIdType",
+  "FederalTaxId",
+  "ForeignEntityOrNonResidentAlien",
+  "SiteVisitation",
+  "Zone",
+  "Location",
+  "NoOfEmployees",
+  "NoOfRegister",
+  "MerchantNameSiteDisplay",
+  "StoreLocatedOn",
+  "NumberOfLevels",
+  "OtherOccupiedBy",
+  "SquareFootage",
+  "DepositRequired",
+  "ReturnPolicy",
+  "RefundPolicy",
+  "RefundType",
+  "RefPolicyRefDays",
+];
+
 class AgreementBuilderState extends State<AgreementBuilder>
     with TickerProviderStateMixin {
   final firstNameController = TextEditingController();
@@ -65,6 +107,10 @@ class AgreementBuilderState extends State<AgreementBuilder>
   final dbaController = TextEditingController();
   final businessAddressController = TextEditingController();
   final leadSourceController = TextEditingController();
+
+  final Map<String, TextEditingController> _businessControllers =
+      Map.fromIterable(businessControllerNames,
+          key: (i) => i, value: (i) => TextEditingController());
 
   Map businessAddress = {"address": "", "city": "", "state": "", "zipcode": ""};
   var agreementBuilder;
@@ -179,7 +225,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
     agreementBuilder = {
       "employee": lead["employee"],
       "lead": lead["lead"],
-      "document": lead["document"]
+      // "document": lead["document"]
     };
 
     var resp1 = await this
@@ -335,7 +381,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
       print("new owner: " + (emptyOwner).toString());
     }
 
-    final _tabController = TabController(vsync: this, length: 3);
+    final _tabController = TabController(vsync: this, length: 4);
     _tabController.addListener(() {
       // print(_tabController.index);
       Fluttertoast.showToast(
@@ -354,7 +400,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
         return Future.value(false);
       },
       child: DefaultTabController(
-        length: 3,
+        length: 4,
         child: Scaffold(
           appBar: AppBar(
               // key: Key("contactInfoPageAppBar"),
@@ -365,6 +411,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
                 tabs: [
                   Tab(text: "Business Info"),
                   Tab(text: "Owner Info"),
+                  Tab(text: "Settlement/Transaction"),
                   Tab(text: "Rate Review")
                 ],
                 controller: _tabController,
@@ -372,89 +419,92 @@ class AgreementBuilderState extends State<AgreementBuilder>
           body: isLoading
               ? CenteredClearLoadingScreen()
               : TabBarView(controller: _tabController, children: [
-                  Container(
-                    padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
-                    child: SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: <Widget>[
-                          CustomCard(
-                            key: Key("leads1"),
-                            icon: Icons.business,
-                            title: "Business Info",
-                            child: Column(
-                              children: <Widget>[
-                                getInfoRow(
-                                    "First Name",
-                                    agreementDocument["firstName"],
-                                    firstNameController),
-                                getInfoRow(
-                                    "Last Name",
-                                    agreementDocument["lastName"],
-                                    lastNameController),
-                                getInfoRow(
-                                    "Email Address",
-                                    agreementDocument["emailAddr"],
-                                    emailAddrController),
-                                getInfoRow(
-                                    "Phone Number",
-                                    agreementDocument["phoneNumber"],
-                                    phoneNumberController),
-                                getInfoRow(
-                                    "Business Name",
-                                    agreementDocument["businessName"],
-                                    businessNameController),
-                                getInfoRow(
-                                    "Doing Business As",
-                                    agreementDocument["dbaName"],
-                                    dbaController),
-                                Container(
-                                    child: Padding(
-                                        padding: EdgeInsets.all(15),
-                                        child: Row(
-                                          children: <Widget>[
-                                            Expanded(
-                                              flex: 4,
-                                              child: Text(
-                                                'Business Address:',
-                                                style: TextStyle(fontSize: 16),
-                                              ),
-                                            ),
-                                            Expanded(
-                                                flex: 8,
-                                                child: AddressSearch(
-                                                    locationValue: (agreementDocument[
-                                                                    "address"] !=
-                                                                null &&
-                                                            agreementDocument[
-                                                                    "address"] !=
-                                                                "")
-                                                        ? agreementDocument["address"] +
-                                                            ", " +
-                                                            agreementDocument[
-                                                                "city"] +
-                                                            ", " +
-                                                            agreementDocument[
-                                                                "state"] +
-                                                            ", " +
-                                                            agreementDocument[
-                                                                "zipCode"]
-                                                        : null,
-                                                    onAddressChange: (val) =>
-                                                        businessAddress = val)),
-                                          ],
-                                        ))),
-                                getInfoRow(
-                                    "Lead Source",
-                                    agreementDocument["leadSource"],
-                                    leadSourceController),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  BusinessInfo(
+                      controllers: _businessControllers,
+                      agreementDoc: agreementDocument),
+                  // Container(
+                  //   padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
+                  //   child: SingleChildScrollView(
+                  //     child: Column(
+                  //       crossAxisAlignment: CrossAxisAlignment.stretch,
+                  //       children: <Widget>[
+                  //         CustomCard(
+                  //           key: Key("leads1"),
+                  //           icon: Icons.business,
+                  //           title: "Business Info",
+                  //           child: Column(
+                  //             children: <Widget>[
+                  //               getInfoRow(
+                  //                   "First Name",
+                  //                   agreementDocument["firstName"],
+                  //                   firstNameController),
+                  //               getInfoRow(
+                  //                   "Last Name",
+                  //                   agreementDocument["lastName"],
+                  //                   lastNameController),
+                  //               getInfoRow(
+                  //                   "Email Address",
+                  //                   agreementDocument["emailAddr"],
+                  //                   emailAddrController),
+                  //               getInfoRow(
+                  //                   "Phone Number",
+                  //                   agreementDocument["phoneNumber"],
+                  //                   phoneNumberController),
+                  //               getInfoRow(
+                  //                   "Business Name",
+                  //                   agreementDocument["businessName"],
+                  //                   businessNameController),
+                  //               getInfoRow(
+                  //                   "Doing Business As",
+                  //                   agreementDocument["dbaName"],
+                  //                   dbaController),
+                  //               Container(
+                  //                   child: Padding(
+                  //                       padding: EdgeInsets.all(15),
+                  //                       child: Row(
+                  //                         children: <Widget>[
+                  //                           Expanded(
+                  //                             flex: 4,
+                  //                             child: Text(
+                  //                               'Business Address:',
+                  //                               style: TextStyle(fontSize: 16),
+                  //                             ),
+                  //                           ),
+                  //                           Expanded(
+                  //                               flex: 8,
+                  //                               child: AddressSearch(
+                  //                                   locationValue: (agreementDocument[
+                  //                                                   "address"] !=
+                  //                                               null &&
+                  //                                           agreementDocument[
+                  //                                                   "address"] !=
+                  //                                               "")
+                  //                                       ? agreementDocument["address"] +
+                  //                                           ", " +
+                  //                                           agreementDocument[
+                  //                                               "city"] +
+                  //                                           ", " +
+                  //                                           agreementDocument[
+                  //                                               "state"] +
+                  //                                           ", " +
+                  //                                           agreementDocument[
+                  //                                               "zipCode"]
+                  //                                       : null,
+                  //                                   onAddressChange: (val) =>
+                  //                                       businessAddress = val)),
+                  //                         ],
+                  //                       ))),
+                  //               getInfoRow(
+                  //                   "Lead Source",
+                  //                   agreementDocument["leadSource"],
+                  //                   leadSourceController),
+                  //             ],
+                  //           ),
+                  //         ),
+                  //       ],
+                  //     ),
+                  //   ),
+                  // ),
                   Column(
                     children: <Widget>[
                       Expanded(
@@ -491,6 +541,26 @@ class AgreementBuilderState extends State<AgreementBuilder>
                           child: Text("Add Owner",
                               style: TextStyle(color: Colors.white)))
                     ],
+                  ),
+                  Container(
+                    padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: <Widget>[
+                          CustomCard(
+                            key: Key("rates1"),
+                            icon: Icons.attach_money,
+                            title: "Settlement",
+                            child: Column(
+                              children: <Widget>[
+                                //PUT GET INFO ROWS HERE
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                   Container(
                     padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
