@@ -194,6 +194,49 @@ class BusinessInfoState extends State<BusinessInfo>
     {"value": "8", "name": "FleaMarket"},
     {"value": "9", "name": "Other"}
   ];
+  var merchantNameDisplay = [
+    {"value": "1", "name": "Door"},
+    {"value": "2", "name": "Window"},
+    {"value": "3", "name": "Store Front"},
+  ];
+  var storeLocatedOn = [
+    {"value": "1", "name": "Ground Floor"},
+    {"value": "2", "name": "Other"},
+  ];
+  var numOfLevels = [
+    {"value": "1", "name": "1"},
+    {"value": "2", "name": "2-4"},
+    {"value": "3", "name": "5-10"},
+    {"value": "4", "name": "11+"},
+  ];
+  var otherOccupiedBy = [
+    {"value": "1", "name": "(None)"},
+    {"value": "2", "name": "Residential"},
+    {"value": "3", "name": "Commercial"},
+    {"value": "4", "name": "Combo"},
+  ];
+  var squareFootage = [
+    {"value": "1", "name": "250"},
+    {"value": "2", "name": "250-500"},
+    {"value": "3", "name": "501-2000"},
+    {"value": "4", "name": "2000+"},
+  ];
+  var returnPolicy = [
+    {"value": "1", "name": "Full Refund"},
+    {"value": "2", "name": "Exchange Only"},
+    {"value": "3", "name": "None"},
+  ];
+  var refundType = [
+    {"value": "1", "name": "Exchange"},
+    {"value": "2", "name": "Store Credit"},
+    {"value": "3", "name": "Cash"},
+  ];
+  var refDays = [
+    {"value": "1", "name": "0-3 Days"},
+    {"value": "2", "name": "4-7 Days"},
+    {"value": "3", "name": "8-14 Days"},
+    {"value": "4", "name": "14+ Days"},
+  ];
 
   void initState() {
     super.initState();
@@ -382,8 +425,99 @@ class BusinessInfoState extends State<BusinessInfo>
                       locations),
                   getInfoRow(
                       "Number of Employees",
-                      agreementDocument["dbaName"],
-                      this.widget.controllers["IrsName"]),
+                      this.widget.controllers["NoOfEmployees"].text,
+                      this.widget.controllers["NoOfEmployees"]),
+                  getInfoRow(
+                      "Number of Terminals",
+                      this.widget.controllers["NoOfRegister"].text,
+                      this.widget.controllers["NoOfRegister"]),
+                  getInfoDropdown(
+                      "Merchant Name Site Display",
+                      this.widget.controllers["MerchantNameSiteDisplay"].text,
+                      this.widget.controllers["MerchantNameSiteDisplay"],
+                      merchantNameDisplay),
+                  getInfoDropdown(
+                      "Merchant Occupies",
+                      this.widget.controllers["StoreLocatedOn"].text,
+                      this.widget.controllers["StoreLocatedOn"],
+                      storeLocatedOn),
+                  getInfoDropdown(
+                      "Number of Floors",
+                      this.widget.controllers["NumberOfLevels"].text,
+                      this.widget.controllers["NumberOfLevels"],
+                      numOfLevels),
+                  getInfoDropdown(
+                      "Remaining Floor(s) Occupied By",
+                      this.widget.controllers["OtherOccupiedBy"].text,
+                      this.widget.controllers["OtherOccupiedBy"],
+                      otherOccupiedBy),
+                  getInfoDropdown(
+                      "Approximate Square Footage",
+                      this.widget.controllers["SquareFootage"].text,
+                      this.widget.controllers["SquareFootage"],
+                      squareFootage),
+                  getInfoDropdown(
+                      "Customer Deposit Required",
+                      this.widget.controllers["DepositRequired"].text,
+                      this.widget.controllers["DepositRequired"],
+                      yesNoOptions),
+                  getInfoDropdown(
+                      "Return Policy",
+                      this.widget.controllers["ReturnPolicy"].text,
+                      this.widget.controllers["ReturnPolicy"],
+                      returnPolicy),
+                  getInfoDropdown(
+                      "Refund Policy",
+                      this.widget.controllers["RefundPolicy"].text,
+                      this.widget.controllers["RefundPolicy"],
+                      yesNoOptions),
+                  getInfoDropdown(
+                      "Refund Type",
+                      this.widget.controllers["RefundType"].text,
+                      this.widget.controllers["RefundType"],
+                      refundType),
+                  getInfoDropdown(
+                      "Days to Submit Credit Transactions",
+                      this.widget.controllers["RefPolicyRefDays"].text,
+                      this.widget.controllers["RefPolicyRefDays"],
+                      refDays),
+                ],
+              ),
+            ),
+            CustomCard(
+              key: Key("businessInfo4"),
+              icon: Icons.business,
+              title: "Mail Order/Telephone Order",
+              child: Column(
+                children: <Widget>[
+                  Row(
+                    children: <Widget>[
+                      Text("Mail Order/Telephone Order (MOTO)"),
+                      Checkbox(
+                          value: this.widget.controllers["motoCheck"].text ==
+                                  "true"
+                              ? true
+                              : false,
+                          onChanged: (val) {
+                            setState(() {
+                              this.widget.controllers["motoCheck"].text =
+                                  val.toString();
+                              print(this.widget.controllers["motoCheck"].text);
+                            });
+                          }),
+                    ],
+                  ),
+                  this.widget.controllers["motoCheck"].text == "true"
+                      ? Column(children: <Widget>[
+                          getInfoRow(
+                              "% Transaction to Delivery 0-7 Days",
+                              this
+                                  .widget
+                                  .controllers["TransDeliveredIn07"]
+                                  .text,
+                              this.widget.controllers["TransDeliveredIn07"]),
+                        ])
+                      : Container()
                 ],
               ),
             ),
@@ -507,7 +641,7 @@ class BusinessInfoState extends State<BusinessInfo>
                     value = null;
                   });
                 },
-                hint: "Select one",
+                hint: "Please choose one",
                 searchHint: null,
                 isExpanded: true,
                 // menuConstraints: BoxConstraints.tight(Size.fromHeight(350)),

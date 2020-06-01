@@ -95,6 +95,9 @@ final List businessControllerNames = [
   "RefundPolicy",
   "RefundType",
   "RefPolicyRefDays",
+  "motoCheck",
+  "TransDeliveredIn07",
+  "TransDeliveredIn814",
 ];
 
 class AgreementBuilderState extends State<AgreementBuilder>
