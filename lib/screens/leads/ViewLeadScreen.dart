@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:intl/intl.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
@@ -10,6 +11,8 @@ import 'package:atlascrm/components/shared/AddressSearch.dart';
 import 'package:atlascrm/components/shared/Notes.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:atlascrm/services/UserService.dart';
 
 class LeadInfoEntry {
   final TextEditingController controller;
@@ -53,10 +56,151 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
   void initState() {
     super.initState();
     loadLeadData(this.widget.leadId);
-    initializeTools();
+    statementCheck();
   }
 
-  Future<void> initializeTools() async {}
+  bool statementSent = false;
+
+  Future<void> statementCheck() async {
+    var resp = await this.widget.apiService.authGet(context, "/statement");
+
+    if (resp.statusCode == 200) {
+      var body = resp.data;
+      if (body != null) {
+        var bodyDecoded = body;
+        for (var item in bodyDecoded) {
+          if (item["lead"] == this.widget.leadId) {
+            setState(() {
+              statementSent = true;
+            });
+          }
+        }
+        print(bodyDecoded);
+      }
+    }
+  }
+
+  var _image;
+  final picker = ImagePicker();
+
+  void openStatementUpload() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Upload a Statement'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('Take a new picture or upload from gallery?'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            MaterialButton(
+              padding: EdgeInsets.all(5),
+              color: Color.fromARGB(500, 1, 224, 143),
+              // color: Colors.grey[300],
+              onPressed: () {
+                // return null;
+                getImage("camera");
+              },
+              child: Row(
+                children: <Widget>[
+                  Icon(
+                    Icons.add_a_photo,
+                    color: Colors.white,
+                  ),
+                  Text(
+                    'Take Picture',
+                    style: TextStyle(
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            MaterialButton(
+              padding: EdgeInsets.all(5),
+              color: Color.fromARGB(500, 1, 224, 143),
+              // color: Colors.grey[300],
+              onPressed: () {
+                getImage("gallery");
+              },
+              child: Row(
+                children: <Widget>[
+                  Icon(
+                    Icons.collections,
+                    color: Colors.white,
+                  ),
+                  Text(
+                    'Gallery',
+                    style: TextStyle(
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future getImage(method) async {
+    PickedFile pickedFile;
+    if (method == "gallery") {
+      pickedFile = await picker.getImage(source: ImageSource.gallery);
+    } else if (method == "camera") {
+      pickedFile = await picker.getImage(source: ImageSource.camera);
+    } else {
+      return print("no method specified");
+    }
+
+    setState(() {
+      _image = pickedFile.path;
+    });
+    imageResult(_image);
+  }
+
+  Future<void> imageResult(image) async {
+    try {
+      // File fileImage = File(image.path);
+      // String imgPath = Uri.encodeComponent(image.path);
+      // var bytes = fileImage.file.readAsBytesSync();
+      var resp = await this.widget.apiService.authFilePost(
+          context,
+          "/employee/${UserService.employee.employee}/${this.widget.leadId}/statement",
+          _image);
+      if (resp.statusCode == 200) {
+        await loadLeadData(this.widget.leadId);
+
+        Fluttertoast.showToast(
+            msg: "Image Uploaded!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0);
+      } else {
+        Fluttertoast.showToast(
+            msg: "Failed to upload statement!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0);
+      }
+    } catch (err) {
+      print(err);
+    }
+
+    Navigator.pop(context);
+    setState(() {
+      statementSent = true;
+    });
+  }
 
   Future<void> loadLeadData(leadId) async {
     var resp = await this
@@ -157,19 +301,6 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
           textColor: Colors.white,
           fontSize: 16.0);
     }
-  }
-
-  Future<void> imageResult(Image image) async {
-    try {
-      FileImage fileImage = image.image;
-      var bytes = fileImage.file.readAsBytesSync();
-      var resp = await this.widget.apiService.authFilePost(
-          context, "/lead/${this.widget.leadId}/statement", fileImage.file);
-    } catch (err) {
-      print(err);
-    }
-
-    Navigator.pop(context);
   }
 
   Future<void> deleteCheck(leadId) async {
@@ -467,18 +598,48 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                                     const EdgeInsets.fromLTRB(0, 0, 0, 200),
                                 child: MaterialButton(
                                   padding: EdgeInsets.all(5),
-                                  // color: Color.fromARGB(500, 1, 224, 143),
-                                  color: Colors.grey[300],
+                                  color: statementSent
+                                      ? Colors.grey[300]
+                                      : Color.fromARGB(500, 1, 224, 143),
                                   onPressed: () {
+                                    if (!statementSent) {
+                                      openStatementUpload();
+                                    }
                                     return null;
-                                    // Navigator.pushNamed(
-                                    //     context, "/agreementbuilder",
-                                    //     arguments: lead["lead"]);
                                   },
                                   child: Row(
                                     children: <Widget>[
                                       Icon(
                                         Icons.file_upload,
+                                        color: Colors.white,
+                                      ),
+                                      Text(
+                                        'Upload a Statement',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.fromLTRB(0, 0, 0, 200),
+                                child: MaterialButton(
+                                  padding: EdgeInsets.all(5),
+                                  color: Color.fromARGB(500, 1, 224, 143),
+                                  // color: Colors.grey[300],
+                                  onPressed: () {
+                                    // return null;
+                                    Navigator.pushNamed(
+                                        context, "/agreementbuilder",
+                                        arguments: lead["lead"]);
+                                  },
+                                  child: Row(
+                                    children: <Widget>[
+                                      Icon(
+                                        Icons.extension,
                                         color: Colors.white,
                                       ),
                                       Text(

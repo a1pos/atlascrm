@@ -111,11 +111,11 @@ class ApiService {
     }
   }
 
-  Future<Response> authFilePost(context, url, File file) async {
+  Future<Response> authFilePost(context, url, filePath) async {
     try {
       var token = await storageService.read("token");
 
-      var f = MultipartFile.fromBytes(file.readAsBytesSync());
+      var f = MultipartFile.fromFileSync(filePath);
       var formData = FormData.fromMap({"file": f});
 
       var resp = await Dio(
