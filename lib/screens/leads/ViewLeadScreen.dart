@@ -73,10 +73,6 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
             setState(() {
               statementSent = true;
             });
-          } else {
-            setState(() {
-              statementSent = false;
-            });
           }
         }
       }
