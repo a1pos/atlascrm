@@ -73,9 +73,12 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
             setState(() {
               statementSent = true;
             });
+          } else {
+            setState(() {
+              statementSent = false;
+            });
           }
         }
-        print(bodyDecoded);
       }
     }
   }
@@ -103,6 +106,10 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
               // color: Colors.grey[300],
               onPressed: () {
                 // return null;
+                Navigator.pop(context);
+                setState(() {
+                  statementSent = true;
+                });
                 getImage("camera");
               },
               child: Row(
@@ -125,6 +132,10 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
               color: Color.fromARGB(500, 1, 224, 143),
               // color: Colors.grey[300],
               onPressed: () {
+                Navigator.pop(context);
+                setState(() {
+                  statementSent = true;
+                });
                 getImage("gallery");
               },
               child: Row(
@@ -195,11 +206,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
     } catch (err) {
       print(err);
     }
-
-    Navigator.pop(context);
-    setState(() {
-      statementSent = true;
-    });
+    statementCheck();
   }
 
   Future<void> loadLeadData(leadId) async {
@@ -369,7 +376,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () {
-        Navigator.popAndPushNamed(context, '/leads');
+        Navigator.pop(context);
 
         return Future.value(false);
       },
