@@ -33,14 +33,34 @@ class _OwnerPanelState extends State<OwnerPanel> {
   final Map owner;
   final Key key;
   final Function onOwnerChange;
+
+  _OwnerPanelState({this.owner, this.key, this.onOwnerChange});
+  void initState() {
+    super.initState();
+  }
+
   Map _ownerDoc;
   var _name;
   var _email;
-  String tileTitle;
+  var addressText;
 //OWNER CONTROLLER FIELDS
   final _ownerPhoneController = TextEditingController();
   final _ownerEmailController = TextEditingController();
   final _ownerNameController = TextEditingController();
+
+  Future<Null> initOwner() async {
+    if (_ownerDoc["address"] != null && _ownerDoc["address"] != "") {
+      setState(() {
+        addressText = _ownerDoc["address"] +
+            ", " +
+            _ownerDoc["city"] +
+            ", " +
+            _ownerDoc["state"] +
+            ", " +
+            _ownerDoc["zipCode"];
+      });
+    }
+  }
 
   Widget getInfoRow(_label, _value, _controller) {
     if (_value != null) {
@@ -77,28 +97,9 @@ class _OwnerPanelState extends State<OwnerPanel> {
     );
   }
 
-  _OwnerPanelState({this.owner, this.key, this.onOwnerChange});
-  void initState() {
-    super.initState();
-    // if (this.widget.owner["business_owner"] == null ||
-    //     this.widget.owner["business_owner"] == "") {
-    //   this.widget.owner["document"] = {
-    //     "city": "",
-    //     "name": "",
-    //     "email": "",
-    //     "state": "",
-    //     "address": "",
-    //     "zipCode": "",
-    //     "phoneNumber": ""
-    //   };
-    // }
-  }
-
   @override
   Widget build(BuildContext context) {
     _ownerDoc = this.widget.owner["document"];
-
-    tileTitle = _name;
 
     Future<Null> updateOwner() async {
       var ownerObj;
@@ -132,15 +133,14 @@ class _OwnerPanelState extends State<OwnerPanel> {
           }
         };
       }
-      setState(() {
-        tileTitle = _ownerNameController.text;
-      });
+
       this.widget.onOwnerChange(ownerObj);
     }
 
     // _ownerNameController.addListener(() {
     //   updateOwner();
     // });
+
     setState(() {
       _ownerNameController.text = this.owner["document"]["name"];
       _ownerEmailController.text = this.owner["document"]["email"];

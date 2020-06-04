@@ -237,7 +237,11 @@ class BusinessInfoState extends State<BusinessInfo>
     {"value": "3", "name": "8-14 Days"},
     {"value": "4", "name": "14+ Days"},
   ];
-
+  var ccProcessedAt = [
+    {"value": "1", "name": "Date of Order"},
+    {"value": "2", "name": "Date of Delivery"},
+    {"value": "3", "name": "Other"},
+  ];
   void initState() {
     super.initState();
   }
@@ -516,6 +520,35 @@ class BusinessInfoState extends State<BusinessInfo>
                                   .controllers["TransDeliveredIn07"]
                                   .text,
                               this.widget.controllers["TransDeliveredIn07"]),
+                          getInfoRow(
+                              "% Transaction to Delivery 8-14 Days",
+                              this
+                                  .widget
+                                  .controllers["TransDeliveredIn814"]
+                                  .text,
+                              this.widget.controllers["TransDeliveredIn814"]),
+                          getInfoRow(
+                              "% Transaction to Delivery 15-30 Days",
+                              this
+                                  .widget
+                                  .controllers["TransDeliveredIn1530"]
+                                  .text,
+                              this.widget.controllers["TransDeliveredIn1530"]),
+                          getInfoRow(
+                              "% Transaction to Delivery +30 Days",
+                              this
+                                  .widget
+                                  .controllers["TransDeliveredOver30"]
+                                  .text,
+                              this.widget.controllers["TransDeliveredOver30"]),
+                          getInfoDropdown(
+                              "MC/Visa/Discover Network/Amex Sales Deposits",
+                              this
+                                  .widget
+                                  .controllers["CCSalesProcessedAt"]
+                                  .text,
+                              this.widget.controllers["CCSalesProcessedAt"],
+                              ccProcessedAt),
                         ])
                       : Container()
                 ],

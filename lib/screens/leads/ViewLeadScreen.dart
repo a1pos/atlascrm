@@ -13,6 +13,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:atlascrm/services/UserService.dart';
+import 'package:atlascrm/components/shared/ImageUploader.dart';
 
 class LeadInfoEntry {
   final TextEditingController controller;
@@ -56,7 +57,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
   void initState() {
     super.initState();
     loadLeadData(this.widget.leadId);
-    statementCheck();
+    // statementCheck();
   }
 
   bool statementSent = false;
@@ -202,7 +203,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
     } catch (err) {
       print(err);
     }
-    statementCheck();
+    // statementCheck();
   }
 
   Future<void> loadLeadData(leadId) async {
@@ -658,6 +659,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                             ],
                           ),
                         ),
+                        ImageUploader(),
                       ],
                     ),
                   ),

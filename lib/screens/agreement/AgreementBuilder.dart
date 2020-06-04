@@ -9,6 +9,8 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/components/shared/AddressSearch.dart';
 import 'package:atlascrm/components/agreement/OwnerPanel.dart';
 import 'package:atlascrm/components/agreement/BusinessInfo.dart';
+import 'package:atlascrm/components/agreement/SalesPricing.dart';
+import 'package:flutter_masked_text/flutter_masked_text.dart';
 
 class AgreementBuilder extends StatefulWidget {
   final ApiService apiService = new ApiService();
@@ -98,6 +100,30 @@ final List businessControllerNames = [
   "motoCheck",
   "TransDeliveredIn07",
   "TransDeliveredIn814",
+  "TransDeliveredIn1530",
+  "TransDeliveredOver30",
+  "CCSalesProcessedAt",
+  "CardholderBilling",
+  "OtherInfo",
+];
+final List salesPricingControllerNames = [
+  "DepositBankName",
+  "AccountType",
+  "TransitABANumber",
+  "DepositAccountNumber",
+  "AvgMcViDiTicket",
+  "TotalAnnualSalesVolume",
+  "AnnualMcViSalesVolume",
+  "AnnualDiSalesVolume",
+  "AnnualAmexOnePointSalesVolume",
+  "HighestTicket",
+  "SeasonalMerchant",
+  "SeasonalFrom", //?
+  "SeasonalTo", //?
+  "CcPercentPos",
+  "CcPercentInet",
+  "CcPercentMo",
+  "CcPercentTo",
 ];
 
 class AgreementBuilderState extends State<AgreementBuilder>
@@ -111,9 +137,21 @@ class AgreementBuilderState extends State<AgreementBuilder>
   final businessAddressController = TextEditingController();
   final leadSourceController = TextEditingController();
 
-  final Map<String, TextEditingController> _businessControllers =
+  final Map<String, MaskedTextController> _businessControllers =
       Map.fromIterable(businessControllerNames,
-          key: (i) => i, value: (i) => TextEditingController());
+          key: (i) => i,
+          value: (i) =>
+              MaskedTextController(mask: "******************************"));
+
+  final Map<String, MaskedTextController> _salesPricingControllers =
+      Map.fromIterable(salesPricingControllerNames,
+          key: (i) => i,
+          value: (i) =>
+              MaskedTextController(mask: "******************************"));
+
+  // final Map<String, TextEditingController> _salesPricingControllers =
+  //     Map.fromIterable(salesPricingControllerNames,
+  //         key: (i) => i, value: (i) => TextEditingController());
 
   Map businessAddress = {"address": "", "city": "", "state": "", "zipcode": ""};
   var agreementBuilder;
@@ -126,6 +164,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
   Map testOwner;
   Map emptyOwner;
   List<Widget> displayList;
+  var newOwnerNum = 0;
 
   void initState() {
     super.initState();
@@ -205,20 +244,6 @@ class AgreementBuilderState extends State<AgreementBuilder>
         generateAgreement();
       }
     }
-    emptyOwner = {
-      "new": "owner",
-      "business_owner": "",
-      "lead": this.widget.leadId,
-      "document": {
-        "city": "",
-        "name": "",
-        "email": "",
-        "state": "",
-        "address": "",
-        "zipCode": "",
-        "phoneNumber": ""
-      }
-    };
   }
 
   Future<void> generateAgreement() async {
@@ -373,17 +398,32 @@ class AgreementBuilderState extends State<AgreementBuilder>
     );
   }
 
+  Future<void> addOwner() async {
+    // displayList.add(OwnerPanel(key: UniqueKey()));
+    // print(displayList);
+    emptyOwner = {
+      "new": "owner$newOwnerNum",
+      "business_owner": "",
+      "lead": this.widget.leadId,
+      "document": {
+        "city": "",
+        "name": "",
+        "email": "",
+        "state": "",
+        "address": "",
+        "zipCode": "",
+        "phoneNumber": ""
+      }
+    };
+    setState(() {
+      owners.add(emptyOwner);
+      newOwnerNum++;
+    });
+    print("new owner: " + (emptyOwner).toString());
+  }
+
   @override
   Widget build(BuildContext context) {
-    addOwner() {
-      // displayList.add(OwnerPanel(key: UniqueKey()));
-      // print(displayList);
-      setState(() {
-        owners.add(emptyOwner);
-      });
-      print("new owner: " + (emptyOwner).toString());
-    }
-
     final _tabController = TabController(vsync: this, length: 4);
     _tabController.addListener(() {
       // print(_tabController.index);
@@ -425,105 +465,24 @@ class AgreementBuilderState extends State<AgreementBuilder>
                   BusinessInfo(
                       controllers: _businessControllers,
                       agreementDoc: agreementDocument),
-                  // Container(
-                  //   padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
-                  //   child: SingleChildScrollView(
-                  //     child: Column(
-                  //       crossAxisAlignment: CrossAxisAlignment.stretch,
-                  //       children: <Widget>[
-                  //         CustomCard(
-                  //           key: Key("leads1"),
-                  //           icon: Icons.business,
-                  //           title: "Business Info",
-                  //           child: Column(
-                  //             children: <Widget>[
-                  //               getInfoRow(
-                  //                   "First Name",
-                  //                   agreementDocument["firstName"],
-                  //                   firstNameController),
-                  //               getInfoRow(
-                  //                   "Last Name",
-                  //                   agreementDocument["lastName"],
-                  //                   lastNameController),
-                  //               getInfoRow(
-                  //                   "Email Address",
-                  //                   agreementDocument["emailAddr"],
-                  //                   emailAddrController),
-                  //               getInfoRow(
-                  //                   "Phone Number",
-                  //                   agreementDocument["phoneNumber"],
-                  //                   phoneNumberController),
-                  //               getInfoRow(
-                  //                   "Business Name",
-                  //                   agreementDocument["businessName"],
-                  //                   businessNameController),
-                  //               getInfoRow(
-                  //                   "Doing Business As",
-                  //                   agreementDocument["dbaName"],
-                  //                   dbaController),
-                  //               Container(
-                  //                   child: Padding(
-                  //                       padding: EdgeInsets.all(15),
-                  //                       child: Row(
-                  //                         children: <Widget>[
-                  //                           Expanded(
-                  //                             flex: 4,
-                  //                             child: Text(
-                  //                               'Business Address:',
-                  //                               style: TextStyle(fontSize: 16),
-                  //                             ),
-                  //                           ),
-                  //                           Expanded(
-                  //                               flex: 8,
-                  //                               child: AddressSearch(
-                  //                                   locationValue: (agreementDocument[
-                  //                                                   "address"] !=
-                  //                                               null &&
-                  //                                           agreementDocument[
-                  //                                                   "address"] !=
-                  //                                               "")
-                  //                                       ? agreementDocument["address"] +
-                  //                                           ", " +
-                  //                                           agreementDocument[
-                  //                                               "city"] +
-                  //                                           ", " +
-                  //                                           agreementDocument[
-                  //                                               "state"] +
-                  //                                           ", " +
-                  //                                           agreementDocument[
-                  //                                               "zipCode"]
-                  //                                       : null,
-                  //                                   onAddressChange: (val) =>
-                  //                                       businessAddress = val)),
-                  //                         ],
-                  //                       ))),
-                  //               getInfoRow(
-                  //                   "Lead Source",
-                  //                   agreementDocument["leadSource"],
-                  //                   leadSourceController),
-                  //             ],
-                  //           ),
-                  //         ),
-                  //       ],
-                  //     ),
-                  //   ),
-                  // ),
                   Column(
                     children: <Widget>[
                       Expanded(
                         child: ListView(
-                            children: displayList = owners.map((_owner) {
+                            children: displayList = owners.map((thisOwner) {
                           return OwnerPanel(
-                              owner: _owner,
+                              owner: thisOwner,
                               key: UniqueKey(),
                               onOwnerChange: (val) => setState(() {
                                     var _editIndex = owners.indexWhere((item) =>
                                         item["business_owner"] ==
                                         val["business_owner"]);
                                     if (_editIndex != -1) {
+                                      var _editIndex2 = owners.indexWhere(
+                                          (item) => item["new"] == val["new"]);
                                       // print(_editIndex);
                                       // print(owners[_editIndex]);
-                                      owners[_editIndex] = val;
+                                      owners[_editIndex2] = val;
                                     } else {
                                       owners[owners.length - 1] = val;
                                       // print("OWNERS:");
@@ -551,16 +510,9 @@ class AgreementBuilderState extends State<AgreementBuilder>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: <Widget>[
-                          CustomCard(
-                            key: Key("rates1"),
-                            icon: Icons.attach_money,
-                            title: "Settlement",
-                            child: Column(
-                              children: <Widget>[
-                                //PUT GET INFO ROWS HERE
-                              ],
-                            ),
-                          ),
+                          SalesPricing(
+                              controllers: _salesPricingControllers,
+                              agreementDoc: agreementDocument)
                         ],
                       ),
                     ),
