@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:atlascrm/services/ApiService.dart';
+import 'package:flutter/services.dart';
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
@@ -31,6 +32,8 @@ List notesDisplay;
 var notesEmpty = true;
 
 class _ImageUploaderState extends State<ImageUploader> {
+  static const platform = const MethodChannel('com.ces.atlascrm.channel');
+
   List<Asset> images = [];
 
   List imageFileList = [];
@@ -71,10 +74,11 @@ class _ImageUploaderState extends State<ImageUploader> {
               padding: EdgeInsets.all(5),
               color: Color.fromARGB(500, 1, 224, 143),
               // color: Colors.grey[300],
-              onPressed: () {
+              onPressed: () async {
                 // return null;
                 Navigator.pop(context);
-                getImage("camera");
+                var result = await platform.invokeMethod("openCamera");
+                addImage(result);
               },
               child: Row(
                 children: <Widget>[
@@ -95,9 +99,10 @@ class _ImageUploaderState extends State<ImageUploader> {
               padding: EdgeInsets.all(5),
               color: Color.fromARGB(500, 1, 224, 143),
               // color: Colors.grey[300],
-              onPressed: () {
+              onPressed: () async {
                 // Navigator.pop(context);
-                loadAssets();
+                var result = await platform.invokeMethod("openMedia");
+                addImage(result);
               },
               child: Row(
                 children: <Widget>[
@@ -169,7 +174,7 @@ class _ImageUploaderState extends State<ImageUploader> {
     }
   }
 
-  Future<void> viewImage(AssetThumb asset) async {
+  Future<void> viewImage(asset) async {
     showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -234,27 +239,42 @@ class _ImageUploaderState extends State<ImageUploader> {
     return GridView.count(
       shrinkWrap: true,
       crossAxisCount: 3,
-      children: List.generate(images.length, (index) {
-        Asset asset = images[index];
-        // File imgFile = imageFileList[index];
+      children: List.generate(imageFileList.length, (index) {
+        // Asset asset = images[index];
+        File imgFile = imageFileList[index];
+        print(imgFile.path);
         return GestureDetector(
           onTap: () {
-            viewImage(AssetThumb(
-              asset: asset,
-              width: asset.originalWidth,
-              height: asset.originalHeight,
-            ));
+            viewImage(
+              Image.file(imgFile),
+
+              //   AssetThumb(
+              //   asset: asset,
+              //   width: asset.originalWidth,
+              //   height: asset.originalHeight,
+              // )
+            );
           },
-          child:
-              //  Image.file(imgFile),
-              AssetThumb(
-            asset: asset,
-            width: 300,
-            height: 300,
-          ),
+          child: Image.file(imgFile, width: 300, height: 300),
+          //     AssetThumb(
+          //   asset: asset,
+          //   width: 300,
+          //   height: 300,
+          // ),
         );
       }),
     );
+  }
+
+  Future<void> addImage(path) async {
+    print(path);
+    Uri fileUri = Uri.parse(path);
+    //LOGIC TO SAVE IMAGE TO SERVER GOES HERE
+    File newFile = File.fromUri(fileUri);
+    print(newFile);
+    setState(() {
+      imageFileList.add(newFile);
+    });
   }
 
   Future<void> loadAssets() async {
@@ -280,14 +300,24 @@ class _ImageUploaderState extends State<ImageUploader> {
     }
     if (!mounted) return;
 
-    // for (var img in images) {
-    //   var currentImg = await img.getByteData();
-    //   imageFileList.add(await writeToFile(currentImg));
-    // }
-    setState(() {
-      images += resultList;
-      _error = error;
-    });
+    for (var img in resultList) {
+      var currentImg = await img.getByteData();
+
+      final buffer = currentImg.buffer;
+      Directory tempDir = await getTemporaryDirectory();
+      String tempPath = tempDir.path;
+      var filePath = tempPath + '/${img.name}';
+      //LOGIC TO SAVE IMAGE TO SERVER GOES HERE
+      var newFile = await File(filePath).writeAsBytes(buffer.asUint8List(
+          currentImg.offsetInBytes, currentImg.lengthInBytes));
+      setState(() {
+        imageFileList.add(newFile);
+      });
+    }
+    // setState(() {
+    //   images += resultList;
+    //   _error = error;
+    // });
   }
 
   @override
@@ -299,6 +329,11 @@ class _ImageUploaderState extends State<ImageUploader> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
+            MaterialButton(
+                child: Text("button here"),
+                onPressed: () {
+                  openImageUpload();
+                }),
             Center(child: Text('Error: $_error')),
             RaisedButton(
               child: Text("Pick images"),

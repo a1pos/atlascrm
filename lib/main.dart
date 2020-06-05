@@ -20,16 +20,16 @@ import 'package:atlascrm/services/UserService.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-// import 'package:permission_handler/permission_handler.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 List<CameraDescription> cameras;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Map<PermissionGroup, PermissionStatus> permissions = await PermissionHandler()
-  //     .requestPermissions(
-  //         [PermissionGroup.camera, PermissionGroup.access_media_location]);
+  Map<PermissionGroup, PermissionStatus> permissions = await PermissionHandler()
+      .requestPermissions(
+          [PermissionGroup.camera, PermissionGroup.storage]);
 
   cameras = await availableCameras();
 
