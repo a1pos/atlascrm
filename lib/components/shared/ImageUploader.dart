@@ -285,13 +285,21 @@ class _ImageUploaderState extends State<ImageUploader> {
         Map imgFile = imageDLList[index];
 
         return GestureDetector(
-          onTap: () {
-            viewImage(
-              imgFile,
-            );
-          },
-          child: Image.network(imgFile["url"], width: 300, height: 300),
-        );
+            onTap: () {
+              viewImage(
+                imgFile,
+              );
+            },
+            child: Container(
+              height: 300,
+              width: 300,
+              decoration: new BoxDecoration(
+                  image: new DecorationImage(
+                fit: BoxFit.fitWidth,
+                alignment: FractionalOffset.topCenter,
+                image: new NetworkImage(imgFile["url"]),
+              )),
+            ));
       }),
     );
   }
@@ -368,18 +376,18 @@ class _ImageUploaderState extends State<ImageUploader> {
 
         print(imageDLList);
 
-        Fluttertoast.showToast(
-            msg: "Images Downloaded!",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.grey[600],
-            textColor: Colors.white,
-            fontSize: 16.0);
+        // Fluttertoast.showToast(
+        //     msg: "Images Downloaded!",
+        //     toastLength: Toast.LENGTH_SHORT,
+        //     gravity: ToastGravity.BOTTOM,
+        //     backgroundColor: Colors.grey[600],
+        //     textColor: Colors.white,
+        //     fontSize: 16.0);
       }
     } catch (err) {
       print(err);
       Fluttertoast.showToast(
-          msg: "Failed to download statement!",
+          msg: "Failed to download images!",
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.grey[600],
@@ -389,8 +397,8 @@ class _ImageUploaderState extends State<ImageUploader> {
   }
 
   Future<void> addImage(path) async {
-    Uri fileUri = Uri.parse(path);
-    File newFile = File.fromUri(fileUri);
+    // Uri fileUri = Uri.parse(path);
+    // File newFile = File.fromUri(fileUri);
     print("FILE URI: $path");
 
     try {
@@ -438,10 +446,28 @@ class _ImageUploaderState extends State<ImageUploader> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Center(child: Text('Error: $_error')),
-            RaisedButton(
-              child: Text("Pick images"),
-              onPressed: openImageUpload,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(50, 0, 50, 15),
+              child: MaterialButton(
+                padding: EdgeInsets.all(5),
+                color: Color.fromARGB(500, 1, 224, 143),
+                // color: Colors.grey[300],
+                onPressed: openImageUpload,
+                child: Row(
+                  children: <Widget>[
+                    Icon(
+                      Icons.file_upload,
+                      color: Colors.white,
+                    ),
+                    Text(
+                      'Upload images',
+                      style: TextStyle(
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
             Flexible(
               fit: FlexFit.loose,
