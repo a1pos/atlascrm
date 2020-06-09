@@ -659,7 +659,8 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                             ],
                           ),
                         ),
-                        ImageUploader(),
+                        ImageUploader(
+                            type: "statement", objectId: lead["lead"]),
                       ],
                     ),
                   ),

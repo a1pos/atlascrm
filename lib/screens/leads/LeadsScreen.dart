@@ -123,6 +123,9 @@ class _LeadsScreenState extends State<LeadsScreen> {
           endpoint =
               "/employee/$filterEmployee/lead?searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
         }
+      } else if (isSearching) {
+        endpoint =
+            "/employee/${UserService.employee.employee}/lead?searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
       } else {
         endpoint =
             "/employee/${UserService.employee.employee}/lead?page=$pageNum&size=10&$sortQuery";

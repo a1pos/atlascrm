@@ -1,3 +1,5 @@
+import 'package:atlascrm/config/ConfigSettings.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/services.dart';
@@ -18,7 +20,6 @@ class ImageUploader extends StatefulWidget {
 
   final String objectId;
   final String type;
-
   ImageUploader({this.type, this.objectId});
 
   @override
@@ -33,15 +34,18 @@ var notesEmpty = true;
 
 class _ImageUploaderState extends State<ImageUploader> {
   static const platform = const MethodChannel('com.ces.atlascrm.channel');
-
   List<Asset> images = [];
 
   List imageFileList = [];
+  List imageDLList = [];
   String _error = 'No Error Dectected';
   @override
   void initState() {
     super.initState();
+    loadImages();
   }
+
+  var dio = Dio();
 
   var _image;
   final picker = ImagePicker();
@@ -148,7 +152,7 @@ class _ImageUploaderState extends State<ImageUploader> {
       // var bytes = fileImage.file.readAsBytesSync();
       var resp = await this.widget.apiService.authFilePost(
           context,
-          "/employee/${UserService.employee.employee}/${this.widget.objectId}/statement",
+          "/employee/${UserService.employee.employee}/${this.widget.objectId}/${this.widget.type}",
           _image);
       if (resp.statusCode == 200) {
         // await loadLeadData(this.widget.leadId);
@@ -174,7 +178,38 @@ class _ImageUploaderState extends State<ImageUploader> {
     }
   }
 
+  void showDownloadProgress(received, total) {
+    if (total != -1) {
+      print((received / total * 100).toStringAsFixed(0) + "%");
+    }
+  }
+
+  Future download2(Dio dio, String url, String savePath) async {
+    try {
+      Response response = await dio.get(
+        url,
+        onReceiveProgress: showDownloadProgress,
+        //Received data with List<int>
+        options: Options(
+            responseType: ResponseType.bytes,
+            followRedirects: false,
+            validateStatus: (status) {
+              return status < 500;
+            }),
+      );
+      print(response.headers);
+      File file = File(savePath);
+      var raf = file.openSync(mode: FileMode.write);
+      // response.data is List<int> type
+      raf.writeFromSync(response.data);
+      await raf.close();
+    } catch (e) {
+      print(e);
+    }
+  }
+
   Future<void> viewImage(asset) async {
+    // var newPath = asset. ;
     showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -182,37 +217,44 @@ class _ImageUploaderState extends State<ImageUploader> {
             title: Text('View Statement'),
             content: SingleChildScrollView(
               child: ListBody(
-                children: <Widget>[asset],
+                children: <Widget>[Image.network(asset["url"])],
               ),
             ),
             actions: <Widget>[
-              MaterialButton(
-                padding: EdgeInsets.all(5),
-                color: Color.fromARGB(500, 1, 224, 143),
-                // color: Colors.grey[300],
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: Row(
-                  children: <Widget>[
-                    Icon(
-                      Icons.file_download,
-                      color: Colors.white,
-                    ),
-                    Text(
-                      'Download',
-                      style: TextStyle(
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              // MaterialButton(
+              //   padding: EdgeInsets.all(5),
+              //   color: Color.fromARGB(500, 1, 224, 143),
+              //   // color: Colors.grey[300],
+              //   onPressed: () async {
+              //     var tempDir = await getTemporaryDirectory();
+              //     String fullPath = tempDir.path + "/boo2.jpg'";
+              //     print('full path $fullPath');
+
+              //     download2(dio, asset, fullPath);
+
+              //     // Navigator.pop(context);
+              //   },
+              //   child: Row(
+              //     children: <Widget>[
+              //       Icon(
+              //         Icons.file_download,
+              //         color: Colors.white,
+              //       ),
+              //       Text(
+              //         'Download',
+              //         style: TextStyle(
+              //           color: Colors.white,
+              //         ),
+              //       ),
+              //     ],
+              //   ),
+              // ),
               MaterialButton(
                 padding: EdgeInsets.all(5),
                 color: Colors.red,
                 // color: Colors.grey[300],
                 onPressed: () {
+                  deleteImage(asset);
                   Navigator.pop(context);
                 },
                 child: Row(
@@ -235,89 +277,156 @@ class _ImageUploaderState extends State<ImageUploader> {
         });
   }
 
-  Widget buildGridView() {
+  Widget buildDLGridView() {
     return GridView.count(
       shrinkWrap: true,
       crossAxisCount: 3,
-      children: List.generate(imageFileList.length, (index) {
-        // Asset asset = images[index];
-        File imgFile = imageFileList[index];
-        print(imgFile.path);
+      children: List.generate(imageDLList.length, (index) {
+        Map imgFile = imageDLList[index];
+
         return GestureDetector(
           onTap: () {
             viewImage(
-              Image.file(imgFile),
-
-              //   AssetThumb(
-              //   asset: asset,
-              //   width: asset.originalWidth,
-              //   height: asset.originalHeight,
-              // )
+              imgFile,
             );
           },
-          child: Image.file(imgFile, width: 300, height: 300),
-          //     AssetThumb(
-          //   asset: asset,
-          //   width: 300,
-          //   height: 300,
-          // ),
+          child: Image.network(imgFile["url"], width: 300, height: 300),
         );
       }),
     );
   }
 
-  Future<void> addImage(path) async {
-    print(path);
-    Uri fileUri = Uri.parse(path);
-    //LOGIC TO SAVE IMAGE TO SERVER GOES HERE
-    File newFile = File.fromUri(fileUri);
-    print(newFile);
-    setState(() {
-      imageFileList.add(newFile);
-    });
+  // Widget buildGridView() {
+  //   return GridView.count(
+  //     shrinkWrap: true,
+  //     crossAxisCount: 3,
+  //     children: List.generate(imageFileList.length, (index) {
+  //       File imgFile = imageFileList[index];
+  //       print(imgFile.path);
+  //       return GestureDetector(
+  //         onTap: () {
+  //           viewImage(
+  //             imgFile,
+  //           );
+  //         },
+  //         child: Image.file(imgFile, width: 300, height: 300),
+  //       );
+  //     }),
+  //   );
+  // }
+
+  Future<void> deleteImage(asset) async {
+    var name = asset["name"];
+    try {
+      var resp = await this
+          .widget
+          .apiService
+          .authDelete(context, "/statement/$name", null);
+
+      if (resp.statusCode == 200) {
+        Fluttertoast.showToast(
+            msg: "Image Deleted!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0);
+        setState(() {
+          imageDLList = [];
+        });
+        loadImages();
+      }
+    } catch (err) {
+      print(err);
+      Fluttertoast.showToast(
+          msg: "Failed to delete image!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0);
+    }
   }
 
-  Future<void> loadAssets() async {
-    List<Asset> resultList = List<Asset>();
-    String error = 'No Error Dectected';
+  var loadedImage;
+
+  Future<void> loadImages() async {
+    try {
+      var resp = await this
+          .widget
+          .apiService
+          .authGet(context, "/lead/${this.widget.objectId}/statement");
+
+      if (resp.statusCode == 200) {
+        for (var imgUrl in resp.data) {
+          var url =
+              "${ConfigSettings.API_URL}_a1/uploads/statement_photos/$imgUrl";
+          setState(() {
+            imageDLList.add({"name": imgUrl, "url": url});
+          });
+        }
+
+        print(imageDLList);
+
+        Fluttertoast.showToast(
+            msg: "Images Downloaded!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0);
+      }
+    } catch (err) {
+      print(err);
+      Fluttertoast.showToast(
+          msg: "Failed to download statement!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0);
+    }
+  }
+
+  Future<void> addImage(path) async {
+    Uri fileUri = Uri.parse(path);
+    File newFile = File.fromUri(fileUri);
+    print("FILE URI: $path");
 
     try {
-      resultList = await MultiImagePicker.pickImages(
-        maxImages: 300,
-        enableCamera: true,
-        selectedAssets: images,
-        cupertinoOptions: CupertinoOptions(takePhotoIcon: "chat"),
-        materialOptions: MaterialOptions(
-          actionBarColor: "#abcdef",
-          actionBarTitle: "Example App",
-          allViewTitle: "All Photos",
-          useDetailsView: false,
-          selectCircleStrokeColor: "#000000",
-        ),
-      );
-    } on Exception catch (e) {
-      error = e.toString();
+      var resp = await this.widget.apiService.authFilePost(
+          context,
+          "/employee/${UserService.employee.employee}/${this.widget.objectId}/${this.widget.type}",
+          path);
+      if (resp.statusCode == 200) {
+        // await loadLeadData(this.widget.leadId);
+        Fluttertoast.showToast(
+            msg: "Image Uploaded!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0);
+        setState(() {
+          imageDLList = [];
+        });
+        // setState(() {
+        //   imageDLList.add(Image.file(newFile));
+        // });
+        loadImages();
+      } else {
+        Fluttertoast.showToast(
+            msg: "Failed to upload image!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0);
+      }
+    } catch (err) {
+      print(err);
     }
-    if (!mounted) return;
-
-    for (var img in resultList) {
-      var currentImg = await img.getByteData();
-
-      final buffer = currentImg.buffer;
-      Directory tempDir = await getTemporaryDirectory();
-      String tempPath = tempDir.path;
-      var filePath = tempPath + '/${img.name}';
-      //LOGIC TO SAVE IMAGE TO SERVER GOES HERE
-      var newFile = await File(filePath).writeAsBytes(buffer.asUint8List(
-          currentImg.offsetInBytes, currentImg.lengthInBytes));
-      setState(() {
-        imageFileList.add(newFile);
-      });
-    }
-    // setState(() {
-    //   images += resultList;
-    //   _error = error;
-    // });
+    // newFile.delete();
   }
 
   @override
@@ -329,20 +438,19 @@ class _ImageUploaderState extends State<ImageUploader> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            MaterialButton(
-                child: Text("button here"),
-                onPressed: () {
-                  openImageUpload();
-                }),
             Center(child: Text('Error: $_error')),
             RaisedButton(
               child: Text("Pick images"),
-              onPressed: loadAssets,
+              onPressed: openImageUpload,
             ),
             Flexible(
               fit: FlexFit.loose,
-              child: buildGridView(),
-            )
+              child: buildDLGridView(),
+            ),
+            // Flexible(
+            //   fit: FlexFit.loose,
+            //   child: buildGridView(),
+            // )
           ],
         ));
   }
