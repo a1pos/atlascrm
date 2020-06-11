@@ -50,16 +50,6 @@ class _ImageUploaderState extends State<ImageUploader> {
   var _image;
   final picker = ImagePicker();
 
-  Future<File> writeToFile(ByteData data) async {
-    final buffer = data.buffer;
-    Directory tempDir = await getTemporaryDirectory();
-    String tempPath = tempDir.path;
-    var filePath =
-        tempPath + '/file_01.tmp'; // file_01.tmp is dump file, can be anything
-    return new File(filePath).writeAsBytes(
-        buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
-  }
-
   void openImageUpload() {
     showDialog(
       context: context,
@@ -77,9 +67,7 @@ class _ImageUploaderState extends State<ImageUploader> {
             MaterialButton(
               padding: EdgeInsets.all(5),
               color: Color.fromARGB(500, 1, 224, 143),
-              // color: Colors.grey[300],
               onPressed: () async {
-                // return null;
                 Navigator.pop(context);
                 var result = await platform.invokeMethod("openCamera");
                 addImage(result);
@@ -102,9 +90,7 @@ class _ImageUploaderState extends State<ImageUploader> {
             MaterialButton(
               padding: EdgeInsets.all(5),
               color: Color.fromARGB(500, 1, 224, 143),
-              // color: Colors.grey[300],
               onPressed: () async {
-                // Navigator.pop(context);
                 var result = await platform.invokeMethod("openMedia");
                 addImage(result);
               },
@@ -129,34 +115,13 @@ class _ImageUploaderState extends State<ImageUploader> {
     );
   }
 
-  Future getImage(method) async {
-    PickedFile pickedFile;
-    if (method == "gallery") {
-      pickedFile = await picker.getImage(source: ImageSource.gallery);
-    } else if (method == "camera") {
-      pickedFile = await picker.getImage(source: ImageSource.camera);
-    } else {
-      return print("no method specified");
-    }
-
-    setState(() {
-      _image = pickedFile.path;
-    });
-    imageResult(_image);
-  }
-
   Future<void> imageResult(image) async {
     try {
-      // File fileImage = File(image.path);
-      // String imgPath = Uri.encodeComponent(image.path);
-      // var bytes = fileImage.file.readAsBytesSync();
       var resp = await this.widget.apiService.authFilePost(
           context,
           "/employee/${UserService.employee.employee}/${this.widget.objectId}/${this.widget.type}",
           _image);
       if (resp.statusCode == 200) {
-        // await loadLeadData(this.widget.leadId);
-
         Fluttertoast.showToast(
             msg: "Image Uploaded!",
             toastLength: Toast.LENGTH_SHORT,
@@ -178,35 +143,37 @@ class _ImageUploaderState extends State<ImageUploader> {
     }
   }
 
-  void showDownloadProgress(received, total) {
-    if (total != -1) {
-      print((received / total * 100).toStringAsFixed(0) + "%");
-    }
-  }
+  //started working on downloads
 
-  Future download2(Dio dio, String url, String savePath) async {
-    try {
-      Response response = await dio.get(
-        url,
-        onReceiveProgress: showDownloadProgress,
-        //Received data with List<int>
-        options: Options(
-            responseType: ResponseType.bytes,
-            followRedirects: false,
-            validateStatus: (status) {
-              return status < 500;
-            }),
-      );
-      print(response.headers);
-      File file = File(savePath);
-      var raf = file.openSync(mode: FileMode.write);
-      // response.data is List<int> type
-      raf.writeFromSync(response.data);
-      await raf.close();
-    } catch (e) {
-      print(e);
-    }
-  }
+  // void showDownloadProgress(received, total) {
+  //   if (total != -1) {
+  //     print((received / total * 100).toStringAsFixed(0) + "%");
+  //   }
+  // }
+
+  // Future download2(Dio dio, String url, String savePath) async {
+  //   try {
+  //     Response response = await dio.get(
+  //       url,
+  //       onReceiveProgress: showDownloadProgress,
+  //       //Received data with List<int>
+  //       options: Options(
+  //           responseType: ResponseType.bytes,
+  //           followRedirects: false,
+  //           validateStatus: (status) {
+  //             return status < 500;
+  //           }),
+  //     );
+  //     print(response.headers);
+  //     File file = File(savePath);
+  //     var raf = file.openSync(mode: FileMode.write);
+  //     // response.data is List<int> type
+  //     raf.writeFromSync(response.data);
+  //     await raf.close();
+  //   } catch (e) {
+  //     print(e);
+  //   }
+  // }
 
   Future<void> viewImage(asset) async {
     // var newPath = asset. ;
@@ -221,34 +188,6 @@ class _ImageUploaderState extends State<ImageUploader> {
               ),
             ),
             actions: <Widget>[
-              // MaterialButton(
-              //   padding: EdgeInsets.all(5),
-              //   color: Color.fromARGB(500, 1, 224, 143),
-              //   // color: Colors.grey[300],
-              //   onPressed: () async {
-              //     var tempDir = await getTemporaryDirectory();
-              //     String fullPath = tempDir.path + "/boo2.jpg'";
-              //     print('full path $fullPath');
-
-              //     download2(dio, asset, fullPath);
-
-              //     // Navigator.pop(context);
-              //   },
-              //   child: Row(
-              //     children: <Widget>[
-              //       Icon(
-              //         Icons.file_download,
-              //         color: Colors.white,
-              //       ),
-              //       Text(
-              //         'Download',
-              //         style: TextStyle(
-              //           color: Colors.white,
-              //         ),
-              //       ),
-              //     ],
-              //   ),
-              // ),
               MaterialButton(
                 padding: EdgeInsets.all(5),
                 color: Colors.red,
@@ -304,32 +243,11 @@ class _ImageUploaderState extends State<ImageUploader> {
     );
   }
 
-  // Widget buildGridView() {
-  //   return GridView.count(
-  //     shrinkWrap: true,
-  //     crossAxisCount: 3,
-  //     children: List.generate(imageFileList.length, (index) {
-  //       File imgFile = imageFileList[index];
-  //       print(imgFile.path);
-  //       return GestureDetector(
-  //         onTap: () {
-  //           viewImage(
-  //             imgFile,
-  //           );
-  //         },
-  //         child: Image.file(imgFile, width: 300, height: 300),
-  //       );
-  //     }),
-  //   );
-  // }
-
   Future<void> deleteImage(asset) async {
     var name = asset["name"];
     try {
-      var resp = await this
-          .widget
-          .apiService
-          .authDelete(context, "/statement/$name", null);
+      var resp = await this.widget.apiService.authDelete(
+          context, "/lead/${this.widget.objectId}/statement/$name", null);
 
       if (resp.statusCode == 200) {
         Fluttertoast.showToast(
@@ -375,14 +293,6 @@ class _ImageUploaderState extends State<ImageUploader> {
         }
 
         print(imageDLList);
-
-        // Fluttertoast.showToast(
-        //     msg: "Images Downloaded!",
-        //     toastLength: Toast.LENGTH_SHORT,
-        //     gravity: ToastGravity.BOTTOM,
-        //     backgroundColor: Colors.grey[600],
-        //     textColor: Colors.white,
-        //     fontSize: 16.0);
       }
     } catch (err) {
       print(err);
@@ -418,9 +328,6 @@ class _ImageUploaderState extends State<ImageUploader> {
         setState(() {
           imageDLList = [];
         });
-        // setState(() {
-        //   imageDLList.add(Image.file(newFile));
-        // });
         loadImages();
       } else {
         Fluttertoast.showToast(
@@ -451,7 +358,6 @@ class _ImageUploaderState extends State<ImageUploader> {
               child: MaterialButton(
                 padding: EdgeInsets.all(5),
                 color: Color.fromARGB(500, 1, 224, 143),
-                // color: Colors.grey[300],
                 onPressed: openImageUpload,
                 child: Row(
                   children: <Widget>[
@@ -473,10 +379,6 @@ class _ImageUploaderState extends State<ImageUploader> {
               fit: FlexFit.loose,
               child: buildDLGridView(),
             ),
-            // Flexible(
-            //   fit: FlexFit.loose,
-            //   child: buildGridView(),
-            // )
           ],
         ));
   }

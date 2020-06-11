@@ -7,11 +7,11 @@
          FlutterApplication and put your custom class here. -->
     
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
 
     <application
         android:name="io.flutter.app.FlutterApplication"
-        android:label="atlascrm"
         android:icon="@mipmap/launcher_icon">
         <activity
             android:name=".MainActivity"
@@ -33,5 +33,14 @@
             android:value="2" />
         <meta-data android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyB-rMAdwtIjM7s_4Lb8SdRXAfhbiLTVl7s"/>
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.ces.atlascrm.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths"></meta-data>
+        </provider>
     </application>
 </manifest>

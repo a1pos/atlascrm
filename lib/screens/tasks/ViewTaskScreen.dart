@@ -4,6 +4,7 @@ import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
 import 'package:atlascrm/components/task/TaskPriorityDropDown.dart';
 import 'package:atlascrm/components/task/TaskTypeDropDown.dart';
 import 'package:atlascrm/services/ApiService.dart';
+import 'package:atlascrm/services/StorageService.dart';
 import 'package:flutter/material.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -14,6 +15,7 @@ import 'package:intl/intl.dart';
 
 class ViewTaskScreen extends StatefulWidget {
   final ApiService apiService = new ApiService();
+  final StorageService storageService = new StorageService();
 
   final String taskId;
 
@@ -88,7 +90,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
 
   Future<void> updateTask(complete) async {
     try {
-      var token = ConfigSettings.ACCESS_TOKEN;
+      var token = await this.widget.storageService.read("access_token");
       var data = {
         "task": task["task"],
         "status": task["status"],

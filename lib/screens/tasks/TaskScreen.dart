@@ -13,6 +13,7 @@ import 'package:atlascrm/components/task/TaskPriorityDropDown.dart';
 import 'package:atlascrm/components/task/TaskItem.dart';
 import 'package:atlascrm/components/task/TaskTypeDropDown.dart';
 import 'package:atlascrm/services/ApiService.dart';
+import 'package:atlascrm/services/StorageService.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +24,8 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 
 class TaskScreen extends StatefulWidget {
+  final ApiService apiService = ApiService();
+  final StorageService storageService = new StorageService();
   @override
   _TaskScreenState createState() => _TaskScreenState();
 }
@@ -31,7 +34,6 @@ class _TaskScreenState extends State<TaskScreen> {
   CalendarController _calendarController;
   Map<DateTime, List<dynamic>> _calendarEvents;
 
-  final ApiService apiService = ApiService();
   final _formKey = GlobalKey<FormState>();
   var isEmpty = true;
   var isLoading = true;
@@ -145,8 +147,10 @@ class _TaskScreenState extends State<TaskScreen> {
 
   Future<void> initTasks() async {
     try {
-      var resp = await apiService.authGet(
-          context, "/employee/${UserService.employee.employee}/task");
+      var resp = await this
+          .widget
+          .apiService
+          .authGet(context, "/employee/${UserService.employee.employee}/task");
       if (resp != null) {
         if (resp.statusCode == 200) {
           var tasksArrDecoded = resp.data;
@@ -186,8 +190,10 @@ class _TaskScreenState extends State<TaskScreen> {
     var taskOwner = UserService.isAdmin
         ? employeeDropdownValue
         : UserService.employee.employee;
-    var resp1 = await apiService.authPost(
-        context, "/googlecalendar/" + token + "/" + taskOwner, data);
+    var resp1 = await this
+        .widget
+        .apiService
+        .authPost(context, "/googlecalendar/" + token + "/" + taskOwner, data);
     if (resp1 != null) {
       if (resp1.statusCode == 200) {
         var event = await resp1.data["eventid"];
@@ -206,7 +212,7 @@ class _TaskScreenState extends State<TaskScreen> {
     var taskOwner = UserService.isAdmin
         ? employeeDropdownValue
         : UserService.employee.employee;
-    var token = ConfigSettings.ACCESS_TOKEN;
+    var token = await this.widget.storageService.read("access_token");
     var data = {
       "type": taskTypeDropdownValue,
       "owner": taskOwner,
@@ -228,8 +234,10 @@ class _TaskScreenState extends State<TaskScreen> {
     }
 
     try {
-      var resp = await apiService.authPost(
-          context, "/employee/" + taskOwner + "/task", data);
+      var resp = await this
+          .widget
+          .apiService
+          .authPost(context, "/employee/" + taskOwner + "/task", data);
       if (resp != null) {
         if (resp.statusCode == 200) {
           Fluttertoast.showToast(

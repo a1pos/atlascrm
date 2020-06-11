@@ -1,3 +1,4 @@
+include ':openCVLibrary'
 include ':scanlibrary'
 include ':app'
 

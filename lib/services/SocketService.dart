@@ -9,7 +9,6 @@ class SocketService {
 
   Future<void> initWebSocketConnection() async {
     try {
-      var token = await storageService.read("token");
       await Pusher.init(
           ConfigSettings.PUSHER_KEY,
           PusherOptions(
