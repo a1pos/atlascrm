@@ -348,7 +348,7 @@ class _ImageUploaderState extends State<ImageUploader> {
   Widget build(BuildContext context) {
     return CustomCard(
         key: Key("leads5"),
-        title: "Uploads",
+        title: "Statement Uploads",
         icon: Icons.file_upload,
         child: Column(
           mainAxisSize: MainAxisSize.min,

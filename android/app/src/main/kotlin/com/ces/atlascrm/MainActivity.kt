@@ -8,6 +8,7 @@ import android.content.Intent
 import android.database.Cursor
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.media.ExifInterface
 import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
@@ -41,6 +42,7 @@ class MainActivity : FlutterActivity() {
         ScannerConstants.backText = "CANCEL"
         ScannerConstants.cropText = "FINISH"
         ScannerConstants.saveStorage = false
+        ScannerConstants.cropColor="#01e08f"
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
             CURRENT_RESULT = result
             when (call.method.toUpperCase()) {
@@ -63,7 +65,6 @@ class MainActivity : FlutterActivity() {
                                 }
                             } catch (ex: IOException) {
                                 // Error occurred while creating the File
-//                                println("aafafaf")
                                 null
                             }
                             // Continue only if the File was successfully created
@@ -78,38 +79,12 @@ class MainActivity : FlutterActivity() {
                             }
                         }
                     }
-
-//                    Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
-//                        takePictureIntent.resolveActivity(packageManager)?.also {
-//                            startActivityForResult(takePictureIntent, OPEN_CAMERA_REQUEST_CODE)
-//                        }
-//                    }
-
-//                    val preference: Int = ScanConstants.OPEN_CAMERA
-//                    val intent = Intent(this@MainActivity, ScanActivity::class.java)
-//                    intent.putExtra(ScanConstants.OPEN_INTENT_PREFERENCE, preference)
-//                    startActivityForResult(intent, REQUEST_CODE)
                 }
                 "OPENMEDIA" -> {
                     val intent = Intent()
                     intent.type = "image/*"
                     intent.action = Intent.ACTION_GET_CONTENT
                     startActivityForResult(Intent.createChooser(intent, "Select Picture"), OPEN_MEDIA_REQUEST_CODE)
-
-
-//                    val getIntent = Intent(Intent.ACTION_GET_CONTENT)
-//                    getIntent.type = "image/*"
-//                    val pickIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-//                    pickIntent.type = "image/*"
-//                    val chooserIntent = Intent.createChooser(getIntent, "Select Image")
-//                    chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, arrayOf(pickIntent))
-//                    startActivityForResult(chooserIntent,  OPEN_MEDIA_REQUEST_CODE)
-
-
-//                    val preference: Int = ScanConstants.OPEN_MEDIA
-//                    val intent = Intent(this@MainActivity, ScanActivity::class.java)
-//                    intent.putExtra(ScanConstants.OPEN_INTENT_PREFERENCE, preference)
-//                    startActivityForResult(intent, OPEN_MEDIA_REQUEST_CODE)
                 }
             }
         }
@@ -143,6 +118,10 @@ class MainActivity : FlutterActivity() {
             try {
 
                 val bytes = ByteArrayOutputStream()
+
+
+                val file = ScannerConstants.selectedImageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes)
+                
                 ScannerConstants.selectedImageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes)
                 val newImgPath = MediaStore.Images.Media.insertImage(context.contentResolver, ScannerConstants.selectedImageBitmap, UUID.randomUUID().toString(), null)
 
