@@ -1,12 +1,14 @@
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
+import 'package:searchable_dropdown/searchable_dropdown.dart';
 
 class LeadDropDown extends StatefulWidget {
-  LeadDropDown({this.employeeId, this.callback, this.value});
+  LeadDropDown({this.employeeId, this.callback, this.value, this.disabled});
 
   final String employeeId;
   final String value;
   final Function callback;
+  final bool disabled;
 
   @override
   _LeadDropDownState createState() => _LeadDropDownState();
@@ -14,14 +16,24 @@ class LeadDropDown extends StatefulWidget {
 
 class _LeadDropDownState extends State<LeadDropDown> {
   final ApiService apiService = ApiService();
-
   var leads = [];
+  var disabled;
 
   @override
   void initState() {
     super.initState();
+
     initLeads(this.widget.employeeId);
+    if (this.widget.disabled != null) {
+      setState(() {
+        disabled = this.widget.disabled;
+      });
+    } else {
+      disabled = false;
+    }
   }
+
+  var startVal;
 
   Future<void> initLeads(e) async {
     var leadsResp = await apiService.authGet(context,
@@ -34,6 +46,11 @@ class _LeadDropDownState extends State<LeadDropDown> {
             setState(() {
               leads = leadsArrDecoded;
             });
+          }
+        }
+        for (var lead in leads) {
+          if (this.widget.value == lead["lead"]) {
+            startVal = lead["document"]["businessName"];
           }
         }
       }
@@ -53,11 +70,19 @@ class _LeadDropDownState extends State<LeadDropDown> {
             fontSize: 13,
           ),
         ),
-        DropdownButtonFormField<String>(
+
+        SearchableDropdown.single(
+          value: startVal,
+          onClear: () {
+            setState(() {
+              this.widget.callback(null);
+            });
+          },
+          hint: "Please choose one",
+          searchHint: null,
           isExpanded: true,
-          value: this.widget.value,
-          hint: Text("Please choose one"),
-          items: leads.map((dynamic item) {
+          // menuConstraints: BoxConstraints.tight(Size.fromHeight(350)),
+          items: leads.map<DropdownMenuItem<String>>((dynamic item) {
             var businessName;
             if (item["document"]?.isEmpty ?? true) {
               businessName = "";
@@ -65,16 +90,51 @@ class _LeadDropDownState extends State<LeadDropDown> {
               businessName = item["document"]["businessName"];
             }
             return DropdownMenuItem<String>(
-              value: item["lead"],
+              value: businessName,
               child: Text(
                 businessName,
               ),
             );
           }).toList(),
-          onChanged: (newValue) {
-            this.widget.callback(newValue);
-          },
-        ),
+          disabledHint: startVal,
+          onChanged: disabled
+              ? null
+              : (newValue) {
+                  setState(() {
+                    var setVal;
+                    for (var lead in leads) {
+                      if (newValue == lead["document"]["businessName"]) {
+                        setVal = lead["lead"];
+                      }
+                    }
+                    startVal = newValue;
+                    this.widget.callback(setVal);
+                  });
+                },
+        )
+
+        // DropdownButtonFormField<String>(
+        //   isExpanded: true,
+        //   value: this.widget.value,
+        //   hint: Text("Please choose one"),
+        //   items: leads.map((dynamic item) {
+        //     var businessName;
+        //     if (item["document"]?.isEmpty ?? true) {
+        //       businessName = "";
+        //     } else {
+        //       businessName = item["document"]["businessName"];
+        //     }
+        //     return DropdownMenuItem<String>(
+        //       value: item["lead"],
+        //       child: Text(
+        //         businessName,
+        //       ),
+        //     );
+        //   }).toList(),
+        //   onChanged: (newValue) {
+        //     this.widget.callback(newValue);
+        //   },
+        // ),
       ],
     );
   }

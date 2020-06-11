@@ -1,5 +1,5 @@
 include ':openCVLibrary'
-include ':scanlibrary'
+include ':documentscanner'
 include ':app'
 
 def flutterProjectRoot = rootProject.projectDir.parentFile.toPath()

@@ -310,7 +310,8 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
                                   changeButton();
                                 });
                               },
-                              employeeId: employeeDropdownValue),
+                              employeeId: employeeDropdownValue,
+                              disabled: true),
                         ),
                         // Expanded(
                         //   flex: 2,

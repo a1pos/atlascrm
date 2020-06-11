@@ -1,4 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.ces.atlascrm">
     <!-- io.flutter.app.FlutterApplication is an android.app.Application that
          calls FlutterMain.startInitialization(this); in its onCreate method.
@@ -11,8 +12,12 @@
 
 
     <application
+        tools:replace="android:label"
         android:name="io.flutter.app.FlutterApplication"
-        android:icon="@mipmap/launcher_icon">
+        android:icon="@mipmap/launcher_icon"
+        android:label="Atlas CRM">
+
+
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"
