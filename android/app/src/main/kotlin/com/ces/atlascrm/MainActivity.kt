@@ -8,12 +8,14 @@ import android.content.Intent
 import android.database.Cursor
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.media.ExifInterface
 import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
+import android.widget.Toast
 import androidx.annotation.NonNull
 import androidx.core.content.FileProvider
+import com.google.zxing.integration.android.IntentIntegrator
+import com.google.zxing.integration.android.IntentResult
 import com.labters.documentscanner.ImageCropActivity
 import com.labters.documentscanner.helpers.ScannerConstants
 import io.flutter.embedding.android.FlutterActivity
@@ -32,9 +34,11 @@ class MainActivity : FlutterActivity() {
     private var CROP_REQUEST_CODE = 9584
     private var OPEN_CAMERA_REQUEST_CODE = 5469
     private var OPEN_MEDIA_REQUEST_CODE = 4596
+    private var BARCODE_REQUEST_CODE = 1259
 
     private var currentPhotoPath: String = ""
     private var CURRENT_RESULT: MethodChannel.Result? = null
+    private var myBitmap : Bitmap? = null
 
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         GeneratedPluginRegistrant.registerWith(flutterEngine);
@@ -92,6 +96,18 @@ class MainActivity : FlutterActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+
+
+        if (requestCode == BARCODE_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+//            val imageBitmap = data?.extras?.get("data") as Bitmap
+
+            val bitmap: Bitmap = BitmapFactory.decodeFile(currentPhotoPath, BitmapFactory.Options())
+
+
+            ScannerConstants.selectedImageBitmap = bitmap
+            startActivityForResult(Intent(MainActivity@ this, ImageCropActivity::class.java), CROP_REQUEST_CODE)
+        }
+
         if (requestCode == OPEN_CAMERA_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
 //            val imageBitmap = data?.extras?.get("data") as Bitmap
 
@@ -121,7 +137,7 @@ class MainActivity : FlutterActivity() {
 
 
                 val file = ScannerConstants.selectedImageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes)
-                
+
                 ScannerConstants.selectedImageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes)
                 val newImgPath = MediaStore.Images.Media.insertImage(context.contentResolver, ScannerConstants.selectedImageBitmap, UUID.randomUUID().toString(), null)
 

@@ -10,6 +10,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 class UserService {
   static Employee employee;
   static bool isAdmin = false;
+  static bool isTech = false;
   final ApiService apiService = new ApiService();
   final SocketService socketService = new SocketService();
   GoogleSignInAccount currentUser;
@@ -85,6 +86,12 @@ class UserService {
           socketService.initWebSocketConnection();
         } else {
           isAdmin = false;
+        }
+        if (roles.contains("tech")) {
+          isTech = true;
+          socketService.initWebSocketConnection();
+        } else {
+          isTech = false;
         }
         return true;
       }

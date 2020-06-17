@@ -13,6 +13,10 @@ import 'package:atlascrm/screens/employees/EmployeesManagementScreen.dart';
 import 'package:atlascrm/screens/employees/ViewEmployeeScreen.dart';
 import 'package:atlascrm/screens/leads/LeadsScreen.dart';
 import 'package:atlascrm/screens/leads/ViewLeadScreen.dart';
+import 'package:atlascrm/screens/merchants/MerchantsScreen.dart';
+import 'package:atlascrm/screens/merchants/ViewMerchantScreen.dart';
+import 'package:atlascrm/screens/inventory/InventoryScreen.dart';
+import 'package:atlascrm/screens/inventory/ViewInventoryScreen.dart';
 import 'package:atlascrm/screens/tasks/TaskScreen.dart';
 import 'package:atlascrm/screens/tasks/ViewTaskScreen.dart';
 import 'package:atlascrm/screens/agreement/AgreementBuilder.dart';
@@ -28,8 +32,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   Map<PermissionGroup, PermissionStatus> permissions = await PermissionHandler()
-      .requestPermissions(
-          [PermissionGroup.camera, PermissionGroup.storage]);
+      .requestPermissions([PermissionGroup.camera, PermissionGroup.storage]);
 
   cameras = await availableCameras();
 
@@ -126,12 +129,26 @@ class _AtlasCRMState extends State<AtlasCRM> {
           case "/leads":
             return MaterialPageRoute(builder: (context) => LeadsScreen());
             break;
+          case "/merchants":
+            return MaterialPageRoute(builder: (context) => MerchantsScreen());
+            break;
+          case "/inventory":
+            return MaterialPageRoute(builder: (context) => InventoryScreen());
+            break;
           case "/logout":
             handleLogoutRoute();
             return MaterialPageRoute(builder: (context) => AtlasCRM());
             break;
           case '/viewlead':
             return SlideRightRoute(page: ViewLeadScreen(settings.arguments));
+            break;
+          case '/viewmerchant':
+            return SlideRightRoute(
+                page: ViewMerchantScreen(settings.arguments));
+            break;
+          case '/viewinventory':
+            return SlideRightRoute(
+                page: ViewInventoryScreen(settings.arguments));
             break;
           case '/employeemgmt':
             return MaterialPageRoute(

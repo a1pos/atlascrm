@@ -57,7 +57,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
             },
           ),
           ListTile(
-            leading: Icon(Icons.check_box),
+            leading: Icon(Icons.playlist_add_check),
             title: Text('Tasks'),
             onTap: () {
               Navigator.popAndPushNamed(context, "/tasks");
@@ -70,9 +70,25 @@ class _CustomDrawerState extends State<CustomDrawer> {
               Navigator.popAndPushNamed(context, "/leads");
             },
           ),
+          ListTile(
+            leading: Icon(Icons.people),
+            title: Text('Merchants'),
+            onTap: () {
+              Navigator.popAndPushNamed(context, "/merchants");
+            },
+          ),
+          UserService.isTech || UserService.isAdmin
+              ? ListTile(
+                  leading: Icon(Icons.business_center),
+                  title: Text('Inventory'),
+                  onTap: () {
+                    Navigator.popAndPushNamed(context, "/inventory");
+                  },
+                )
+              : Text(""),
           UserService.isAdmin
               ? ListTile(
-                  leading: Icon(Icons.people),
+                  leading: Icon(Icons.account_box),
                   title: Text('Users'),
                   onTap: () {
                     Navigator.popAndPushNamed(context, "/employeemgmt");

@@ -15,25 +15,25 @@ import 'package:image_picker/image_picker.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/components/shared/ImageUploader.dart';
 
-class LeadInfoEntry {
+class MerchantInfoEntry {
   final TextEditingController controller;
   final Key key;
-  LeadInfoEntry(this.controller, this.key);
+  MerchantInfoEntry(this.controller, this.key);
 }
 
-class ViewLeadScreen extends StatefulWidget {
+class ViewMerchantScreen extends StatefulWidget {
   final ApiService apiService = new ApiService();
 
-  final String leadId;
+  final String merchantId;
 
-  ViewLeadScreen(this.leadId);
+  ViewMerchantScreen(this.merchantId);
 
   @override
-  ViewLeadScreenState createState() => ViewLeadScreenState();
+  ViewMerchantScreenState createState() => ViewMerchantScreenState();
 }
 
-class ViewLeadScreenState extends State<ViewLeadScreen> {
-  final _leadFormKey = GlobalKey<FormState>();
+class ViewMerchantScreenState extends State<ViewMerchantScreen> {
+  final _merchantFormKey = GlobalKey<FormState>();
 
   var firstNameController = TextEditingController();
   var lastNameController = TextEditingController();
@@ -43,27 +43,27 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
   var dbaController = TextEditingController();
   var businessAddressController = TextEditingController();
   var notesController = TextEditingController();
-  var leadSourceController = TextEditingController();
+  var merchantSourceController = TextEditingController();
 
-  var leadInfoEntries = List<LeadInfoEntry>();
+  var merchantInfoEntries = List<MerchantInfoEntry>();
 
   Map businessAddress = {"address": "", "city": "", "state": "", "zipcode": ""};
   String addressText;
   bool isChanged = false;
-  var lead;
-  var leadDocument;
+  var merchant;
+  var merchantDocument;
   var isLoading = true;
   var displayPhone;
   void initState() {
     super.initState();
-    loadLeadData(this.widget.leadId);
+    loadMerchantData(this.widget.merchantId);
   }
 
-  Future<void> loadLeadData(leadId) async {
+  Future<void> loadMerchantData(merchantId) async {
     var resp = await this
         .widget
         .apiService
-        .authGet(context, "/lead/" + this.widget.leadId);
+        .authGet(context, "/merchant/" + this.widget.merchantId);
 
     if (resp.statusCode == 200) {
       var body = resp.data;
@@ -71,87 +71,86 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
         var bodyDecoded = body;
 
         setState(() {
-          lead = bodyDecoded;
-          leadDocument = bodyDecoded["document"];
-          firstNameController.text = leadDocument["firstName"];
+          merchant = bodyDecoded;
+          merchantDocument = bodyDecoded["document"];
+          firstNameController.text = merchantDocument["firstName"];
         });
       }
     }
 
-    setState(() {
-      isLoading = false;
-    });
-    if (leadDocument?.isEmpty ?? true) {
-      leadDocument = {
-        "businessName": "",
-        "businessType": "",
+    if (merchantDocument?.isEmpty ?? true) {
+      merchantDocument = {
+        "dbaname": "",
         "firstName": "",
         "lastName": "",
         "emailAddr": "",
         "phoneNumber": "",
-        "dbaName": "",
         "address": "",
         "city": "",
         "state": "",
         "zipCode": "",
       };
     }
-    if (leadDocument["address"] != null && leadDocument["address"] != "") {
-      addressText = leadDocument["address"] +
-          ", " +
-          leadDocument["city"] +
-          ", " +
-          leadDocument["state"] +
-          ", " +
-          leadDocument["zipCode"];
-      businessAddress["address"] = leadDocument["address"];
-      businessAddress["city"] = leadDocument["city"];
-      businessAddress["state"] = leadDocument["state"];
-      businessAddress["zipcode"] = leadDocument["zipCode"];
+    if (merchantDocument["dbaname"]?.isEmpty ?? true) {
+      merchantDocument["dbaname"] = "";
     }
-    if (leadDocument["phoneNumber"] != null ||
-        leadDocument["phoneNumber"] != "") {
+    if (merchantDocument["address"] != null &&
+        merchantDocument["address"] != "") {
+      addressText = merchantDocument["address"] +
+          ", " +
+          merchantDocument["city"] +
+          ", " +
+          merchantDocument["state"] +
+          ", " +
+          merchantDocument["zipCode"];
+      businessAddress["address"] = merchantDocument["address"];
+      businessAddress["city"] = merchantDocument["city"];
+      businessAddress["state"] = merchantDocument["state"];
+      businessAddress["zipcode"] = merchantDocument["zipCode"];
+    }
+    if (merchantDocument["phoneNumber"] != null ||
+        merchantDocument["phoneNumber"] != "") {
       setState(() {
-        phoneNumberController.updateText(leadDocument["phoneNumber"]);
+        phoneNumberController.updateText(merchantDocument["phoneNumber"]);
       });
     }
+    setState(() {
+      isLoading = false;
+    });
   }
 
-  Future<void> updateLead(leadId) async {
+  Future<void> updateMerchant(merchantId) async {
     String rawNumber = phoneNumberController.text;
     var filteredNumber = rawNumber.replaceAll(RegExp("[^0-9]"), "");
-    var leadToUpdate = {
-      "businessName": businessNameController.text,
+    var merchantToUpdate = {
+      "dbaName": dbaController.text,
       "businessType": "",
       "firstName": firstNameController.text,
       "lastName": lastNameController.text,
       "emailAddr": emailAddrController.text,
       "phoneNumber": filteredNumber,
-      "dbaName": dbaController.text,
       "address": businessAddress["address"],
       "city": businessAddress["city"],
       "state": businessAddress["state"],
       "zipCode": businessAddress["zipcode"],
     };
-    var resp = await this
-        .widget
-        .apiService
-        .authPut(context, "/lead/" + this.widget.leadId, leadToUpdate);
+    var resp = await this.widget.apiService.authPut(
+        context, "/merchant/" + this.widget.merchantId, merchantToUpdate);
 
     if (resp.statusCode == 200) {
-      await loadLeadData(this.widget.leadId);
+      await loadMerchantData(this.widget.merchantId);
 
       Fluttertoast.showToast(
-          msg: "Lead Updated!",
+          msg: "Merchant Updated!",
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.grey[600],
           textColor: Colors.white,
           fontSize: 16.0);
-      Navigator.pushNamed(context, '/leads');
+      Navigator.pushNamed(context, '/merchants');
     } else {
       Fluttertoast.showToast(
-          msg: "Failed to udpate lead!",
+          msg: "Failed to udpate merchant!",
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.grey[600],
@@ -160,32 +159,32 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
     }
   }
 
-  Future<void> deleteCheck(leadId) async {
+  Future<void> deleteCheck(merchantId) async {
     return showDialog<void>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Delete this Lead?'),
+          title: Text('Delete this merchant?'),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text('Are you sure you want to delete this lead?'),
+                Text('Are you sure you want to delete this merchant?'),
               ],
             ),
           ),
           actions: <Widget>[
             FlatButton(
-              child: Text('Cancel', style: TextStyle(fontSize: 17)),
+              child: Text('Delete',
+                  style: TextStyle(fontSize: 17, color: Colors.red)),
               onPressed: () {
+                deleteMerchant(merchantId);
+
                 Navigator.of(context).pop();
               },
             ),
             FlatButton(
-              child: Text('Delete',
-                  style: TextStyle(fontSize: 17, color: Colors.red)),
+              child: Text('Cancel', style: TextStyle(fontSize: 17)),
               onPressed: () {
-                deleteLead(leadId);
-
                 Navigator.of(context).pop();
               },
             ),
@@ -195,14 +194,14 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
     );
   }
 
-  Future<void> deleteLead(leadId) async {
+  Future<void> deleteMerchant(merchantId) async {
     var resp = await this
         .widget
         .apiService
-        .authDelete(context, "/lead/" + this.widget.leadId, null);
+        .authDelete(context, "/merchant/" + this.widget.merchantId, null);
 
     if (resp.statusCode == 200) {
-      Navigator.popAndPushNamed(context, "/leads");
+      Navigator.popAndPushNamed(context, "/merchants");
 
       Fluttertoast.showToast(
           msg: "Successful delete!",
@@ -213,7 +212,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
           fontSize: 16.0);
     } else {
       Fluttertoast.showToast(
-          msg: "Failed to delete lead!",
+          msg: "Failed to delete merchant!",
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.grey[600],
@@ -233,13 +232,13 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
       child: Scaffold(
         appBar: AppBar(
           key: Key("viewTasksAppBar"),
-          title: Text(isLoading ? "Loading..." : leadDocument["businessName"]),
+          title: Text(isLoading ? "Loading..." : merchantDocument["dbaname"]),
           actions: <Widget>[
             Padding(
               padding: const EdgeInsets.fromLTRB(5, 8, 10, 8),
               child: IconButton(
                 onPressed: () {
-                  deleteCheck(this.widget.leadId);
+                  deleteCheck(this.widget.merchantId);
                 },
                 icon: Icon(Icons.delete, color: Colors.white),
               ),
@@ -253,12 +252,12 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                 padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
                 child: SingleChildScrollView(
                   child: Form(
-                    key: _leadFormKey,
+                    key: _merchantFormKey,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: <Widget>[
                         CustomCard(
-                          key: Key("leads2"),
+                          key: Key("merchants2"),
                           icon: Icons.business,
                           title: "Business Information",
                           child: Column(
@@ -266,7 +265,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                             children: <Widget>[
                               validatorRow(
                                   "Business Name",
-                                  leadDocument["businessName"],
+                                  merchantDocument["dbaname"],
                                   businessNameController, (val) {
                                 if (val.isEmpty) {
                                   return 'Please enter a business name';
@@ -274,7 +273,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                                 return null;
                               }),
                               getInfoRow("Doing Business As",
-                                  leadDocument["dbaName"], dbaController),
+                                  merchantDocument["dbaname"], dbaController),
                               Container(
                                   child: Padding(
                                       padding: EdgeInsets.all(15),
@@ -299,14 +298,14 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                           ),
                         ),
                         CustomCard(
-                          key: Key("leads1"),
+                          key: Key("merchants1"),
                           icon: Icons.person,
                           title: "Contact Information",
                           child: Column(
                             children: <Widget>[
                               validatorRow(
                                   "First Name",
-                                  leadDocument["firstName"],
+                                  merchantDocument["firstName"],
                                   firstNameController, (val) {
                                 if (val.isEmpty) {
                                   return 'Please enter a contact first name';
@@ -315,7 +314,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                               }),
                               validatorRow(
                                   "Last Name",
-                                  leadDocument["lastName"],
+                                  merchantDocument["lastName"],
                                   lastNameController, (val) {
                                 if (val.isEmpty) {
                                   return 'Please enter a contact last name';
@@ -324,7 +323,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                               }),
                               validatorRow(
                                   "Email Address",
-                                  leadDocument["emailAddr"],
+                                  merchantDocument["emailAddr"],
                                   emailAddrController, (value) {
                                 if (value.isNotEmpty && !value.contains('@')) {
                                   return 'Please enter a valid email';
@@ -426,63 +425,20 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                           ),
                         ),
                         CustomCard(
-                          key: Key("leads3"),
-                          icon: Icons.question_answer,
-                          title: "Misc Information",
+                          key: Key("merchants3"),
+                          icon: Icons.devices,
+                          title: "Devices",
                           child: Column(
-                            children: <Widget>[
-                              getInfoRow(
-                                  "Lead Source",
-                                  leadDocument["leadSource"],
-                                  leadSourceController),
-                            ],
+                            children: <Widget>[Text("something")],
                           ),
                         ),
-                        CustomCard(
-                            key: Key("leads4"),
-                            title: "Notes",
-                            icon: Icons.note,
-                            child: Notes(type: "lead", object: lead["lead"])),
-                        CustomCard(
-                          key: Key("leads5"),
-                          title: "Tools",
-                          icon: Icons.build,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: <Widget>[
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                                child: MaterialButton(
-                                  padding: EdgeInsets.all(5),
-                                  // color: Color.fromARGB(500, 1, 224, 143),
-                                  color: Colors.grey[300],
-                                  onPressed: () {
-                                    return null;
-                                    // Navigator.pushNamed(
-                                    //     context, "/agreementbuilder",
-                                    //     arguments: lead["lead"]);
-                                  },
-                                  child: Row(
-                                    children: <Widget>[
-                                      Icon(
-                                        Icons.extension,
-                                        color: Colors.white,
-                                      ),
-                                      Text(
-                                        'Agreement Builder',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        ImageUploader(
-                            type: "statement", objectId: lead["lead"]),
+                        // // CustomCard(
+                        // //     key: Key("merchants4"),
+                        // //     title: "Notes",
+                        // //     icon: Icons.note,
+                        // //     child: Notes(
+                        // //         type: "merchant",
+                        // //         object: merchant["merchant"])),
                       ],
                     ),
                   ),
@@ -490,8 +446,8 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
               ),
         floatingActionButton: FloatingActionButton(
           onPressed: () async {
-            if (_leadFormKey.currentState.validate()) {
-              updateLead(this.widget.leadId);
+            if (_merchantFormKey.currentState.validate()) {
+              updateMerchant(this.widget.merchantId);
             }
           },
           backgroundColor: Color.fromARGB(500, 1, 224, 143),
@@ -538,7 +494,9 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
 
   Widget validatorRow(label, value, controller, validator) {
     if (value != null) {
-      controller.text = value;
+      setState(() {
+        controller.text = value;
+      });
     }
 
     var valueFmt = value ?? "N/A";
