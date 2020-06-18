@@ -1,15 +1,12 @@
 import 'dart:developer';
-import 'dart:convert';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:atlascrm/components/shared/AddressSearch.dart';
 import 'package:flutter/foundation.dart';
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
-import 'package:atlascrm/components/shared/PlacesSuggestions.dart';
 import 'package:barcode_scan/barcode_scan.dart';
 import 'package:atlascrm/components/inventory/InventoryLocationDropDown.dart';
 import 'package:atlascrm/components/inventory/InventoryPriceTierDropDown.dart';
@@ -96,14 +93,13 @@ class InventoryAddState extends State<InventoryAdd> {
             fontSize: 16.0);
       }
     }
-
-    Fluttertoast.showToast(
-        msg: "Added $input",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-        backgroundColor: Colors.grey[600],
-        textColor: Colors.white,
-        fontSize: 16.0);
+    // Fluttertoast.showToast(
+    //     msg: "Added $input",
+    //     toastLength: Toast.LENGTH_SHORT,
+    //     gravity: ToastGravity.BOTTOM,
+    //     backgroundColor: Colors.grey[600],
+    //     textColor: Colors.white,
+    //     fontSize: 16.0);
   }
 
   Future<void> scanBarcode() async {
@@ -242,7 +238,7 @@ class InventoryAddState extends State<InventoryAdd> {
           }
           return GestureDetector(
               onTap: () {},
-              child: added
+              child: isAdded != null
                   ? Card(
                       shape: isAdded
                           ? new RoundedRectangleBorder(
@@ -303,16 +299,33 @@ class InventoryAddState extends State<InventoryAdd> {
                   key: this._stepperKey,
                   onStepTapped: (int step) {
                     // if (validationPassed()) {
-                    setState(() {
-                      _currentStep = step;
-                    });
+                    if (priceTierController.text == "" ||
+                        locationController.text == "") {
+                      print("FILL IN FIELDS");
+                      setState(() {
+                        _currentStep = step;
+                      });
+                    }
                     // }
                   },
                   onStepContinue: () {
                     // if (_formKeys[_currentStep].currentState.validate()) {
-                    setState(() {
-                      _currentStep < stepsLength - 1 ? _currentStep += 1 : null;
-                    });
+                    if (priceTierController.text != "" &&
+                        locationController.text != "") {
+                      setState(() {
+                        _currentStep < stepsLength - 1
+                            ? _currentStep += 1
+                            : null;
+                      });
+                    } else {
+                      Fluttertoast.showToast(
+                          msg: "Please Select Tier and Location!",
+                          toastLength: Toast.LENGTH_SHORT,
+                          gravity: ToastGravity.BOTTOM,
+                          backgroundColor: Colors.grey[600],
+                          textColor: Colors.white,
+                          fontSize: 16.0);
+                    }
                     // }
                   },
                   onStepCancel: () {
@@ -439,9 +452,9 @@ class InventoryAddState extends State<InventoryAdd> {
                                   //         .currentState
                                   //         .validate()
                                   ) {
-                                setState(() {
-                                  isSaveDisabled = true;
-                                });
+                                // setState(() {
+                                //   isSaveDisabled = true;
+                                // });
                                 addDevice();
                               } else {
                                 // if (isAddress) {
@@ -518,259 +531,3 @@ class InventoryAddState extends State<InventoryAdd> {
     return null;
   }
 }
-
-// import 'dart:developer';
-// import 'dart:convert';
-// import 'package:atlascrm/services/ApiService.dart';
-// import 'package:atlascrm/services/UserService.dart';
-// import 'package:flutter/material.dart';
-// import 'package:fluttertoast/fluttertoast.dart';
-// import 'package:flutter/foundation.dart';
-// import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
-// import 'package:atlascrm/components/inventory/InventoryLocationDropDown.dart';
-// import 'package:atlascrm/components/inventory/InventoryPriceTierDropDown.dart';
-// import 'package:flutter_masked_text/flutter_masked_text.dart';
-// import 'package:barcode_scan/barcode_scan.dart';
-// import 'package:searchable_dropdown/searchable_dropdown.dart';
-
-// class InventoryAdd extends StatefulWidget {
-//   final Function successCallback;
-//   final ApiService apiService = new ApiService();
-//   InventoryAdd({this.successCallback});
-
-//   @override
-//   InventoryAddState createState() => InventoryAddState();
-// }
-
-// class InventoryAddState extends State<InventoryAdd> {
-//   final _inventoryFormKey = GlobalKey<FormState>();
-
-//   bool isSaveDisabled;
-//   bool isAddress = false;
-//   bool isLoading = true;
-//   var leads;
-
-//   final UserService userService = UserService();
-//   final ApiService apiService = ApiService();
-
-//   var serialNumberController = TextEditingController();
-//   var priceTierController = TextEditingController();
-//   var locationController = TextEditingController();
-
-//   // var phoneNumberController = MaskedTextController(mask: '000-000-0000');
-
-//   var locationValue;
-//   @override
-//   void initState() {
-//     super.initState();
-//     isSaveDisabled = false;
-//     isLoading = false;
-//   }
-
-//   Future<void> scanBarcode() async {
-//     try {
-//       var result = await BarcodeScanner.scan();
-//       print(result.rawContent);
-//       setState(() {
-//         serialNumberController.text = result.rawContent.toString();
-//       });
-//     } catch (err) {
-//       log(err);
-//     }
-//   }
-
-//   Future<void> initPriceTier() async {
-//     try {} catch (err) {
-//       log(err);
-//     }
-//   }
-
-//   Future<void> initLocations() async {
-//     try {} catch (err) {
-//       log(err);
-//     }
-//   }
-
-//   Future<void> addDevice() async {
-//     try {
-//       var data = {
-//         "serial": serialNumberController.text,
-//         "inventory_price_tier": priceTierController.text,
-//         "inventory_location": locationController.text
-//       };
-
-//       var resp1 = await this.widget.apiService.authPost(
-//           context, "/inventory/${UserService.employee.employee}", data);
-//       if (resp1 != null) {
-//         if (resp1.statusCode == 200) {
-//           Fluttertoast.showToast(
-//               msg: "Device Added!",
-//               toastLength: Toast.LENGTH_SHORT,
-//               gravity: ToastGravity.BOTTOM,
-//               backgroundColor: Colors.grey[600],
-//               textColor: Colors.white,
-//               fontSize: 16.0);
-//         } else {
-//           Fluttertoast.showToast(
-//               msg: "Failed to add device!",
-//               toastLength: Toast.LENGTH_SHORT,
-//               gravity: ToastGravity.BOTTOM,
-//               backgroundColor: Colors.grey[600],
-//               textColor: Colors.white,
-//               fontSize: 16.0);
-//         }
-//       } else {
-//         return null;
-//       }
-//     } catch (err) {
-//       log(err);
-//     }
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return isLoading
-//         ? CenteredLoadingSpinner()
-//         : Form(
-//             key: _inventoryFormKey,
-//             child: SingleChildScrollView(
-//               child: Column(
-//                 mainAxisAlignment: MainAxisAlignment.start,
-//                 children: <Widget>[
-//                   Container(
-//                     width: MediaQuery.of(context).size.width,
-//                     height: MediaQuery.of(context).size.height,
-//                     child: SingleChildScrollView(
-//                       child: Stack(
-//                         children: <Widget>[
-//                           Column(
-//                             mainAxisAlignment: MainAxisAlignment.start,
-//                             children: <Widget>[
-//                               Divider(
-//                                 color: Colors.white,
-//                               ),
-//                               Row(
-//                                 children: <Widget>[
-//                                   Expanded(
-//                                       flex: 8,
-//                                       child: getInfoRow(
-//                                           "Serial Number",
-//                                           serialNumberController.text,
-//                                           serialNumberController)),
-//                                   Expanded(
-//                                     flex: 2,
-//                                     child: Padding(
-//                                       padding: const EdgeInsets.fromLTRB(
-//                                           15, 13, 0, 0),
-//                                       child: IconButton(
-//                                         icon: Icon(Icons.center_focus_weak),
-//                                         color: Color.fromARGB(500, 1, 224, 143),
-//                                         onPressed: scanBarcode,
-//                                       ),
-//                                     ),
-//                                   ),
-//                                 ],
-//                               ),
-//                               Padding(
-//                                 padding: const EdgeInsets.all(8.0),
-//                                 child: InventoryPriceTierDropDown(
-//                                     callback: (newValue) {
-//                                   setState(() {
-//                                     priceTierController.text = newValue;
-//                                   });
-//                                 }),
-//                               ),
-//                               Padding(
-//                                 padding: const EdgeInsets.all(8.0),
-//                                 child: InventoryLocationDropDown(
-//                                     callback: (newValue) {
-//                                   setState(() {
-//                                     locationController.text = newValue;
-//                                   });
-//                                 }),
-//                               ),
-//                               Padding(
-//                                 padding:
-//                                     const EdgeInsets.fromLTRB(60, 8, 60, 8),
-//                                 child: MaterialButton(
-//                                   padding: EdgeInsets.all(8),
-//                                   color: Color.fromARGB(500, 1, 224, 143),
-//                                   // color: Colors.grey[300],
-//                                   onPressed: () {
-//                                     addDevice();
-//                                     Navigator.popAndPushNamed(
-//                                         context, "/inventory");
-//                                   },
-//                                   child: Row(
-//                                     children: <Widget>[
-//                                       Icon(
-//                                         Icons.add,
-//                                         color: Colors.white,
-//                                       ),
-//                                       Text(
-//                                         'Add Device',
-//                                         style: TextStyle(
-//                                           color: Colors.white,
-//                                         ),
-//                                       ),
-//                                     ],
-//                                   ),
-//                                 ),
-//                               ),
-//                               Divider(
-//                                 color: Colors.white,
-//                               ),
-//                             ],
-//                           ),
-//                         ],
-//                       ),
-//                     ),
-//                   ),
-//                 ],
-//               ),
-//             ),
-//           );
-//   }
-
-//   Widget getInfoRow(label, value, controller) {
-//     if (value != null) {
-//       controller.text = value;
-//     }
-
-//     var valueFmt = value ?? "N/A";
-
-//     if (valueFmt == "") {
-//       valueFmt = "N/A";
-//     }
-
-//     return Container(
-//       child: Padding(
-//         padding: EdgeInsets.all(15),
-//         child: Row(
-//           children: <Widget>[
-//             Expanded(
-//               flex: 4,
-//               child: Text(
-//                 '$label: ',
-//                 style: TextStyle(fontSize: 16),
-//               ),
-//             ),
-//             Expanded(
-//               flex: 8,
-//               child: TextField(
-//                 controller: controller,
-//               ),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-
-//   String validate(value) {
-//     if (value.isEmpty) {
-//       return 'Please enter some text';
-//     }
-//     return null;
-//   }
-// }

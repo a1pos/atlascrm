@@ -2,9 +2,8 @@ import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
 import 'package:searchable_dropdown/searchable_dropdown.dart';
 
-class InventoryPriceTierDropDown extends StatefulWidget {
-  InventoryPriceTierDropDown(
-      {this.employeeId, this.callback, this.value, this.disabled});
+class MerchantDropDown extends StatefulWidget {
+  MerchantDropDown({this.employeeId, this.callback, this.value, this.disabled});
 
   final String employeeId;
   final String value;
@@ -12,21 +11,19 @@ class InventoryPriceTierDropDown extends StatefulWidget {
   final bool disabled;
 
   @override
-  _InventoryPriceTierDropDownState createState() =>
-      _InventoryPriceTierDropDownState();
+  _MerchantDropDownState createState() => _MerchantDropDownState();
 }
 
-class _InventoryPriceTierDropDownState
-    extends State<InventoryPriceTierDropDown> {
+class _MerchantDropDownState extends State<MerchantDropDown> {
   final ApiService apiService = ApiService();
-  var locations = [];
+  var merchants = [];
   var disabled;
 
   @override
   void initState() {
     super.initState();
 
-    initPriceTiers();
+    initMerchants(this.widget.employeeId);
     if (this.widget.disabled != null) {
       setState(() {
         disabled = this.widget.disabled;
@@ -38,21 +35,21 @@ class _InventoryPriceTierDropDownState
 
   var startVal;
 
-  Future<void> initPriceTiers() async {
-    var locationsResp = await apiService.authGet(context, "/inventory/tier");
-    if (locationsResp != null) {
-      if (locationsResp.statusCode == 200) {
-        var locationsArrDecoded = locationsResp.data;
-        if (locationsArrDecoded != null) {
+  Future<void> initMerchants(e) async {
+    var merchantsResp = await apiService.authGet(context, "/merchant");
+    if (merchantsResp != null) {
+      if (merchantsResp.statusCode == 200) {
+        var merchantsArrDecoded = merchantsResp.data["data"];
+        if (merchantsArrDecoded != null) {
           if (this.mounted) {
             setState(() {
-              locations = locationsArrDecoded;
+              merchants = merchantsArrDecoded;
             });
           }
         }
-        for (var location in locations) {
-          if (this.widget.value == location["inventory_price_tier"]) {
-            startVal = location["model"];
+        for (var merchant in merchants) {
+          if (this.widget.value == merchant["merchant"]) {
+            startVal = merchant["document"]["dbaName"];
           }
         }
       }
@@ -61,11 +58,12 @@ class _InventoryPriceTierDropDownState
 
   @override
   Widget build(BuildContext context) {
+    initMerchants(this.widget.employeeId);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Text(
-          'Price Tier',
+          'Merchant',
           style: TextStyle(
             color: Colors.grey,
             fontSize: 13,
@@ -76,24 +74,24 @@ class _InventoryPriceTierDropDownState
           value: startVal,
           onClear: () {
             setState(() {
-              this.widget.callback("");
+              this.widget.callback(null);
             });
           },
           hint: "Please choose one",
           searchHint: null,
           isExpanded: true,
           // menuConstraints: BoxConstraints.tight(Size.fromHeight(350)),
-          items: locations.map<DropdownMenuItem<String>>((dynamic item) {
-            var businessName;
-            if (item["model"]?.isEmpty ?? true) {
-              businessName = "";
+          items: merchants.map<DropdownMenuItem<String>>((dynamic item) {
+            var merchantName = "test";
+            if (item["document"]?.isEmpty ?? true) {
+              merchantName = "";
             } else {
-              businessName = item["model"];
+              merchantName = item["document"]["dbaName"];
             }
             return DropdownMenuItem<String>(
-              value: businessName,
+              value: merchantName,
               child: Text(
-                businessName,
+                merchantName,
               ),
             );
           }).toList(),
@@ -103,9 +101,9 @@ class _InventoryPriceTierDropDownState
               : (newValue) {
                   setState(() {
                     var setVal;
-                    for (var location in locations) {
-                      if (newValue == location["model"]) {
-                        setVal = location["inventory_price_tier"];
+                    for (var merchant in merchants) {
+                      if (newValue == merchant["document"]["dbaName"]) {
+                        setVal = merchant["merchant"];
                       }
                     }
                     startVal = newValue;
@@ -118,17 +116,17 @@ class _InventoryPriceTierDropDownState
         //   isExpanded: true,
         //   value: this.widget.value,
         //   hint: Text("Please choose one"),
-        //   items: leads.map((dynamic item) {
-        //     var businessName;
+        //   items: merchants.map((dynamic item) {
+        //     var merchantname;
         //     if (item["document"]?.isEmpty ?? true) {
-        //       businessName = "";
+        //       merchantname = "";
         //     } else {
-        //       businessName = item["document"]["businessName"];
+        //       merchantname = item["document"]["dbaname"];
         //     }
         //     return DropdownMenuItem<String>(
-        //       value: item["lead"],
+        //       value: item["merchant"],
         //       child: Text(
-        //         businessName,
+        //         merchantname,
         //       ),
         //     );
         //   }).toList(),

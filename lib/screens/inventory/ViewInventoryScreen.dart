@@ -1,15 +1,12 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
-import 'package:intl/intl.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:flutter_masked_text/flutter_masked_text.dart';
 import 'package:atlascrm/services/UserService.dart';
-import 'package:atlascrm/components/shared/ImageUploader.dart';
+import 'package:unicorndial/unicorndial.dart';
+import 'package:atlascrm/components/shared/MerchantDropdown.dart';
 
 class LeadInfoEntry {
   final TextEditingController controller;
@@ -33,8 +30,10 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
 
   var serialNumberController = TextEditingController();
   var priceTierController = TextEditingController();
+  var merchantController = TextEditingController();
 
   var leadInfoEntries = List<LeadInfoEntry>();
+  var deviceIcon;
 
   String addressText;
   bool isChanged = false;
@@ -42,9 +41,72 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
   var inventoryDocument;
   var isLoading = true;
   var displayPhone;
+  var deviceStatus;
   void initState() {
     super.initState();
     loadInventoryData();
+  }
+
+  var childButtons = List<UnicornButton>();
+  Future<void> initStatus() async {
+    if (inventory["is_installed"] == true) {
+      deviceStatus = "Installed";
+      deviceIcon = Icons.done;
+      childButtons.add(UnicornButton(
+          hasLabel: true,
+          labelText: "Return",
+          currentButton: FloatingActionButton(
+              heroTag: "return",
+              backgroundColor: Colors.redAccent,
+              mini: true,
+              child: Icon(Icons.replay),
+              onPressed: () {
+                updateDevice("return");
+              })));
+    }
+    if (inventory["merchant"] != null && inventory["is_installed"] != true) {
+      deviceStatus = "Awaiting Install";
+      deviceIcon = Icons.directions_car;
+      childButtons.add(UnicornButton(
+          hasLabel: true,
+          labelText: "Install",
+          currentButton: FloatingActionButton(
+              heroTag: "install",
+              backgroundColor: Colors.greenAccent,
+              mini: true,
+              child: Icon(Icons.build),
+              onPressed: () {
+                updateDevice("install");
+              })));
+
+      childButtons.add(UnicornButton(
+          hasLabel: true,
+          labelText: "Return",
+          currentButton: FloatingActionButton(
+              heroTag: "return2",
+              backgroundColor: Colors.redAccent,
+              mini: true,
+              child: Icon(Icons.replay),
+              onPressed: () {
+                updateDevice("return");
+              })));
+    }
+    if (inventory["merchant"] == null && inventory["employee"] == null) {
+      deviceStatus = "In Warehouse";
+      deviceIcon = Icons.business;
+      childButtons.add(UnicornButton(
+          hasLabel: true,
+          labelText: "Checkout",
+          currentButton: FloatingActionButton(
+            heroTag: "checkout",
+            backgroundColor: Colors.blueAccent,
+            mini: true,
+            child: Icon(Icons.devices),
+            onPressed: () {
+              checkout();
+            },
+          )));
+    }
   }
 
   Future<void> loadInventoryData() async {
@@ -60,30 +122,48 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
 
         setState(() {
           inventory = bodyDecoded;
+          merchantController.text = inventory["merchantname"];
           isLoading = false;
         });
       }
     }
+    initStatus();
   }
 
-  Future<void> updateLead(leadId) async {
-    var deviceToUpdate = {};
+  Future<void> updateDevice(type) async {
+    var data;
+    var alert;
+    if (type == "checkout") {
+      data = {
+        "employee": UserService.employee.employee,
+        "merchant": merchantController.text
+      };
+      alert = "Device checked out!";
+    }
+    if (type == "return") {
+      data = {"merchant": null, "employee": null};
+      alert = "Device returned!";
+    }
+    if (type == "install") {
+      data = {"is_installed": true};
+      alert = "Device installed!";
+    }
     var resp = await this
         .widget
         .apiService
-        .authPut(context, "/device/" + this.widget.deviceId, deviceToUpdate);
+        .authPut(context, "/inventory/" + this.widget.deviceId, data);
 
     if (resp.statusCode == 200) {
       await loadInventoryData();
 
       Fluttertoast.showToast(
-          msg: "Lead Updated!",
+          msg: alert,
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.grey[600],
           textColor: Colors.white,
           fontSize: 16.0);
-      Navigator.pushNamed(context, '/leads');
+      Navigator.pushNamed(context, '/inventory');
     } else {
       Fluttertoast.showToast(
           msg: "Failed to udpate lead!",
@@ -93,6 +173,48 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
           textColor: Colors.white,
           fontSize: 16.0);
     }
+  }
+
+  Future<void> checkout() async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Checkout'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 30),
+                  child: Text('Checkout this Device'),
+                ),
+                MerchantDropDown(callback: (newValue) {
+                  setState(() {
+                    merchantController.text = newValue;
+                  });
+                })
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            // FlatButton(
+            //   child: Text('Cancel', style: TextStyle(fontSize: 17)),
+            //   onPressed: () {
+            //     Navigator.of(context).pop();
+            //   },
+            // ),
+            FlatButton(
+              child: Text('Checkout',
+                  style: TextStyle(fontSize: 17, color: Colors.green)),
+              onPressed: () {
+                updateDevice("checkout");
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> deleteCheck(leadId) async {
@@ -170,15 +292,15 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
           key: Key("viewTasksAppBar"),
           title: Text(isLoading ? "Loading..." : inventory["serial"]),
           actions: <Widget>[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(5, 8, 10, 8),
-              child: IconButton(
-                onPressed: () {
-                  deleteCheck(this.widget.deviceId);
-                },
-                icon: Icon(Icons.delete, color: Colors.white),
-              ),
-            )
+            // Padding(
+            //   padding: const EdgeInsets.fromLTRB(5, 8, 10, 8),
+            //   child: IconButton(
+            //     onPressed: () {
+            //       deleteCheck(this.widget.deviceId);
+            //     },
+            //     icon: Icon(Icons.delete, color: Colors.white),
+            //   ),
+            // )
           ],
           backgroundColor: Color.fromARGB(500, 1, 56, 112),
         ),
@@ -202,10 +324,34 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
                               showInfoRow("Serial Number", inventory["serial"]),
                               showInfoRow(
                                   "Location", inventory["locationname"]),
-                              showInfoRow("Current Merchant",
-                                  inventory["merchantname"]),
+                              showInfoRow(
+                                  "Current Merchant", merchantController.text),
                               showInfoRow(
                                   "Current Employee", inventory["owner"]),
+                              Divider(),
+                              Row(
+                                children: <Widget>[
+                                  Padding(
+                                    padding:
+                                        const EdgeInsets.fromLTRB(17, 0, 0, 0),
+                                    child: Text("Status:",
+                                        style: TextStyle(fontSize: 16)),
+                                  ),
+                                  Expanded(
+                                      child: Padding(
+                                    padding:
+                                        const EdgeInsets.fromLTRB(10, 8, 0, 8),
+                                    child: Text(deviceStatus,
+                                        style: TextStyle(fontSize: 15)),
+                                  )),
+                                  Expanded(
+                                      child: Padding(
+                                    padding:
+                                        const EdgeInsets.fromLTRB(70, 0, 0, 0),
+                                    child: Icon(deviceIcon),
+                                  )),
+                                ],
+                              ),
 
                               // getInfoRow("Device Model",
                               //     deviceDocument["model"], priceTierController),
@@ -217,15 +363,23 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
                   ),
                 ),
               ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () async {
-            if (_leadFormKey.currentState.validate()) {
-              updateLead(this.widget.deviceId);
-            }
-          },
-          backgroundColor: Color.fromARGB(500, 1, 224, 143),
-          child: Icon(Icons.save),
-        ),
+
+        floatingActionButton: UnicornDialer(
+            backgroundColor: Color.fromRGBO(255, 255, 255, 0.0),
+            parentButtonBackground: Color.fromARGB(500, 1, 224, 143),
+            orientation: UnicornOrientation.VERTICAL,
+            parentButton: Icon(Icons.menu),
+            childButtons: childButtons),
+
+        // floatingActionButton: FloatingActionButton(
+        //   onPressed: () async {
+        //     if (_leadFormKey.currentState.validate()) {
+        //       updateDevice(this.widget.deviceId);
+        //     }
+        //   },
+        //   backgroundColor: Color.fromARGB(500, 1, 224, 143),
+        //   child: Icon(Icons.save),
+        // ),
       ),
     );
   }

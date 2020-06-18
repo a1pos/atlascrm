@@ -1,19 +1,12 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
-import 'package:intl/intl.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/components/shared/AddressSearch.dart';
-import 'package:atlascrm/components/shared/Notes.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:atlascrm/services/UserService.dart';
-import 'package:atlascrm/components/shared/ImageUploader.dart';
 
 class MerchantInfoEntry {
   final TextEditingController controller;
@@ -25,7 +18,6 @@ class ViewMerchantScreen extends StatefulWidget {
   final ApiService apiService = new ApiService();
 
   final String merchantId;
-
   ViewMerchantScreen(this.merchantId);
 
   @override
@@ -54,6 +46,8 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
   var merchantDocument;
   var isLoading = true;
   var displayPhone;
+  var devices;
+
   void initState() {
     super.initState();
     loadMerchantData(this.widget.merchantId);
@@ -114,6 +108,22 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
         phoneNumberController.updateText(merchantDocument["phoneNumber"]);
       });
     }
+    var resp2 = await this
+        .widget
+        .apiService
+        .authGet(context, "/inventory/merchant/" + this.widget.merchantId);
+
+    if (resp2.statusCode == 200) {
+      var body = resp2.data;
+      if (body != null) {
+        var bodyDecoded = body;
+
+        setState(() {
+          devices = bodyDecoded;
+        });
+      }
+    }
+
     setState(() {
       isLoading = false;
     });
@@ -219,6 +229,36 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
           textColor: Colors.white,
           fontSize: 16.0);
     }
+  }
+
+  Widget buildList() {
+    return ListView(
+        shrinkWrap: true,
+        children: List.generate(devices.length, (index) {
+          var device = devices[index];
+          var deviceIcon;
+
+          if (device["is_installed"] == true) {
+            deviceIcon = Icons.done;
+          }
+          if (device["merchant"] != null && device["is_installed"] != true) {
+            deviceIcon = Icons.directions_car;
+          }
+          if (device["merchant"] == null && device["employee"] == null) {
+            deviceIcon = Icons.business;
+          }
+
+          return GestureDetector(
+              onTap: () {
+                Navigator.pushNamed(context, "/viewinventory",
+                    arguments: device["inventory"]);
+              },
+              child: Card(
+                  child: ListTile(
+                      title: Text(device["model"]),
+                      subtitle: Text(device["serial"]),
+                      trailing: Icon(deviceIcon))));
+        }));
   }
 
   @override
@@ -429,7 +469,7 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                           icon: Icons.devices,
                           title: "Devices",
                           child: Column(
-                            children: <Widget>[Text("something")],
+                            children: <Widget>[buildList()],
                           ),
                         ),
                         // // CustomCard(

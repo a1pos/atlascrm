@@ -5,8 +5,9 @@ class EmployeeDropDown extends StatefulWidget {
   final String employeeId;
   final String value;
   final Function callback;
+  final String role;
 
-  EmployeeDropDown({this.employeeId, this.callback, this.value});
+  EmployeeDropDown({this.employeeId, this.callback, this.value, this.role});
 
   @override
   _EmployeeDropDownState createState() => _EmployeeDropDownState();
@@ -30,9 +31,19 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
       if (employeeResp.statusCode == 200) {
         var employeeArrDecoded = employeeResp.data;
         if (employeeArrDecoded != null) {
-          setState(() {
-            employees = employeeArrDecoded;
-          });
+          for (var employee in employeeArrDecoded) {
+            if (this.widget.role != null) {
+              if (employee["document"]["roles"].contains(this.widget.role)) {
+                setState(() {
+                  employees.add(employee);
+                });
+              }
+            } else {
+              setState(() {
+                employees = employeeArrDecoded;
+              });
+            }
+          }
         }
       }
     }

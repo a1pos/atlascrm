@@ -1,19 +1,15 @@
 import 'dart:developer';
-
 import 'package:intl/intl.dart';
-
-import '';
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
-import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CustomDrawer.dart';
 import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
-import 'package:atlascrm/models/Lead.dart';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:flutter/material.dart';
+import 'package:barcode_scan/barcode_scan.dart';
 
 import 'InventoryAdd.dart';
 
@@ -49,9 +45,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
   @override
   void initState() {
     super.initState();
-    if (UserService.isAdmin) {
-      initEmployeeData();
-    }
+
+    initEmployeeData();
+
     initInventoryData();
 
     _scrollController.addListener(() {
@@ -70,9 +66,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
   Future<void> initInventoryData() async {
     try {
-      var endpoint = UserService.isAdmin || UserService.isTech
-          ? "/inventory?page=$pageNum&size=10&$sortQuery"
-          : "/employee/${UserService.employee.employee}/inventory?page=$pageNum&size=10&$sortQuery";
+      var endpoint = "/inventory?page=$pageNum&size=10&$sortQuery";
       var resp = await this.widget.apiService.authGet(context, endpoint);
       if (resp != null) {
         if (resp.statusCode == 200) {
@@ -112,26 +106,19 @@ class _InventoryScreenState extends State<InventoryScreen> {
   Future<void> onScroll() async {
     try {
       var endpoint;
-      if (UserService.isAdmin) {
-        endpoint = "/inventory?page=$pageNum&size=10&$sortQuery";
-        if (isSearching) {
-          endpoint =
-              "/inventory?searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
-        }
-        if (isFiltering) {
-          endpoint =
-              "/employee/$filterEmployee/inventory?page=$pageNum&size=10&$sortQuery";
-        }
-        if (isSearching && isFiltering) {
-          endpoint =
-              "/employee/$filterEmployee/inventory?searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
-        }
-      } else if (isSearching) {
+
+      endpoint = "/inventory?page=$pageNum&size=10&$sortQuery";
+      if (isSearching) {
         endpoint =
-            "/employee/${UserService.employee.employee}/inventory?searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
-      } else {
+            "/inventory?searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
+      }
+      if (isFiltering) {
         endpoint =
-            "/employee/${UserService.employee.employee}/inventory?page=$pageNum&size=10&$sortQuery";
+            "/inventory?searchEmployee=$filterEmployee&page=$pageNum&size=10&$sortQuery";
+      }
+      if (isSearching && isFiltering) {
+        endpoint =
+            "/inventory?searchEmployee=$filterEmployee&searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
       }
 
       var resp = await this.widget.apiService.authGet(context, endpoint);
@@ -165,6 +152,27 @@ class _InventoryScreenState extends State<InventoryScreen> {
       setState(() {
         isLoading = false;
       });
+    } catch (err) {
+      log(err);
+    }
+  }
+
+  Future<void> scanBarcode() async {
+    try {
+      // await platform.invokeMethod("barcode");
+      var options = ScanOptions(strings: {
+        "cancel": "done",
+        "flash_on": "flash on",
+        "flash_off": "flash off",
+      });
+      var result = await BarcodeScanner.scan(options: options);
+
+      print(result.rawContent);
+
+      if (result.type != ResultType.Cancelled) {
+        searchInventory(result.rawContent.toString());
+        _searchController.text = result.rawContent.toString();
+      }
     } catch (err) {
       log(err);
     }
@@ -253,7 +261,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
     );
   }
 
-  void openLead(inventory) {
+  void openDevice(inventory) {
     Navigator.pushNamed(context, "/viewinventory",
         arguments: inventory["inventory"]);
   }
@@ -296,34 +304,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
     return Container(
       child: Column(
         children: <Widget>[
-          // Expanded(
-          //   flex: 1,
-          //   child: TextField(
-          //     decoration: InputDecoration(
-          //       labelText: "Search Leads",
-          //     ),
-          //     onChanged: (value) {
-          //       var filtered = leadsFull.where((e) {
-          //         String firstName = e["document"]["firstName"];
-          //         String lastName = e["document"]["lastName"];
-          //         String businessName = e["document"]["businessName"];
-          //         return firstName
-          //                 .toLowerCase()
-          //                 .contains(value.toLowerCase()) ||
-          //             lastName
-          //                 .toLowerCase()
-          //                 .contains(value.toLowerCase()) ||
-          //             businessName
-          //                 .toLowerCase()
-          //                 .contains(value.toLowerCase());
-          //       }).toList();
-
-          //       setState(() {
-          //         leads = filtered.toList();
-          //       });
-          //     },
-          //   ),
-          // ),
           Row(
             children: <Widget>[
               Expanded(
@@ -335,7 +315,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                     currentSearch = _searchController.text;
                   },
                   decoration: InputDecoration(
-                    labelText: "Search Inventory",
+                    labelText: "Search Inventory (Serial)",
                   ),
                 ),
               ),
@@ -347,22 +327,21 @@ class _InventoryScreenState extends State<InventoryScreen> {
                       },
                     )
                   : IconButton(
-                      icon: Icon(Icons.search),
+                      icon: Icon(Icons.center_focus_weak),
                       onPressed: () {
                         currentSearch = _searchController.text;
-                        searchInventory(_searchController.text);
+                        scanBarcode();
                       },
                     ),
             ],
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
-            child: UserService.isAdmin
-                ? EmployeeDropDown(callback: (val) {
+              padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
+              child: EmployeeDropDown(
+                  callback: (val) {
                     filterByEmployee(val);
-                  })
-                : Container(),
-          ),
+                  },
+                  role: "tech")),
           isEmpty
               ? Empty("No inventory found")
               : Expanded(
@@ -375,16 +354,15 @@ class _InventoryScreenState extends State<InventoryScreen> {
                       var merchantName;
                       var itemName;
                       var location;
-
-                      if (UserService.isAdmin) {
-                        nameIndex = employees.indexWhere(
-                            (e) => e["employee"] == item["employee"]);
-                        if (nameIndex != -1) {
-                          employeeName = employees[nameIndex]["title"];
-                        } else {
-                          employeeName = "Not assigned";
-                        }
+                      var setIcon;
+                      nameIndex = employees
+                          .indexWhere((e) => e["employee"] == item["employee"]);
+                      if (nameIndex != -1) {
+                        employeeName = employees[nameIndex]["title"];
+                      } else {
+                        employeeName = "Not assigned";
                       }
+
                       var invDate = DateFormat("EEE, MMM d, ''yy")
                           .add_jm()
                           .format(DateTime.parse(item['created_at']));
@@ -404,13 +382,25 @@ class _InventoryScreenState extends State<InventoryScreen> {
                         merchantName = item["merchantname"];
                       }
 
+                      if (item["is_installed"] == true) {
+                        setIcon = Icons.done;
+                      }
+                      if (item["merchant"] != null &&
+                          item["is_installed"] != true) {
+                        setIcon = Icons.directions_car;
+                      }
+                      if (item["merchant"] == null &&
+                          item["employee"] == null) {
+                        setIcon = Icons.business;
+                      }
+
                       return GestureDetector(
                         onTap: () {
-                          openLead(item);
+                          openDevice(item);
                         },
                         child: CustomCard(
                           title: invDate,
-                          icon: Icons.arrow_forward_ios,
+                          icon: setIcon,
                           child: Column(
                             children: <Widget>[
                               Row(
@@ -506,14 +496,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                   ),
                                 ],
                               ),
-                              UserService.isAdmin
-                                  ? Divider(thickness: 2)
-                                  : Container(),
-                              UserService.isAdmin
-                                  ? Text("Employee: " + employeeName,
-                                      style: TextStyle(),
-                                      textAlign: TextAlign.right)
-                                  : Container(),
+                              Divider(thickness: 2),
+                              Text("Employee: " + employeeName,
+                                  style: TextStyle(),
+                                  textAlign: TextAlign.right),
                             ],
                           ),
                         ),

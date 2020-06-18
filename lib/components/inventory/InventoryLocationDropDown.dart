@@ -76,7 +76,7 @@ class _InventoryLocationDropDownState extends State<InventoryLocationDropDown> {
           value: startVal,
           onClear: () {
             setState(() {
-              this.widget.callback(null);
+              this.widget.callback("");
             });
           },
           hint: "Please choose one",

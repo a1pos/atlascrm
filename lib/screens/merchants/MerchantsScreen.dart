@@ -346,10 +346,10 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
                       var merchantDbaName;
                       var fullName;
 
-                      if (merchant["document"]["dbaname"]?.isEmpty ?? true) {
+                      if (merchant["document"]["dbaName"]?.isEmpty ?? true) {
                         merchantDbaName = "";
                       } else {
-                        merchantDbaName = merchant["document"]["dbaname"];
+                        merchantDbaName = merchant["document"]["dbaName"];
                       }
                       if (merchant["document"]["firstName"]?.isEmpty ?? true) {
                         fullName = "";
