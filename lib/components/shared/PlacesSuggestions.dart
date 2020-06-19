@@ -43,7 +43,13 @@ class _PlacesSuggestionsState extends State<PlacesSuggestions> {
       PlaceDetails placeDetails = respo.result;
       List placeAddress = placeDetails.addressComponents;
 
-      Map addressInfo = {"address": "", "city": "", "state": "", "zipcode": ""};
+      Map addressInfo = {
+        "address": "",
+        "city": "",
+        "state": "",
+        "zipcode": "",
+        "address2": ""
+      };
       Map shortAddress = {"address": ""};
 
       placeAddress.forEach((element) {
@@ -57,6 +63,9 @@ class _PlacesSuggestionsState extends State<PlacesSuggestions> {
               addressInfo["address"] += " " + element.longName;
               shortAddress["address"] += " " + element.shortName;
               break;
+            case "subpremise":
+              addressInfo["address2"] = element.shortName;
+              break;
             case "locality":
               addressInfo["city"] = element.shortName;
               break;
@@ -69,6 +78,10 @@ class _PlacesSuggestionsState extends State<PlacesSuggestions> {
           }
         });
       });
+      if (addressInfo["address2"] != "") {
+        addressInfo["address"] += " #" + addressInfo["address2"];
+        shortAddress["address"] += " #" + addressInfo["address2"];
+      }
       Map mixedReply = {
         "address": addressInfo,
         "place": placeDetails,

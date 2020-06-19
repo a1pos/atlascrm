@@ -73,7 +73,13 @@ class _AddressSearchState extends State<AddressSearch> {
             200);
         nearbyResults = respo.results;
       }
-      Map addressInfo = {"address": "", "city": "", "state": "", "zipcode": ""};
+      Map addressInfo = {
+        "address": "",
+        "city": "",
+        "state": "",
+        "zipcode": "",
+        "address2": ""
+      };
       Map shortAddress = {"address": ""};
       List newAddress = detail.result.addressComponents;
       newAddress.forEach((element) {
@@ -86,6 +92,9 @@ class _AddressSearchState extends State<AddressSearch> {
             case "route":
               addressInfo["address"] += " " + element.longName;
               shortAddress["address"] += " " + element.shortName;
+              break;
+            case "subpremise":
+              addressInfo["address2"] = element.shortName;
               break;
             case "locality":
               addressInfo["city"] = element.shortName;
@@ -103,6 +112,10 @@ class _AddressSearchState extends State<AddressSearch> {
         locationText = detail.result.formattedAddress;
       });
       if (nearbyCheck) {
+        if (addressInfo["address2"] != "") {
+          addressInfo["address"] += " #" + addressInfo["address2"];
+          shortAddress["address"] += " #" + addressInfo["address2"];
+        }
         Map mixedReply = {
           "formattedaddr": detail.result.formattedAddress,
           "address": addressInfo,

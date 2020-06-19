@@ -7,7 +7,6 @@ import 'package:atlascrm/components/shared/CustomDrawer.dart';
 import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
 import 'package:atlascrm/services/ApiService.dart';
-import 'package:atlascrm/services/UserService.dart';
 import 'package:flutter/material.dart';
 import 'package:barcode_scan/barcode_scan.dart';
 
@@ -159,7 +158,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
   Future<void> scanBarcode() async {
     try {
-      // await platform.invokeMethod("barcode");
       var options = ScanOptions(strings: {
         "cancel": "done",
         "flash_on": "flash on",

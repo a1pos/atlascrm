@@ -284,15 +284,16 @@ class _ImageUploaderState extends State<ImageUploader> {
           .authGet(context, "/lead/${this.widget.objectId}/statement");
 
       if (resp.statusCode == 200) {
-        for (var imgUrl in resp.data) {
-          var url =
-              "${ConfigSettings.API_URL}_a1/uploads/statement_photos/$imgUrl";
-          setState(() {
-            imageDLList.add({"name": imgUrl, "url": url});
-          });
+        if (resp.data != null && resp.data != "") {
+          for (var imgUrl in resp.data) {
+            var url =
+                "${ConfigSettings.API_URL}_a1/uploads/statement_photos/$imgUrl";
+            setState(() {
+              imageDLList.add({"name": imgUrl, "url": url});
+            });
+          }
+          print(imageDLList);
         }
-
-        print(imageDLList);
       }
     } catch (err) {
       print(err);

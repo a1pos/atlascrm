@@ -2,7 +2,6 @@ import 'dart:developer';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
@@ -26,7 +25,6 @@ class InventoryAddState extends State<InventoryAdd> {
     GlobalKey<FormState>(),
     GlobalKey<FormState>()
   ];
-  static const platform = const MethodChannel('com.ces.atlascrm.channel');
 
   final _stepperKey = GlobalKey<FormState>();
   bool isSaveDisabled;
@@ -93,18 +91,10 @@ class InventoryAddState extends State<InventoryAdd> {
             fontSize: 16.0);
       }
     }
-    // Fluttertoast.showToast(
-    //     msg: "Added $input",
-    //     toastLength: Toast.LENGTH_SHORT,
-    //     gravity: ToastGravity.BOTTOM,
-    //     backgroundColor: Colors.grey[600],
-    //     textColor: Colors.white,
-    //     fontSize: 16.0);
   }
 
   Future<void> scanBarcode() async {
     try {
-      // await platform.invokeMethod("barcode");
       var options = ScanOptions(strings: {
         "cancel": "done (${serialList.length})",
         "flash_on": "flash on",

@@ -197,12 +197,6 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
             ),
           ),
           actions: <Widget>[
-            // FlatButton(
-            //   child: Text('Cancel', style: TextStyle(fontSize: 17)),
-            //   onPressed: () {
-            //     Navigator.of(context).pop();
-            //   },
-            // ),
             FlatButton(
               child: Text('Checkout',
                   style: TextStyle(fontSize: 17, color: Colors.green)),
@@ -352,9 +346,6 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
                                   )),
                                 ],
                               ),
-
-                              // getInfoRow("Device Model",
-                              //     deviceDocument["model"], priceTierController),
                             ],
                           ),
                         ),
@@ -363,23 +354,12 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
                   ),
                 ),
               ),
-
         floatingActionButton: UnicornDialer(
             backgroundColor: Color.fromRGBO(255, 255, 255, 0.0),
             parentButtonBackground: Color.fromARGB(500, 1, 224, 143),
             orientation: UnicornOrientation.VERTICAL,
             parentButton: Icon(Icons.menu),
             childButtons: childButtons),
-
-        // floatingActionButton: FloatingActionButton(
-        //   onPressed: () async {
-        //     if (_leadFormKey.currentState.validate()) {
-        //       updateDevice(this.widget.deviceId);
-        //     }
-        //   },
-        //   backgroundColor: Color.fromARGB(500, 1, 224, 143),
-        //   child: Icon(Icons.save),
-        // ),
       ),
     );
   }
