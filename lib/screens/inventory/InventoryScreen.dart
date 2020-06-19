@@ -1,4 +1,6 @@
 import 'dart:developer';
+import 'package:atlascrm/components/inventory/InventoryLocationDropDown.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
@@ -31,10 +33,13 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
   bool isSearching = false;
   bool isFiltering = false;
+  bool isLocFiltering = false;
 
   var currentSearch = "";
   var pageNum = 1;
   var filterEmployee = "";
+  var filterLocation = "";
+  var locationSearch = "All Inventory";
 
   var sortQuery =
       "sorters%5B0%5D%5Bfield%5D=employee&sorters%5B0%5D%5Bdir%5D=asc";
@@ -115,9 +120,25 @@ class _InventoryScreenState extends State<InventoryScreen> {
         endpoint =
             "/inventory?searchEmployee=$filterEmployee&page=$pageNum&size=10&$sortQuery";
       }
+      if (isLocFiltering) {
+        endpoint =
+            "/inventory?searchLocation=$filterLocation&page=$pageNum&size=10&$sortQuery";
+      }
       if (isSearching && isFiltering) {
         endpoint =
             "/inventory?searchEmployee=$filterEmployee&searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
+      }
+      if (isSearching && isLocFiltering) {
+        endpoint =
+            "/inventory?searchLocatation=$filterLocation&searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
+      }
+      if (isFiltering && isLocFiltering) {
+        endpoint =
+            "/inventory?searchLocation=$filterLocation&searchEmployee=$filterEmployee&page=$pageNum&size=10&$sortQuery";
+      }
+      if (isSearching && isFiltering && isLocFiltering) {
+        endpoint =
+            "/inventory?searchLocation=$filterLocation&searchEmployee=$filterEmployee&searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
       }
 
       var resp = await this.widget.apiService.authGet(context, endpoint);
@@ -198,6 +219,31 @@ class _InventoryScreenState extends State<InventoryScreen> {
     });
   }
 
+  Future<void> filterByLocation(locItem) async {
+    if (locItem == null || locItem == "") {
+      setState(() {
+        pageNum = 1;
+        locationSearch = "All Inventory";
+        filterLocation = "";
+        isLocFiltering = false;
+        inventory = [];
+        inventoryFull = [];
+      });
+      onScroll();
+    } else {
+      setState(() {
+        locationSearch = locItem["name"];
+        filterLocation = locItem["location"];
+        pageNum = 1;
+        isLocFiltering = true;
+        inventory = [];
+        inventoryFull = [];
+        onScroll();
+        Navigator.pop(context);
+      });
+    }
+  }
+
   Future<void> clearSearch() async {
     setState(() {
       pageNum = 1;
@@ -259,6 +305,28 @@ class _InventoryScreenState extends State<InventoryScreen> {
     );
   }
 
+  void openLocationFilter() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Filter by Location'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                InventoryLocationDropDown(
+                    value: filterLocation,
+                    callback: (newVal) {
+                      filterByLocation(newVal);
+                    })
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   void openDevice(inventory) {
     Navigator.pushNamed(context, "/viewinventory",
         arguments: inventory["inventory"]);
@@ -268,9 +336,21 @@ class _InventoryScreenState extends State<InventoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: CustomDrawer(),
-      appBar: CustomAppBar(
-        key: Key("inventoryScreenAppBar"),
-        title: Text("Inventory"),
+      appBar: AppBar(
+        key: Key("inventoryscreenappbar"),
+        title: Text(isLoading ? "Loading..." : "$locationSearch"),
+        actions: <Widget>[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(5, 8, 10, 8),
+            child: IconButton(
+              onPressed: () {
+                openLocationFilter();
+              },
+              icon: Icon(Icons.business, color: Colors.white),
+            ),
+          )
+        ],
+        backgroundColor: Color.fromARGB(500, 1, 56, 112),
       ),
       body: Container(
         padding: EdgeInsets.all(10),

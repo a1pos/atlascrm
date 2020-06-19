@@ -46,7 +46,7 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
   var merchantDocument;
   var isLoading = true;
   var displayPhone;
-  var devices;
+  var devices = [];
 
   void initState() {
     super.initState();

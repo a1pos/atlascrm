@@ -105,7 +105,10 @@ class _InventoryLocationDropDownState extends State<InventoryLocationDropDown> {
                     var setVal;
                     for (var location in locations) {
                       if (newValue == location["name"]) {
-                        setVal = location["inventory_location"];
+                        setVal = {
+                          "name": location["name"],
+                          "location": location["inventory_location"]
+                        };
                       }
                     }
                     startVal = newValue;

@@ -339,7 +339,7 @@ class InventoryAddState extends State<InventoryAdd> {
                             }),
                             InventoryLocationDropDown(callback: (newValue) {
                               setState(() {
-                                locationController.text = newValue;
+                                locationController.text = newValue["location"];
                               });
                             }),
                           ],

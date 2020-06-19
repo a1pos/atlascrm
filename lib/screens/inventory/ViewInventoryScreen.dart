@@ -8,12 +8,6 @@ import 'package:atlascrm/services/UserService.dart';
 import 'package:unicorndial/unicorndial.dart';
 import 'package:atlascrm/components/shared/MerchantDropdown.dart';
 
-class LeadInfoEntry {
-  final TextEditingController controller;
-  final Key key;
-  LeadInfoEntry(this.controller, this.key);
-}
-
 class ViewInventoryScreen extends StatefulWidget {
   final ApiService apiService = ApiService();
 
@@ -32,7 +26,6 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
   var priceTierController = TextEditingController();
   var merchantController = TextEditingController();
 
-  var leadInfoEntries = List<LeadInfoEntry>();
   var deviceIcon;
 
   String addressText;
@@ -163,7 +156,8 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
           backgroundColor: Colors.grey[600],
           textColor: Colors.white,
           fontSize: 16.0);
-      Navigator.pushNamed(context, '/inventory');
+      // Navigator.pushNamed(context, '/inventory');
+      Navigator.pop(context);
     } else {
       Fluttertoast.showToast(
           msg: "Failed to udpate lead!",
