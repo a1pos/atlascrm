@@ -201,8 +201,19 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
               child: Text('Checkout',
                   style: TextStyle(fontSize: 17, color: Colors.green)),
               onPressed: () {
-                updateDevice("checkout");
-                Navigator.of(context).pop();
+                if (merchantController.text != null &&
+                    merchantController.text != "") {
+                  updateDevice("checkout");
+                  Navigator.of(context).pop();
+                } else {
+                  Fluttertoast.showToast(
+                      msg: "Please select a merchant",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      backgroundColor: Colors.grey[600],
+                      textColor: Colors.white,
+                      fontSize: 16.0);
+                }
               },
             ),
           ],
