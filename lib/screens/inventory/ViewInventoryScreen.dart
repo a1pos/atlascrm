@@ -156,8 +156,8 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
           backgroundColor: Colors.grey[600],
           textColor: Colors.white,
           fontSize: 16.0);
-      // Navigator.pushNamed(context, '/inventory');
-      Navigator.pop(context);
+      Navigator.pushNamed(context, '/inventory');
+      // Navigator.pop(context);
     } else {
       Fluttertoast.showToast(
           msg: "Failed to udpate lead!",
