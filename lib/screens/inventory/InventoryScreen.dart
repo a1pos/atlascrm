@@ -148,6 +148,11 @@ class _InventoryScreenState extends State<InventoryScreen> {
           if (inventoryArrDecoded != null) {
             var inventoryArr = List.from(inventoryArrDecoded);
             if (inventoryArr.length > 0) {
+              if (isSearching) {
+                var sendable = {"id": inventoryArr[0]["inventory"]};
+                Navigator.pushNamed(context, "/viewinventory",
+                    arguments: sendable);
+              }
               setState(() {
                 isEmpty = false;
                 isLoading = false;
@@ -444,7 +449,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
                   },
                   role: "tech")),
           isEmpty
-              ? Empty("No inventory found")
+              ? Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 200, 8, 0),
+                  child: Empty("No inventory found"),
+                )
               : Expanded(
                   flex: 6,
                   child: ListView(

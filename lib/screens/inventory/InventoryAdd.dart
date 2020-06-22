@@ -455,7 +455,9 @@ class InventoryAddState extends State<InventoryAdd> {
                                 // setState(() {
                                 //   isSaveDisabled = true;
                                 // });
-                                addDevice();
+                                added
+                                    ? Navigator.pushNamed(context, '/inventory')
+                                    : addDevice();
                               } else {
                                 // if (isAddress) {
                                 Stepper stepper = _stepperKey.currentWidget;
@@ -466,11 +468,11 @@ class InventoryAddState extends State<InventoryAdd> {
                             label: Padding(
                               padding: EdgeInsets.all(20),
                               child: _currentStep == stepsLength - 1
-                                  ? Text('Save')
+                                  ? added ? Text('Done') : Text('Save')
                                   : Text('Next'),
                             ),
                             icon: _currentStep == stepsLength - 1
-                                ? Icon(Icons.save)
+                                ? added ? Icon(Icons.done) : Icon(Icons.save)
                                 : Icon(Icons.arrow_forward),
                           )
                         : Container(),
