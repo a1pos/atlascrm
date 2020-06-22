@@ -337,11 +337,21 @@ class InventoryAddState extends State<InventoryAdd> {
                                 priceTierController.text = newValue;
                               });
                             }),
-                            InventoryLocationDropDown(callback: (newValue) {
-                              setState(() {
-                                locationController.text = newValue["location"];
-                              });
-                            }),
+                            InventoryLocationDropDown(
+                              callback: (newValue) {
+                                if (newValue != null) {
+                                  setState(() {
+                                    locationController.text =
+                                        newValue["location"];
+                                  });
+                                } else {
+                                  setState(() {
+                                    locationController.clear();
+                                  });
+                                }
+                              },
+                              value: locationController.text,
+                            ),
                           ],
                         ),
                       ),

@@ -8,9 +8,6 @@ import 'package:atlascrm/services/StorageService.dart';
 import 'package:flutter/material.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:atlascrm/config/ConfigSettings.dart';
-import 'package:atlascrm/services/UserService.dart';
-
 import 'package:intl/intl.dart';
 
 class ViewTaskScreen extends StatefulWidget {
@@ -257,6 +254,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
                       color: Colors.white,
                     ),
                     EmployeeDropDown(
+                      disabled: true,
                       value: employeeDropdownValue,
                       callback: ((val) {
                         setState(() {

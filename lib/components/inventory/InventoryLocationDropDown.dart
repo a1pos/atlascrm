@@ -71,12 +71,11 @@ class _InventoryLocationDropDownState extends State<InventoryLocationDropDown> {
             fontSize: 13,
           ),
         ),
-
         SearchableDropdown.single(
           value: startVal,
           onClear: () {
             setState(() {
-              this.widget.callback("");
+              this.widget.callback(null);
             });
           },
           hint: "Please choose one",
@@ -116,29 +115,6 @@ class _InventoryLocationDropDownState extends State<InventoryLocationDropDown> {
                   });
                 },
         )
-
-        // DropdownButtonFormField<String>(
-        //   isExpanded: true,
-        //   value: this.widget.value,
-        //   hint: Text("Please choose one"),
-        //   items: leads.map((dynamic item) {
-        //     var businessName;
-        //     if (item["document"]?.isEmpty ?? true) {
-        //       businessName = "";
-        //     } else {
-        //       businessName = item["document"]["businessName"];
-        //     }
-        //     return DropdownMenuItem<String>(
-        //       value: item["lead"],
-        //       child: Text(
-        //         businessName,
-        //       ),
-        //     );
-        //   }).toList(),
-        //   onChanged: (newValue) {
-        //     this.widget.callback(newValue);
-        //   },
-        // ),
       ],
     );
   }

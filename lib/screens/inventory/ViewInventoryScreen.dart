@@ -11,9 +11,9 @@ import 'package:atlascrm/components/shared/MerchantDropdown.dart';
 class ViewInventoryScreen extends StatefulWidget {
   final ApiService apiService = ApiService();
 
-  final String deviceId;
+  final Map incoming;
 
-  ViewInventoryScreen(this.deviceId);
+  ViewInventoryScreen(this.incoming);
 
   @override
   ViewInventoryScreenState createState() => ViewInventoryScreenState();
@@ -106,7 +106,7 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
     var resp = await this
         .widget
         .apiService
-        .authGet(context, "/inventory/${this.widget.deviceId}");
+        .authGet(context, "/inventory/${this.widget.incoming["id"]}");
 
     if (resp.statusCode == 200) {
       var body = resp.data;
@@ -144,7 +144,7 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
     var resp = await this
         .widget
         .apiService
-        .authPut(context, "/inventory/" + this.widget.deviceId, data);
+        .authPut(context, "/inventory/" + this.widget.incoming["id"], data);
 
     if (resp.statusCode == 200) {
       await loadInventoryData();
@@ -156,8 +156,11 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
           backgroundColor: Colors.grey[600],
           textColor: Colors.white,
           fontSize: 16.0);
-      Navigator.pushNamed(context, '/inventory');
-      // Navigator.pop(context);
+      if (this.widget.incoming["origin"] == null) {
+        Navigator.pushNamed(context, '/inventory');
+      } else {
+        Navigator.pop(context);
+      }
     } else {
       Fluttertoast.showToast(
           msg: "Failed to udpate lead!",
@@ -255,7 +258,7 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
     var resp = await this
         .widget
         .apiService
-        .authDelete(context, "/inventory/" + this.widget.deviceId, null);
+        .authDelete(context, "/inventory/" + this.widget.incoming["id"], null);
 
     if (resp.statusCode == 200) {
       Navigator.popAndPushNamed(context, "/inventory");

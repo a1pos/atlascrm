@@ -187,6 +187,19 @@ class _LeadsScreenState extends State<LeadsScreen> {
     });
   }
 
+  Future<void> clearFilter() async {
+    if (isFiltering) {
+      setState(() {
+        filterEmployee = "";
+        pageNum = 1;
+        isFiltering = false;
+        leads = [];
+        leadsFull = [];
+      });
+      onScroll();
+    }
+  }
+
   Future<void> clearSearch() async {
     setState(() {
       pageNum = 1;
@@ -355,7 +368,11 @@ class _LeadsScreenState extends State<LeadsScreen> {
             padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
             child: UserService.isAdmin
                 ? EmployeeDropDown(callback: (val) {
-                    filterByEmployee(val);
+                    if (val != null) {
+                      filterByEmployee(val);
+                    } else {
+                      clearFilter();
+                    }
                   })
                 : Container(),
           ),

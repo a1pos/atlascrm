@@ -220,7 +220,20 @@ class _InventoryScreenState extends State<InventoryScreen> {
   }
 
   Future<void> filterByLocation(locItem) async {
-    if (locItem == null || locItem == "") {
+    setState(() {
+      locationSearch = locItem["name"];
+      filterLocation = locItem["location"];
+      pageNum = 1;
+      isLocFiltering = true;
+      inventory = [];
+      inventoryFull = [];
+      onScroll();
+      Navigator.pop(context);
+    });
+  }
+
+  Future<void> clearLocFilter() async {
+    if (isLocFiltering) {
       setState(() {
         pageNum = 1;
         locationSearch = "All Inventory";
@@ -230,17 +243,19 @@ class _InventoryScreenState extends State<InventoryScreen> {
         inventoryFull = [];
       });
       onScroll();
-    } else {
+    }
+  }
+
+  Future<void> clearFilter() async {
+    if (isFiltering) {
       setState(() {
-        locationSearch = locItem["name"];
-        filterLocation = locItem["location"];
+        filterEmployee = "";
         pageNum = 1;
-        isLocFiltering = true;
+        isFiltering = false;
         inventory = [];
         inventoryFull = [];
-        onScroll();
-        Navigator.pop(context);
       });
+      onScroll();
     }
   }
 
@@ -317,7 +332,11 @@ class _InventoryScreenState extends State<InventoryScreen> {
                 InventoryLocationDropDown(
                     value: filterLocation,
                     callback: (newVal) {
-                      filterByLocation(newVal);
+                      if (newVal != null) {
+                        filterByLocation(newVal);
+                      } else {
+                        clearLocFilter();
+                      }
                     })
               ],
             ),
@@ -328,8 +347,8 @@ class _InventoryScreenState extends State<InventoryScreen> {
   }
 
   void openDevice(inventory) {
-    Navigator.pushNamed(context, "/viewinventory",
-        arguments: inventory["inventory"]);
+    Map sendable = {"id": inventory["inventory"]};
+    Navigator.pushNamed(context, "/viewinventory", arguments: sendable);
   }
 
   @override
@@ -417,7 +436,11 @@ class _InventoryScreenState extends State<InventoryScreen> {
               padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
               child: EmployeeDropDown(
                   callback: (val) {
-                    filterByEmployee(val);
+                    if (val != null) {
+                      filterByEmployee(val);
+                    } else {
+                      clearFilter();
+                    }
                   },
                   role: "tech")),
           isEmpty

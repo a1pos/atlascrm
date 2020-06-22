@@ -247,11 +247,11 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
           if (device["merchant"] == null && device["employee"] == null) {
             deviceIcon = Icons.business;
           }
-
+          var sendable = {"id": device["inventory"], "origin": "merchant"};
           return GestureDetector(
               onTap: () {
                 Navigator.pushNamed(context, "/viewinventory",
-                    arguments: device["inventory"]);
+                    arguments: sendable);
               },
               child: Card(
                   child: ListTile(
