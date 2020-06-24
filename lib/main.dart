@@ -17,6 +17,7 @@ import 'package:atlascrm/screens/merchants/MerchantsScreen.dart';
 import 'package:atlascrm/screens/merchants/ViewMerchantScreen.dart';
 import 'package:atlascrm/screens/inventory/InventoryScreen.dart';
 import 'package:atlascrm/screens/inventory/ViewInventoryScreen.dart';
+import 'package:atlascrm/screens/mileage/MileageScreen.dart';
 import 'package:atlascrm/screens/tasks/TaskScreen.dart';
 import 'package:atlascrm/screens/tasks/ViewTaskScreen.dart';
 import 'package:atlascrm/screens/agreement/AgreementBuilder.dart';
@@ -109,6 +110,7 @@ class _AtlasCRMState extends State<AtlasCRM> {
       title: 'ATLAS CRM',
       theme: ThemeData(
         primarySwatch: Colors.green,
+        backgroundColor: Colors.orange,
         brightness: Brightness.light,
         fontFamily: "LatoRegular",
       ),
@@ -193,6 +195,9 @@ class _AtlasCRMState extends State<AtlasCRM> {
             return SlideRightRoute(
                 page:
                     CameraPage(cameras: cameras, callback: settings.arguments));
+            break;
+          case '/mileage':
+            return MaterialPageRoute(builder: (context) => MileageScreen());
             break;
           case '/docusigner':
             return SlideRightRoute(

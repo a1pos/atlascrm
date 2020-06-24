@@ -1,12 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
+import 'dart:developer';
 
 import 'package:atlascrm/config/ConfigSettings.dart';
 
 import 'package:atlascrm/services/StorageService.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/widgets.dart';
+import 'UserService.dart';
 
 class ApiService {
   final StorageService storageService = new StorageService();
@@ -47,9 +48,10 @@ class ApiService {
     }
   }
 
-  Future<Response> authGet(context, url) async {
+  Future<Response> authGet(context, url, {isRetry: false}) async {
     try {
-      var token = await storageService.read("token");
+      var auth = await UserService.currentUser.authentication;
+      var token = auth.idToken;
 
       var resp = await Dio(
         BaseOptions(
@@ -81,9 +83,12 @@ class ApiService {
     }
   }
 
-  Future<Response> authPost(context, url, data, {isFile = false}) async {
+  Future<Response> authPost(context, url, data,
+      {isFile = false, isRetry: false}) async {
     try {
-      var token = await storageService.read("token");
+      var auth = await UserService.currentUser.authentication;
+      var token = auth.idToken;
+
       var resp = await Dio(
         BaseOptions(
           baseUrl: URLBASE + "_a1",
@@ -111,9 +116,10 @@ class ApiService {
     }
   }
 
-  Future<Response> authFilePost(context, url, filePath) async {
+  Future<Response> authFilePost(context, url, filePath, {isRetry: true}) async {
     try {
-      var token = await storageService.read("token");
+      var auth = await UserService.currentUser.authentication;
+      var token = auth.idToken;
 
       var f = MultipartFile.fromFileSync(filePath);
       var formData = FormData.fromMap({"file": f});
@@ -144,9 +150,10 @@ class ApiService {
     }
   }
 
-  Future<Response> authPut(context, url, data) async {
+  Future<Response> authPut(context, url, data, {isRetry: false}) async {
     try {
-      var token = await storageService.read("token");
+      var auth = await UserService.currentUser.authentication;
+      var token = auth.idToken;
 
       var resp = await Dio(
         BaseOptions(
@@ -175,9 +182,10 @@ class ApiService {
     }
   }
 
-  Future<Response> authDelete(context, url, data) async {
+  Future<Response> authDelete(context, url, data, {isRetry: false}) async {
     try {
-      var token = await storageService.read("token");
+      var auth = await UserService.currentUser.authentication;
+      var token = auth.idToken;
 
       var resp = await Dio(
         BaseOptions(
@@ -218,4 +226,20 @@ class ApiService {
     } catch (err) {}
     return false;
   }
+
+  // Future<bool> trySignInSilently(context) async {
+  //   try {
+  //     var googleSignIn = await UserService.googleSignIn.signInSilently();
+  //     var googleSignInAuthentication = await googleSignIn.authentication;
+  //     await storageService.save("token", googleSignInAuthentication.idToken);
+  //     await storageService.save(
+  //         "access_token", googleSignInAuthentication.accessToken);
+  //     UserService.currentUser = googleSignIn;
+
+  //     return true;
+  //   } catch (err) {
+  //     log(err);
+  //   }
+  //   return false;
+  // }
 }

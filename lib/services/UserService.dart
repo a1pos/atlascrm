@@ -1,5 +1,4 @@
 import 'dart:developer';
-import 'package:atlascrm/config/ConfigSettings.dart';
 import 'package:atlascrm/models/Employee.dart';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/SocketService.dart';
@@ -9,14 +8,19 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 class UserService {
   static Employee employee;
+
   static bool isAdmin = false;
   static bool isTech = false;
+
   final ApiService apiService = new ApiService();
   final SocketService socketService = new SocketService();
-  GoogleSignInAccount currentUser;
-  final GoogleSignIn googleSignIn =
+
+  static GoogleSignInAccount currentUser;
+  static final GoogleSignIn googleSignIn =
       GoogleSignIn(scopes: ['https://www.googleapis.com/auth/calendar']);
+
   final StorageService storageService = new StorageService();
+
   Future<bool> isAuthenticated(context) async {
     try {
       var isGoogleSignedIn = await googleSignIn.isSignedIn();
@@ -40,6 +44,7 @@ class UserService {
       await storageService.save(
           "access_token", googleSignInAuthentication.accessToken);
       currentUser = googleSignIn.currentUser;
+
       return true;
     } catch (err) {
       log(err);
@@ -72,12 +77,6 @@ class UserService {
     try {
       var employeeAuthResp = await apiService.authGet(context, "/authorize");
       if (employeeAuthResp.statusCode == 200) {
-        // var token = await storageService.read("token");
-        // var accessToken = await storageService.read("access_token");
-        // if (token != null) {
-        //   ConfigSettings.GOOGLE_TOKEN = token;
-        //   ConfigSettings.ACCESS_TOKEN = accessToken;
-        // }
         var empDecoded = employeeAuthResp.data;
         employee = Employee.fromJson(empDecoded);
         var roles = List.from(employee.document["roles"]);
