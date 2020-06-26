@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
 import 'package:atlascrm/services/ApiService.dart';
@@ -270,10 +271,10 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
         return Future.value(false);
       },
       child: Scaffold(
-        appBar: AppBar(
+        appBar: CustomAppBar(
           key: Key("viewTasksAppBar"),
           title: Text(isLoading ? "Loading..." : merchantDocument["dbaname"]),
-          actions: <Widget>[
+          action: <Widget>[
             Padding(
               padding: const EdgeInsets.fromLTRB(5, 8, 10, 8),
               child: IconButton(
@@ -284,7 +285,6 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
               ),
             )
           ],
-          backgroundColor: Color.fromARGB(500, 1, 56, 112),
         ),
         body: isLoading
             ? CenteredClearLoadingScreen()

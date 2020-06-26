@@ -97,45 +97,45 @@ class _OwnerPanelState extends State<OwnerPanel> {
     );
   }
 
+  Future<Null> updateOwner() async {
+    var ownerObj;
+
+    if (owner["new"] != null) {
+      ownerObj = {
+        "new": owner["new"],
+        "lead": owner["lead"],
+        "document": {
+          "name": _ownerNameController.text,
+          "phoneNumber": _ownerPhoneController.text,
+          "email": _ownerEmailController.text,
+          "address": ownerAddress["address"],
+          "city": ownerAddress["city"],
+          "state": ownerAddress["state"],
+          "zipCode": ownerAddress["zipcode"]
+        }
+      };
+    } else {
+      ownerObj = {
+        "business_owner": owner["business_owner"],
+        "lead": owner["lead"],
+        "document": {
+          "name": _ownerNameController.text,
+          "phoneNumber": _ownerPhoneController.text,
+          "email": _ownerEmailController.text,
+          "address": ownerAddress["address"],
+          "city": ownerAddress["city"],
+          "state": ownerAddress["state"],
+          "zipCode": ownerAddress["zipcode"]
+        }
+      };
+    }
+
+    this.widget.onOwnerChange(ownerObj);
+  }
+
   @override
   Widget build(BuildContext context) {
     _ownerDoc = this.widget.owner["document"];
-
-    Future<Null> updateOwner() async {
-      var ownerObj;
-
-      if (owner["new"] != null) {
-        ownerObj = {
-          "new": owner["new"],
-          "lead": owner["lead"],
-          "document": {
-            "name": _ownerNameController.text,
-            "phoneNumber": _ownerPhoneController.text,
-            "email": _ownerEmailController.text,
-            "address": ownerAddress["address"],
-            "city": ownerAddress["city"],
-            "state": ownerAddress["state"],
-            "zipCode": ownerAddress["zipcode"]
-          }
-        };
-      } else {
-        ownerObj = {
-          "business_owner": owner["business_owner"],
-          "lead": owner["lead"],
-          "document": {
-            "name": _ownerNameController.text,
-            "phoneNumber": _ownerPhoneController.text,
-            "email": _ownerEmailController.text,
-            "address": ownerAddress["address"],
-            "city": ownerAddress["city"],
-            "state": ownerAddress["state"],
-            "zipCode": ownerAddress["zipcode"]
-          }
-        };
-      }
-
-      this.widget.onOwnerChange(ownerObj);
-    }
 
     // _ownerNameController.addListener(() {
     //   updateOwner();

@@ -1,5 +1,6 @@
 import 'package:atlascrm/components/lead/LeadDropDown.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
+import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
 import 'package:atlascrm/components/task/TaskPriorityDropDown.dart';
 import 'package:atlascrm/components/task/TaskTypeDropDown.dart';
@@ -219,10 +220,10 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: CustomAppBar(
         key: Key("viewTasksAppBar"),
         title: Text(isLoading ? "Loading..." : task['document']['title']),
-        // actions: <Widget>[
+        // action: <Widget>[
         //   Padding(
         //     padding: const EdgeInsets.fromLTRB(5, 8, 10, 8),
         //     child: UserService.isAdmin
@@ -235,7 +236,6 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
         //         : Container(),
         //   )
         // ],
-        backgroundColor: Color.fromARGB(500, 1, 56, 112),
       ),
       body: isLoading
           ? CenteredClearLoadingScreen()

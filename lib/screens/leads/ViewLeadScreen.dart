@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:intl/intl.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
@@ -231,10 +232,10 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
         return Future.value(false);
       },
       child: Scaffold(
-        appBar: AppBar(
+        appBar: CustomAppBar(
           key: Key("viewTasksAppBar"),
           title: Text(isLoading ? "Loading..." : leadDocument["businessName"]),
-          actions: <Widget>[
+          action: <Widget>[
             Padding(
               padding: const EdgeInsets.fromLTRB(5, 8, 10, 8),
               child: IconButton(
@@ -245,7 +246,6 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
               ),
             )
           ],
-          backgroundColor: Color.fromARGB(500, 1, 56, 112),
         ),
         body: isLoading
             ? CenteredClearLoadingScreen()
@@ -458,9 +458,9 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                                   color: Colors.grey[300],
                                   onPressed: () {
                                     return null;
-                                    // Navigator.pushNamed(
-                                    //     context, "/agreementbuilder",
-                                    //     arguments: lead["lead"]);
+                                    //   Navigator.pushNamed(
+                                    //       context, "/agreementbuilder",
+                                    //       arguments: lead["lead"]);
                                   },
                                   child: Row(
                                     children: <Widget>[

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 
+import 'package:atlascrm/components/agreement/SicDropdown.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
 import 'package:atlascrm/services/ApiService.dart';
@@ -20,14 +21,6 @@ class BusinessInfo extends StatefulWidget {
   @override
   BusinessInfoState createState() => BusinessInfoState();
 }
-
-// class Owner {
-//   Owner({
-//     String business_owner,
-//     String lead,
-//     List document,
-//   });
-// }
 
 class Item {
   Item(
@@ -58,15 +51,6 @@ List<Item> ownerList = [
 
 class BusinessInfoState extends State<BusinessInfo>
     with TickerProviderStateMixin {
-  // final firstNameController = TextEditingController();
-  // final lastNameController = TextEditingController();
-  // final emailAddrController = TextEditingController();
-  // final phoneNumberController = TextEditingController();
-  // final businessNameController = TextEditingController();
-  // final dbaController = TextEditingController();
-  // final businessAddressController = TextEditingController();
-  // final leadSourceController = TextEditingController();
-
   Map businessAddress = {"address": "", "city": "", "state": "", "zipcode": ""};
   var agreementBuilder;
   var agreementDocument;
@@ -246,321 +230,619 @@ class BusinessInfoState extends State<BusinessInfo>
     super.initState();
   }
 
+  Future<void> setCorpAddress(address) async {
+    setState(() {
+      this.widget.controllers["corporateInfo"]["Address1"].text =
+          address["address"];
+
+      this.widget.controllers["corporateInfo"]["City"].text = address["city"];
+
+      this.widget.controllers["corporateInfo"]["State"].text = address["state"];
+
+      this.widget.controllers["corporateInfo"]["First5Zip"].text =
+          address["zipcode"];
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     agreementDocument = this.widget.agreementDoc;
-
+    var testItem = this.widget.controllers["mpaInfo"]["ClientDbaName"].text;
+    print(testItem);
     return Container(
       padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
       child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            CustomCard(
-              key: Key("businessInfo1"),
-              icon: Icons.business,
-              title: "MPA/ Corporate Info",
-              child: Column(
-                children: <Widget>[
-                  getInfoRow("Merchant DBA Name", agreementDocument["dbaName"],
-                      this.widget.controllers["ClientDbaName"]),
-                  getInfoRow(
-                      "Merchant's Corporate/Legal Name",
-                      agreementDocument["businessName"],
-                      this.widget.controllers["LegalName"]),
-                  getInfoRow("Number of Locations", "",
-                      this.widget.controllers["NumberOfLocation"]),
-                  getInfoSearchableDropdown(
-                      "State Incorporated",
-                      this.widget.controllers["StateIncorporated"].text,
-                      this.widget.controllers["StateIncorporated"],
-                      stateInc),
-                  getInfoDropdown(
-                      "Statement Provided",
-                      this.widget.controllers["CurrentStmntProvided"].text,
-                      this.widget.controllers["CurrentStmntProvided"],
-                      yesNoOptions),
-                  getInfoDropdown(
-                      "Retrieval Fax Rpt Code",
-                      this
-                          .widget
-                          .controllers["RetrievalFaxRptCodeRefValue"]
-                          .text,
-                      this.widget.controllers["RetrievalFaxRptCodeRefValue"],
-                      retrievalFaxRpt),
-                  getInfoRow(
-                      "Corporate Contact",
-                      this.widget.controllers["CorporateContact"].text,
-                      this.widget.controllers["CorporateContact"]),
-                  getInfoRow(
-                      "Business Start Date",
-                      this.widget.controllers["BusinessStartDate"].text,
-                      this.widget.controllers["BusinessStartDate"]),
-                  getInfoDropdown(
-                      "Business Type",
-                      this.widget.controllers["BusinessType"].text,
-                      this.widget.controllers["BusinessType"],
-                      businessTypes),
-                  getInfoDropdown(
-                      "Statement Hold",
-                      this.widget.controllers["StatementHoldRefValue"].text,
-                      this.widget.controllers["StatementHoldRefValue"],
-                      statementHoldRefValue),
-                  Container(
+        child: Form(
+          // key: _formKeys[1],
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              CustomCard(
+                key: Key("businessInfo1"),
+                icon: Icons.business,
+                title: "MPA/ Corporate Info",
+                child: Column(
+                  children: <Widget>[
+                    getInfoRow(
+                        "Merchant DBA Name",
+                        this
+                            .widget
+                            .controllers["mpaInfo"]["ClientDbaName"]
+                            .text,
+                        this.widget.controllers["mpaInfo"]["ClientDbaName"]),
+                    getInfoRow(
+                        "Merchant's Corporate/Legal Name",
+                        this
+                            .widget
+                            .controllers["corporateInfo"]["LegalName"]
+                            .text,
+                        this.widget.controllers["corporateInfo"]["LegalName"]),
+                    getInfoRow(
+                        "Number of Locations",
+                        this
+                            .widget
+                            .controllers["mpaInfo"]["NumberOfLocation"]
+                            .text,
+                        this.widget.controllers["mpaInfo"]["NumberOfLocation"]),
+                    getInfoSearchableDropdown(
+                        "State Incorporated",
+                        this
+                            .widget
+                            .controllers["corporateInfo"]["StateIncorporated"]
+                            .text,
+                        this.widget.controllers["corporateInfo"]
+                            ["StateIncorporated"],
+                        stateInc),
+                    // getInfoDropdown(
+                    //     "Statement Provided",
+                    //     this.widget.controllers["CurrentStmntProvided"].text,
+                    //     this.widget.controllers["CurrentStmntProvided"],
+                    //     yesNoOptions),
+                    getInfoDropdown(
+                        "Retrieval Fax Rpt Code",
+                        this
+                            .widget
+                            .controllers["corporateInfo"]
+                                ["RetrievalFaxRptCodeRefValue"]
+                            .text,
+                        this.widget.controllers["corporateInfo"]
+                            ["RetrievalFaxRptCodeRefValue"],
+                        retrievalFaxRpt),
+                    getInfoRow(
+                        "Corporate Contact",
+                        this
+                            .widget
+                            .controllers["corporateInfo"]["CorporateContact"]
+                            .text,
+                        this.widget.controllers["corporateInfo"]
+                            ["CorporateContact"]),
+                    getInfoRow(
+                        "Business Start Date",
+                        this
+                            .widget
+                            .controllers["corporateInfo"]["BusinessStartDate"]
+                            .text,
+                        this.widget.controllers["corporateInfo"]
+                            ["BusinessStartDate"],
+                        mask: "00/00/0000"),
+                    getInfoDropdown(
+                        "Business Type",
+                        this
+                            .widget
+                            .controllers["corporateInfo"]["BusinessType"]
+                            .text,
+                        this.widget.controllers["corporateInfo"]
+                            ["BusinessType"],
+                        businessTypes),
+                    getInfoDropdown(
+                        "Statement Hold",
+                        this
+                            .widget
+                            .controllers["corporateInfo"]
+                                ["StatementHoldRefValue"]
+                            .text,
+                        this.widget.controllers["corporateInfo"]
+                            ["StatementHoldRefValue"],
+                        statementHoldRefValue),
+                    Container(
                       child: Padding(
-                          padding: EdgeInsets.all(15),
-                          child: Row(
-                            children: <Widget>[
-                              Expanded(
-                                flex: 4,
-                                child: Text(
-                                  'Business Address:',
-                                  style: TextStyle(fontSize: 16),
-                                ),
+                        padding: const EdgeInsets.all(15),
+                        child: Row(
+                          children: <Widget>[
+                            Expanded(
+                              flex: 4,
+                              child: Text(
+                                'Corporate Address:',
+                                style: TextStyle(fontSize: 16),
                               ),
-                              Expanded(
-                                  flex: 8,
-                                  child: AddressSearch(
-                                      locationValue: (agreementDocument[
-                                                      "address"] !=
-                                                  null &&
-                                              agreementDocument["address"] !=
-                                                  "")
-                                          ? agreementDocument["address"] +
-                                              ", " +
-                                              agreementDocument["city"] +
-                                              ", " +
-                                              agreementDocument["state"] +
-                                              ", " +
-                                              agreementDocument["zipCode"]
-                                          : null,
-                                      onAddressChange: (val) =>
-                                          businessAddress = val)),
-                            ],
-                          ))),
-                  getInfoDropdown(
-                      "Send Monthly Statements To",
-                      this.widget.controllers["SendMonthlyStmntTo"].text,
-                      this.widget.controllers["SendMonthlyStmntTo"],
-                      sendLocations),
-                  getInfoDropdown(
-                      "Send Retrieval Requests To",
-                      this.widget.controllers["SendRetRequestTo"].text,
-                      this.widget.controllers["SendRetRequestTo"],
-                      sendLocations),
-                  getInfoDropdown(
-                      "Send Chargebacks To",
-                      this.widget.controllers["SendCBTo"].text,
-                      this.widget.controllers["SendCBTo"],
-                      sendLocations),
-                ],
+                            ),
+                            Expanded(
+                              flex: 8,
+                              child: AddressSearch(
+                                  locationValue: (this
+                                                  .widget
+                                                  .controllers["corporateInfo"]
+                                                      ["Address1"]
+                                                  .text !=
+                                              null &&
+                                          this
+                                                  .widget
+                                                  .controllers["corporateInfo"]
+                                                      ["Address1"]
+                                                  .text !=
+                                              "")
+                                      ? this
+                                              .widget
+                                              .controllers["corporateInfo"]
+                                                  ["Address1"]
+                                              .text +
+                                          ", " +
+                                          this
+                                              .widget
+                                              .controllers["corporateInfo"]
+                                                  ["City"]
+                                              .text +
+                                          ", " +
+                                          this
+                                              .widget
+                                              .controllers["corporateInfo"]
+                                                  ["State"]
+                                              .text +
+                                          ", " +
+                                          this
+                                              .widget
+                                              .controllers["corporateInfo"]
+                                                  ["First5Zip"]
+                                              .text
+                                      : null,
+                                  onAddressChange: (val) {
+                                    setCorpAddress(val);
+                                  }),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Row(
+                      children: <Widget>[
+                        Flexible(
+                            child: Text(
+                                "Business Address is the same as Corporate Address")),
+                        Checkbox(
+                            value: this
+                                        .widget
+                                        .controllers["general"]["corpSame"]
+                                        .text ==
+                                    "true"
+                                ? true
+                                : false,
+                            onChanged: (val) {
+                              setState(() {
+                                this
+                                    .widget
+                                    .controllers["general"]["corpSame"]
+                                    .text = val.toString();
+                                print(this
+                                    .widget
+                                    .controllers["general"]["corpSame"]
+                                    .text);
+                              });
+                            }),
+                      ],
+                    ),
+                    this.widget.controllers["general"]["corpSame"].text ==
+                            "true"
+                        ? Container()
+                        : Container(
+                            child: Padding(
+                              padding: const EdgeInsets.all(15),
+                              child: Row(
+                                children: <Widget>[
+                                  Expanded(
+                                    flex: 4,
+                                    child: Text(
+                                      'Business Address:',
+                                      style: TextStyle(fontSize: 16),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 8,
+                                    child: AddressSearch(
+                                        locationValue: (this
+                                                        .widget
+                                                        .controllers[
+                                                            "businessInfo"]
+                                                            ["LocationAddress1"]
+                                                        .text !=
+                                                    null &&
+                                                this
+                                                        .widget
+                                                        .controllers[
+                                                            "businessInfo"]
+                                                            ["LocationAddress1"]
+                                                        .text !=
+                                                    "")
+                                            ? this
+                                                    .widget
+                                                    .controllers["businessInfo"]
+                                                        ["LocationAddress1"]
+                                                    .text +
+                                                ", " +
+                                                this
+                                                    .widget
+                                                    .controllers["businessInfo"]
+                                                        ["City"]
+                                                    .text +
+                                                ", " +
+                                                this
+                                                    .widget
+                                                    .controllers["businessInfo"]
+                                                        ["State"]
+                                                    .text +
+                                                ", " +
+                                                this
+                                                    .widget
+                                                    .controllers["businessInfo"]
+                                                        ["First5Zip"]
+                                                    .text
+                                            : null,
+                                        onAddressChange: (val) {
+                                          setCorpAddress(val);
+                                        }),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                    getInfoDropdown(
+                        "Send Monthly Statements To",
+                        this
+                            .widget
+                            .controllers["corporateInfo"]["SendMonthlyStmntTo"]
+                            .text,
+                        this.widget.controllers["corporateInfo"]
+                            ["SendMonthlyStmntTo"],
+                        sendLocations),
+                    getInfoDropdown(
+                        "Send Retrieval Requests To",
+                        this
+                            .widget
+                            .controllers["corporateInfo"]["SendRetRequestTo"]
+                            .text,
+                        this.widget.controllers["corporateInfo"]
+                            ["SendRetRequestTo"],
+                        sendLocations),
+                    getInfoDropdown(
+                        "Send Chargebacks To",
+                        this
+                            .widget
+                            .controllers["corporateInfo"]["SendCBTo"]
+                            .text,
+                        this.widget.controllers["corporateInfo"]["SendCBTo"],
+                        sendLocations),
+                  ],
+                ),
               ),
-            ),
-            CustomCard(
-              key: Key("businessInfo2"),
-              icon: Icons.business,
-              title: "Business Info",
-              child: Column(
-                children: <Widget>[
-                  getInfoRow(
-                      "Name as it appears on income tax",
-                      agreementDocument["dbaName"],
-                      this.widget.controllers["IrsName"]),
-                  getInfoRow(
-                      "Business Email Address",
-                      this.widget.controllers["BusinessEmailAddress"].text,
-                      this.widget.controllers["BusinessEmailAddress"]),
-                  getInfoRow(
-                      "Location Phone",
-                      this.widget.controllers["LocationPhone"].text,
-                      this.widget.controllers["LocationPhone"]),
-                  getInfoRow(
-                      "Products Sold",
-                      this.widget.controllers["ProductsSold"].text,
-                      this.widget.controllers["ProductsSold"]),
-                  getInfoDropdown(
-                      "Business Category",
-                      this.widget.controllers["BusinessCategory"].text,
-                      this.widget.controllers["BusinessCategory"],
-                      businessCategory),
-                  // getInfoRow(
-                  //     "SIC Code",
-                  //     this.widget.controllers["CorporateContact"].text,
-                  //     this.widget.controllers["CorporateContact"]),
-                  getInfoDropdown(
-                      "Federal Tax ID Type",
-                      this.widget.controllers["FederalTaxIdType"].text,
-                      this.widget.controllers["FederalTaxIdType"],
-                      fedTaxIdType),
-                  getInfoRow(
-                      "Federal Tax Id",
-                      this.widget.controllers["FederalTaxId"].text,
-                      this.widget.controllers["FederalTaxId"]),
-                  getInfoDropdown(
-                      "I certify that I am a foreign entity/nonresident alien",
-                      this
-                          .widget
-                          .controllers["ForeignEntityOrNonResidentAlien"]
-                          .text,
-                      this
-                          .widget
-                          .controllers["ForeignEntityOrNonResidentAlien"],
-                      yesNoOptions),
-                ],
+              CustomCard(
+                key: Key("businessInfo2"),
+                icon: Icons.business,
+                title: "Business Info",
+                child: Column(
+                  children: <Widget>[
+                    getInfoRow(
+                        "Name as it appears on income tax",
+                        this.widget.controllers["businessInfo"]["IrsName"].text,
+                        this.widget.controllers["businessInfo"]["IrsName"]),
+                    getInfoRow(
+                        "Business Email Address",
+                        this
+                            .widget
+                            .controllers["businessInfo"]["BusinessEmailAddress"]
+                            .text,
+                        this.widget.controllers["businessInfo"]
+                            ["BusinessEmailAddress"]), // TODO EMAIL CHECK VALID
+                    getInfoRow(
+                        "Location Phone",
+                        this
+                            .widget
+                            .controllers["businessInfo"]["LocationPhone"]
+                            .text,
+                        this.widget.controllers["businessInfo"]
+                            ["LocationPhone"],
+                        mask: "000-000-0000"),
+                    getInfoRow(
+                        "Products Sold",
+                        this
+                            .widget
+                            .controllers["businessInfo"]["ProductsSold"]
+                            .text,
+                        this.widget.controllers["businessInfo"]
+                            ["ProductsSold"]),
+                    getInfoDropdown(
+                        "Business Category",
+                        this
+                            .widget
+                            .controllers["businessInfo"]["BusinessCategory"]
+                            .text,
+                        this.widget.controllers["businessInfo"]
+                            ["BusinessCategory"],
+                        businessCategory),
+                    SicDropDown(
+                      value:
+                          this.widget.controllers["businessInfo"]["Sic"].text,
+                      callback: (newVal) {
+                        if (newVal != null && newVal != "") {
+                          setState(() {
+                            this
+                                .widget
+                                .controllers["businessInfo"]["Sic"]
+                                .text = newVal["value"];
+                          });
+                        }
+                      },
+                    ),
+                    getInfoDropdown(
+                        "Federal Tax ID Type",
+                        this
+                            .widget
+                            .controllers["businessInfo"]["FederalTaxIdType"]
+                            .text,
+                        this.widget.controllers["businessInfo"]
+                            ["FederalTaxIdType"],
+                        fedTaxIdType),
+                    getInfoRow(
+                        "Federal Tax Id",
+                        this
+                            .widget
+                            .controllers["businessInfo"]["FederalTaxId"]
+                            .text,
+                        this.widget.controllers["businessInfo"]
+                            ["FederalTaxId"]),
+                    getInfoDropdown(
+                        "I certify that I am a foreign entity/nonresident alien",
+                        this
+                            .widget
+                            .controllers["businessInfo"]
+                                ["ForeignEntityOrNonResidentAlien"]
+                            .text,
+                        this.widget.controllers["businessInfo"]
+                            ["ForeignEntityOrNonResidentAlien"],
+                        yesNoOptions),
+                  ],
+                ),
               ),
-            ),
-            CustomCard(
-              key: Key("businessInfo3"),
-              icon: Icons.business,
-              title: "Site Info",
-              child: Column(
-                children: <Widget>[
-                  getInfoDropdown(
-                      "Site Visitation",
-                      this.widget.controllers["SiteVisitation"].text,
-                      this.widget.controllers["SiteVisitation"],
-                      yesNoOptions),
-                  getInfoDropdown("Zone", this.widget.controllers["Zone"].text,
-                      this.widget.controllers["Zone"], zones),
-                  getInfoDropdown(
-                      "Location",
-                      this.widget.controllers["Location"].text,
-                      this.widget.controllers["Location"],
-                      locations),
-                  getInfoRow(
-                      "Number of Employees",
-                      this.widget.controllers["NoOfEmployees"].text,
-                      this.widget.controllers["NoOfEmployees"]),
-                  getInfoRow(
-                      "Number of Terminals",
-                      this.widget.controllers["NoOfRegister"].text,
-                      this.widget.controllers["NoOfRegister"]),
-                  getInfoDropdown(
-                      "Merchant Name Site Display",
-                      this.widget.controllers["MerchantNameSiteDisplay"].text,
-                      this.widget.controllers["MerchantNameSiteDisplay"],
-                      merchantNameDisplay),
-                  getInfoDropdown(
-                      "Merchant Occupies",
-                      this.widget.controllers["StoreLocatedOn"].text,
-                      this.widget.controllers["StoreLocatedOn"],
-                      storeLocatedOn),
-                  getInfoDropdown(
-                      "Number of Floors",
-                      this.widget.controllers["NumberOfLevels"].text,
-                      this.widget.controllers["NumberOfLevels"],
-                      numOfLevels),
-                  getInfoDropdown(
-                      "Remaining Floor(s) Occupied By",
-                      this.widget.controllers["OtherOccupiedBy"].text,
-                      this.widget.controllers["OtherOccupiedBy"],
-                      otherOccupiedBy),
-                  getInfoDropdown(
-                      "Approximate Square Footage",
-                      this.widget.controllers["SquareFootage"].text,
-                      this.widget.controllers["SquareFootage"],
-                      squareFootage),
-                  getInfoDropdown(
-                      "Customer Deposit Required",
-                      this.widget.controllers["DepositRequired"].text,
-                      this.widget.controllers["DepositRequired"],
-                      yesNoOptions),
-                  getInfoDropdown(
-                      "Return Policy",
-                      this.widget.controllers["ReturnPolicy"].text,
-                      this.widget.controllers["ReturnPolicy"],
-                      returnPolicy),
-                  getInfoDropdown(
-                      "Refund Policy",
-                      this.widget.controllers["RefundPolicy"].text,
-                      this.widget.controllers["RefundPolicy"],
-                      yesNoOptions),
-                  getInfoDropdown(
-                      "Refund Type",
-                      this.widget.controllers["RefundType"].text,
-                      this.widget.controllers["RefundType"],
-                      refundType),
-                  getInfoDropdown(
-                      "Days to Submit Credit Transactions",
-                      this.widget.controllers["RefPolicyRefDays"].text,
-                      this.widget.controllers["RefPolicyRefDays"],
-                      refDays),
-                ],
+              CustomCard(
+                key: Key("businessInfo3"),
+                icon: Icons.business,
+                title: "Site Info",
+                child: Column(
+                  children: <Widget>[
+                    getInfoDropdown(
+                        "Site Visitation",
+                        this
+                            .widget
+                            .controllers["siteInfo"]["SiteVisitation"]
+                            .text,
+                        this.widget.controllers["siteInfo"]["SiteVisitation"],
+                        yesNoOptions),
+                    getInfoDropdown(
+                        "Zone",
+                        this.widget.controllers["siteInfo"]["Zone"].text,
+                        this.widget.controllers["siteInfo"]["Zone"],
+                        zones),
+                    getInfoDropdown(
+                        "Location",
+                        this.widget.controllers["siteInfo"]["Location"].text,
+                        this.widget.controllers["siteInfo"]["Location"],
+                        locations),
+                    getInfoRow(
+                        "Number of Employees",
+                        this
+                            .widget
+                            .controllers["siteInfo"]["NoOfEmployees"]
+                            .text,
+                        this.widget.controllers["siteInfo"]["NoOfEmployees"]),
+                    getInfoRow(
+                        "Number of Terminals",
+                        this
+                            .widget
+                            .controllers["siteInfo"]["NoOfRegister"]
+                            .text,
+                        this.widget.controllers["siteInfo"]["NoOfRegister"]),
+                    getInfoDropdown(
+                        "Merchant Name Site Display",
+                        this
+                            .widget
+                            .controllers["siteInfo"]["MerchantNameSiteDisplay"]
+                            .text,
+                        this.widget.controllers["siteInfo"]
+                            ["MerchantNameSiteDisplay"],
+                        merchantNameDisplay),
+                    getInfoDropdown(
+                        "Merchant Occupies",
+                        this
+                            .widget
+                            .controllers["siteInfo"]["StoreLocatedOn"]
+                            .text,
+                        this.widget.controllers["siteInfo"]["StoreLocatedOn"],
+                        storeLocatedOn),
+                    getInfoDropdown(
+                        "Number of Floors",
+                        this
+                            .widget
+                            .controllers["siteInfo"]["NumberOfLevels"]
+                            .text,
+                        this.widget.controllers["siteInfo"]["NumberOfLevels"],
+                        numOfLevels),
+                    getInfoDropdown(
+                        "Remaining Floor(s) Occupied By",
+                        this
+                            .widget
+                            .controllers["siteInfo"]["OtherOccupiedBy"]
+                            .text,
+                        this.widget.controllers["siteInfo"]["OtherOccupiedBy"],
+                        otherOccupiedBy),
+                    getInfoDropdown(
+                        "Approximate Square Footage",
+                        this
+                            .widget
+                            .controllers["siteInfo"]["SquareFootage"]
+                            .text,
+                        this.widget.controllers["siteInfo"]["SquareFootage"],
+                        squareFootage),
+                    getInfoDropdown(
+                        "Customer Deposit Required",
+                        this
+                            .widget
+                            .controllers["siteInfo"]["DepositRequired"]
+                            .text,
+                        this.widget.controllers["siteInfo"]["DepositRequired"],
+                        yesNoOptions),
+                    getInfoDropdown(
+                        "Return Policy",
+                        this
+                            .widget
+                            .controllers["siteInfo"]["ReturnPolicy"]
+                            .text,
+                        this.widget.controllers["siteInfo"]["ReturnPolicy"],
+                        returnPolicy),
+                    getInfoDropdown(
+                        "Refund Policy",
+                        this
+                            .widget
+                            .controllers["siteInfo"]["RefundPolicy"]
+                            .text,
+                        this.widget.controllers["siteInfo"]["RefundPolicy"],
+                        yesNoOptions),
+                    getInfoDropdown(
+                        "Refund Type",
+                        this.widget.controllers["siteInfo"]["RefundType"].text,
+                        this.widget.controllers["siteInfo"]["RefundType"],
+                        refundType),
+                    getInfoDropdown(
+                        "Days to Submit Credit Transactions",
+                        this
+                            .widget
+                            .controllers["siteInfo"]["RefPolicyRefDays"]
+                            .text,
+                        this.widget.controllers["siteInfo"]["RefPolicyRefDays"],
+                        refDays),
+                  ],
+                ),
               ),
-            ),
-            CustomCard(
-              key: Key("businessInfo4"),
-              icon: Icons.business,
-              title: "Mail Order/Telephone Order",
-              child: Column(
-                children: <Widget>[
-                  Row(
-                    children: <Widget>[
-                      Text("Mail Order/Telephone Order (MOTO)"),
-                      Checkbox(
-                          value: this.widget.controllers["motoCheck"].text ==
-                                  "true"
-                              ? true
-                              : false,
-                          onChanged: (val) {
-                            setState(() {
-                              this.widget.controllers["motoCheck"].text =
-                                  val.toString();
-                              print(this.widget.controllers["motoCheck"].text);
-                            });
-                          }),
-                    ],
-                  ),
-                  this.widget.controllers["motoCheck"].text == "true"
-                      ? Column(children: <Widget>[
-                          getInfoRow(
-                              "% Transaction to Delivery 0-7 Days",
-                              this
-                                  .widget
-                                  .controllers["TransDeliveredIn07"]
-                                  .text,
-                              this.widget.controllers["TransDeliveredIn07"]),
-                          getInfoRow(
-                              "% Transaction to Delivery 8-14 Days",
-                              this
-                                  .widget
-                                  .controllers["TransDeliveredIn814"]
-                                  .text,
-                              this.widget.controllers["TransDeliveredIn814"]),
-                          getInfoRow(
-                              "% Transaction to Delivery 15-30 Days",
-                              this
-                                  .widget
-                                  .controllers["TransDeliveredIn1530"]
-                                  .text,
-                              this.widget.controllers["TransDeliveredIn1530"]),
-                          getInfoRow(
-                              "% Transaction to Delivery +30 Days",
-                              this
-                                  .widget
-                                  .controllers["TransDeliveredOver30"]
-                                  .text,
-                              this.widget.controllers["TransDeliveredOver30"]),
-                          getInfoDropdown(
-                              "MC/Visa/Discover Network/Amex Sales Deposits",
-                              this
-                                  .widget
-                                  .controllers["CCSalesProcessedAt"]
-                                  .text,
-                              this.widget.controllers["CCSalesProcessedAt"],
-                              ccProcessedAt),
-                        ])
-                      : Container()
-                ],
+              CustomCard(
+                key: Key("businessInfo4"),
+                icon: Icons.business,
+                title: "Mail Order/Telephone Order",
+                child: Column(
+                  children: <Widget>[
+                    Row(
+                      children: <Widget>[
+                        Text("Mail Order/Telephone Order (MOTO)"),
+                        Checkbox(
+                            value: this
+                                        .widget
+                                        .controllers["general"]["motoCheck"]
+                                        .text ==
+                                    "true"
+                                ? true
+                                : false,
+                            onChanged: (val) {
+                              setState(() {
+                                this
+                                    .widget
+                                    .controllers["general"]["motoCheck"]
+                                    .text = val.toString();
+                                print(this
+                                    .widget
+                                    .controllers["general"]["motoCheck"]
+                                    .text);
+                              });
+                            }),
+                      ],
+                    ),
+                    this.widget.controllers["general"]["motoCheck"].text ==
+                            "true"
+                        ? Column(children: <Widget>[
+                            getInfoRow(
+                                "% Transaction to Delivery 0-7 Days",
+                                this
+                                    .widget
+                                    .controllers["motoBBInet"]
+                                        ["TransDeliveredIn07"]
+                                    .text,
+                                this.widget.controllers["motoBBInet"]
+                                    ["TransDeliveredIn07"]),
+                            getInfoRow(
+                                "% Transaction to Delivery 8-14 Days",
+                                this
+                                    .widget
+                                    .controllers["motoBBInet"]
+                                        ["TransDeliveredIn814"]
+                                    .text,
+                                this.widget.controllers["motoBBInet"]
+                                    ["TransDeliveredIn814"]),
+                            getInfoRow(
+                                "% Transaction to Delivery 15-30 Days",
+                                this
+                                    .widget
+                                    .controllers["motoBBInet"]
+                                        ["TransDeliveredIn1530"]
+                                    .text,
+                                this.widget.controllers["motoBBInet"]
+                                    ["TransDeliveredIn1530"]),
+                            getInfoRow(
+                                "% Transaction to Delivery +30 Days",
+                                this
+                                    .widget
+                                    .controllers["motoBBInet"]
+                                        ["TransDeliveredOver30"]
+                                    .text,
+                                this.widget.controllers["motoBBInet"]
+                                    ["TransDeliveredOver30"]),
+                            getInfoDropdown(
+                                "MC/Visa/Discover Network/Amex Sales Deposits",
+                                this
+                                    .widget
+                                    .controllers["motoBBInet"]
+                                        ["CCSalesProcessedAt"]
+                                    .text,
+                                this.widget.controllers["motoBBInet"]
+                                    ["CCSalesProcessedAt"],
+                                ccProcessedAt),
+                            getInfoDropdown(
+                                "Does any cardholder billing involve automatic renewals or recurring transactions?",
+                                this
+                                    .widget
+                                    .controllers["motoBBInet"]
+                                        ["CardholderBilling"]
+                                    .text,
+                                this.widget.controllers["motoBBInet"]
+                                    ["CardholderBilling"],
+                                yesNoOptions),
+                          ])
+                        : Container()
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget getInfoRow(label, value, controller) {
+  Widget getInfoRow(label, value, controller, {mask, validator}) {
+    if (mask != null) {
+      controller.updateMask(mask);
+    }
+    bool isValidating = false;
+    if (validator != null) {
+      setState(() {
+        isValidating = true;
+      });
+    }
+
     if (value != null) {
       controller.text = value;
     }
@@ -585,7 +867,9 @@ class BusinessInfoState extends State<BusinessInfo>
             ),
             Expanded(
               flex: 8,
-              child: TextField(controller: controller),
+              child: TextFormField(
+                  controller: controller,
+                  validator: isValidating ? validator : null),
             ),
           ],
         ),
@@ -677,7 +961,6 @@ class BusinessInfoState extends State<BusinessInfo>
                 hint: "Please choose one",
                 searchHint: null,
                 isExpanded: true,
-                // menuConstraints: BoxConstraints.tight(Size.fromHeight(350)),
                 items: dropList.map<DropdownMenuItem<String>>((dynamic item) {
                   var itemName = item["name"];
                   var itemValue = item["value"];

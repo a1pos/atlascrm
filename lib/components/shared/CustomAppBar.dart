@@ -7,8 +7,9 @@ import 'package:flutter/material.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Widget title;
+  final List<Widget> action;
 
-  const CustomAppBar({Key key, this.title}) : super(key: key);
+  const CustomAppBar({Key key, this.title, this.action}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +28,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 color: Colors.white,
               ),
             ),
+            actions: action,
             backgroundColor: Color.fromARGB(255, 21, 27, 38),
           ),
         ),

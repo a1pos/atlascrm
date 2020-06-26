@@ -82,21 +82,23 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 Navigator.popAndPushNamed(context, "/tasks");
               },
             ),
-            ListTile(
-              leading: Icon(
-                Icons.attach_money,
-                color: Colors.white,
-              ),
-              title: Text(
-                'Leads',
-                style: TextStyle(
-                  color: Colors.white,
-                ),
-              ),
-              onTap: () {
-                Navigator.popAndPushNamed(context, "/leads");
-              },
-            ),
+            UserService.isTech
+                ? Container()
+                : ListTile(
+                    leading: Icon(
+                      Icons.attach_money,
+                      color: Colors.white,
+                    ),
+                    title: Text(
+                      'Leads',
+                      style: TextStyle(
+                        color: Colors.white,
+                      ),
+                    ),
+                    onTap: () {
+                      Navigator.popAndPushNamed(context, "/leads");
+                    },
+                  ),
             ListTile(
               leading: Icon(
                 Icons.people,
