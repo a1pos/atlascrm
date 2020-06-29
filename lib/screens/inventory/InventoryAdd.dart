@@ -115,6 +115,16 @@ class InventoryAddState extends State<InventoryAdd> {
 
   Future<void> addDevice() async {
     try {
+      if (serialList.length < 1) {
+        Fluttertoast.showToast(
+            msg: "No devices scanned!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0);
+        return null;
+      }
       var data = serialList;
       bool cleanPost = true;
       var resp1 = await this.widget.apiService.authPost(
