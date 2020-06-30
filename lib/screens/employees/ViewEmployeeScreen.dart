@@ -256,6 +256,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color.fromARGB(255, 242, 242, 242),
       appBar: CustomAppBar(
         key: Key("viewEmployeeScreenAppBar"),
         title: Text(isLoading ? "Loading..." : employee.document["fullName"]),

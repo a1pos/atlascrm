@@ -271,19 +271,20 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
         return Future.value(false);
       },
       child: Scaffold(
+        backgroundColor: Color.fromARGB(255, 242, 242, 242),
         appBar: CustomAppBar(
           key: Key("viewTasksAppBar"),
           title: Text(isLoading ? "Loading..." : merchantDocument["dbaname"]),
           action: <Widget>[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(5, 8, 10, 8),
-              child: IconButton(
-                onPressed: () {
-                  deleteCheck(this.widget.merchantId);
-                },
-                icon: Icon(Icons.delete, color: Colors.white),
-              ),
-            )
+            // Padding(
+            //   padding: const EdgeInsets.fromLTRB(5, 8, 10, 8),
+            //   child: IconButton(
+            //     onPressed: () {
+            //       deleteCheck(this.widget.merchantId);
+            //     },
+            //     icon: Icon(Icons.delete, color: Colors.white),
+            //   ),
+            // )
           ],
         ),
         body: isLoading

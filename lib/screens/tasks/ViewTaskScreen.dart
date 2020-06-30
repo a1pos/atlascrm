@@ -220,6 +220,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color.fromARGB(255, 242, 242, 242),
       appBar: CustomAppBar(
         key: Key("viewTasksAppBar"),
         title: Text(isLoading ? "Loading..." : task['document']['title']),

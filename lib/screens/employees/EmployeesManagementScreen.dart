@@ -26,6 +26,7 @@ class _EmployeesManagementScreenState extends State<EmployeesManagementScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color.fromARGB(255, 242, 242, 242),
       drawer: CustomDrawer(),
       appBar: CustomAppBar(
         key: Key("employeeMgmtAppBar"),

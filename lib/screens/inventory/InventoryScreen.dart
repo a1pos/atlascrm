@@ -359,11 +359,12 @@ class _InventoryScreenState extends State<InventoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color.fromARGB(255, 242, 242, 242),
       drawer: CustomDrawer(),
-      appBar: AppBar(
+      appBar: CustomAppBar(
         key: Key("inventoryscreenappbar"),
         title: Text(isLoading ? "Loading..." : "$locationSearch"),
-        actions: <Widget>[
+        action: <Widget>[
           Padding(
             padding: const EdgeInsets.fromLTRB(5, 8, 10, 8),
             child: IconButton(
@@ -374,7 +375,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
             ),
           )
         ],
-        backgroundColor: Color.fromARGB(500, 1, 56, 112),
       ),
       body: Container(
         padding: EdgeInsets.all(10),

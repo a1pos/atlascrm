@@ -13,10 +13,11 @@ import 'package:searchable_dropdown/searchable_dropdown.dart';
 class BusinessInfo extends StatefulWidget {
   final ApiService apiService = new ApiService();
 
+  final Map isDirtyStatus;
   final Map controllers;
   final agreementDoc;
 
-  BusinessInfo({this.controllers, this.agreementDoc});
+  BusinessInfo({this.controllers, this.agreementDoc, this.isDirtyStatus});
 
   @override
   BusinessInfoState createState() => BusinessInfoState();
@@ -253,6 +254,11 @@ class BusinessInfoState extends State<BusinessInfo>
       padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
       child: SingleChildScrollView(
         child: Form(
+          onChanged: () {
+            setState(() {
+              this.widget.isDirtyStatus["businessInfoIsDirty"] = true;
+            });
+          },
           // key: _formKeys[1],
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,

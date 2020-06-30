@@ -6,10 +6,11 @@ import 'package:searchable_dropdown/searchable_dropdown.dart';
 class SettlementTransact extends StatefulWidget {
   final ApiService apiService = new ApiService();
 
+  final Map isDirtyStatus;
   final Map controllers;
   final agreementDoc;
 
-  SettlementTransact({this.controllers, this.agreementDoc});
+  SettlementTransact({this.controllers, this.agreementDoc, this.isDirtyStatus});
 
   @override
   SettlementTransactState createState() => SettlementTransactState();
@@ -85,22 +86,32 @@ class SettlementTransactState extends State<SettlementTransact>
                 children: <Widget>[
                   getInfoRow(
                       "Deposit Bank Name",
-                      this.widget.controllers["DepositBankName"].text,
-                      this.widget.controllers["DepositBankName"]),
+                      this
+                          .widget
+                          .controllers["settlement"]["DepositBankName"]
+                          .text,
+                      this.widget.controllers["settlement"]["DepositBankName"]),
                   getInfoDropdown(
                       "Account Type",
-                      this.widget.controllers["AccountType"].text,
-                      this.widget.controllers["AccountType"],
+                      this.widget.controllers["settlement"]["AccountType"].text,
+                      this.widget.controllers["settlement"]["AccountType"],
                       accTypes),
                   getInfoRow(
                       "Transit ABA Number",
-                      this.widget.controllers["TransitABANumber"].text,
-                      this.widget.controllers["TransitABANumber"],
+                      this
+                          .widget
+                          .controllers["settlement"]["TransitABANumber"]
+                          .text,
+                      this.widget.controllers["settlement"]["TransitABANumber"],
                       mask: '000000000'),
                   getInfoRow(
                       "Deposit Account Number",
-                      this.widget.controllers["DepositAccountNumber"].text,
-                      this.widget.controllers["DepositAccountNumber"],
+                      this
+                          .widget
+                          .controllers["settlement"]["DepositAccountNumber"]
+                          .text,
+                      this.widget.controllers["settlement"]
+                          ["DepositAccountNumber"],
                       mask: '0[0000000000000000]'),
                 ],
               ),
@@ -113,75 +124,109 @@ class SettlementTransactState extends State<SettlementTransact>
                 children: <Widget>[
                   getInfoRow(
                       "Average MC/VISA/Discover Ticket",
-                      this.widget.controllers["AvgMcViDiTicket"].text,
-                      this.widget.controllers["AvgMcViDiTicket"],
+                      this
+                          .widget
+                          .controllers["transaction"]["AvgMcViDiTicket"]
+                          .text,
+                      this.widget.controllers["transaction"]["AvgMcViDiTicket"],
                       mask: '00000'),
                   getInfoRow(
                       "Total Annual Sales Volume(cash+credit+check+debit)",
-                      this.widget.controllers["TotalAnnualSalesVolume"].text,
-                      this.widget.controllers["TotalAnnualSalesVolume"],
+                      this
+                          .widget
+                          .controllers["transaction"]["TotalAnnualSalesVolume"]
+                          .text,
+                      this.widget.controllers["transaction"]
+                          ["TotalAnnualSalesVolume"],
                       mask: '000000000'),
                   getInfoRow(
                       "Annual MC/VISA Credit Sales Volume",
-                      this.widget.controllers["AnnualMcViSalesVolume"].text,
-                      this.widget.controllers["AnnualMcViSalesVolume"],
+                      this
+                          .widget
+                          .controllers["transaction"]["AnnualMcViSalesVolume"]
+                          .text,
+                      this.widget.controllers["transaction"]
+                          ["AnnualMcViSalesVolume"],
                       mask: '000000000'),
                   getInfoRow(
                       "Annual Discover Credit Sales Volume",
-                      this.widget.controllers["AnnualDiSalesVolume"].text,
                       this
                           .widget
-                          .controllers["AnnualDiSalesVolume"]), //NEEDS MIN SET
+                          .controllers["transaction"]["AnnualDiSalesVolume"]
+                          .text,
+                      this.widget.controllers["transaction"]
+                          ["AnnualDiSalesVolume"]), //NEEDS MIN SET
                   getInfoRow(
                       "Annual American Express Credit Sales Volume",
                       this
                           .widget
-                          .controllers["AnnualAmexOnePointSalesVolume"]
+                          .controllers["transaction"]
+                              ["AnnualAmexOnePointSalesVolume"]
                           .text,
-                      this.widget.controllers[
-                          "AnnualAmexOnePointSalesVolume"]), //NEEDS MIN SET
+                      this.widget.controllers["transaction"]
+                          ["AnnualAmexOnePointSalesVolume"]), //NEEDS MIN SET
                   getInfoRow(
                       "Highest Ticket Amount",
-                      this.widget.controllers["HighestTicket"].text,
-                      this.widget.controllers["HighestTicket"],
+                      this
+                          .widget
+                          .controllers["transaction"]["HighestTicket"]
+                          .text,
+                      this.widget.controllers["transaction"]["HighestTicket"],
                       mask: '00000000'),
                   getInfoDropdown(
                       "Seasonal Merchant",
-                      this.widget.controllers["SeasonalMerchant"].text,
-                      this.widget.controllers["SeasonalMerchant"],
+                      this
+                          .widget
+                          .controllers["transaction"]["SeasonalMerchant"]
+                          .text,
+                      this.widget.controllers["transaction"]
+                          ["SeasonalMerchant"],
                       yesNoOptions),
                   getInfoDropdown(
-                      "Season Periopd From",
-                      this.widget.controllers["SeasonalFrom"].text,
-                      this.widget.controllers["SeasonalFrom"],
+                      "Season Period From",
+                      this
+                          .widget
+                          .controllers["transaction"]["SeasonalFrom"]
+                          .text,
+                      this.widget.controllers["transaction"]["SeasonalFrom"],
                       seasonalMonths), //MAKE DEPENDANT ON SEASONAL MERCHANT Y/N
                   getInfoDropdown(
-                      "Season Periopd To",
-                      this.widget.controllers["SeasonalTo"].text,
-                      this.widget.controllers["SeasonalTo"],
+                      "Season Period To",
+                      this.widget.controllers["transaction"]["SeasonalTo"].text,
+                      this.widget.controllers["transaction"]["SeasonalTo"],
                       seasonalMonths), //MAKE DEPENDANT ON SEASONAL MERCHANT Y/N
                   getInfoRow(
                       "% Store front/Swiped",
-                      this.widget.controllers["CcPercentPos"].text,
-                      this.widget.controllers[
-                          "CcPercentPos"]), //MAKE ADD UP TO 100 1/4
+                      this
+                          .widget
+                          .controllers["transaction"]["CcPercentPos"]
+                          .text,
+                      this.widget.controllers["transaction"]
+                          ["CcPercentPos"]), //MAKE ADD UP TO 100 1/4
                   getInfoRow(
                       "% Internet",
-                      this.widget.controllers["CcPercentInet"].text,
-                      this.widget.controllers[
-                          "CcPercentInet"]), //MAKE ADD UP TO 100 2/4
+                      this
+                          .widget
+                          .controllers["transaction"]["CcPercentInet"]
+                          .text,
+                      this.widget.controllers["transaction"]
+                          ["CcPercentInet"]), //MAKE ADD UP TO 100 2/4
                   getInfoRow(
                       "% Mail Order",
-                      this.widget.controllers["CcPercentMo"].text,
                       this
                           .widget
-                          .controllers["CcPercentMo"]), //MAKE ADD UP TO 100 3/4
+                          .controllers["transaction"]["CcPercentMo"]
+                          .text,
+                      this.widget.controllers["transaction"]
+                          ["CcPercentMo"]), //MAKE ADD UP TO 100 3/4
                   getInfoRow(
                       "% Telephone Order",
-                      this.widget.controllers["CcPercentTo"].text,
                       this
                           .widget
-                          .controllers["CcPercentTo"]), //MAKE ADD UP TO 100 4/4
+                          .controllers["transaction"]["CcPercentTo"]
+                          .text,
+                      this.widget.controllers["transaction"]
+                          ["CcPercentTo"]), //MAKE ADD UP TO 100 4/4
                 ],
               ),
             ),
@@ -189,9 +234,21 @@ class SettlementTransactState extends State<SettlementTransact>
         ));
   }
 
-  Widget getInfoRow(label, value, controller, {mask}) {
+  Widget getInfoRow(label, value, controller, {mask, validator, obscure}) {
     if (mask != null) {
       controller.updateMask(mask);
+    }
+    bool isValidating = false;
+    bool isObscure = false;
+    if (validator != null) {
+      setState(() {
+        isValidating = true;
+      });
+    }
+    if (obscure != null) {
+      setState(() {
+        isObscure = obscure;
+      });
     }
 
     if (value != null) {
@@ -218,7 +275,16 @@ class SettlementTransactState extends State<SettlementTransact>
             ),
             Expanded(
               flex: 8,
-              child: TextField(controller: controller),
+              child: TextFormField(
+                onChanged: (newValue) {
+                  setState(() {
+                    controller.text = newValue;
+                  });
+                },
+                controller: controller,
+                validator: isValidating ? validator : null,
+                obscureText: isObscure,
+              ),
             ),
           ],
         ),

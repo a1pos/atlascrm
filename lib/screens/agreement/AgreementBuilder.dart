@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'dart:developer';
-
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:xml/xml.dart';
+import 'package:atlascrm/components/agreement/Documents.dart';
 import 'package:atlascrm/components/agreement/OwnerInfo.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
@@ -22,20 +25,11 @@ class AgreementBuilder extends StatefulWidget {
   AgreementBuilderState createState() => AgreementBuilderState();
 }
 
-class Item {
-  Item(
-      {this.expandedValue,
-      this.headerValue,
-      this.isExpanded = false,
-      this.contentCard = const Text("nocontent")});
-
-  String expandedValue;
-  String headerValue;
-  bool isExpanded;
-  Widget contentCard;
-}
-
-//General
+Map isDirtyStatus = {
+  "businessInfoIsDirty": false,
+  "ownersIsDirty": false,
+  "settlementTransactIsDirty": false,
+};
 
 //MpaOutletInfo.Outlet
 //--BUSINESS INFO TAB --
@@ -184,6 +178,14 @@ final List ownershipControllerNames = [
   "NumberOfAdditionalOwner",
 ];
 
+//SETTLEMENT TRANSACT TAB
+final List settlementControllerNames = [
+  "AccountType",
+  "DepositBankName",
+  "TransitABANumber",
+  "DepositAccountNumber"
+];
+
 final List transactionControllerNames = [
   "SeasonalTo",
   "CcPercentMo",
@@ -200,19 +202,13 @@ final List transactionControllerNames = [
   "AnnualAmexOnePointSalesVolume"
 ];
 
+//PRICING TAB
 final List entitlementControllerNames = [
   "AmexOption",
   "AmexFeeClass",
   "AmexDiscountQual",
   "AmexInterchangeFeeFlag",
   "AmexOtherItemRateNotESA"
-];
-
-final List settlementControllerNames = [
-  "AccountType",
-  "DepositBankName",
-  "TransitABANumber",
-  "DepositAccountNumber"
 ];
 
 final List otherFeesControllerNames = [
@@ -301,6 +297,9 @@ class AgreementBuilderState extends State<AgreementBuilder>
     with TickerProviderStateMixin {
   var agreementBuilderObj;
   var agreementDocument;
+
+  Map files = {"file1": "", "file2": ""};
+
   var lead;
   var leadDocument;
   var addressText;
@@ -411,6 +410,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
   }
 
   Map businessPageControllers = {};
+  Map settlementTransactPageControllers = {};
   Future<void> loadControllers() async {
     _generalControllers.forEach((j, k) {
       if (agreementBuilderObj["document"]["$j"] != null) {
@@ -467,6 +467,29 @@ class AgreementBuilderState extends State<AgreementBuilder>
             .toString();
       }
     });
+
+    //--SETTLEMENT/TRANSACT PAGE
+    _settlementControllers.forEach((j, k) {
+      if (agreementBuilderObj["document"]["ApplicationInformation"]
+              ["MpaOutletInfo"]["Outlet"]["Settlement"]["$j"] !=
+          null) {
+        _settlementControllers["$j"].text = agreementBuilderObj["document"]
+                    ["ApplicationInformation"]["MpaOutletInfo"]["Outlet"]
+                ["Settlement"]["$j"]
+            .toString();
+      }
+    });
+    _transactionControllers.forEach((j, k) {
+      if (agreementBuilderObj["document"]["ApplicationInformation"]
+              ["MpaOutletInfo"]["Outlet"]["Transaction"]["$j"] !=
+          null) {
+        _transactionControllers["$j"].text = agreementBuilderObj["document"]
+                    ["ApplicationInformation"]["MpaOutletInfo"]["Outlet"]
+                ["Transaction"]["$j"]
+            .toString();
+      }
+    });
+
     setState(() {
       businessPageControllers = {
         "general": _generalControllers,
@@ -475,6 +498,10 @@ class AgreementBuilderState extends State<AgreementBuilder>
         "motoBBInet": _motoBBInetControllers,
         "mpaInfo": _mpaInfoControllers,
         "corporateInfo": _corporateInfoControllers
+      };
+      settlementTransactPageControllers = {
+        "settlement": _settlementControllers,
+        "transaction": _transactionControllers
       };
     });
 
@@ -681,12 +708,20 @@ class AgreementBuilderState extends State<AgreementBuilder>
   }
 
   Future<void> updateAgreement(agreementBuilderId) async {
-    var agreementBuilderObj = {
-      //Business Info Section
-    };
-
-    var resp = await this.widget.apiService.authPut(context,
-        "/agreementbuilder/" + agreementBuilderId, agreementBuilderObj);
+    if (isDirtyStatus["businessInfoIsDirty"]) {
+      updateBusinessInfo();
+    }
+    if (isDirtyStatus["ownersIsDirty"]) {
+      updateOwners();
+    }
+    if (isDirtyStatus["settlementTransactIsDirty"]) {
+      updateSettlementTransact();
+    }
+    print(agreementBuilderObj);
+    var resp = await this.widget.apiService.authPut(
+        context,
+        "/agreementbuilder/" + agreementBuilderId,
+        agreementBuilderObj["document"]);
 
     if (resp.statusCode == 200) {
       await loadAgreementData(this.widget.leadId);
@@ -707,11 +742,99 @@ class AgreementBuilderState extends State<AgreementBuilder>
           textColor: Colors.white,
           fontSize: 16.0);
     }
-    updateOwners();
+  }
+
+  Future<void> updateBusinessInfo() async {
+    _businessInfoControllers.forEach((j, k) {
+      if (_businessInfoControllers["$j"].text != null) {
+        agreementBuilderObj["document"]["ApplicationInformation"]
+                ["MpaOutletInfo"]["Outlet"]["BusinessInfo"]["$j"] =
+            _businessInfoControllers["$j"].text.toString();
+      }
+    });
+
+    _siteInfoControllers.forEach((j, k) {
+      if (_siteInfoControllers["$j"].text != null) {
+        agreementBuilderObj["document"]["ApplicationInformation"]
+                ["MpaOutletInfo"]["Outlet"]["SiteInfo"]["$j"] =
+            _siteInfoControllers["$j"].text.toString();
+      }
+    });
+
+    _motoBBInetControllers.forEach((j, k) {
+      if (_motoBBInetControllers["$j"].text != null) {
+        agreementBuilderObj["document"]["ApplicationInformation"]
+                ["MpaOutletInfo"]["Outlet"]["MotoBBInet"]["$j"] =
+            _motoBBInetControllers["$j"].text.toString();
+      }
+    });
+
+    _mpaInfoControllers.forEach((j, k) {
+      if (_mpaInfoControllers["$j"].text != null) {
+        agreementBuilderObj["document"]["ApplicationInformation"]["MpaInfo"]
+            ["$j"] = _mpaInfoControllers["$j"].text.toString();
+      }
+    });
+
+    _corporateInfoControllers.forEach((j, k) {
+      if (_corporateInfoControllers["$j"].text != null) {
+        agreementBuilderObj["document"]["ApplicationInformation"]
+                ["CorporateInfo"]["$j"] =
+            _corporateInfoControllers["$j"].text.toString();
+      }
+    });
+
+    isDirtyStatus["businessInfoIsDirty"] = false;
+    Fluttertoast.showToast(
+        msg: "Business Info!",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.grey[600],
+        textColor: Colors.white,
+        fontSize: 16.0);
   }
 
   Future<void> updateOwners() async {
-    print("SENDING OWNERS: $owners");
+    var ownershipItems = [];
+    var i = 2;
+    for (var owner in owners) {
+      var k = i;
+      if (owner["document"]["PrinGuarantorCode"] == "1") {
+        k = 1;
+      }
+      ownershipItems.add({"Prin${k}Dob": owner["document"]["PrinDob"]});
+      ownershipItems.add({"Prin${k}Ssn": owner["document"]["PrinSsn"]});
+      ownershipItems.add({"Prin${k}City": owner["document"]["PrinCity"]});
+      ownershipItems.add({"Prin${k}Phone": owner["document"]["PrinPhone"]});
+      ownershipItems.add({"Prin${k}State": owner["document"]["PrinState"]});
+      ownershipItems.add({"Prin${k}Title": owner["document"]["PrinTitle"]});
+      ownershipItems.add({"Prin${k}Address": owner["document"]["PrinAddress"]});
+      ownershipItems
+          .add({"Prin${k}LastName": owner["document"]["PrinLastName"]});
+      ownershipItems
+          .add({"Prin${k}First5Zip": owner["document"]["PrinFirst5Zip"]});
+      ownershipItems
+          .add({"Prin${k}FirstName": owner["document"]["PrinFirstName"]});
+      ownershipItems
+          .add({"Prin${k}EmailAddress": owner["document"]["PrinEmailAddress"]});
+      ownershipItems.add(
+          {"Prin${k}GuarantorCode": owner["document"]["PrinGuarantorCode"]});
+      ownershipItems.add({
+        "Prin${k}OwnershipPercent": owner["document"]["PrinOwnershipPercent"]
+      });
+      ownershipItems.add({
+        "Prin${k}DriverLicenseState": owner["document"]
+            ["PrinDriverLicenseState"]
+      });
+      ownershipItems.add({
+        "Prin${k}DriverLicenseNumber": owner["document"]
+            ["PrinDriverLicenseNumber"]
+      });
+      k++;
+    }
+    agreementBuilderObj["document"]["ownership"] = ownershipItems;
+    isDirtyStatus["ownersIsDirty"] = false;
+
     var resp = await this
         .widget
         .apiService
@@ -735,6 +858,36 @@ class AgreementBuilderState extends State<AgreementBuilder>
           fontSize: 16.0);
     }
   }
+
+  Future<void> updateSettlementTransact() async {
+    _settlementControllers.forEach((j, k) {
+      if (_settlementControllers["$j"].text != null) {
+        agreementBuilderObj["document"]["ApplicationInformation"]
+                ["MpaOutletInfo"]["Outlet"]["Settlement"]["$j"] =
+            _settlementControllers["$j"].text.toString();
+      }
+    });
+
+    _transactionControllers.forEach((j, k) {
+      if (_transactionControllers["$j"].text != null) {
+        agreementBuilderObj["document"]["ApplicationInformation"]
+                ["MpaOutletInfo"]["Outlet"]["Transaction"]["$j"] =
+            _transactionControllers["$j"].text.toString();
+      }
+    });
+
+    isDirtyStatus["settlementTransactIsDirty"] = false;
+
+    Fluttertoast.showToast(
+        msg: "Settlement Transact!",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.grey[600],
+        textColor: Colors.white,
+        fontSize: 16.0);
+  }
+
+  Future<void> updateDocuments() async {}
 
   Future<void> leaveCheck() async {
     return showDialog<void>(
@@ -811,9 +964,11 @@ class AgreementBuilderState extends State<AgreementBuilder>
               ? CenteredClearLoadingScreen()
               : TabBarView(controller: _tabController, children: [
                   BusinessInfo(
+                      isDirtyStatus: isDirtyStatus,
                       controllers: businessPageControllers,
                       agreementDoc: agreementDocument),
                   OwnerInfo(
+                      isDirtyStatus: isDirtyStatus,
                       owners: owners,
                       controllers: _ownershipControllers,
                       lead: this.widget.leadId),
@@ -823,32 +978,17 @@ class AgreementBuilderState extends State<AgreementBuilder>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: <Widget>[
-                          // SettlementTransact(
-                          //     controllers: _salesPricingControllers,
-                          //     agreementDoc: agreementDocument)
+                          SettlementTransact(
+                              isDirtyStatus: isDirtyStatus,
+                              controllers: settlementTransactPageControllers,
+                              agreementDoc: agreementDocument)
                         ],
                       ),
                     ),
                   ),
-                  Container(
-                    padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
-                    child: SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: <Widget>[
-                          CustomCard(
-                            key: Key("documents1"),
-                            icon: Icons.save,
-                            title: "Documents",
-                            child: Column(
-                              children: <Widget>[
-                                //PUT GET INFO ROWS HERE
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                  Documents(
+                    files: files,
+                    isDirtyStatus: isDirtyStatus,
                   ),
                   Container(
                     padding: EdgeInsets.fromLTRB(10, 0, 10, 0),

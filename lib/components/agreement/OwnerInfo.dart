@@ -8,11 +8,12 @@ import 'package:searchable_dropdown/searchable_dropdown.dart';
 class OwnerInfo extends StatefulWidget {
   final ApiService apiService = new ApiService();
 
+  final Map isDirtyStatus;
   final List owners;
   final Map controllers;
   final String lead;
 
-  OwnerInfo({this.owners, this.controllers, this.lead});
+  OwnerInfo({this.owners, this.controllers, this.lead, this.isDirtyStatus});
 
   @override
   OwnerInfoState createState() => OwnerInfoState();
@@ -219,9 +220,7 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
                         onAddressChange: (val) {
                           var addObj = {"value": val, "index": index};
                           setAddress(addObj);
-                        }
-                        //TODO Make a function to parse out necessary address objs
-                        ),
+                        }),
                   ),
                 ],
               ),
@@ -259,10 +258,14 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
       children: <Widget>[
         buildDLGridView(),
         this.widget.owners.length < 5
-            ? FlatButton(
-                color: Colors.blue,
-                onPressed: () => addOwner(),
-                child: Text("Add Owner", style: TextStyle(color: Colors.white)))
+            ? Padding(
+                padding: const EdgeInsets.all(15.0),
+                child: FlatButton(
+                    color: Color.fromARGB(500, 1, 224, 143),
+                    onPressed: () => addOwner(),
+                    child: Text("Add Owner",
+                        style: TextStyle(color: Colors.white))),
+              )
             : Container()
       ],
     );
@@ -312,6 +315,7 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
               child: TextFormField(
                 onChanged: (newValue) {
                   setState(() {
+                    this.widget.isDirtyStatus["ownersIsDirty"] = true;
                     controller.text = newValue;
                   });
                 },
@@ -365,6 +369,7 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
                 }).toList(),
                 onChanged: (newValue) {
                   setState(() {
+                    this.widget.isDirtyStatus["ownersIsDirty"] = true;
                     controller.text = newValue;
                   });
                 },
@@ -423,6 +428,7 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
                 }).toList(),
                 onChanged: (newValue) {
                   setState(() {
+                    this.widget.isDirtyStatus["ownersIsDirty"] = true;
                     controller.text = newValue;
                   });
                 },
@@ -479,6 +485,7 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
               child: TextFormField(
                 onChanged: (newValue) {
                   setState(() {
+                    this.widget.isDirtyStatus["ownersIsDirty"] = true;
                     this.widget.owners[index]["document"][object] = newValue;
                   });
                 },
@@ -592,6 +599,7 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
                 }).toList(),
                 onChanged: (newValue) {
                   setState(() {
+                    this.widget.isDirtyStatus["ownersIsDirty"] = true;
                     this.widget.owners[index]["document"][object] = newValue;
                   });
                 },

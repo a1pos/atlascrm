@@ -515,6 +515,7 @@ class _TaskScreenState extends State<TaskScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color.fromARGB(255, 242, 242, 242),
       drawer: CustomDrawer(),
       appBar: CustomAppBar(key: Key("taskAppBar"), title: Text("Tasks")),
       body: isLoading

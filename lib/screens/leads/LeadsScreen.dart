@@ -270,6 +270,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color.fromARGB(255, 242, 242, 242),
       drawer: CustomDrawer(),
       appBar: CustomAppBar(
         key: Key("leadsScreenAppBar"),
