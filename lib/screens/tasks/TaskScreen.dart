@@ -212,7 +212,7 @@ class _TaskScreenState extends State<TaskScreen> {
     var taskOwner = UserService.isAdmin
         ? employeeDropdownValue
         : UserService.employee.employee;
-    var token = await this.widget.storageService.read("access_token");
+    var token = UserService.googleSignInAuthentication.accessToken;
     var data = {
       "type": taskTypeDropdownValue,
       "owner": taskOwner,

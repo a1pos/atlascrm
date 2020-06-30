@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer';
 
 import 'package:atlascrm/config/ConfigSettings.dart';
 
@@ -50,8 +49,8 @@ class ApiService {
 
   Future<Response> authGet(context, url, {isRetry: false}) async {
     try {
-      var auth = await UserService.currentUser.authentication;
-      var token = auth.idToken;
+      var currentUser = await UserService.getCurrentUser();
+      var token = await currentUser.getIdToken();
 
       var resp = await Dio(
         BaseOptions(
@@ -59,7 +58,7 @@ class ApiService {
           responseType: ResponseType.json,
           headers: {
             "Content-Type": "application/json",
-            "Authorization": "Google $token",
+            "Authorization": "Firebase ${token.token}",
           },
           sendTimeout: TIMEOUT,
           validateStatus: (status) {
@@ -86,8 +85,8 @@ class ApiService {
   Future<Response> authPost(context, url, data,
       {isFile = false, isRetry: false}) async {
     try {
-      var auth = await UserService.currentUser.authentication;
-      var token = auth.idToken;
+      var currentUser = await UserService.getCurrentUser();
+      var token = await currentUser.getIdToken();
 
       var resp = await Dio(
         BaseOptions(
@@ -95,7 +94,7 @@ class ApiService {
           responseType: ResponseType.json,
           headers: {
             "Content-Type": "application/json",
-            "Authorization": "Google $token",
+            "Authorization": "Firebase ${token.token}",
           },
           sendTimeout: TIMEOUT,
         ),
@@ -118,8 +117,8 @@ class ApiService {
 
   Future<Response> authFilePost(context, url, filePath, {isRetry: true}) async {
     try {
-      var auth = await UserService.currentUser.authentication;
-      var token = auth.idToken;
+      var currentUser = await UserService.getCurrentUser();
+      var token = await currentUser.getIdToken();
 
       var f = MultipartFile.fromFileSync(filePath);
       var formData = FormData.fromMap({"file": f});
@@ -129,7 +128,7 @@ class ApiService {
           baseUrl: URLBASE + "_a1",
           headers: {
             "Content-Type": "multipart/form-data",
-            "Authorization": "Google $token",
+            "Authorization": "Firebase ${token.token}",
           },
           sendTimeout: TIMEOUT,
         ),
@@ -152,8 +151,8 @@ class ApiService {
 
   Future<Response> authPut(context, url, data, {isRetry: false}) async {
     try {
-      var auth = await UserService.currentUser.authentication;
-      var token = auth.idToken;
+      var currentUser = await UserService.getCurrentUser();
+      var token = await currentUser.getIdToken();
 
       var resp = await Dio(
         BaseOptions(
@@ -161,7 +160,7 @@ class ApiService {
           responseType: ResponseType.json,
           headers: {
             "Content-Type": "application/json",
-            "Authorization": "Google $token",
+            "Authorization": "Firebase ${token.token}",
           },
           sendTimeout: TIMEOUT,
         ),
@@ -184,8 +183,8 @@ class ApiService {
 
   Future<Response> authDelete(context, url, data, {isRetry: false}) async {
     try {
-      var auth = await UserService.currentUser.authentication;
-      var token = auth.idToken;
+      var currentUser = await UserService.getCurrentUser();
+      var token = await currentUser.getIdToken();
 
       var resp = await Dio(
         BaseOptions(
@@ -193,7 +192,7 @@ class ApiService {
           responseType: ResponseType.json,
           headers: {
             "Content-Type": "application/json",
-            "Authorization": "Google $token",
+            "Authorization": "Firebase ${token.token}",
           },
           sendTimeout: TIMEOUT,
         ),

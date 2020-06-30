@@ -121,6 +121,7 @@ class _ImageUploaderState extends State<ImageUploader> {
           context,
           "/employee/${UserService.employee.employee}/${this.widget.objectId}/${this.widget.type}",
           _image);
+
       if (resp.statusCode == 200) {
         Fluttertoast.showToast(
             msg: "Image Uploaded!",
