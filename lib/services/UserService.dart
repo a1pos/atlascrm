@@ -2,8 +2,8 @@ import 'dart:developer';
 import 'package:atlascrm/models/Employee.dart';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/SocketService.dart';
-import 'package:atlascrm/services/StorageService.dart';
 import 'package:dio/dio.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class UserService {
@@ -15,23 +15,30 @@ class UserService {
   final ApiService apiService = new ApiService();
   final SocketService socketService = new SocketService();
 
-  static GoogleSignInAccount currentUser;
-  static final GoogleSignIn googleSignIn =
+  final GoogleSignIn googleSignIn =
       GoogleSignIn(scopes: ['https://www.googleapis.com/auth/calendar']);
 
-  final StorageService storageService = new StorageService();
+  static GoogleSignInAuthentication googleSignInAuthentication;
+
+  static final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
 
   Future<bool> isAuthenticated(context) async {
     try {
-      var isGoogleSignedIn = await googleSignIn.isSignedIn();
-      if (isGoogleSignedIn) {
-        var isAuthed = await authorizeEmployee(context);
-        if (isAuthed) {
-          return true;
+      if (await googleSignIn.isSignedIn()) {
+        var googleSignInAccount = await googleSignIn.signInSilently();
+        googleSignInAuthentication = await googleSignInAccount.authentication;
+
+        var isGoogleSignedIn = await firebaseAuth.currentUser();
+
+        if (isGoogleSignedIn != null) {
+          var isAuthed = await authorizeEmployee(context);
+          if (isAuthed) {
+            return true;
+          }
         }
       }
     } catch (err) {
-      var blah = "asdf";
+      log(err);
     }
     return false;
   }
@@ -39,11 +46,12 @@ class UserService {
   Future<bool> signInWithGoogle(context) async {
     try {
       var googleSignInAccount = await googleSignIn.signIn();
-      var googleSignInAuthentication = await googleSignInAccount.authentication;
-      await storageService.save("token", googleSignInAuthentication.idToken);
-      await storageService.save(
-          "access_token", googleSignInAuthentication.accessToken);
-      currentUser = googleSignIn.currentUser;
+      googleSignInAuthentication = await googleSignInAccount.authentication;
+
+      await firebaseAuth.signInWithCredential(GoogleAuthProvider.getCredential(
+        accessToken: googleSignInAuthentication.accessToken,
+        idToken: googleSignInAuthentication.idToken,
+      ));
 
       return true;
     } catch (err) {
@@ -53,18 +61,16 @@ class UserService {
   }
 
   Future<void> signOutGoogle() async {
-    await storageService.delete("token");
-    await storageService.delete("access_token");
     await googleSignIn.signOut();
+    await firebaseAuth.signOut();
   }
 
   Future<Response> linkGoogleAccount() async {
-    var userAuth = await currentUser.authentication;
+    var user = await firebaseAuth.currentUser();
     var userObj = {
-      "googleIdToken": userAuth.idToken,
-      'fullName': currentUser.displayName,
-      'email': currentUser.email,
-      "googleUserId": currentUser.id
+      'fullName': user.displayName,
+      'email': user.email,
+      'googleUserId': googleSignIn.currentUser.id
     };
     return await apiService.publicPost("link", userObj);
   }
@@ -98,5 +104,15 @@ class UserService {
       print(err);
     }
     return false;
+  }
+
+  static Future<FirebaseUser> getCurrentUser() async {
+    try {
+      return await firebaseAuth.currentUser();
+    } catch (err) {
+      log(err);
+    }
+
+    return null;
   }
 }
