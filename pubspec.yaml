@@ -51,8 +51,8 @@ dependencies:
   multi_image_picker: ^4.6.7
   path_provider: ^1.6.10
   barcode_scan: ^3.0.1
-  xml:
   firebase_auth: ^0.16.1
+  xml:
 
 dev_dependencies:
   flutter_test:

@@ -402,9 +402,14 @@ class _LeadsScreenState extends State<LeadsScreen> {
                         fullName = "";
                         businessName = "";
                       } else {
-                        fullName = lead["document"]["firstName"] +
-                            " " +
-                            lead["document"]["lastName"];
+                        if (lead["document"]["firstName"] != null &&
+                            lead["document"]["lastName"] != null) {
+                          fullName = lead["document"]["firstName"] +
+                              " " +
+                              lead["document"]["lastName"];
+                        } else if (lead["document"]["firstName"] != null) {
+                          fullName = lead["document"]["firstName"];
+                        }
                         businessName = lead["document"]["businessName"];
                       }
 

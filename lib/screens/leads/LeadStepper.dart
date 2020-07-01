@@ -405,12 +405,12 @@ class LeadStepperState extends State<LeadStepper> {
                               decoration:
                                   InputDecoration(labelText: "Last Name"),
                               controller: lastNameController,
-                              validator: (value) {
-                                if (value.isEmpty) {
-                                  return 'Please enter a contact last name';
-                                }
-                                return null;
-                              },
+                              // validator: (value) {
+                              //   if (value.isEmpty) {
+                              //     return 'Please enter a contact last name';
+                              //   }
+                              //   return null;
+                              // },
                             ),
                             TextFormField(
                               decoration:
