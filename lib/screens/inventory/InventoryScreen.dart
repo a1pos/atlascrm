@@ -469,7 +469,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                       if (nameIndex != -1) {
                         employeeName = employees[nameIndex]["title"];
                       } else {
-                        employeeName = "Not assigned";
+                        employeeName = null;
                       }
 
                       var invDate = DateFormat("EEE, MMM d, ''yy")
@@ -605,10 +605,14 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                   ),
                                 ],
                               ),
-                              Divider(thickness: 2),
-                              Text("Employee: " + employeeName,
-                                  style: TextStyle(),
-                                  textAlign: TextAlign.right),
+                              employeeName != null
+                                  ? Divider(thickness: 2)
+                                  : Container(),
+                              employeeName != null
+                                  ? Text("Employee: " + employeeName,
+                                      style: TextStyle(),
+                                      textAlign: TextAlign.right)
+                                  : Container(),
                             ],
                           ),
                         ),
