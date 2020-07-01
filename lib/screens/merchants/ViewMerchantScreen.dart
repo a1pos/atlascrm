@@ -73,42 +73,6 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
       }
     }
 
-    if (merchantDocument?.isEmpty ?? true) {
-      merchantDocument = {
-        "dbaname": "",
-        "firstName": "",
-        "lastName": "",
-        "emailAddr": "",
-        "phoneNumber": "",
-        "address": "",
-        "city": "",
-        "state": "",
-        "zipCode": "",
-      };
-    }
-    if (merchantDocument["dbaname"]?.isEmpty ?? true) {
-      merchantDocument["dbaname"] = "";
-    }
-    if (merchantDocument["address"] != null &&
-        merchantDocument["address"] != "") {
-      addressText = merchantDocument["address"] +
-          ", " +
-          merchantDocument["city"] +
-          ", " +
-          merchantDocument["state"] +
-          ", " +
-          merchantDocument["zipCode"];
-      businessAddress["address"] = merchantDocument["address"];
-      businessAddress["city"] = merchantDocument["city"];
-      businessAddress["state"] = merchantDocument["state"];
-      businessAddress["zipcode"] = merchantDocument["zipCode"];
-    }
-    if (merchantDocument["phoneNumber"] != null ||
-        merchantDocument["phoneNumber"] != "") {
-      setState(() {
-        phoneNumberController.updateText(merchantDocument["phoneNumber"]);
-      });
-    }
     var resp2 = await this
         .widget
         .apiService
@@ -118,10 +82,11 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
       var body = resp2.data;
       if (body != null) {
         var bodyDecoded = body;
-
-        setState(() {
-          devices = bodyDecoded;
-        });
+        if (bodyDecoded[0]["inventory"] != null) {
+          setState(() {
+            devices = bodyDecoded;
+          });
+        }
       }
     }
 
@@ -274,18 +239,10 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
         backgroundColor: Color.fromARGB(255, 242, 242, 242),
         appBar: CustomAppBar(
           key: Key("viewTasksAppBar"),
-          title: Text(isLoading ? "Loading..." : merchantDocument["dbaname"]),
-          action: <Widget>[
-            // Padding(
-            //   padding: const EdgeInsets.fromLTRB(5, 8, 10, 8),
-            //   child: IconButton(
-            //     onPressed: () {
-            //       deleteCheck(this.widget.merchantId);
-            //     },
-            //     icon: Icon(Icons.delete, color: Colors.white),
-            //   ),
-            // )
-          ],
+          title: Text(isLoading
+              ? "Loading..."
+              : merchantDocument["ApplicationInformation"]["MpaInfo"]
+                  ["ClientDbaName"]),
         ),
         body: isLoading
             ? CenteredClearLoadingScreen()
@@ -298,101 +255,27 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: <Widget>[
                         CustomCard(
-                          key: Key("merchants2"),
-                          icon: Icons.business,
-                          title: "Business Information",
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              validatorRow(
-                                  "Business Name",
-                                  merchantDocument["dbaname"],
-                                  businessNameController, (val) {
-                                if (val.isEmpty) {
-                                  return 'Please enter a business name';
-                                }
-                                return null;
-                              }),
-                              getInfoRow("Doing Business As",
-                                  merchantDocument["dbaname"], dbaController),
-                              Container(
-                                  child: Padding(
-                                      padding: EdgeInsets.all(15),
-                                      child: Row(
-                                        children: <Widget>[
-                                          Expanded(
-                                            flex: 4,
-                                            child: Text(
-                                              'Business Address:',
-                                              style: TextStyle(fontSize: 16),
-                                            ),
-                                          ),
-                                          Expanded(
-                                              flex: 8,
-                                              child: AddressSearch(
-                                                  locationValue: addressText,
-                                                  onAddressChange: (val) =>
-                                                      businessAddress = val)),
-                                        ],
-                                      ))),
-                            ],
-                          ),
-                        ),
-                        CustomCard(
                           key: Key("merchants1"),
                           icon: Icons.person,
-                          title: "Contact Information",
+                          title: "Business Info",
                           child: Column(
                             children: <Widget>[
-                              validatorRow(
-                                  "First Name",
-                                  merchantDocument["firstName"],
-                                  firstNameController, (val) {
-                                if (val.isEmpty) {
-                                  return 'Please enter a contact first name';
-                                }
-                                return null;
-                              }),
-                              validatorRow(
-                                  "Last Name",
-                                  merchantDocument["lastName"],
-                                  lastNameController, (val) {
-                                if (val.isEmpty) {
-                                  return 'Please enter a contact last name';
-                                }
-                                return null;
-                              }),
-                              validatorRow(
-                                  "Email Address",
-                                  merchantDocument["emailAddr"],
-                                  emailAddrController, (value) {
-                                if (value.isNotEmpty && !value.contains('@')) {
-                                  return 'Please enter a valid email';
-                                }
-                                return null;
-                              }),
-                              Container(
-                                child: Padding(
-                                  padding: EdgeInsets.all(15),
-                                  child: Row(
-                                    children: <Widget>[
-                                      Expanded(
-                                        flex: 4,
-                                        child: Text(
-                                          'Phone Number',
-                                          style: TextStyle(fontSize: 16),
-                                        ),
-                                      ),
-                                      Expanded(
-                                        flex: 8,
-                                        child: TextField(
-                                          controller: phoneNumberController,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
+                              showInfoRow(
+                                  "Address",
+                                  merchantDocument["ApplicationInformation"]
+                                      ["CorporateInfo"]["Address1"]),
+                              showInfoRow("City, State ZIP",
+                                  "${merchantDocument["ApplicationInformation"]["CorporateInfo"]["Address1"]}, ${merchantDocument["ApplicationInformation"]["CorporateInfo"]["State"]}, ${merchantDocument["ApplicationInformation"]["CorporateInfo"]["First5Zip"]}"),
+                              showInfoRow(
+                                  "Email",
+                                  merchantDocument["ApplicationInformation"]
+                                          ["MpaOutletInfo"]["Outlet"]
+                                      ["BusinessInfo"]["BusinessEmailAddress"]),
+                              showInfoRow(
+                                  "Phone",
+                                  merchantDocument["ApplicationInformation"]
+                                          ["MpaOutletInfo"]["Outlet"]
+                                      ["BusinessInfo"]["LocationPhone"]),
                               Divider(),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -411,10 +294,22 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                         ],
                                       ),
                                       onPressed: () {
-                                        if (emailAddrController.text != null &&
-                                            emailAddrController.text != "") {
+                                        if (merchantDocument["ApplicationInformation"]
+                                                                ["MpaOutletInfo"]
+                                                            ["Outlet"]
+                                                        ["BusinessInfo"]
+                                                    ["BusinessEmailAddress"] !=
+                                                null &&
+                                            merchantDocument["ApplicationInformation"]
+                                                                [
+                                                                "MpaOutletInfo"]
+                                                            [
+                                                            "Outlet"]
+                                                        ["BusinessInfo"]
+                                                    ["BusinessEmailAddress"] !=
+                                                "") {
                                           var launchURL1 =
-                                              'mailto:${emailAddrController.text}?subject=Followup about ${businessNameController.text}';
+                                              'mailto:${merchantDocument["ApplicationInformation"]["MpaOutletInfo"]["Outlet"]["BusinessInfo"]["BusinessEmailAddress"]}?subject=Followup about ${merchantDocument["ApplicationInformation"]["MpaInfo"]["ClientDbaName"]}';
                                           launch(launchURL1);
                                         } else {
                                           Fluttertoast.showToast(
@@ -442,11 +337,22 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                         ],
                                       ),
                                       onPressed: () {
-                                        if (phoneNumberController.text !=
+                                        if (merchantDocument["ApplicationInformation"]
+                                                                ["MpaOutletInfo"]
+                                                            ["Outlet"]
+                                                        ["BusinessInfo"]
+                                                    ["LocationPhone"] !=
                                                 null &&
-                                            phoneNumberController.text != "") {
+                                            merchantDocument["ApplicationInformation"]
+                                                                [
+                                                                "MpaOutletInfo"]
+                                                            [
+                                                            "Outlet"]
+                                                        ["BusinessInfo"]
+                                                    ["LocationPhone"] !=
+                                                "") {
                                           var launchURL2 =
-                                              'tel:${phoneNumberController.text}';
+                                              'tel:${merchantDocument["ApplicationInformation"]["MpaOutletInfo"]["Outlet"]["BusinessInfo"]["LocationPhone"]}';
                                           launch(launchURL2);
                                         } else {
                                           Fluttertoast.showToast(
@@ -527,6 +433,30 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                 controller: controller,
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget showInfoRow(label, value) {
+    if (value == null) {
+      value = "";
+    }
+
+    return Container(
+      child: Padding(
+        padding: EdgeInsets.all(15),
+        child: Row(
+          children: <Widget>[
+            Expanded(
+              flex: 4,
+              child: Text(
+                '$label: ',
+                style: TextStyle(fontSize: 16),
+              ),
+            ),
+            Expanded(flex: 8, child: Text(value)),
           ],
         ),
       ),

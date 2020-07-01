@@ -49,7 +49,8 @@ class _MerchantDropDownState extends State<MerchantDropDown> {
         }
         for (var merchant in merchants) {
           if (this.widget.value == merchant["merchant"]) {
-            startVal = merchant["document"]["dbaName"];
+            startVal = merchant["document"]["ApplicationInformation"]["MpaInfo"]
+                ["ClientDbaName"];
           }
         }
       }
@@ -82,11 +83,12 @@ class _MerchantDropDownState extends State<MerchantDropDown> {
           isExpanded: true,
           // menuConstraints: BoxConstraints.tight(Size.fromHeight(350)),
           items: merchants.map<DropdownMenuItem<String>>((dynamic item) {
-            var merchantName = "test";
+            var merchantName;
             if (item["document"]?.isEmpty ?? true) {
               merchantName = "";
             } else {
-              merchantName = item["document"]["dbaName"];
+              merchantName = item["document"]["ApplicationInformation"]
+                  ["MpaInfo"]["ClientDbaName"];
             }
             return DropdownMenuItem<String>(
               value: merchantName,
@@ -102,7 +104,9 @@ class _MerchantDropDownState extends State<MerchantDropDown> {
                   setState(() {
                     var setVal;
                     for (var merchant in merchants) {
-                      if (newValue == merchant["document"]["dbaName"]) {
+                      if (newValue ==
+                          merchant["document"]["ApplicationInformation"]
+                              ["MpaInfo"]["ClientDbaName"]) {
                         setVal = merchant["merchant"];
                       }
                     }

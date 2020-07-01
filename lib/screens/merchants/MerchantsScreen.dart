@@ -347,18 +347,40 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
                       }
                       var merchantDbaName;
                       var fullName;
+                      var phoneNum;
 
-                      if (merchant["document"]["dbaName"]?.isEmpty ?? true) {
+                      if (merchant["document"]["ApplicationInformation"]
+                                  ["MpaInfo"]["ClientDbaName"]
+                              ?.isEmpty ??
+                          true) {
                         merchantDbaName = "";
                       } else {
-                        merchantDbaName = merchant["document"]["dbaName"];
+                        merchantDbaName = merchant["document"]
+                                ["ApplicationInformation"]["MpaInfo"]
+                            ["ClientDbaName"];
                       }
-                      if (merchant["document"]["firstName"]?.isEmpty ?? true) {
+
+                      if (merchant["document"]["ApplicationInformation"]
+                                  ["CorporateInfo"]["CorporateContact"]
+                              ?.isEmpty ??
+                          true) {
                         fullName = "";
                       } else {
-                        fullName = merchant["document"]["firstName"] +
-                            " " +
-                            merchant["document"]["lastName"];
+                        fullName = merchant["document"]
+                                ["ApplicationInformation"]["CorporateInfo"]
+                            ["CorporateContact"];
+                      }
+
+                      if (merchant["document"]["ApplicationInformation"]
+                                      ["MpaOutletInfo"]["Outlet"]
+                                  ["BusinessInfo"]["LocationPhone"]
+                              ?.isEmpty ??
+                          true) {
+                        phoneNum = "";
+                      } else {
+                        phoneNum = merchant["document"]
+                                ["ApplicationInformation"]["MpaOutletInfo"]
+                            ["Outlet"]["BusinessInfo"]["LocationPhone"];
                       }
 
                       return GestureDetector(
@@ -367,7 +389,7 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
                         },
                         child: CustomCard(
                           title: merchantDbaName,
-                          icon: Icons.arrow_forward_ios,
+                          icon: Icons.business,
                           child: Column(
                             children: <Widget>[
                               Row(
@@ -390,7 +412,16 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
                                       Padding(
                                         padding: EdgeInsets.all(5),
                                         child: Text(
-                                          'Full Name:',
+                                          'Contact Name:',
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                          ),
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: EdgeInsets.all(5),
+                                        child: Text(
+                                          'Phone Number:',
                                           style: TextStyle(
                                             fontSize: 15,
                                           ),
@@ -422,19 +453,24 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
                                             ),
                                           ),
                                         ),
+                                        Padding(
+                                          padding: EdgeInsets.all(5),
+                                          child: Text(
+                                            phoneNum,
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ),
                                 ],
                               ),
-                              UserService.isAdmin
-                                  ? Divider(thickness: 2)
-                                  : Container(),
-                              UserService.isAdmin
-                                  ? Text("Employee: " + employeeName,
-                                      style: TextStyle(),
-                                      textAlign: TextAlign.right)
-                                  : Container(),
+                              // Divider(thickness: 2),
+                              // Text("Employee: " + employeeName,
+                              //     style: TextStyle(),
+                              //     textAlign: TextAlign.right),
                             ],
                           ),
                         ),
