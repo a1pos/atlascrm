@@ -28,6 +28,9 @@ class DocumentsState extends State<Documents> with TickerProviderStateMixin {
     super.initState();
   }
 
+  var w9Check = false;
+  var voidedCheck = false;
+
   void openImageUpload(title) {
     showDialog(
       context: context,
@@ -48,7 +51,7 @@ class DocumentsState extends State<Documents> with TickerProviderStateMixin {
               onPressed: () async {
                 Navigator.pop(context);
                 var result = await platform.invokeMethod("openCamera");
-                addImage(result);
+                addImage(result, title);
               },
               child: Row(
                 children: <Widget>[
@@ -70,7 +73,7 @@ class DocumentsState extends State<Documents> with TickerProviderStateMixin {
               color: Color.fromARGB(500, 1, 224, 143),
               onPressed: () async {
                 var result = await platform.invokeMethod("openMedia");
-                addImage(result);
+                addImage(result, title);
               },
               child: Row(
                 children: <Widget>[
@@ -93,14 +96,21 @@ class DocumentsState extends State<Documents> with TickerProviderStateMixin {
     );
   }
 
-  Future<void> addImage(path) async {
-    // Uri fileUri = Uri.parse(path);
-    // File newFile = File.fromUri(fileUri);
-    print("FILE URI: $path");
-    File file = File(path);
-    print(file);
+  Future<void> addImage(path, title) async {
+    // print("FILE URI: $path");
+    // File file = File(path);
+    // print(file);
 
-    this.widget.files["file1"] = file;
+    if (title == "W-9") {
+      this.widget.files["file1"] = path;
+    }
+    if (title == "Voided Check") {
+      this.widget.files["file2"] = path;
+    }
+
+    setState(() {
+      this.widget.isDirtyStatus["documentsIsDirty"] = true;
+    });
 
     // try {
     //   var resp = await this

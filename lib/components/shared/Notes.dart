@@ -52,11 +52,12 @@ class _NotesState extends State<Notes> {
       var body = resp.data;
       if (body != null) {
         var bodyDecoded = body;
-
-        setState(() {
-          notes = bodyDecoded.toList();
-          notesEmpty = false;
-        });
+        if (this.mounted) {
+          setState(() {
+            notes = bodyDecoded.toList();
+            notesEmpty = false;
+          });
+        }
       }
     }
   }

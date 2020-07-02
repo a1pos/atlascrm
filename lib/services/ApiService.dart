@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:atlascrm/config/ConfigSettings.dart';
 
@@ -133,6 +134,51 @@ class ApiService {
           sendTimeout: TIMEOUT,
         ),
       ).post(url, data: formData);
+
+      if (resp.statusCode == 401) {
+        Navigator.of(context).popAndPushNamed('/logout');
+        return null;
+      }
+      return resp;
+    } catch (err) {
+      if (checkAuthErrorResponse(context, err)) {
+        Navigator.of(context).popAndPushNamed('/logout');
+        return null;
+      } else {
+        throw err;
+      }
+    }
+  }
+
+  Future<Response> authFilesPut(context, url, filePaths,
+      {isRetry: true}) async {
+    try {
+      var currentUser = await UserService.getCurrentUser();
+      var token = await currentUser.getIdToken();
+      Map dataMap = {};
+      var i = 1;
+      for (var fPath in filePaths) {
+        dataMap["file$i"] = MultipartFile.fromFileSync(fPath);
+        i++;
+      }
+      print(dataMap);
+      // var f1 = MultipartFile.fromFileSync(filePaths["file1"]);
+      // var f2 = MultipartFile.fromFileSync(filePaths["file2"]);
+
+      // var formData = FormData.fromMap({"file1": f1, "file2": f2});
+      var formData = FormData.fromMap(
+          {"file1": dataMap["file1"], "file2": dataMap["file2"]});
+
+      var resp = await Dio(
+        BaseOptions(
+          baseUrl: URLBASE + "_a1",
+          headers: {
+            "Content-Type": "multipart/form-data",
+            "Authorization": "Firebase ${token.token}",
+          },
+          sendTimeout: TIMEOUT,
+        ),
+      ).put(url, data: formData);
 
       if (resp.statusCode == 401) {
         Navigator.of(context).popAndPushNamed('/logout');

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
+import 'package:atlascrm/services/UserService.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:xml/xml.dart';
 import 'package:atlascrm/components/agreement/Documents.dart';
@@ -29,6 +30,7 @@ Map isDirtyStatus = {
   "businessInfoIsDirty": false,
   "ownersIsDirty": false,
   "settlementTransactIsDirty": false,
+  "documentsIsDirty": false,
 };
 
 //MpaOutletInfo.Outlet
@@ -302,13 +304,15 @@ class AgreementBuilderState extends State<AgreementBuilder>
 
   var lead;
   var leadDocument;
-  var addressText;
   var isLoading = true;
   List owners;
-  Map testOwner;
-  Map emptyOwner;
   List<Widget> displayList;
-  var newOwnerNum = 0;
+
+  List<GlobalKey<FormState>> _formKeys = [
+    GlobalKey<FormState>(),
+    GlobalKey<FormState>(),
+    GlobalKey<FormState>()
+  ];
 
   void initState() {
     super.initState();
@@ -680,13 +684,15 @@ class AgreementBuilderState extends State<AgreementBuilder>
         }
       }
     };
-
+    var agreementId;
     var resp1 = await this
         .widget
         .apiService
         .authPost(context, "/agreementbuilder", agreementBuilderObj);
     if (resp1 != null) {
       if (resp1.statusCode == 200) {
+        var body = resp1.data;
+        agreementId = body["agreement_builder"];
         Fluttertoast.showToast(
             msg: "Agreement Builder Created!",
             toastLength: Toast.LENGTH_SHORT,
@@ -699,12 +705,58 @@ class AgreementBuilderState extends State<AgreementBuilder>
       throw new Error();
     }
 
-    setState(() {
-      agreementDocument = agreementBuilderObj["document"];
-      print(agreementDocument);
-      isLoading = false;
-    });
-    print("GENERATE");
+    var resp2 = await this.widget.apiService.authPost(
+        context,
+        "/agreementbuilder/" +
+            agreementId +
+            "/employee/" +
+            UserService.employee.employee +
+            "/document",
+        null);
+    if (resp2 != null) {
+      if (resp2.statusCode == 200) {
+        Fluttertoast.showToast(
+            msg: "Agreement Attachment Created!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0);
+      }
+    } else {
+      throw new Error();
+    }
+
+    var resp3 = await this.widget.apiService.authPost(
+        context,
+        "/agreementstatus/" +
+            "/lead/" +
+            this.widget.leadId +
+            "/employee/" +
+            UserService.employee.employee,
+        null);
+    if (resp3 != null) {
+      if (resp3.statusCode == 200) {
+        Fluttertoast.showToast(
+            msg: "Agreement Status Created!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0);
+      }
+    } else {
+      throw new Error();
+    }
+
+    loadAgreementData(this.widget.leadId);
+
+    // setState(() {
+    //   agreementDocument = agreementBuilderObj["document"];
+    //   print(agreementDocument);
+    //   isLoading = false;
+    // });
+    // print("GENERATE");
   }
 
   Future<void> updateAgreement(agreementBuilderId) async {
@@ -716,6 +768,9 @@ class AgreementBuilderState extends State<AgreementBuilder>
     }
     if (isDirtyStatus["settlementTransactIsDirty"]) {
       updateSettlementTransact();
+    }
+    if (isDirtyStatus["documentsIsDirty"]) {
+      updateDocuments(agreementBuilderId);
     }
     print(agreementBuilderObj);
     var resp = await this.widget.apiService.authPut(
@@ -887,7 +942,38 @@ class AgreementBuilderState extends State<AgreementBuilder>
         fontSize: 16.0);
   }
 
-  Future<void> updateDocuments() async {}
+  Future<void> updateDocuments(agreementBuilderId) async {
+    var data = [files["file1"], files["file2"]];
+    var resp = await this.widget.apiService.authFilesPut(
+        context,
+        "/agreementbuilder/" +
+            agreementBuilderId +
+            "/employee/" +
+            UserService.employee.employee +
+            "/document",
+        data);
+
+    print(resp);
+    if (resp.statusCode == 200) {
+      await loadAgreementData(this.widget.leadId);
+
+      Fluttertoast.showToast(
+          msg: "Agreement Builder Saved!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0);
+    } else {
+      Fluttertoast.showToast(
+          msg: "Failed to Save!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0);
+    }
+  }
 
   Future<void> leaveCheck() async {
     return showDialog<void>(
