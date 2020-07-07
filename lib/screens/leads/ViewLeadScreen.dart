@@ -236,17 +236,17 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
         appBar: CustomAppBar(
           key: Key("viewTasksAppBar"),
           title: Text(isLoading ? "Loading..." : leadDocument["businessName"]),
-          action: <Widget>[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(5, 8, 10, 8),
-              child: IconButton(
-                onPressed: () {
-                  deleteCheck(this.widget.leadId);
-                },
-                icon: Icon(Icons.delete, color: Colors.white),
-              ),
-            )
-          ],
+          // action: <Widget>[
+          //   Padding(
+          //     padding: const EdgeInsets.fromLTRB(5, 8, 10, 8),
+          //     child: IconButton(
+          //       onPressed: () {
+          //         deleteCheck(this.widget.leadId);
+          //       },
+          //       icon: Icon(Icons.delete, color: Colors.white),
+          //     ),
+          //   )
+          // ],
         ),
         body: isLoading
             ? CenteredClearLoadingScreen()
