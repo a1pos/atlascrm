@@ -110,7 +110,7 @@ class _InventoryLocationDropDownState extends State<InventoryLocationDropDown> {
                         };
                       }
                     }
-                    startVal = newValue;
+                    startVal = setVal;
                     this.widget.callback(setVal);
                   });
                 },

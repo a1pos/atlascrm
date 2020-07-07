@@ -108,7 +108,7 @@ class _InventoryPriceTierDropDownState
                         setVal = location["inventory_price_tier"];
                       }
                     }
-                    startVal = newValue;
+                    startVal = setVal;
                     this.widget.callback(setVal);
                   });
                 },
