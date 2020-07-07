@@ -155,19 +155,21 @@ class ApiService {
     try {
       var currentUser = await UserService.getCurrentUser();
       var token = await currentUser.getIdToken();
-      Map dataMap = {};
+      Map<String, dynamic> dataMap = {};
       var i = 1;
       for (var fPath in filePaths) {
-        dataMap["file$i"] = MultipartFile.fromFileSync(fPath);
+        if (fPath != "") {
+          dataMap["file$i"] = MultipartFile.fromFileSync(fPath);
+        } else {
+          dataMap["file$i"] = "undefined";
+        }
         i++;
       }
-      print(dataMap);
       // var f1 = MultipartFile.fromFileSync(filePaths["file1"]);
       // var f2 = MultipartFile.fromFileSync(filePaths["file2"]);
 
       // var formData = FormData.fromMap({"file1": f1, "file2": f2});
-      var formData = FormData.fromMap(
-          {"file1": dataMap["file1"], "file2": dataMap["file2"]});
+      var formData = FormData.fromMap(dataMap);
 
       var resp = await Dio(
         BaseOptions(

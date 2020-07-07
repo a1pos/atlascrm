@@ -26,13 +26,8 @@ class AgreementBuilder extends StatefulWidget {
   AgreementBuilderState createState() => AgreementBuilderState();
 }
 
-Map isDirtyStatus = {
-  "businessInfoIsDirty": false,
-  "ownersIsDirty": false,
-  "settlementTransactIsDirty": false,
-  "documentsIsDirty": false,
-};
-
+Map isDirtyStatus = {};
+Map docsAttached = {};
 //MpaOutletInfo.Outlet
 //--BUSINESS INFO TAB --
 final List generalControllerNames = ["corpSame", "motoCheck"];
@@ -320,6 +315,29 @@ class AgreementBuilderState extends State<AgreementBuilder>
     loadOwnersData(this.widget.leadId);
   }
 
+  Future<void> initDocumentObjects() async {
+    setState(() {
+      docsAttached = {
+        "w9": false,
+        "voidedCheck": false,
+        "w9Added": false,
+        "voidedCheckAdded": false
+      };
+    });
+  }
+
+  Future<void> initStatusObjects() async {
+    setState(() {
+      isDirtyStatus = {
+        "businessInfoIsDirty": false,
+        "ownersIsDirty": false,
+        "settlementTransactIsDirty": false,
+        "documentsIsDirty": false,
+      };
+    });
+  }
+
+  //Default mask is 30 of any character
   final Map<String, MaskedTextController> _generalControllers =
       Map.fromIterable(generalControllerNames,
           key: (i) => i,
@@ -525,7 +543,6 @@ class AgreementBuilderState extends State<AgreementBuilder>
           .widget
           .apiService
           .authGet(context, "/lead/" + this.widget.leadId + "/businessowner");
-      print(resp);
       if (resp != null) {
         if (resp.statusCode == 200) {
           var ownersArrDecoded = resp.data;
@@ -587,6 +604,8 @@ class AgreementBuilderState extends State<AgreementBuilder>
   }
 
   Future<void> loadAgreementData(leadId) async {
+    initStatusObjects();
+
     var resp = await this
         .widget
         .apiService
@@ -601,6 +620,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
           agreementDocument = bodyDecoded["document"];
         });
         await loadControllers();
+        await loadDocuments(agreementBuilderObj["agreement_builder"]);
         setState(() {
           isLoading = false;
         });
@@ -761,18 +781,17 @@ class AgreementBuilderState extends State<AgreementBuilder>
 
   Future<void> updateAgreement(agreementBuilderId) async {
     if (isDirtyStatus["businessInfoIsDirty"]) {
-      updateBusinessInfo();
+      await updateBusinessInfo();
     }
     if (isDirtyStatus["ownersIsDirty"]) {
-      updateOwners();
+      await updateOwners();
     }
     if (isDirtyStatus["settlementTransactIsDirty"]) {
-      updateSettlementTransact();
+      await updateSettlementTransact();
     }
     if (isDirtyStatus["documentsIsDirty"]) {
-      updateDocuments(agreementBuilderId);
+      await updateDocuments(agreementBuilderId);
     }
-    print(agreementBuilderObj);
     var resp = await this.widget.apiService.authPut(
         context,
         "/agreementbuilder/" + agreementBuilderId,
@@ -800,6 +819,13 @@ class AgreementBuilderState extends State<AgreementBuilder>
   }
 
   Future<void> updateBusinessInfo() async {
+    _generalControllers.forEach((j, k) {
+      if (_generalControllers["$j"].text != null) {
+        agreementBuilderObj["document"]["$j"] =
+            _generalControllers["$j"].text.toString();
+      }
+    });
+
     _businessInfoControllers.forEach((j, k) {
       if (_businessInfoControllers["$j"].text != null) {
         agreementBuilderObj["document"]["ApplicationInformation"]
@@ -850,44 +876,38 @@ class AgreementBuilderState extends State<AgreementBuilder>
   }
 
   Future<void> updateOwners() async {
-    var ownershipItems = [];
+    Map ownershipItems = {};
     var i = 2;
     for (var owner in owners) {
       var k = i;
       if (owner["document"]["PrinGuarantorCode"] == "1") {
         k = 1;
+        i--;
       }
-      ownershipItems.add({"Prin${k}Dob": owner["document"]["PrinDob"]});
-      ownershipItems.add({"Prin${k}Ssn": owner["document"]["PrinSsn"]});
-      ownershipItems.add({"Prin${k}City": owner["document"]["PrinCity"]});
-      ownershipItems.add({"Prin${k}Phone": owner["document"]["PrinPhone"]});
-      ownershipItems.add({"Prin${k}State": owner["document"]["PrinState"]});
-      ownershipItems.add({"Prin${k}Title": owner["document"]["PrinTitle"]});
-      ownershipItems.add({"Prin${k}Address": owner["document"]["PrinAddress"]});
-      ownershipItems
-          .add({"Prin${k}LastName": owner["document"]["PrinLastName"]});
-      ownershipItems
-          .add({"Prin${k}First5Zip": owner["document"]["PrinFirst5Zip"]});
-      ownershipItems
-          .add({"Prin${k}FirstName": owner["document"]["PrinFirstName"]});
-      ownershipItems
-          .add({"Prin${k}EmailAddress": owner["document"]["PrinEmailAddress"]});
-      ownershipItems.add(
-          {"Prin${k}GuarantorCode": owner["document"]["PrinGuarantorCode"]});
-      ownershipItems.add({
-        "Prin${k}OwnershipPercent": owner["document"]["PrinOwnershipPercent"]
-      });
-      ownershipItems.add({
-        "Prin${k}DriverLicenseState": owner["document"]
-            ["PrinDriverLicenseState"]
-      });
-      ownershipItems.add({
-        "Prin${k}DriverLicenseNumber": owner["document"]
-            ["PrinDriverLicenseNumber"]
-      });
-      k++;
+      ownershipItems["Prin${k}Dob"] = owner["document"]["PrinDob"];
+      ownershipItems["Prin${k}Ssn"] = owner["document"]["PrinSsn"];
+      ownershipItems["Prin${k}City"] = owner["document"]["PrinCity"];
+      ownershipItems["Prin${k}Phone"] = owner["document"]["PrinPhone"];
+      ownershipItems["Prin${k}State"] = owner["document"]["PrinState"];
+      ownershipItems["Prin${k}Title"] = owner["document"]["PrinTitle"];
+      ownershipItems["Prin${k}Address"] = owner["document"]["PrinAddress"];
+      ownershipItems["Prin${k}LastName"] = owner["document"]["PrinLastName"];
+      ownershipItems["Prin${k}First5Zip"] = owner["document"]["PrinFirst5Zip"];
+      ownershipItems["Prin${k}FirstName"] = owner["document"]["PrinFirstName"];
+      ownershipItems["Prin${k}EmailAddress"] =
+          owner["document"]["PrinEmailAddress"];
+      ownershipItems["Prin${k}GuarantorCode"] =
+          owner["document"]["PrinGuarantorCode"];
+      ownershipItems["Prin${k}OwnershipPercent"] =
+          owner["document"]["PrinOwnershipPercent"];
+      ownershipItems["Prin${k}DriverLicenseState"] =
+          owner["document"]["PrinDriverLicenseState"];
+      ownershipItems["Prin${k}DriverLicenseNumber"] =
+          owner["document"]["PrinDriverLicenseNumber"];
+      i++;
     }
-    agreementBuilderObj["document"]["ownership"] = ownershipItems;
+    agreementBuilderObj["document"]["ApplicationInformation"]["Ownership"] =
+        ownershipItems;
     isDirtyStatus["ownersIsDirty"] = false;
 
     var resp = await this
@@ -906,6 +926,42 @@ class AgreementBuilderState extends State<AgreementBuilder>
     } else {
       Fluttertoast.showToast(
           msg: "Failed to Save Owners!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0);
+    }
+  }
+
+  Future<void> loadDocuments(agreementBuilderId) async {
+    var resp = await this.widget.apiService.authGet(
+        context, "/agreementbuilder/" + agreementBuilderId + "/document");
+
+    if (resp.statusCode == 200) {
+      initDocumentObjects();
+
+      if (resp.data["payload1"] != null && resp.data["payload1"] != "") {
+        setState(() {
+          docsAttached["w9"] = true;
+        });
+      }
+      if (resp.data["payload2"] != null && resp.data["payload2"] != "") {
+        setState(() {
+          docsAttached["voidedCheck"] = true;
+        });
+      }
+
+      // Fluttertoast.showToast(
+      //     msg: "Documents Loaded",
+      //     toastLength: Toast.LENGTH_SHORT,
+      //     gravity: ToastGravity.BOTTOM,
+      //     backgroundColor: Colors.grey[600],
+      //     textColor: Colors.white,
+      //     fontSize: 16.0);
+    } else {
+      Fluttertoast.showToast(
+          msg: "Failed to Load Documents!",
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.grey[600],
@@ -952,13 +1008,9 @@ class AgreementBuilderState extends State<AgreementBuilder>
             UserService.employee.employee +
             "/document",
         data);
-
-    print(resp);
     if (resp.statusCode == 200) {
-      await loadAgreementData(this.widget.leadId);
-
       Fluttertoast.showToast(
-          msg: "Agreement Builder Saved!",
+          msg: "Documents Saved!",
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.grey[600],
@@ -966,7 +1018,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
           fontSize: 16.0);
     } else {
       Fluttertoast.showToast(
-          msg: "Failed to Save!",
+          msg: "Failed to Save Documents!",
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.grey[600],
@@ -1052,12 +1104,14 @@ class AgreementBuilderState extends State<AgreementBuilder>
                   BusinessInfo(
                       isDirtyStatus: isDirtyStatus,
                       controllers: businessPageControllers,
-                      agreementDoc: agreementDocument),
+                      agreementDoc: agreementDocument,
+                      formKey: _formKeys[0]),
                   OwnerInfo(
                       isDirtyStatus: isDirtyStatus,
                       owners: owners,
                       controllers: _ownershipControllers,
-                      lead: this.widget.leadId),
+                      lead: this.widget.leadId,
+                      formKey: _formKeys[1]),
                   Container(
                     padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
                     child: SingleChildScrollView(
@@ -1067,15 +1121,16 @@ class AgreementBuilderState extends State<AgreementBuilder>
                           SettlementTransact(
                               isDirtyStatus: isDirtyStatus,
                               controllers: settlementTransactPageControllers,
-                              agreementDoc: agreementDocument)
+                              agreementDoc: agreementDocument,
+                              formKey: _formKeys[2])
                         ],
                       ),
                     ),
                   ),
                   Documents(
-                    files: files,
-                    isDirtyStatus: isDirtyStatus,
-                  ),
+                      files: files,
+                      isDirtyStatus: isDirtyStatus,
+                      fileStatus: docsAttached),
                   Container(
                     padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
                     child: SingleChildScrollView(
@@ -1100,6 +1155,12 @@ class AgreementBuilderState extends State<AgreementBuilder>
           floatingActionButton: FloatingActionButton(
             onPressed: () async {
               updateAgreement(agreementBuilderObj["agreement_builder"]);
+              _formKeys[0].currentState.validate();
+              // _formKeys[1].currentState.validate();
+              // _formKeys[2].currentState.validate();
+              // for (var key in _formKeys) {
+              //   key.currentState.validate();
+              // }
             },
             backgroundColor: Color.fromARGB(500, 1, 224, 143),
             child: Icon(Icons.save),

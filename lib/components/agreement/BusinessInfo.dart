@@ -16,8 +16,10 @@ class BusinessInfo extends StatefulWidget {
   final Map isDirtyStatus;
   final Map controllers;
   final agreementDoc;
+  final GlobalKey formKey;
 
-  BusinessInfo({this.controllers, this.agreementDoc, this.isDirtyStatus});
+  BusinessInfo(
+      {this.controllers, this.agreementDoc, this.isDirtyStatus, this.formKey});
 
   @override
   BusinessInfoState createState() => BusinessInfoState();
@@ -259,7 +261,7 @@ class BusinessInfoState extends State<BusinessInfo>
               this.widget.isDirtyStatus["businessInfoIsDirty"] = true;
             });
           },
-          // key: _formKeys[1],
+          key: this.widget.formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
@@ -275,21 +277,42 @@ class BusinessInfoState extends State<BusinessInfo>
                             .widget
                             .controllers["mpaInfo"]["ClientDbaName"]
                             .text,
-                        this.widget.controllers["mpaInfo"]["ClientDbaName"]),
+                        this.widget.controllers["mpaInfo"]["ClientDbaName"],
+                        validator: (newVal) {
+                      if (newVal.isEmpty) {
+                        return "Required";
+                      } else {
+                        return null;
+                      }
+                    }),
                     getInfoRow(
                         "Merchant's Corporate/Legal Name",
                         this
                             .widget
                             .controllers["corporateInfo"]["LegalName"]
                             .text,
-                        this.widget.controllers["corporateInfo"]["LegalName"]),
+                        this.widget.controllers["corporateInfo"]["LegalName"],
+                        validator: (newVal) {
+                      if (newVal.isEmpty) {
+                        return "Required";
+                      } else {
+                        return null;
+                      }
+                    }),
                     getInfoRow(
                         "Number of Locations",
                         this
                             .widget
                             .controllers["mpaInfo"]["NumberOfLocation"]
                             .text,
-                        this.widget.controllers["mpaInfo"]["NumberOfLocation"]),
+                        this.widget.controllers["mpaInfo"]["NumberOfLocation"],
+                        validator: (newVal) {
+                      if (newVal.isEmpty) {
+                        return "Required";
+                      } else {
+                        return null;
+                      }
+                    }),
                     getInfoSearchableDropdown(
                         "State Incorporated",
                         this
@@ -298,7 +321,13 @@ class BusinessInfoState extends State<BusinessInfo>
                             .text,
                         this.widget.controllers["corporateInfo"]
                             ["StateIncorporated"],
-                        stateInc),
+                        stateInc, validator: (newVal) {
+                      if (newVal == null) {
+                        return "Required";
+                      } else {
+                        return null;
+                      }
+                    }),
                     // getInfoDropdown(
                     //     "Statement Provided",
                     //     this.widget.controllers["CurrentStmntProvided"].text,
@@ -313,7 +342,13 @@ class BusinessInfoState extends State<BusinessInfo>
                             .text,
                         this.widget.controllers["corporateInfo"]
                             ["RetrievalFaxRptCodeRefValue"],
-                        retrievalFaxRpt),
+                        retrievalFaxRpt, validator: (newVal) {
+                      if (newVal == null) {
+                        return "Required";
+                      } else {
+                        return null;
+                      }
+                    }),
                     getInfoRow(
                         "Corporate Contact",
                         this
@@ -321,7 +356,13 @@ class BusinessInfoState extends State<BusinessInfo>
                             .controllers["corporateInfo"]["CorporateContact"]
                             .text,
                         this.widget.controllers["corporateInfo"]
-                            ["CorporateContact"]),
+                            ["CorporateContact"], validator: (newVal) {
+                      if (newVal.isEmpty) {
+                        return "Required";
+                      } else {
+                        return null;
+                      }
+                    }),
                     getInfoRow(
                         "Business Start Date",
                         this
@@ -330,7 +371,13 @@ class BusinessInfoState extends State<BusinessInfo>
                             .text,
                         this.widget.controllers["corporateInfo"]
                             ["BusinessStartDate"],
-                        mask: "00/00/0000"),
+                        mask: "00/00/0000", validator: (newVal) {
+                      if (newVal.isEmpty) {
+                        return "Required Format MM/DD/YYYY";
+                      } else {
+                        return null;
+                      }
+                    }),
                     getInfoDropdown(
                         "Business Type",
                         this
@@ -339,7 +386,13 @@ class BusinessInfoState extends State<BusinessInfo>
                             .text,
                         this.widget.controllers["corporateInfo"]
                             ["BusinessType"],
-                        businessTypes),
+                        businessTypes, validator: (newVal) {
+                      if (newVal == null) {
+                        return "Required";
+                      } else {
+                        return null;
+                      }
+                    }),
                     getInfoDropdown(
                         "Statement Hold",
                         this
@@ -349,7 +402,13 @@ class BusinessInfoState extends State<BusinessInfo>
                             .text,
                         this.widget.controllers["corporateInfo"]
                             ["StatementHoldRefValue"],
-                        statementHoldRefValue),
+                        statementHoldRefValue, validator: (newVal) {
+                      if (newVal == null) {
+                        return "Required";
+                      } else {
+                        return null;
+                      }
+                    }),
                     Container(
                       child: Padding(
                         padding: const EdgeInsets.all(15),
@@ -432,6 +491,10 @@ class BusinessInfoState extends State<BusinessInfo>
                                     .widget
                                     .controllers["general"]["corpSame"]
                                     .text);
+                                this
+                                        .widget
+                                        .isDirtyStatus["businessInfoIsDirty"] =
+                                    true;
                               });
                             }),
                       ],
@@ -508,7 +571,13 @@ class BusinessInfoState extends State<BusinessInfo>
                             .text,
                         this.widget.controllers["corporateInfo"]
                             ["SendMonthlyStmntTo"],
-                        sendLocations),
+                        sendLocations, validator: (newVal) {
+                      if (newVal == null) {
+                        return "Required";
+                      } else {
+                        return null;
+                      }
+                    }),
                     getInfoDropdown(
                         "Send Retrieval Requests To",
                         this
@@ -517,7 +586,13 @@ class BusinessInfoState extends State<BusinessInfo>
                             .text,
                         this.widget.controllers["corporateInfo"]
                             ["SendRetRequestTo"],
-                        sendLocations),
+                        sendLocations, validator: (newVal) {
+                      if (newVal == null) {
+                        return "Required";
+                      } else {
+                        return null;
+                      }
+                    }),
                     getInfoDropdown(
                         "Send Chargebacks To",
                         this
@@ -525,7 +600,13 @@ class BusinessInfoState extends State<BusinessInfo>
                             .controllers["corporateInfo"]["SendCBTo"]
                             .text,
                         this.widget.controllers["corporateInfo"]["SendCBTo"],
-                        sendLocations),
+                        sendLocations, validator: (newVal) {
+                      if (newVal == null) {
+                        return "Required";
+                      } else {
+                        return null;
+                      }
+                    }),
                   ],
                 ),
               ),
@@ -538,7 +619,14 @@ class BusinessInfoState extends State<BusinessInfo>
                     getInfoRow(
                         "Name as it appears on income tax",
                         this.widget.controllers["businessInfo"]["IrsName"].text,
-                        this.widget.controllers["businessInfo"]["IrsName"]),
+                        this.widget.controllers["businessInfo"]["IrsName"],
+                        validator: (newVal) {
+                      if (newVal.isEmpty) {
+                        return "Required";
+                      } else {
+                        return null;
+                      }
+                    }),
                     getInfoRow(
                         "Business Email Address",
                         this
@@ -546,7 +634,12 @@ class BusinessInfoState extends State<BusinessInfo>
                             .controllers["businessInfo"]["BusinessEmailAddress"]
                             .text,
                         this.widget.controllers["businessInfo"]
-                            ["BusinessEmailAddress"]), // TODO EMAIL CHECK VALID
+                            ["BusinessEmailAddress"], validator: (newVal) {
+                      if (newVal.isEmpty || !newVal.contains('@')) {
+                        return 'Please enter a valid email';
+                      }
+                      return null;
+                    }), // TODO EMAIL CHECK VALID
                     getInfoRow(
                         "Location Phone",
                         this
@@ -555,15 +648,27 @@ class BusinessInfoState extends State<BusinessInfo>
                             .text,
                         this.widget.controllers["businessInfo"]
                             ["LocationPhone"],
-                        mask: "000-000-0000"),
+                        mask: "000-000-0000", validator: (newVal) {
+                      if (newVal.isEmpty) {
+                        return "10 Digit Phone # with area code";
+                      } else {
+                        return null;
+                      }
+                    }),
                     getInfoRow(
                         "Products Sold",
                         this
                             .widget
                             .controllers["businessInfo"]["ProductsSold"]
                             .text,
-                        this.widget.controllers["businessInfo"]
-                            ["ProductsSold"]),
+                        this.widget.controllers["businessInfo"]["ProductsSold"],
+                        validator: (newVal) {
+                      if (newVal.isEmpty) {
+                        return "Required";
+                      } else {
+                        return null;
+                      }
+                    }),
                     getInfoDropdown(
                         "Business Category",
                         this
@@ -572,7 +677,13 @@ class BusinessInfoState extends State<BusinessInfo>
                             .text,
                         this.widget.controllers["businessInfo"]
                             ["BusinessCategory"],
-                        businessCategory),
+                        businessCategory, validator: (newVal) {
+                      if (newVal == null) {
+                        return "Required";
+                      } else {
+                        return null;
+                      }
+                    }),
                     SicDropDown(
                       value:
                           this.widget.controllers["businessInfo"]["Sic"].text,
@@ -586,6 +697,13 @@ class BusinessInfoState extends State<BusinessInfo>
                           });
                         }
                       },
+                      validator: (newVal) {
+                        if (newVal == null) {
+                          return "Required";
+                        } else {
+                          return null;
+                        }
+                      },
                     ),
                     getInfoDropdown(
                         "Federal Tax ID Type",
@@ -595,15 +713,27 @@ class BusinessInfoState extends State<BusinessInfo>
                             .text,
                         this.widget.controllers["businessInfo"]
                             ["FederalTaxIdType"],
-                        fedTaxIdType),
+                        fedTaxIdType, validator: (newVal) {
+                      if (newVal == null) {
+                        return "Required";
+                      } else {
+                        return null;
+                      }
+                    }),
                     getInfoRow(
                         "Federal Tax Id",
                         this
                             .widget
                             .controllers["businessInfo"]["FederalTaxId"]
                             .text,
-                        this.widget.controllers["businessInfo"]
-                            ["FederalTaxId"]),
+                        this.widget.controllers["businessInfo"]["FederalTaxId"],
+                        mask: "000000000", validator: (newVal) {
+                      if (newVal.isEmpty) {
+                        return "Required";
+                      } else {
+                        return null;
+                      }
+                    }),
                     getInfoDropdown(
                         "I certify that I am a foreign entity/nonresident alien",
                         this
@@ -613,7 +743,13 @@ class BusinessInfoState extends State<BusinessInfo>
                             .text,
                         this.widget.controllers["businessInfo"]
                             ["ForeignEntityOrNonResidentAlien"],
-                        yesNoOptions),
+                        yesNoOptions, validator: (newVal) {
+                      if (newVal == null) {
+                        return "Required";
+                      } else {
+                        return null;
+                      }
+                    }),
                   ],
                 ),
               ),
@@ -630,31 +766,63 @@ class BusinessInfoState extends State<BusinessInfo>
                             .controllers["siteInfo"]["SiteVisitation"]
                             .text,
                         this.widget.controllers["siteInfo"]["SiteVisitation"],
-                        yesNoOptions),
+                        yesNoOptions, validator: (newVal) {
+                      if (newVal == null) {
+                        return "Required";
+                      } else {
+                        return null;
+                      }
+                    }),
                     getInfoDropdown(
                         "Zone",
                         this.widget.controllers["siteInfo"]["Zone"].text,
                         this.widget.controllers["siteInfo"]["Zone"],
-                        zones),
+                        zones, validator: (newVal) {
+                      if (newVal == null) {
+                        return "Required";
+                      } else {
+                        return null;
+                      }
+                    }),
                     getInfoDropdown(
                         "Location",
                         this.widget.controllers["siteInfo"]["Location"].text,
                         this.widget.controllers["siteInfo"]["Location"],
-                        locations),
+                        locations, validator: (newVal) {
+                      if (newVal == null) {
+                        return "Required";
+                      } else {
+                        return null;
+                      }
+                    }),
                     getInfoRow(
                         "Number of Employees",
                         this
                             .widget
                             .controllers["siteInfo"]["NoOfEmployees"]
                             .text,
-                        this.widget.controllers["siteInfo"]["NoOfEmployees"]),
+                        this.widget.controllers["siteInfo"]["NoOfEmployees"],
+                        validator: (newVal) {
+                      if (newVal.isEmpty) {
+                        return "Required";
+                      } else {
+                        return null;
+                      }
+                    }),
                     getInfoRow(
                         "Number of Terminals",
                         this
                             .widget
                             .controllers["siteInfo"]["NoOfRegister"]
                             .text,
-                        this.widget.controllers["siteInfo"]["NoOfRegister"]),
+                        this.widget.controllers["siteInfo"]["NoOfRegister"],
+                        validator: (newVal) {
+                      if (newVal.isEmpty) {
+                        return "Required";
+                      } else {
+                        return null;
+                      }
+                    }),
                     getInfoDropdown(
                         "Merchant Name Site Display",
                         this
@@ -663,7 +831,13 @@ class BusinessInfoState extends State<BusinessInfo>
                             .text,
                         this.widget.controllers["siteInfo"]
                             ["MerchantNameSiteDisplay"],
-                        merchantNameDisplay),
+                        merchantNameDisplay, validator: (newVal) {
+                      if (newVal == null) {
+                        return "Required";
+                      } else {
+                        return null;
+                      }
+                    }),
                     getInfoDropdown(
                         "Merchant Occupies",
                         this
@@ -671,7 +845,13 @@ class BusinessInfoState extends State<BusinessInfo>
                             .controllers["siteInfo"]["StoreLocatedOn"]
                             .text,
                         this.widget.controllers["siteInfo"]["StoreLocatedOn"],
-                        storeLocatedOn),
+                        storeLocatedOn, validator: (newVal) {
+                      if (newVal == null) {
+                        return "Required";
+                      } else {
+                        return null;
+                      }
+                    }),
                     getInfoDropdown(
                         "Number of Floors",
                         this
@@ -679,7 +859,13 @@ class BusinessInfoState extends State<BusinessInfo>
                             .controllers["siteInfo"]["NumberOfLevels"]
                             .text,
                         this.widget.controllers["siteInfo"]["NumberOfLevels"],
-                        numOfLevels),
+                        numOfLevels, validator: (newVal) {
+                      if (newVal == null) {
+                        return "Required";
+                      } else {
+                        return null;
+                      }
+                    }),
                     getInfoDropdown(
                         "Remaining Floor(s) Occupied By",
                         this
@@ -687,7 +873,13 @@ class BusinessInfoState extends State<BusinessInfo>
                             .controllers["siteInfo"]["OtherOccupiedBy"]
                             .text,
                         this.widget.controllers["siteInfo"]["OtherOccupiedBy"],
-                        otherOccupiedBy),
+                        otherOccupiedBy, validator: (newVal) {
+                      if (newVal == null) {
+                        return "Required";
+                      } else {
+                        return null;
+                      }
+                    }),
                     getInfoDropdown(
                         "Approximate Square Footage",
                         this
@@ -695,7 +887,13 @@ class BusinessInfoState extends State<BusinessInfo>
                             .controllers["siteInfo"]["SquareFootage"]
                             .text,
                         this.widget.controllers["siteInfo"]["SquareFootage"],
-                        squareFootage),
+                        squareFootage, validator: (newVal) {
+                      if (newVal == null) {
+                        return "Required";
+                      } else {
+                        return null;
+                      }
+                    }),
                     getInfoDropdown(
                         "Customer Deposit Required",
                         this
@@ -703,7 +901,13 @@ class BusinessInfoState extends State<BusinessInfo>
                             .controllers["siteInfo"]["DepositRequired"]
                             .text,
                         this.widget.controllers["siteInfo"]["DepositRequired"],
-                        yesNoOptions),
+                        yesNoOptions, validator: (newVal) {
+                      if (newVal == null) {
+                        return "Required";
+                      } else {
+                        return null;
+                      }
+                    }),
                     getInfoDropdown(
                         "Return Policy",
                         this
@@ -711,7 +915,13 @@ class BusinessInfoState extends State<BusinessInfo>
                             .controllers["siteInfo"]["ReturnPolicy"]
                             .text,
                         this.widget.controllers["siteInfo"]["ReturnPolicy"],
-                        returnPolicy),
+                        returnPolicy, validator: (newVal) {
+                      if (newVal == null) {
+                        return "Required";
+                      } else {
+                        return null;
+                      }
+                    }),
                     getInfoDropdown(
                         "Refund Policy",
                         this
@@ -719,12 +929,24 @@ class BusinessInfoState extends State<BusinessInfo>
                             .controllers["siteInfo"]["RefundPolicy"]
                             .text,
                         this.widget.controllers["siteInfo"]["RefundPolicy"],
-                        yesNoOptions),
+                        yesNoOptions, validator: (newVal) {
+                      if (newVal == null) {
+                        return "Required";
+                      } else {
+                        return null;
+                      }
+                    }),
                     getInfoDropdown(
                         "Refund Type",
                         this.widget.controllers["siteInfo"]["RefundType"].text,
                         this.widget.controllers["siteInfo"]["RefundType"],
-                        refundType),
+                        refundType, validator: (newVal) {
+                      if (newVal == null) {
+                        return "Required";
+                      } else {
+                        return null;
+                      }
+                    }),
                     getInfoDropdown(
                         "Days to Submit Credit Transactions",
                         this
@@ -732,7 +954,13 @@ class BusinessInfoState extends State<BusinessInfo>
                             .controllers["siteInfo"]["RefPolicyRefDays"]
                             .text,
                         this.widget.controllers["siteInfo"]["RefPolicyRefDays"],
-                        refDays),
+                        refDays, validator: (newVal) {
+                      if (newVal == null) {
+                        return "Required";
+                      } else {
+                        return null;
+                      }
+                    }),
                   ],
                 ),
               ),
@@ -763,6 +991,10 @@ class BusinessInfoState extends State<BusinessInfo>
                                     .widget
                                     .controllers["general"]["motoCheck"]
                                     .text);
+                                this
+                                        .widget
+                                        .isDirtyStatus["businessInfoIsDirty"] =
+                                    true;
                               });
                             }),
                       ],
@@ -778,7 +1010,19 @@ class BusinessInfoState extends State<BusinessInfo>
                                         ["TransDeliveredIn07"]
                                     .text,
                                 this.widget.controllers["motoBBInet"]
-                                    ["TransDeliveredIn07"]),
+                                    ["TransDeliveredIn07"],
+                                validator: (newVal) {
+                              if (newVal.isEmpty &&
+                                  this
+                                          .widget
+                                          .controllers["general"]["motoCheck"]
+                                          .text ==
+                                      "true") {
+                                return "Required";
+                              } else {
+                                return null;
+                              }
+                            }),
                             getInfoRow(
                                 "% Transaction to Delivery 8-14 Days",
                                 this
@@ -787,7 +1031,19 @@ class BusinessInfoState extends State<BusinessInfo>
                                         ["TransDeliveredIn814"]
                                     .text,
                                 this.widget.controllers["motoBBInet"]
-                                    ["TransDeliveredIn814"]),
+                                    ["TransDeliveredIn814"],
+                                validator: (newVal) {
+                              if (newVal.isEmpty &&
+                                  this
+                                          .widget
+                                          .controllers["general"]["motoCheck"]
+                                          .text ==
+                                      "true") {
+                                return "Required";
+                              } else {
+                                return null;
+                              }
+                            }),
                             getInfoRow(
                                 "% Transaction to Delivery 15-30 Days",
                                 this
@@ -796,7 +1052,19 @@ class BusinessInfoState extends State<BusinessInfo>
                                         ["TransDeliveredIn1530"]
                                     .text,
                                 this.widget.controllers["motoBBInet"]
-                                    ["TransDeliveredIn1530"]),
+                                    ["TransDeliveredIn1530"],
+                                validator: (newVal) {
+                              if (newVal.isEmpty &&
+                                  this
+                                          .widget
+                                          .controllers["general"]["motoCheck"]
+                                          .text ==
+                                      "true") {
+                                return "Required";
+                              } else {
+                                return null;
+                              }
+                            }),
                             getInfoRow(
                                 "% Transaction to Delivery +30 Days",
                                 this
@@ -805,7 +1073,19 @@ class BusinessInfoState extends State<BusinessInfo>
                                         ["TransDeliveredOver30"]
                                     .text,
                                 this.widget.controllers["motoBBInet"]
-                                    ["TransDeliveredOver30"]),
+                                    ["TransDeliveredOver30"],
+                                validator: (newVal) {
+                              if (newVal.isEmpty &&
+                                  this
+                                          .widget
+                                          .controllers["general"]["motoCheck"]
+                                          .text ==
+                                      "true") {
+                                return "Required";
+                              } else {
+                                return null;
+                              }
+                            }),
                             getInfoDropdown(
                                 "MC/Visa/Discover Network/Amex Sales Deposits",
                                 this
@@ -815,7 +1095,18 @@ class BusinessInfoState extends State<BusinessInfo>
                                     .text,
                                 this.widget.controllers["motoBBInet"]
                                     ["CCSalesProcessedAt"],
-                                ccProcessedAt),
+                                ccProcessedAt, validator: (newVal) {
+                              if (newVal == null &&
+                                  this
+                                          .widget
+                                          .controllers["general"]["motoCheck"]
+                                          .text ==
+                                      "true") {
+                                return "Required";
+                              } else {
+                                return null;
+                              }
+                            }),
                             getInfoDropdown(
                                 "Does any cardholder billing involve automatic renewals or recurring transactions?",
                                 this
@@ -825,7 +1116,18 @@ class BusinessInfoState extends State<BusinessInfo>
                                     .text,
                                 this.widget.controllers["motoBBInet"]
                                     ["CardholderBilling"],
-                                yesNoOptions),
+                                yesNoOptions, validator: (newVal) {
+                              if (newVal == null &&
+                                  this
+                                          .widget
+                                          .controllers["general"]["motoCheck"]
+                                          .text ==
+                                      "true") {
+                                return "Required";
+                              } else {
+                                return null;
+                              }
+                            }),
                           ])
                         : Container()
                   ],
@@ -883,7 +1185,7 @@ class BusinessInfoState extends State<BusinessInfo>
     );
   }
 
-  Widget getInfoDropdown(label, value, controller, dropList) {
+  Widget getInfoDropdown(label, value, controller, dropList, {validator}) {
     var _currentVal;
     _currentVal = null;
 
@@ -906,8 +1208,9 @@ class BusinessInfoState extends State<BusinessInfo>
             ),
             Expanded(
               flex: 8,
-              child: DropdownButton<String>(
+              child: DropdownButtonFormField<String>(
                 value: _currentVal,
+                validator: validator != null ? validator : null,
                 isExpanded: true,
                 hint: Text("Please choose one"),
                 items: dropList.map<DropdownMenuItem<String>>((dynamic item) {
@@ -933,7 +1236,8 @@ class BusinessInfoState extends State<BusinessInfo>
     );
   }
 
-  Widget getInfoSearchableDropdown(label, value, controller, dropList) {
+  Widget getInfoSearchableDropdown(label, value, controller, dropList,
+      {validator}) {
     var currentVal;
     currentVal = null;
 
@@ -958,8 +1262,10 @@ class BusinessInfoState extends State<BusinessInfo>
               flex: 8,
               child: SearchableDropdown.single(
                 value: currentVal,
+                validator: validator != null ? validator : null,
                 onClear: () {
                   setState(() {
+                    controller.text = "";
                     currentVal = null;
                     value = null;
                   });
@@ -980,6 +1286,7 @@ class BusinessInfoState extends State<BusinessInfo>
                 onChanged: (newValue) {
                   setState(() {
                     controller.text = newValue;
+                    this.widget.isDirtyStatus["businessInfoIsDirty"] = true;
                   });
                 },
               ),

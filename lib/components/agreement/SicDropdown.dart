@@ -3,11 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:searchable_dropdown/searchable_dropdown.dart';
 
 class SicDropDown extends StatefulWidget {
-  SicDropDown({this.callback, this.value, this.disabled});
+  SicDropDown({this.callback, this.value, this.disabled, this.validator});
 
   final String value;
   final Function callback;
   final bool disabled;
+  final Function validator;
 
   @override
   _SicDropDownState createState() => _SicDropDownState();
@@ -76,6 +77,9 @@ class _SicDropDownState extends State<SicDropDown> {
               Expanded(
                 flex: 8,
                 child: SearchableDropdown.single(
+                  validator: this.widget.validator != null
+                      ? this.widget.validator
+                      : null,
                   value: startVal,
                   onClear: () {
                     setState(() {

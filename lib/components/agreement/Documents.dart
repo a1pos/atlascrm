@@ -14,8 +14,9 @@ class Documents extends StatefulWidget {
 
   final Map isDirtyStatus;
   final Map files;
+  final Map fileStatus;
 
-  Documents({this.files, this.isDirtyStatus});
+  Documents({this.files, this.isDirtyStatus, this.fileStatus});
 
   @override
   DocumentsState createState() => DocumentsState();
@@ -28,8 +29,8 @@ class DocumentsState extends State<Documents> with TickerProviderStateMixin {
     super.initState();
   }
 
-  var w9Check = false;
-  var voidedCheck = false;
+  var w9Added = false;
+  var voidedCheckAdded = false;
 
   void openImageUpload(title) {
     showDialog(
@@ -74,6 +75,7 @@ class DocumentsState extends State<Documents> with TickerProviderStateMixin {
               onPressed: () async {
                 var result = await platform.invokeMethod("openMedia");
                 addImage(result, title);
+                Navigator.pop(context);
               },
               child: Row(
                 children: <Widget>[
@@ -103,9 +105,15 @@ class DocumentsState extends State<Documents> with TickerProviderStateMixin {
 
     if (title == "W-9") {
       this.widget.files["file1"] = path;
+      setState(() {
+        this.widget.fileStatus["w9Added"] = true;
+      });
     }
     if (title == "Voided Check") {
       this.widget.files["file2"] = path;
+      setState(() {
+        this.widget.fileStatus["voidedCheckAdded"] = true;
+      });
     }
 
     setState(() {
@@ -153,7 +161,7 @@ class DocumentsState extends State<Documents> with TickerProviderStateMixin {
           children: <Widget>[
             CustomCard(
               key: Key("documents1"),
-              icon: Icons.save,
+              icon: Icons.attach_file,
               title: "Documents",
               child: Column(
                 children: <Widget>[
@@ -163,24 +171,45 @@ class DocumentsState extends State<Documents> with TickerProviderStateMixin {
                       Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: FlatButton(
-                            color: Color.fromARGB(500, 1, 224, 143),
+                            color: this.widget.fileStatus["w9Added"]
+                                ? Colors.amber
+                                : this.widget.fileStatus["w9"]
+                                    ? Color.fromARGB(500, 1, 224, 143)
+                                    : Colors.grey,
                             onPressed: () {
                               openImageUpload("W-9");
                             },
                             child: Row(
                               children: <Widget>[
-                                Icon(Icons.check_box_outline_blank,
-                                    color: Colors.white),
+                                this.widget.fileStatus["w9Added"]
+                                    ? Icon(Icons.save, color: Colors.white)
+                                    : this.widget.fileStatus["w9"]
+                                        ? Icon(Icons.check_box,
+                                            color: Colors.white)
+                                        : Icon(Icons.check_box_outline_blank,
+                                            color: Colors.white),
                                 Padding(
                                   padding:
                                       const EdgeInsets.fromLTRB(8, 0, 0, 0),
-                                  child: Text("W-9",
-                                      style: TextStyle(color: Colors.white)),
+                                  child: Padding(
+                                    padding:
+                                        const EdgeInsets.fromLTRB(25, 0, 32, 0),
+                                    child: Text("W-9",
+                                        style: TextStyle(color: Colors.white)),
+                                  ),
                                 ),
                               ],
                             )),
                       ),
-                      Text("File path will go here")
+                      this.widget.fileStatus["w9Added"]
+                          ? Text("Needs saved!",
+                              style: TextStyle(color: Colors.amber[700]))
+                          : this.widget.fileStatus["w9"]
+                              ? Text("Uploaded!",
+                                  style: TextStyle(
+                                      color: Color.fromARGB(500, 1, 224, 143)))
+                              : Text("Empty",
+                                  style: TextStyle(color: Colors.grey))
                     ],
                   ),
                   Row(
@@ -188,14 +217,23 @@ class DocumentsState extends State<Documents> with TickerProviderStateMixin {
                       Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: FlatButton(
-                            color: Color.fromARGB(500, 1, 224, 143),
+                            color: this.widget.fileStatus["voidedCheckAdded"]
+                                ? Colors.amber
+                                : this.widget.fileStatus["voidedCheck"]
+                                    ? Color.fromARGB(500, 1, 224, 143)
+                                    : Colors.grey,
                             onPressed: () {
                               openImageUpload("Voided Check");
                             },
                             child: Row(
                               children: <Widget>[
-                                Icon(Icons.check_box_outline_blank,
-                                    color: Colors.white),
+                                this.widget.fileStatus["voidedCheckAdded"]
+                                    ? Icon(Icons.save, color: Colors.white)
+                                    : this.widget.fileStatus["voidedCheck"]
+                                        ? Icon(Icons.check_box,
+                                            color: Colors.white)
+                                        : Icon(Icons.check_box_outline_blank,
+                                            color: Colors.white),
                                 Padding(
                                   padding:
                                       const EdgeInsets.fromLTRB(8, 0, 0, 0),
@@ -205,7 +243,15 @@ class DocumentsState extends State<Documents> with TickerProviderStateMixin {
                               ],
                             )),
                       ),
-                      Text("File path will go here")
+                      this.widget.fileStatus["voidedCheckAdded"]
+                          ? Text("Needs saved!",
+                              style: TextStyle(color: Colors.amber))
+                          : this.widget.fileStatus["voidedCheck"]
+                              ? Text("Uploaded!",
+                                  style: TextStyle(
+                                      color: Color.fromARGB(500, 1, 224, 143)))
+                              : Text("Empty",
+                                  style: TextStyle(color: Colors.grey))
                     ],
                   ),
                 ],

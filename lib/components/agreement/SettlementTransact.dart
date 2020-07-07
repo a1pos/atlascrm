@@ -9,8 +9,10 @@ class SettlementTransact extends StatefulWidget {
   final Map isDirtyStatus;
   final Map controllers;
   final agreementDoc;
+  final GlobalKey formKey;
 
-  SettlementTransact({this.controllers, this.agreementDoc, this.isDirtyStatus});
+  SettlementTransact(
+      {this.controllers, this.agreementDoc, this.isDirtyStatus, this.formKey});
 
   @override
   SettlementTransactState createState() => SettlementTransactState();
@@ -75,180 +77,211 @@ class SettlementTransactState extends State<SettlementTransact>
     return Container(
         padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
         child: SingleChildScrollView(
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: <
-                  Widget>[
-            CustomCard(
-              key: Key("settlementTransact1"),
-              icon: Icons.attach_money,
-              title: "Settlement",
-              child: Column(
+          child: Form(
+            onChanged: () {
+              setState(() {
+                this.widget.isDirtyStatus["settlementTransactIsDirty"] = true;
+              });
+            },
+            key: this.widget.formKey,
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  getInfoRow(
-                      "Deposit Bank Name",
-                      this
-                          .widget
-                          .controllers["settlement"]["DepositBankName"]
-                          .text,
-                      this.widget.controllers["settlement"]["DepositBankName"]),
-                  getInfoDropdown(
-                      "Account Type",
-                      this.widget.controllers["settlement"]["AccountType"].text,
-                      this.widget.controllers["settlement"]["AccountType"],
-                      accTypes),
-                  getInfoRow(
-                      "Transit ABA Number",
-                      this
-                          .widget
-                          .controllers["settlement"]["TransitABANumber"]
-                          .text,
-                      this.widget.controllers["settlement"]["TransitABANumber"],
-                      mask: '000000000'),
-                  getInfoRow(
-                      "Deposit Account Number",
-                      this
-                          .widget
-                          .controllers["settlement"]["DepositAccountNumber"]
-                          .text,
-                      this.widget.controllers["settlement"]
-                          ["DepositAccountNumber"],
-                      mask: '0[0000000000000000]'),
-                ],
-              ),
-            ),
-            CustomCard(
-              key: Key("settlementTransact2"),
-              icon: Icons.attach_money,
-              title: "Transaction",
-              child: Column(
-                children: <Widget>[
-                  getInfoRow(
-                      "Average MC/VISA/Discover Ticket",
-                      this
-                          .widget
-                          .controllers["transaction"]["AvgMcViDiTicket"]
-                          .text,
-                      this.widget.controllers["transaction"]["AvgMcViDiTicket"],
-                      mask: '00000'),
-                  getInfoRow(
-                      "Total Annual Sales Volume(cash+credit+check+debit)",
-                      this
-                          .widget
-                          .controllers["transaction"]["TotalAnnualSalesVolume"]
-                          .text,
-                      this.widget.controllers["transaction"]
-                          ["TotalAnnualSalesVolume"],
-                      mask: '000000000'),
-                  getInfoRow(
-                      "Annual MC/VISA Credit Sales Volume",
-                      this
-                          .widget
-                          .controllers["transaction"]["AnnualMcViSalesVolume"]
-                          .text,
-                      this.widget.controllers["transaction"]
-                          ["AnnualMcViSalesVolume"],
-                      mask: '000000000'),
-                  getInfoRow(
-                      "Annual Discover Credit Sales Volume",
-                      this
-                          .widget
-                          .controllers["transaction"]["AnnualDiSalesVolume"]
-                          .text,
-                      this.widget.controllers["transaction"]
-                          ["AnnualDiSalesVolume"]), //NEEDS MIN SET
-                  getInfoRow(
-                      "Annual American Express Credit Sales Volume",
-                      this
-                          .widget
-                          .controllers["transaction"]
-                              ["AnnualAmexOnePointSalesVolume"]
-                          .text,
-                      this.widget.controllers["transaction"]
-                          ["AnnualAmexOnePointSalesVolume"]), //NEEDS MIN SET
-                  getInfoRow(
-                      "Highest Ticket Amount",
-                      this
-                          .widget
-                          .controllers["transaction"]["HighestTicket"]
-                          .text,
-                      this.widget.controllers["transaction"]["HighestTicket"],
-                      mask: '00000000'),
-                  getInfoDropdown(
-                      "Seasonal Merchant",
-                      this
-                          .widget
-                          .controllers["transaction"]["SeasonalMerchant"]
-                          .text,
-                      this.widget.controllers["transaction"]
-                          ["SeasonalMerchant"],
-                      yesNoOptions),
-                  getInfoDropdown(
-                      "Season Period From",
-                      this
-                          .widget
-                          .controllers["transaction"]["SeasonalFrom"]
-                          .text,
-                      this.widget.controllers["transaction"]["SeasonalFrom"],
-                      seasonalMonths), //MAKE DEPENDANT ON SEASONAL MERCHANT Y/N
-                  getInfoDropdown(
-                      "Season Period To",
-                      this.widget.controllers["transaction"]["SeasonalTo"].text,
-                      this.widget.controllers["transaction"]["SeasonalTo"],
-                      seasonalMonths), //MAKE DEPENDANT ON SEASONAL MERCHANT Y/N
-                  getInfoRow(
-                      "% Store front/Swiped",
-                      this
-                          .widget
-                          .controllers["transaction"]["CcPercentPos"]
-                          .text,
-                      this.widget.controllers["transaction"]
-                          ["CcPercentPos"]), //MAKE ADD UP TO 100 1/4
-                  getInfoRow(
-                      "% Internet",
-                      this
-                          .widget
-                          .controllers["transaction"]["CcPercentInet"]
-                          .text,
-                      this.widget.controllers["transaction"]
-                          ["CcPercentInet"]), //MAKE ADD UP TO 100 2/4
-                  getInfoRow(
-                      "% Mail Order",
-                      this
-                          .widget
-                          .controllers["transaction"]["CcPercentMo"]
-                          .text,
-                      this.widget.controllers["transaction"]
-                          ["CcPercentMo"]), //MAKE ADD UP TO 100 3/4
-                  getInfoRow(
-                      "% Telephone Order",
-                      this
-                          .widget
-                          .controllers["transaction"]["CcPercentTo"]
-                          .text,
-                      this.widget.controllers["transaction"]
-                          ["CcPercentTo"]), //MAKE ADD UP TO 100 4/4
-                ],
-              ),
-            ),
-          ]),
+                  CustomCard(
+                    key: Key("settlementTransact1"),
+                    icon: Icons.attach_money,
+                    title: "Settlement",
+                    child: Column(
+                      children: <Widget>[
+                        getInfoRow(
+                            "Deposit Bank Name",
+                            this
+                                .widget
+                                .controllers["settlement"]["DepositBankName"]
+                                .text,
+                            this.widget.controllers["settlement"]
+                                ["DepositBankName"], validator: (newVal) {
+                          if (newVal.isEmpty) {
+                            return "Required";
+                          } else {
+                            return null;
+                          }
+                        }),
+                        getInfoDropdown(
+                            "Account Type",
+                            this
+                                .widget
+                                .controllers["settlement"]["AccountType"]
+                                .text,
+                            this.widget.controllers["settlement"]
+                                ["AccountType"],
+                            accTypes, validator: (newVal) {
+                          if (newVal == null) {
+                            return "Required";
+                          } else {
+                            return null;
+                          }
+                        }),
+                        getInfoRow(
+                            "Transit ABA Number",
+                            this
+                                .widget
+                                .controllers["settlement"]["TransitABANumber"]
+                                .text,
+                            this.widget.controllers["settlement"]
+                                ["TransitABANumber"],
+                            mask: '000000000', validator: (newVal) {
+                          if (newVal.isEmpty) {
+                            return "Required";
+                          } else {
+                            return null;
+                          }
+                        }),
+                        getInfoRow(
+                            "Deposit Account Number",
+                            this
+                                .widget
+                                .controllers["settlement"]
+                                    ["DepositAccountNumber"]
+                                .text,
+                            this.widget.controllers["settlement"]
+                                ["DepositAccountNumber"],
+                            mask: '0[0000000000000000]'),
+                      ],
+                    ),
+                  ),
+                  CustomCard(
+                    key: Key("settlementTransact2"),
+                    icon: Icons.attach_money,
+                    title: "Transaction",
+                    child: Column(
+                      children: <Widget>[
+                        getInfoRow(
+                            "Average MC/VISA/Discover Ticket",
+                            this
+                                .widget
+                                .controllers["transaction"]["AvgMcViDiTicket"]
+                                .text,
+                            this.widget.controllers["transaction"]
+                                ["AvgMcViDiTicket"],
+                            mask: '00000'),
+                        getInfoRow(
+                            "Total Annual Sales Volume(cash+credit+check+debit)",
+                            this
+                                .widget
+                                .controllers["transaction"]
+                                    ["TotalAnnualSalesVolume"]
+                                .text,
+                            this.widget.controllers["transaction"]
+                                ["TotalAnnualSalesVolume"],
+                            mask: '000000000'),
+                        getInfoRow(
+                            "Annual MC/VISA Credit Sales Volume",
+                            this
+                                .widget
+                                .controllers["transaction"]
+                                    ["AnnualMcViSalesVolume"]
+                                .text,
+                            this.widget.controllers["transaction"]
+                                ["AnnualMcViSalesVolume"],
+                            mask: '000000000'),
+                        getInfoRow(
+                            "Annual Discover Credit Sales Volume",
+                            this
+                                .widget
+                                .controllers["transaction"]
+                                    ["AnnualDiSalesVolume"]
+                                .text,
+                            this.widget.controllers["transaction"]
+                                ["AnnualDiSalesVolume"]), //NEEDS MIN SET
+                        getInfoRow(
+                            "Annual American Express Credit Sales Volume",
+                            this
+                                .widget
+                                .controllers["transaction"]
+                                    ["AnnualAmexOnePointSalesVolume"]
+                                .text,
+                            this.widget.controllers["transaction"][
+                                "AnnualAmexOnePointSalesVolume"]), //NEEDS MIN SET
+                        getInfoRow(
+                            "Highest Ticket Amount",
+                            this
+                                .widget
+                                .controllers["transaction"]["HighestTicket"]
+                                .text,
+                            this.widget.controllers["transaction"]
+                                ["HighestTicket"],
+                            mask: '00000000'),
+                        getInfoDropdown(
+                            "Seasonal Merchant",
+                            this
+                                .widget
+                                .controllers["transaction"]["SeasonalMerchant"]
+                                .text,
+                            this.widget.controllers["transaction"]
+                                ["SeasonalMerchant"],
+                            yesNoOptions),
+                        getInfoDropdown(
+                            "Season Period From",
+                            this
+                                .widget
+                                .controllers["transaction"]["SeasonalFrom"]
+                                .text,
+                            this.widget.controllers["transaction"]
+                                ["SeasonalFrom"],
+                            seasonalMonths), //MAKE DEPENDANT ON SEASONAL MERCHANT Y/N
+                        getInfoDropdown(
+                            "Season Period To",
+                            this
+                                .widget
+                                .controllers["transaction"]["SeasonalTo"]
+                                .text,
+                            this.widget.controllers["transaction"]
+                                ["SeasonalTo"],
+                            seasonalMonths), //MAKE DEPENDANT ON SEASONAL MERCHANT Y/N
+                        getInfoRow(
+                            "% Store front/Swiped",
+                            this
+                                .widget
+                                .controllers["transaction"]["CcPercentPos"]
+                                .text,
+                            this.widget.controllers["transaction"]
+                                ["CcPercentPos"]), //MAKE ADD UP TO 100 1/4
+                        getInfoRow(
+                            "% Internet",
+                            this
+                                .widget
+                                .controllers["transaction"]["CcPercentInet"]
+                                .text,
+                            this.widget.controllers["transaction"]
+                                ["CcPercentInet"]), //MAKE ADD UP TO 100 2/4
+                        getInfoRow(
+                            "% Mail Order",
+                            this
+                                .widget
+                                .controllers["transaction"]["CcPercentMo"]
+                                .text,
+                            this.widget.controllers["transaction"]
+                                ["CcPercentMo"]), //MAKE ADD UP TO 100 3/4
+                        getInfoRow(
+                            "% Telephone Order",
+                            this
+                                .widget
+                                .controllers["transaction"]["CcPercentTo"]
+                                .text,
+                            this.widget.controllers["transaction"]
+                                ["CcPercentTo"]), //MAKE ADD UP TO 100 4/4
+                      ],
+                    ),
+                  ),
+                ]),
+          ),
         ));
   }
 
-  Widget getInfoRow(label, value, controller, {mask, validator, obscure}) {
+  Widget getInfoRow(label, value, controller, {mask, validator}) {
     if (mask != null) {
       controller.updateMask(mask);
-    }
-    bool isValidating = false;
-    bool isObscure = false;
-    if (validator != null) {
-      setState(() {
-        isValidating = true;
-      });
-    }
-    if (obscure != null) {
-      setState(() {
-        isObscure = obscure;
-      });
     }
 
     if (value != null) {
@@ -276,15 +309,8 @@ class SettlementTransactState extends State<SettlementTransact>
             Expanded(
               flex: 8,
               child: TextFormField(
-                onChanged: (newValue) {
-                  setState(() {
-                    controller.text = newValue;
-                  });
-                },
-                controller: controller,
-                validator: isValidating ? validator : null,
-                obscureText: isObscure,
-              ),
+                  controller: controller,
+                  validator: validator != null ? validator : null),
             ),
           ],
         ),
@@ -292,7 +318,7 @@ class SettlementTransactState extends State<SettlementTransact>
     );
   }
 
-  Widget getInfoDropdown(label, value, controller, dropList) {
+  Widget getInfoDropdown(label, value, controller, dropList, {validator}) {
     var _currentVal;
     _currentVal = null;
 
@@ -315,8 +341,9 @@ class SettlementTransactState extends State<SettlementTransact>
             ),
             Expanded(
               flex: 8,
-              child: DropdownButton<String>(
+              child: DropdownButtonFormField<String>(
                 value: _currentVal,
+                validator: validator != null ? validator : null,
                 isExpanded: true,
                 hint: Text("Please choose one"),
                 items: dropList.map<DropdownMenuItem<String>>((dynamic item) {

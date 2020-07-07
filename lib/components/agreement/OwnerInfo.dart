@@ -12,8 +12,14 @@ class OwnerInfo extends StatefulWidget {
   final List owners;
   final Map controllers;
   final String lead;
+  final Key formKey;
 
-  OwnerInfo({this.owners, this.controllers, this.lead, this.isDirtyStatus});
+  OwnerInfo(
+      {this.owners,
+      this.controllers,
+      this.lead,
+      this.isDirtyStatus,
+      this.formKey});
 
   @override
   OwnerInfoState createState() => OwnerInfoState();
@@ -23,6 +29,8 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
   void initState() {
     super.initState();
   }
+
+  bool guarantorSet = false;
 
   var titles = [
     {"value": "1", "name": "President"},
@@ -141,6 +149,7 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
     });
   }
 
+  Future<void> setGuarantor() async {}
   Widget buildDLGridView() {
     return Column(
         // shrinkWrap: true,
@@ -170,7 +179,10 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
                 object: "PrinTitle", index: index),
             editObjectDropdown("Guarantor? ",
                 owner["document"]["PrinGuarantorCode"], yesNoOptions,
-                object: "PrinGuarantorCode", index: index),
+                object: "PrinGuarantorCode",
+                index: index,
+                setObj: guarantorSet,
+                setVal: "1"),
             editObjectRow(
               "Birthdate",
               owner["document"]["PrinDob"],
@@ -227,7 +239,15 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
             ),
             editObjectRow("Phone", owner["document"]["PrinPhone"],
                 this.widget.controllers["Prin${iterateLoc}Phone"],
-                object: "PrinPhone", index: index, mask: "000-000-0000"),
+                object: "PrinPhone",
+                index: index,
+                mask: "000-000-0000", validator: (newValue) {
+              if (newValue.isEmpty) {
+                return "Required";
+              } else {
+                return null;
+              }
+            }),
             editObjectRow("Email", owner["document"]["PrinEmailAddress"],
                 this.widget.controllers["Prin${iterateLoc}EmailAddress"],
                 object: "PrinEmailAddress", index: index),
@@ -241,7 +261,7 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
                 owner["document"]["PrinDriverLicenseState"], stateDL,
                 object: "PrinDriverLicenseState", index: index),
             IconButton(
-              icon: Icon(Icons.clear),
+              icon: Icon(Icons.delete_forever, color: Colors.red, size: 30),
               onPressed: () {
                 setState(() {
                   this.widget.owners.removeAt(index);
@@ -253,21 +273,29 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
   }
 
   Widget build(BuildContext context) {
-    return ListView(
-      shrinkWrap: true,
-      children: <Widget>[
-        buildDLGridView(),
-        this.widget.owners.length < 5
-            ? Padding(
-                padding: const EdgeInsets.all(15.0),
-                child: FlatButton(
-                    color: Color.fromARGB(500, 1, 224, 143),
-                    onPressed: () => addOwner(),
-                    child: Text("Add Owner",
-                        style: TextStyle(color: Colors.white))),
-              )
-            : Container()
-      ],
+    return Form(
+      key: this.widget.formKey,
+      onChanged: () {
+        setState(() {
+          this.widget.isDirtyStatus["ownersIsDirty"] = true;
+        });
+      },
+      child: ListView(
+        shrinkWrap: true,
+        children: <Widget>[
+          buildDLGridView(),
+          this.widget.owners.length < 5
+              ? Padding(
+                  padding: const EdgeInsets.all(15.0),
+                  child: FlatButton(
+                      color: Color.fromARGB(500, 1, 224, 143),
+                      onPressed: () => addOwner(),
+                      child: Text("Add Owner",
+                          style: TextStyle(color: Colors.white))),
+                )
+              : Container()
+        ],
+      ),
     );
   }
 
@@ -560,7 +588,8 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
     );
   }
 
-  Widget editObjectDropdown(label, value, dropList, {object, index}) {
+  Widget editObjectDropdown(label, value, dropList,
+      {object, index, setObj, setVal}) {
     var _currentVal;
     _currentVal = null;
 
@@ -601,6 +630,15 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
                   setState(() {
                     this.widget.isDirtyStatus["ownersIsDirty"] = true;
                     this.widget.owners[index]["document"][object] = newValue;
+
+                    if (setObj != null && setVal != null) {
+                      if (newValue == setVal) {
+                        setObj = true;
+                      } else {
+                        setObj = false;
+                      }
+                      print(setObj);
+                    }
                   });
                 },
               ),
