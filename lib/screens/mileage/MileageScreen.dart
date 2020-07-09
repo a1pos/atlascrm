@@ -41,38 +41,55 @@ class _MileageScreenState extends State<MileageScreen> {
               child: ListBody(
                 children: <Widget>[
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 0, 0, 30),
-                    child: Text('Where are you headed?'),
+                    padding: const EdgeInsets.fromLTRB(0, 20, 0, 30),
+                    child: Text('Select a Merchant.'),
                   ),
                   MerchantDropDown(callback: (newValue) {
                     setState(() {
                       destinationMerchant = newValue;
                     });
                   }),
-                  MaterialButton(
-                    padding: EdgeInsets.all(5),
-                    color: Color.fromARGB(500, 1, 224, 143),
-                    onPressed: () {
-                      setState(() {
-                        Navigator.pop(context);
-                        selectDestination(false);
-                        // destination["merchant"] = !destination["merchant"];
-                        // print(destination);
-                      });
-                    },
-                    child: Row(
-                      children: <Widget>[
-                        Icon(
-                          Icons.directions_car,
-                          color: Colors.white,
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(15, 50, 15, 30),
+                    child: MaterialButton(
+                      padding: EdgeInsets.all(5),
+                      color: Color.fromARGB(500, 1, 224, 143),
+                      onPressed: () {
+                        var destination = {
+                          "destination": destinationMerchant,
+                          "merchant": isMerchant
+                        };
+                        if (destination["destination"] != null &&
+                            destination["destination"] != "") {
+                          toggleTripStatus(destination);
+                          Navigator.of(context).pop();
+                        } else {
+                          Fluttertoast.showToast(
+                              msg: "Please select a merchant",
+                              toastLength: Toast.LENGTH_SHORT,
+                              gravity: ToastGravity.BOTTOM,
+                              backgroundColor: Colors.grey[600],
+                              textColor: Colors.white,
+                              fontSize: 16.0);
+                        }
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          children: <Widget>[
+                            Icon(
+                              Icons.directions_car,
+                              color: Colors.white,
+                            ),
+                            Text(
+                              'Start Trip',
+                              style: TextStyle(
+                                color: Colors.white,
+                              ),
+                            )
+                          ],
                         ),
-                        Text(
-                          'Not a Merchant?',
-                          style: TextStyle(
-                            color: Colors.white,
-                          ),
-                        )
-                      ],
+                      ),
                     ),
                   ),
                 ],
@@ -80,26 +97,15 @@ class _MileageScreenState extends State<MileageScreen> {
             ),
             actions: <Widget>[
               FlatButton(
-                child: Text('Start Trip',
+                child: Text('Not a Merchant?',
                     style: TextStyle(fontSize: 17, color: Colors.green)),
                 onPressed: () {
-                  var destination = {
-                    "destination": destinationMerchant,
-                    "merchant": isMerchant
-                  };
-                  if (destination["destination"] != null &&
-                      destination["destination"] != "") {
-                    toggleTripStatus(destination);
-                    Navigator.of(context).pop();
-                  } else {
-                    Fluttertoast.showToast(
-                        msg: "Please select a merchant",
-                        toastLength: Toast.LENGTH_SHORT,
-                        gravity: ToastGravity.BOTTOM,
-                        backgroundColor: Colors.grey[600],
-                        textColor: Colors.white,
-                        fontSize: 16.0);
-                  }
+                  setState(() {
+                    Navigator.pop(context);
+                    selectDestination(false);
+                    // destination["merchant"] = !destination["merchant"];
+                    // print(destination);
+                  });
                 },
               ),
             ],
@@ -116,8 +122,8 @@ class _MileageScreenState extends State<MileageScreen> {
               child: ListBody(
                 children: <Widget>[
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 0, 0, 30),
-                    child: Text('Where are you headed?'),
+                    padding: const EdgeInsets.fromLTRB(0, 20, 0, 30),
+                    child: Text('Enter a Destination.'),
                   ),
                   Row(
                     children: <Widget>[
@@ -136,28 +142,47 @@ class _MileageScreenState extends State<MileageScreen> {
                       ),
                     ],
                   ),
-                  MaterialButton(
-                    padding: EdgeInsets.all(5),
-                    color: Color.fromARGB(500, 1, 224, 143),
-                    onPressed: () {
-                      setState(() {
-                        Navigator.pop(context);
-                        selectDestination(true);
-                      });
-                    },
-                    child: Row(
-                      children: <Widget>[
-                        Icon(
-                          Icons.directions_car,
-                          color: Colors.white,
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(15, 50, 15, 30),
+                    child: MaterialButton(
+                      padding: EdgeInsets.all(5),
+                      color: Color.fromARGB(500, 1, 224, 143),
+                      onPressed: () {
+                        if (destinationController.text != null &&
+                            destinationController.text != "") {
+                          var destination = {
+                            "destination": destinationController.text,
+                            "merchant": isMerchant
+                          };
+                          toggleTripStatus(destination);
+                          Navigator.of(context).pop();
+                        } else {
+                          Fluttertoast.showToast(
+                              msg: "Please enter a destination",
+                              toastLength: Toast.LENGTH_SHORT,
+                              gravity: ToastGravity.BOTTOM,
+                              backgroundColor: Colors.grey[600],
+                              textColor: Colors.white,
+                              fontSize: 16.0);
+                        }
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          children: <Widget>[
+                            Icon(
+                              Icons.directions_car,
+                              color: Colors.white,
+                            ),
+                            Text(
+                              'Start Trip',
+                              style: TextStyle(
+                                color: Colors.white,
+                              ),
+                            )
+                          ],
                         ),
-                        Text(
-                          'Is a Merchant?',
-                          style: TextStyle(
-                            color: Colors.white,
-                          ),
-                        )
-                      ],
+                      ),
                     ),
                   ),
                 ],
@@ -165,26 +190,13 @@ class _MileageScreenState extends State<MileageScreen> {
             ),
             actions: <Widget>[
               FlatButton(
-                child: Text('Start Trip',
+                child: Text('Merchant?',
                     style: TextStyle(fontSize: 17, color: Colors.green)),
                 onPressed: () {
-                  if (destinationController.text != null &&
-                      destinationController.text != "") {
-                    var destination = {
-                      "destination": destinationController.text,
-                      "merchant": isMerchant
-                    };
-                    toggleTripStatus(destination);
-                    Navigator.of(context).pop();
-                  } else {
-                    Fluttertoast.showToast(
-                        msg: "Please select a merchant",
-                        toastLength: Toast.LENGTH_SHORT,
-                        gravity: ToastGravity.BOTTOM,
-                        backgroundColor: Colors.grey[600],
-                        textColor: Colors.white,
-                        fontSize: 16.0);
-                  }
+                  setState(() {
+                    Navigator.pop(context);
+                    selectDestination(true);
+                  });
                 },
               ),
             ],
@@ -213,6 +225,7 @@ class _MileageScreenState extends State<MileageScreen> {
   }
 
   Future<void> toggleTripStatus(destination) async {
+    destinationController.clear();
     try {
       setState(() {
         isLoading = true;
