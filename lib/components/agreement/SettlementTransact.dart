@@ -10,9 +10,14 @@ class SettlementTransact extends StatefulWidget {
   final Map controllers;
   final agreementDoc;
   final GlobalKey formKey;
+  final Map validationErrors;
 
   SettlementTransact(
-      {this.controllers, this.agreementDoc, this.isDirtyStatus, this.formKey});
+      {this.controllers,
+      this.agreementDoc,
+      this.isDirtyStatus,
+      this.formKey,
+      this.validationErrors});
 
   @override
   SettlementTransactState createState() => SettlementTransactState();
@@ -68,6 +73,62 @@ class SettlementTransactState extends State<SettlementTransact>
   ];
   void initState() {
     super.initState();
+  }
+
+  String validateRow(newVal, errorLocation, errorName, {message}) {
+    if (this.widget.validationErrors != null) {
+      if (this.widget.validationErrors["$errorLocation"] != null) {
+        if (this.widget.validationErrors["$errorLocation"]["$errorName"] !=
+            null) {
+          return this
+              .widget
+              .validationErrors["$errorLocation"]["$errorName"]
+              .toString();
+        }
+      }
+    }
+    if (newVal.isEmpty) {
+      return message != null ? message : "Required";
+    } else {
+      return null;
+    }
+  }
+
+  String validateAddedRows(newVal, errorLocation, errorName, {message}) {
+    if (this.widget.validationErrors != null) {
+      if (this.widget.validationErrors["$errorLocation"] != null) {
+        if (this.widget.validationErrors["$errorLocation"]["$errorName"] !=
+            null) {
+          return this
+              .widget
+              .validationErrors["$errorLocation"]["$errorName"]
+              .toString();
+        }
+      }
+    }
+    var valPos = int.parse(
+        this.widget.controllers["transaction"]["CcPercentPos"].text != ""
+            ? this.widget.controllers["transaction"]["CcPercentPos"].text
+            : "0");
+    var valInet = int.parse(
+        this.widget.controllers["transaction"]["CcPercentInet"].text != ""
+            ? this.widget.controllers["transaction"]["CcPercentInet"].text
+            : "0");
+    var valMo = int.parse(
+        this.widget.controllers["transaction"]["CcPercentMo"].text != ""
+            ? this.widget.controllers["transaction"]["CcPercentMo"].text
+            : "0");
+    var valTo = int.parse(
+        this.widget.controllers["transaction"]["CcPercentTo"].text != ""
+            ? this.widget.controllers["transaction"]["CcPercentTo"].text
+            : "0");
+    var currentTotal = valPos + valInet + valMo + valTo;
+    print(currentTotal);
+    if (currentTotal != 100) {
+      return "Values must add up to 100";
+    } else {
+      return null;
+    }
   }
 
   @override
@@ -146,7 +207,13 @@ class SettlementTransactState extends State<SettlementTransact>
                                 .text,
                             this.widget.controllers["settlement"]
                                 ["DepositAccountNumber"],
-                            mask: '0[0000000000000000]'),
+                            mask: '0[0000000000000000]', validator: (newVal) {
+                          if (newVal.isEmpty) {
+                            return "Required";
+                          } else {
+                            return null;
+                          }
+                        }),
                       ],
                     ),
                   ),
@@ -164,7 +231,13 @@ class SettlementTransactState extends State<SettlementTransact>
                                 .text,
                             this.widget.controllers["transaction"]
                                 ["AvgMcViDiTicket"],
-                            mask: '00000'),
+                            mask: '00000', validator: (newVal) {
+                          if (newVal.isEmpty) {
+                            return "Required";
+                          } else {
+                            return null;
+                          }
+                        }),
                         getInfoRow(
                             "Total Annual Sales Volume(cash+credit+check+debit)",
                             this
@@ -174,7 +247,15 @@ class SettlementTransactState extends State<SettlementTransact>
                                 .text,
                             this.widget.controllers["transaction"]
                                 ["TotalAnnualSalesVolume"],
-                            mask: '000000000'),
+                            mask: '000000000', validator: (newVal) {
+                          if (newVal.isEmpty ||
+                              int.parse(newVal) < 1000 ||
+                              int.parse(newVal) > 999999999) {
+                            return "Value from 1000 - 999999999";
+                          } else {
+                            return null;
+                          }
+                        }),
                         getInfoRow(
                             "Annual MC/VISA Credit Sales Volume",
                             this
@@ -184,7 +265,13 @@ class SettlementTransactState extends State<SettlementTransact>
                                 .text,
                             this.widget.controllers["transaction"]
                                 ["AnnualMcViSalesVolume"],
-                            mask: '000000000'),
+                            mask: '000000000', validator: (newVal) {
+                          if (newVal.isEmpty || int.parse(newVal) < 1000) {
+                            return "Minimum Value = 1000";
+                          } else {
+                            return null;
+                          }
+                        }),
                         getInfoRow(
                             "Annual Discover Credit Sales Volume",
                             this
@@ -193,7 +280,13 @@ class SettlementTransactState extends State<SettlementTransact>
                                     ["AnnualDiSalesVolume"]
                                 .text,
                             this.widget.controllers["transaction"]
-                                ["AnnualDiSalesVolume"]), //NEEDS MIN SET
+                                ["AnnualDiSalesVolume"], validator: (newVal) {
+                          if (newVal.isEmpty || int.parse(newVal) < 1000) {
+                            return "Minimum Value = 1000";
+                          } else {
+                            return null;
+                          }
+                        }),
                         getInfoRow(
                             "Annual American Express Credit Sales Volume",
                             this
@@ -201,8 +294,15 @@ class SettlementTransactState extends State<SettlementTransact>
                                 .controllers["transaction"]
                                     ["AnnualAmexOnePointSalesVolume"]
                                 .text,
-                            this.widget.controllers["transaction"][
-                                "AnnualAmexOnePointSalesVolume"]), //NEEDS MIN SET
+                            this.widget.controllers["transaction"]
+                                ["AnnualAmexOnePointSalesVolume"],
+                            validator: (newVal) {
+                          if (newVal.isEmpty || int.parse(newVal) < 1000) {
+                            return "Minimum Value = 1000";
+                          } else {
+                            return null;
+                          }
+                        }),
                         getInfoRow(
                             "Highest Ticket Amount",
                             this
@@ -211,7 +311,15 @@ class SettlementTransactState extends State<SettlementTransact>
                                 .text,
                             this.widget.controllers["transaction"]
                                 ["HighestTicket"],
-                            mask: '00000000'),
+                            mask: '00000000', validator: (newVal) {
+                          if (newVal.isEmpty ||
+                              int.parse(newVal) < 1000 ||
+                              int.parse(newVal) > 999999999) {
+                            return "Value from 1000 - 999999999";
+                          } else {
+                            return null;
+                          }
+                        }),
                         getInfoDropdown(
                             "Seasonal Merchant",
                             this
@@ -220,7 +328,13 @@ class SettlementTransactState extends State<SettlementTransact>
                                 .text,
                             this.widget.controllers["transaction"]
                                 ["SeasonalMerchant"],
-                            yesNoOptions),
+                            yesNoOptions, validator: (newVal) {
+                          if (newVal == null) {
+                            return "Required";
+                          } else {
+                            return null;
+                          }
+                        }),
                         getInfoDropdown(
                             "Season Period From",
                             this
@@ -229,7 +343,30 @@ class SettlementTransactState extends State<SettlementTransact>
                                 .text,
                             this.widget.controllers["transaction"]
                                 ["SeasonalFrom"],
-                            seasonalMonths), //MAKE DEPENDANT ON SEASONAL MERCHANT Y/N
+                            seasonalMonths,
+                            disabled: this
+                                        .widget
+                                        .controllers["transaction"]
+                                            ["SeasonalMerchant"]
+                                        .text ==
+                                    "1"
+                                ? false
+                                : true, validator: (newVal) {
+                          if (this
+                                  .widget
+                                  .controllers["transaction"]
+                                      ["SeasonalMerchant"]
+                                  .text ==
+                              "1") {
+                            if (newVal == null) {
+                              return "Required";
+                            } else {
+                              return null;
+                            }
+                          } else {
+                            return null;
+                          }
+                        }), //MAKE DEPENDANT ON SEASONAL MERCHANT Y/N
                         getInfoDropdown(
                             "Season Period To",
                             this
@@ -238,7 +375,30 @@ class SettlementTransactState extends State<SettlementTransact>
                                 .text,
                             this.widget.controllers["transaction"]
                                 ["SeasonalTo"],
-                            seasonalMonths), //MAKE DEPENDANT ON SEASONAL MERCHANT Y/N
+                            seasonalMonths,
+                            disabled: this
+                                        .widget
+                                        .controllers["transaction"]
+                                            ["SeasonalMerchant"]
+                                        .text ==
+                                    "1"
+                                ? false
+                                : true, validator: (newVal) {
+                          if (this
+                                  .widget
+                                  .controllers["transaction"]
+                                      ["SeasonalMerchant"]
+                                  .text ==
+                              "1") {
+                            if (newVal == null) {
+                              return "Required";
+                            } else {
+                              return null;
+                            }
+                          } else {
+                            return null;
+                          }
+                        }), //MAKE DEPENDANT ON SEASONAL MERCHANT Y/N
                         getInfoRow(
                             "% Store front/Swiped",
                             this
@@ -246,7 +406,12 @@ class SettlementTransactState extends State<SettlementTransact>
                                 .controllers["transaction"]["CcPercentPos"]
                                 .text,
                             this.widget.controllers["transaction"]
-                                ["CcPercentPos"]), //MAKE ADD UP TO 100 1/4
+                                ["CcPercentPos"],
+                            mask: "000",
+                            validator: (newVal) => validateAddedRows(
+                                newVal,
+                                "Transaction",
+                                "CcPercentPos")), //MAKE ADD UP TO 100 1/4
                         getInfoRow(
                             "% Internet",
                             this
@@ -254,7 +419,12 @@ class SettlementTransactState extends State<SettlementTransact>
                                 .controllers["transaction"]["CcPercentInet"]
                                 .text,
                             this.widget.controllers["transaction"]
-                                ["CcPercentInet"]), //MAKE ADD UP TO 100 2/4
+                                ["CcPercentInet"],
+                            mask: "000",
+                            validator: (newVal) => validateAddedRows(
+                                newVal,
+                                "Transaction",
+                                "CcPercentInet")), //MAKE ADD UP TO 100 2/4
                         getInfoRow(
                             "% Mail Order",
                             this
@@ -262,7 +432,12 @@ class SettlementTransactState extends State<SettlementTransact>
                                 .controllers["transaction"]["CcPercentMo"]
                                 .text,
                             this.widget.controllers["transaction"]
-                                ["CcPercentMo"]), //MAKE ADD UP TO 100 3/4
+                                ["CcPercentMo"],
+                            mask: "000",
+                            validator: (newVal) => validateAddedRows(
+                                newVal,
+                                "Transaction",
+                                "CcPercentMo")), //MAKE ADD UP TO 100 3/4
                         getInfoRow(
                             "% Telephone Order",
                             this
@@ -270,7 +445,12 @@ class SettlementTransactState extends State<SettlementTransact>
                                 .controllers["transaction"]["CcPercentTo"]
                                 .text,
                             this.widget.controllers["transaction"]
-                                ["CcPercentTo"]), //MAKE ADD UP TO 100 4/4
+                                ["CcPercentTo"],
+                            mask: "000",
+                            validator: (newVal) => validateAddedRows(
+                                newVal,
+                                "Transaction",
+                                "CcPercentTo")), //MAKE ADD UP TO 100 4/4
                       ],
                     ),
                   ),
@@ -318,9 +498,16 @@ class SettlementTransactState extends State<SettlementTransact>
     );
   }
 
-  Widget getInfoDropdown(label, value, controller, dropList, {validator}) {
+  Widget getInfoDropdown(label, value, controller, dropList,
+      {validator, bool disabled}) {
     var _currentVal;
     _currentVal = null;
+    bool dropDisabled = false;
+    if (disabled != null) {
+      dropDisabled = disabled;
+      controller.text = "";
+      value = null;
+    }
 
     if (value != null && value != "") {
       controller.text = value;
@@ -342,7 +529,7 @@ class SettlementTransactState extends State<SettlementTransact>
             Expanded(
               flex: 8,
               child: DropdownButtonFormField<String>(
-                value: _currentVal,
+                value: _currentVal != null ? _currentVal : null,
                 validator: validator != null ? validator : null,
                 isExpanded: true,
                 hint: Text("Please choose one"),
@@ -356,11 +543,13 @@ class SettlementTransactState extends State<SettlementTransact>
                     ),
                   );
                 }).toList(),
-                onChanged: (newValue) {
-                  setState(() {
-                    controller.text = newValue;
-                  });
-                },
+                onChanged: dropDisabled
+                    ? null
+                    : (newValue) {
+                        setState(() {
+                          controller.text = newValue;
+                        });
+                      },
               ),
             ),
           ],

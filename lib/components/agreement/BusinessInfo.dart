@@ -17,9 +17,14 @@ class BusinessInfo extends StatefulWidget {
   final Map controllers;
   final agreementDoc;
   final GlobalKey formKey;
+  final Map validationErrors;
 
   BusinessInfo(
-      {this.controllers, this.agreementDoc, this.isDirtyStatus, this.formKey});
+      {this.controllers,
+      this.agreementDoc,
+      this.isDirtyStatus,
+      this.formKey,
+      this.validationErrors});
 
   @override
   BusinessInfoState createState() => BusinessInfoState();
@@ -245,13 +250,63 @@ class BusinessInfoState extends State<BusinessInfo>
       this.widget.controllers["corporateInfo"]["First5Zip"].text =
           address["zipcode"];
     });
+    if (this.widget.controllers["general"]["corpSame"].text == "true") {
+      setBusinessAddress(address);
+    }
+  }
+
+  Future<void> setSameAddress() async {
+    setState(() {
+      this.widget.controllers["businessInfo"]["LocationAddress1"].text =
+          this.widget.controllers["corporateInfo"]["Address1"].text;
+
+      this.widget.controllers["businessInfo"]["City"].text =
+          this.widget.controllers["corporateInfo"]["City"].text;
+
+      this.widget.controllers["businessInfo"]["State"].text =
+          this.widget.controllers["corporateInfo"]["State"].text;
+
+      this.widget.controllers["businessInfo"]["First5Zip"].text =
+          this.widget.controllers["corporateInfo"]["First5Zip"].text;
+    });
+  }
+
+  Future<void> setBusinessAddress(address) async {
+    setState(() {
+      this.widget.controllers["businessInfo"]["Address1"].text =
+          address["address"];
+
+      this.widget.controllers["businessInfo"]["City"].text = address["city"];
+
+      this.widget.controllers["businessInfo"]["State"].text = address["state"];
+
+      this.widget.controllers["businessInfo"]["First5Zip"].text =
+          address["zipcode"];
+    });
+  }
+
+  String validateRow(newVal, errorLocation, errorName, {message}) {
+    if (this.widget.validationErrors != null) {
+      if (this.widget.validationErrors["$errorLocation"] != null) {
+        if (this.widget.validationErrors["$errorLocation"]["$errorName"] !=
+            null) {
+          return this
+              .widget
+              .validationErrors["$errorLocation"]["$errorName"]
+              .toString();
+        }
+      }
+    }
+    if (newVal.isEmpty) {
+      return message != null ? message : "Required";
+    } else {
+      return null;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     agreementDocument = this.widget.agreementDoc;
-    var testItem = this.widget.controllers["mpaInfo"]["ClientDbaName"].text;
-    print(testItem);
     return Container(
       padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
       child: SingleChildScrollView(
@@ -278,13 +333,8 @@ class BusinessInfoState extends State<BusinessInfo>
                             .controllers["mpaInfo"]["ClientDbaName"]
                             .text,
                         this.widget.controllers["mpaInfo"]["ClientDbaName"],
-                        validator: (newVal) {
-                      if (newVal.isEmpty) {
-                        return "Required";
-                      } else {
-                        return null;
-                      }
-                    }),
+                        validator: (newVal) =>
+                            validateRow(newVal, "MpaInfo", "ClientDbaName")),
                     getInfoRow(
                         "Merchant's Corporate/Legal Name",
                         this
@@ -292,13 +342,8 @@ class BusinessInfoState extends State<BusinessInfo>
                             .controllers["corporateInfo"]["LegalName"]
                             .text,
                         this.widget.controllers["corporateInfo"]["LegalName"],
-                        validator: (newVal) {
-                      if (newVal.isEmpty) {
-                        return "Required";
-                      } else {
-                        return null;
-                      }
-                    }),
+                        validator: (newVal) =>
+                            validateRow(newVal, "CorporateInfo", "LegalName")),
                     getInfoRow(
                         "Number of Locations",
                         this
@@ -306,13 +351,9 @@ class BusinessInfoState extends State<BusinessInfo>
                             .controllers["mpaInfo"]["NumberOfLocation"]
                             .text,
                         this.widget.controllers["mpaInfo"]["NumberOfLocation"],
-                        validator: (newVal) {
-                      if (newVal.isEmpty) {
-                        return "Required";
-                      } else {
-                        return null;
-                      }
-                    }),
+                        mask: "000",
+                        validator: (newVal) =>
+                            validateRow(newVal, "MpaInfo", "NumberOfLocation")),
                     getInfoSearchableDropdown(
                         "State Incorporated",
                         this
@@ -356,13 +397,9 @@ class BusinessInfoState extends State<BusinessInfo>
                             .controllers["corporateInfo"]["CorporateContact"]
                             .text,
                         this.widget.controllers["corporateInfo"]
-                            ["CorporateContact"], validator: (newVal) {
-                      if (newVal.isEmpty) {
-                        return "Required";
-                      } else {
-                        return null;
-                      }
-                    }),
+                            ["CorporateContact"],
+                        validator: (newVal) => validateRow(
+                            newVal, "CorporateInfo", "CorporateContact")),
                     getInfoRow(
                         "Business Start Date",
                         this
@@ -371,13 +408,10 @@ class BusinessInfoState extends State<BusinessInfo>
                             .text,
                         this.widget.controllers["corporateInfo"]
                             ["BusinessStartDate"],
-                        mask: "00/00/0000", validator: (newVal) {
-                      if (newVal.isEmpty) {
-                        return "Required Format MM/DD/YYYY";
-                      } else {
-                        return null;
-                      }
-                    }),
+                        mask: "00/00/0000",
+                        validator: (newVal) => validateRow(
+                            newVal, "CorporateInfo", "BusinessStartDate",
+                            message: "Required Format MM/DD/YYYY")),
                     getInfoDropdown(
                         "Business Type",
                         this
@@ -482,6 +516,7 @@ class BusinessInfoState extends State<BusinessInfo>
                                 ? true
                                 : false,
                             onChanged: (val) {
+                              setSameAddress();
                               setState(() {
                                 this
                                     .widget
@@ -634,12 +669,13 @@ class BusinessInfoState extends State<BusinessInfo>
                             .controllers["businessInfo"]["BusinessEmailAddress"]
                             .text,
                         this.widget.controllers["businessInfo"]
-                            ["BusinessEmailAddress"], validator: (newVal) {
-                      if (newVal.isEmpty || !newVal.contains('@')) {
-                        return 'Please enter a valid email';
-                      }
-                      return null;
-                    }), // TODO EMAIL CHECK VALID
+                            ["BusinessEmailAddress"],
+                        validator: (newVal) => validateRow(
+                              newVal,
+                              "BusinessInfo",
+                              "BusinessEmailAddress",
+                              message: "Please enter a Valid Email",
+                            )),
                     getInfoRow(
                         "Location Phone",
                         this
@@ -648,13 +684,10 @@ class BusinessInfoState extends State<BusinessInfo>
                             .text,
                         this.widget.controllers["businessInfo"]
                             ["LocationPhone"],
-                        mask: "000-000-0000", validator: (newVal) {
-                      if (newVal.isEmpty) {
-                        return "10 Digit Phone # with area code";
-                      } else {
-                        return null;
-                      }
-                    }),
+                        mask: "000-000-0000",
+                        validator: (newVal) => validateRow(
+                            newVal, "BusinessInfo", "LocationPhone",
+                            message: "10 Digit Phone # with area code")),
                     getInfoRow(
                         "Products Sold",
                         this
@@ -662,13 +695,8 @@ class BusinessInfoState extends State<BusinessInfo>
                             .controllers["businessInfo"]["ProductsSold"]
                             .text,
                         this.widget.controllers["businessInfo"]["ProductsSold"],
-                        validator: (newVal) {
-                      if (newVal.isEmpty) {
-                        return "Required";
-                      } else {
-                        return null;
-                      }
-                    }),
+                        validator: (newVal) => validateRow(
+                            newVal, "BusinessInfo", "ProductsSold")),
                     getInfoDropdown(
                         "Business Category",
                         this
@@ -727,13 +755,9 @@ class BusinessInfoState extends State<BusinessInfo>
                             .controllers["businessInfo"]["FederalTaxId"]
                             .text,
                         this.widget.controllers["businessInfo"]["FederalTaxId"],
-                        mask: "000000000", validator: (newVal) {
-                      if (newVal.isEmpty) {
-                        return "Required";
-                      } else {
-                        return null;
-                      }
-                    }),
+                        mask: "000000000",
+                        validator: (newVal) => validateRow(
+                            newVal, "BusinessInfo", "FederalTaxId")),
                     getInfoDropdown(
                         "I certify that I am a foreign entity/nonresident alien",
                         this
@@ -802,13 +826,8 @@ class BusinessInfoState extends State<BusinessInfo>
                             .controllers["siteInfo"]["NoOfEmployees"]
                             .text,
                         this.widget.controllers["siteInfo"]["NoOfEmployees"],
-                        validator: (newVal) {
-                      if (newVal.isEmpty) {
-                        return "Required";
-                      } else {
-                        return null;
-                      }
-                    }),
+                        validator: (newVal) =>
+                            validateRow(newVal, "SiteInfo", "NoOfEmployees")),
                     getInfoRow(
                         "Number of Terminals",
                         this
@@ -816,13 +835,8 @@ class BusinessInfoState extends State<BusinessInfo>
                             .controllers["siteInfo"]["NoOfRegister"]
                             .text,
                         this.widget.controllers["siteInfo"]["NoOfRegister"],
-                        validator: (newVal) {
-                      if (newVal.isEmpty) {
-                        return "Required";
-                      } else {
-                        return null;
-                      }
-                    }),
+                        validator: (newVal) =>
+                            validateRow(newVal, "SiteInfo", "NoOfRegister")),
                     getInfoDropdown(
                         "Merchant Name Site Display",
                         this
@@ -1011,18 +1025,9 @@ class BusinessInfoState extends State<BusinessInfo>
                                     .text,
                                 this.widget.controllers["motoBBInet"]
                                     ["TransDeliveredIn07"],
-                                validator: (newVal) {
-                              if (newVal.isEmpty &&
-                                  this
-                                          .widget
-                                          .controllers["general"]["motoCheck"]
-                                          .text ==
-                                      "true") {
-                                return "Required";
-                              } else {
-                                return null;
-                              }
-                            }),
+                                mask: "000",
+                                validator: (newVal) => validateRow(newVal,
+                                    "MotoBBInet", "TransDeliveredIn07")),
                             getInfoRow(
                                 "% Transaction to Delivery 8-14 Days",
                                 this
@@ -1032,18 +1037,9 @@ class BusinessInfoState extends State<BusinessInfo>
                                     .text,
                                 this.widget.controllers["motoBBInet"]
                                     ["TransDeliveredIn814"],
-                                validator: (newVal) {
-                              if (newVal.isEmpty &&
-                                  this
-                                          .widget
-                                          .controllers["general"]["motoCheck"]
-                                          .text ==
-                                      "true") {
-                                return "Required";
-                              } else {
-                                return null;
-                              }
-                            }),
+                                mask: "000",
+                                validator: (newVal) => validateRow(newVal,
+                                    "MotoBBInet", "TransDeliveredIn814")),
                             getInfoRow(
                                 "% Transaction to Delivery 15-30 Days",
                                 this
@@ -1053,18 +1049,9 @@ class BusinessInfoState extends State<BusinessInfo>
                                     .text,
                                 this.widget.controllers["motoBBInet"]
                                     ["TransDeliveredIn1530"],
-                                validator: (newVal) {
-                              if (newVal.isEmpty &&
-                                  this
-                                          .widget
-                                          .controllers["general"]["motoCheck"]
-                                          .text ==
-                                      "true") {
-                                return "Required";
-                              } else {
-                                return null;
-                              }
-                            }),
+                                mask: "000",
+                                validator: (newVal) => validateRow(newVal,
+                                    "MotoBBInet", "TransDeliveredIn1530")),
                             getInfoRow(
                                 "% Transaction to Delivery +30 Days",
                                 this
@@ -1074,18 +1061,9 @@ class BusinessInfoState extends State<BusinessInfo>
                                     .text,
                                 this.widget.controllers["motoBBInet"]
                                     ["TransDeliveredOver30"],
-                                validator: (newVal) {
-                              if (newVal.isEmpty &&
-                                  this
-                                          .widget
-                                          .controllers["general"]["motoCheck"]
-                                          .text ==
-                                      "true") {
-                                return "Required";
-                              } else {
-                                return null;
-                              }
-                            }),
+                                mask: "000",
+                                validator: (newVal) => validateRow(newVal,
+                                    "MotoBBInet", "TransDeliveredOver30")),
                             getInfoDropdown(
                                 "MC/Visa/Discover Network/Amex Sales Deposits",
                                 this
@@ -1284,6 +1262,7 @@ class BusinessInfoState extends State<BusinessInfo>
                   );
                 }).toList(),
                 onChanged: (newValue) {
+                  FocusScope.of(context).unfocus();
                   setState(() {
                     controller.text = newValue;
                     this.widget.isDirtyStatus["businessInfoIsDirty"] = true;

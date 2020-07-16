@@ -13,13 +13,15 @@ class OwnerInfo extends StatefulWidget {
   final Map controllers;
   final String lead;
   final Key formKey;
+  final Map validationErrors;
 
   OwnerInfo(
       {this.owners,
       this.controllers,
       this.lead,
       this.isDirtyStatus,
-      this.formKey});
+      this.formKey,
+      this.validationErrors});
 
   @override
   OwnerInfoState createState() => OwnerInfoState();
@@ -149,6 +151,63 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
     });
   }
 
+  String validateRow(newVal, errorLocation, errorName, {message}) {
+    if (this.widget.validationErrors != null) {
+      if (this.widget.validationErrors["$errorLocation"] != null) {
+        if (this.widget.validationErrors["$errorLocation"]["$errorName"] !=
+            null) {
+          return this
+              .widget
+              .validationErrors["$errorLocation"]["$errorName"]
+              .toString();
+        }
+      }
+    }
+    if (newVal.isEmpty) {
+      return message != null ? message : "Required";
+    } else {
+      return null;
+    }
+  }
+
+  Future<void> deleteOwner(ownerId, index) async {
+    setState(() {
+      this.widget.owners.removeAt(index);
+    });
+    if (ownerId != null) {
+      var resp = await this
+          .widget
+          .apiService
+          .authDelete(context, "/businessowner/$ownerId", null);
+
+      if (resp.statusCode == 200) {
+        Fluttertoast.showToast(
+            msg: "Owner Deleted!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0);
+      } else {
+        Fluttertoast.showToast(
+            msg: "Failed Delete!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0);
+      }
+    } else {
+      Fluttertoast.showToast(
+          msg: "Owner Deleted!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0);
+    }
+  }
+
   Future<void> setGuarantor() async {}
   Widget buildDLGridView() {
     return Column(
@@ -156,6 +215,11 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
         children: List.generate(this.widget.owners.length, (index) {
       var owner = this.widget.owners[index];
       var iterateLoc = index + 1;
+      var ssnMask;
+      if (owner["document"]["PrinSsn"].length <= 9) {
+        ssnMask = "000000000";
+      }
+
       return Card(
           child: ExpansionTile(
               title: Row(children: <Widget>[
@@ -171,39 +235,61 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
               children: <Widget>[
             editObjectRow("First Name", owner["document"]["PrinFirstName"],
                 this.widget.controllers["Prin${iterateLoc}FirstName"],
-                object: "PrinFirstName", index: index),
+                object: "PrinFirstName",
+                index: index,
+                validator: (newValue) => validateRow(
+                    newValue, "Ownership", "Prin${owner["number"]}FirstName")),
             editObjectRow("Last Name", owner["document"]["PrinLastName"],
                 this.widget.controllers["Prin${iterateLoc}LastName"],
-                object: "PrinLastName", index: index),
+                object: "PrinLastName",
+                index: index,
+                validator: (newValue) => validateRow(
+                    newValue, "Ownership", "Prin${iterateLoc}LastName")),
             editObjectDropdown("Title", owner["document"]["PrinTitle"], titles,
-                object: "PrinTitle", index: index),
+                object: "PrinTitle", index: index, validator: (newValue) {
+              if (newValue == null) {
+                return "Required";
+              } else {
+                return null;
+              }
+            }),
             editObjectDropdown("Guarantor? ",
                 owner["document"]["PrinGuarantorCode"], yesNoOptions,
                 object: "PrinGuarantorCode",
                 index: index,
                 setObj: guarantorSet,
-                setVal: "1"),
-            editObjectRow(
-              "Birthdate",
-              owner["document"]["PrinDob"],
-              this.widget.controllers["Prin${iterateLoc}Dob"],
-              mask: "00/00/0000",
-              object: "PrinDob",
-              index: index,
-            ),
+                setVal: "1", validator: (newValue) {
+              if (newValue == null) {
+                return "Required";
+              } else {
+                return null;
+              }
+            }),
+            editObjectRow("Birthdate", owner["document"]["PrinDob"],
+                this.widget.controllers["Prin${iterateLoc}Dob"],
+                mask: "00/00/0000",
+                object: "PrinDob",
+                index: index,
+                validator: (newValue) => validateRow(
+                    newValue, "Ownership", "Prin${owner["number"]}FirstName")),
             editObjectRow(
                 "Social Security Number",
                 owner["document"]["PrinSsn"],
                 this.widget.controllers["Prin${iterateLoc}Ssn"],
                 obscure: true,
                 object: "PrinSsn",
-                index: index),
+                index: index,
+                mask: ssnMask,
+                validator: (newValue) => validateRow(
+                    newValue, "Ownership", "Prin${owner["number"]}Ssn")),
             editObjectRow(
                 "Ownership Percent",
                 owner["document"]["PrinOwnershipPercent"],
                 this.widget.controllers["Prin${iterateLoc}OwnershipPercent"],
                 object: "PrinOwnershipPercent",
-                index: index),
+                index: index,
+                validator: (newValue) => validateRow(newValue, "Ownership",
+                    "Prin${iterateLoc}OwnershipPercent")),
             Padding(
               padding: const EdgeInsets.all(15),
               child: Row(
@@ -241,31 +327,38 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
                 this.widget.controllers["Prin${iterateLoc}Phone"],
                 object: "PrinPhone",
                 index: index,
-                mask: "000-000-0000", validator: (newValue) {
-              if (newValue.isEmpty) {
+                mask: "000-000-0000",
+                validator: (newValue) => validateRow(
+                    newValue, "Ownership", "Prin${iterateLoc}Phone")),
+            editObjectRow("Email", owner["document"]["PrinEmailAddress"],
+                this.widget.controllers["Prin${iterateLoc}EmailAddress"],
+                object: "PrinEmailAddress",
+                index: index,
+                validator: (newValue) => validateRow(
+                    newValue, "Ownership", "Prin${iterateLoc}EmailAddress")),
+            editObjectRow(
+                "Driver License Number",
+                owner["document"]["PrinDriverLicenseNumber"],
+                this.widget.controllers["Prin${iterateLoc}DriverLicenseNumber"],
+                object: "PrinDriverLicenseNumber",
+                index: index,
+                mask: "000000000000000",
+                validator: (newValue) => validateRow(newValue, "Ownership",
+                    "Prin${iterateLoc}DriverLicenseNumber")),
+            editObjectSearchableDropdown("Driver License State",
+                owner["document"]["PrinDriverLicenseState"], stateDL,
+                object: "PrinDriverLicenseState",
+                index: index, validator: (newValue) {
+              if (newValue == null) {
                 return "Required";
               } else {
                 return null;
               }
             }),
-            editObjectRow("Email", owner["document"]["PrinEmailAddress"],
-                this.widget.controllers["Prin${iterateLoc}EmailAddress"],
-                object: "PrinEmailAddress", index: index),
-            editObjectRow(
-                "Driver License Number",
-                owner["document"]["PrinDriverLicenseNumber"],
-                this.widget.controllers["Prin${iterateLoc}DriverLicenseNumber"],
-                object: "PrinDriversLicenseNumber",
-                index: index),
-            editObjectSearchableDropdown("Driver License State",
-                owner["document"]["PrinDriverLicenseState"], stateDL,
-                object: "PrinDriverLicenseState", index: index),
             IconButton(
               icon: Icon(Icons.delete_forever, color: Colors.red, size: 30),
               onPressed: () {
-                setState(() {
-                  this.widget.owners.removeAt(index);
-                });
+                deleteOwner(owner["business_owner"], index);
               },
             )
           ]));
@@ -295,175 +388,6 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
                 )
               : Container()
         ],
-      ),
-    );
-  }
-
-  Widget getInfoRow(label, value, controller, {mask, validator, obscure}) {
-    if (mask != null) {
-      controller.updateMask(mask);
-    }
-    bool isValidating = false;
-    bool isObscure = false;
-    if (validator != null) {
-      setState(() {
-        isValidating = true;
-      });
-    }
-    if (obscure != null) {
-      setState(() {
-        isObscure = obscure;
-      });
-    }
-
-    if (value != null) {
-      controller.text = value;
-    }
-
-    var valueFmt = value ?? "N/A";
-
-    if (valueFmt == "") {
-      valueFmt = "N/A";
-    }
-
-    return Container(
-      child: Padding(
-        padding: EdgeInsets.all(15),
-        child: Row(
-          children: <Widget>[
-            Expanded(
-              flex: 4,
-              child: Text(
-                '$label: ',
-                style: TextStyle(fontSize: 16),
-              ),
-            ),
-            Expanded(
-              flex: 8,
-              child: TextFormField(
-                onChanged: (newValue) {
-                  setState(() {
-                    this.widget.isDirtyStatus["ownersIsDirty"] = true;
-                    controller.text = newValue;
-                  });
-                },
-                controller: controller,
-                validator: isValidating ? validator : null,
-                obscureText: isObscure,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget getInfoDropdown(label, value, controller, dropList) {
-    var _currentVal;
-    _currentVal = null;
-
-    if (value != null && value != "") {
-      controller.text = value;
-      _currentVal = controller.text;
-    }
-
-    return Container(
-      child: Padding(
-        padding: EdgeInsets.all(15),
-        child: Row(
-          children: <Widget>[
-            Expanded(
-              flex: 4,
-              child: Text(
-                '$label: ',
-                style: TextStyle(fontSize: 16),
-              ),
-            ),
-            Expanded(
-              flex: 8,
-              child: DropdownButton<String>(
-                value: _currentVal,
-                isExpanded: true,
-                hint: Text("Please choose one"),
-                items: dropList.map<DropdownMenuItem<String>>((dynamic item) {
-                  var itemName = item["name"];
-                  var itemValue = item["value"];
-                  return DropdownMenuItem<String>(
-                    value: itemValue,
-                    child: Text(
-                      itemName,
-                    ),
-                  );
-                }).toList(),
-                onChanged: (newValue) {
-                  setState(() {
-                    this.widget.isDirtyStatus["ownersIsDirty"] = true;
-                    controller.text = newValue;
-                  });
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget getInfoSearchableDropdown(label, value, controller, dropList) {
-    var currentVal;
-    currentVal = null;
-
-    if (value != null && value != "") {
-      controller.text = value;
-      currentVal = controller.text;
-    }
-
-    return Container(
-      child: Padding(
-        padding: EdgeInsets.all(15),
-        child: Row(
-          children: <Widget>[
-            Expanded(
-              flex: 4,
-              child: Text(
-                '$label: ',
-                style: TextStyle(fontSize: 16),
-              ),
-            ),
-            Expanded(
-              flex: 8,
-              child: SearchableDropdown.single(
-                value: currentVal,
-                onClear: () {
-                  setState(() {
-                    currentVal = null;
-                    value = null;
-                  });
-                },
-                hint: "Please choose one",
-                searchHint: null,
-                isExpanded: true,
-                // menuConstraints: BoxConstraints.tight(Size.fromHeight(350)),
-                items: dropList.map<DropdownMenuItem<String>>((dynamic item) {
-                  var itemName = item["name"];
-                  var itemValue = item["value"];
-                  return DropdownMenuItem<String>(
-                    value: itemValue,
-                    child: Text(
-                      itemName,
-                    ),
-                  );
-                }).toList(),
-                onChanged: (newValue) {
-                  setState(() {
-                    this.widget.isDirtyStatus["ownersIsDirty"] = true;
-                    controller.text = newValue;
-                  });
-                },
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -528,7 +452,8 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
     );
   }
 
-  Widget editObjectSearchableDropdown(label, value, dropList, {object, index}) {
+  Widget editObjectSearchableDropdown(label, value, dropList,
+      {object, index, validator}) {
     var currentVal;
     currentVal = null;
 
@@ -554,6 +479,7 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
             Expanded(
               flex: 8,
               child: SearchableDropdown.single(
+                validator: validator != null ? validator : null,
                 value: currentVal,
                 onClear: () {
                   setState(() {
@@ -589,7 +515,7 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
   }
 
   Widget editObjectDropdown(label, value, dropList,
-      {object, index, setObj, setVal}) {
+      {object, index, setObj, setVal, validator}) {
     var _currentVal;
     _currentVal = null;
 
@@ -612,8 +538,9 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
             ),
             Expanded(
               flex: 8,
-              child: DropdownButton<String>(
+              child: DropdownButtonFormField<String>(
                 value: _currentVal,
+                validator: validator != null ? validator : null,
                 isExpanded: true,
                 hint: Text("Please choose one"),
                 items: dropList.map<DropdownMenuItem<String>>((dynamic item) {

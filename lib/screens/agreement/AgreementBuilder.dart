@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
+import 'package:atlascrm/components/agreement/Pricing.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:xml/xml.dart';
@@ -28,12 +29,24 @@ class AgreementBuilder extends StatefulWidget {
 
 Map isDirtyStatus = {};
 Map docsAttached = {};
+// Map validatorPayload = {
+//   "GeneralInfo": [],
+//   "BusinessInfo": [],
+//   "SiteInfo": [],
+//   "MotoBBInet": [],
+//   "MpaInfo": [],
+//   "CorporateInfo": [],
+//   "Ownership": [],
+//   "Settlement": [],
+//   "Transaction": []
+// };
 //MpaOutletInfo.Outlet
 //--BUSINESS INFO TAB --
 final List generalControllerNames = ["corpSame", "motoCheck"];
 
 final List businessInfoControllerNames = [
   "Sic",
+  "LocationAddress1",
   "City",
   "State",
   "IrsName",
@@ -200,93 +213,93 @@ final List transactionControllerNames = [
 ];
 
 //PRICING TAB
-final List entitlementControllerNames = [
-  "AmexOption",
-  "AmexFeeClass",
-  "AmexDiscountQual",
-  "AmexInterchangeFeeFlag",
-  "AmexOtherItemRateNotESA"
-];
+// final List entitlementControllerNames = [
+//   "AmexOption",
+//   "AmexFeeClass",
+//   "AmexDiscountQual",
+//   "AmexInterchangeFeeFlag",
+//   "AmexOtherItemRateNotESA"
+// ];
 
-final List otherFeesControllerNames = [
-  "BatchFee",
-  "SaleTranFee",
-  "ACHRejectFee",
-  "RetrievalFee",
-  "ChargebackFee",
-  "ReturnTranFee",
-  "eIDSAccessFee",
-  "EarlyTerminationFee",
-  "MonthlyStatementFee",
-  "MonthlyMinimumProcessingFee"
-];
+// final List otherFeesControllerNames = [
+//   "BatchFee",
+//   "SaleTranFee",
+//   "ACHRejectFee",
+//   "RetrievalFee",
+//   "ChargebackFee",
+//   "ReturnTranFee",
+//   "eIDSAccessFee",
+//   "EarlyTerminationFee",
+//   "MonthlyStatementFee",
+//   "MonthlyMinimumProcessingFee"
+// ];
 
-final List pricingControllerNames = [
-  "AffnRate",
-  "Cu24Rate",
-  "NyceRate",
-  "StarRate",
-  "AccelRate",
-  "PulseRate",
-  "JeanieRate",
-  "ShazamRate",
-  "Star18Rate",
-  "Star21Rate",
-  "GenericRate",
-  "MaestroRate",
-  "BundleOption",
-  "InterlinkRate",
-  "DiscountMethod",
-  "MCDebitFeeClass",
-  "AlaskaOptionRate",
-  // "DiscountCalcFlag" : {
-  //     "attributes": {
-  //         "xsi:nil"
-  //     }
-  // },
-  //TODO FIGURE OUT NESTED CONTROLLER SHIT
-  "MCCreditFeeClass",
-  "AffnVolumePercent",
-  "Cu24VolumePercent",
-  "NyceVolumePercent",
-  "StarVolumePercent",
-  "VisaDebitFeeClass",
-  "AccelVolumePercent",
-  "BundledPricingType",
-  "EnablePinDebitCard",
-  "MCDebitPricingType",
-  "PulseVolumePercent",
-  "VisaCreditFeeClass",
-  "JeanieVolumePercent",
-  "MCCreditPricingType",
-  "ShazamVolumePercent",
-  "Star18VolumePercent",
-  "Star21VolumePercent",
-  "GenericVolumePercent",
-  "MaestroVolumePercent",
-  "VisaDebitPricingType",
-  "DiscoverDebitFeeClass",
-  "PassThruDebitNtwkFees",
-  "VisaCreditPricingType",
-  "DiscoverCreditFeeClass",
-  "InterlinkVolumePercent",
-  "DiscoverDebitPricingType",
-  "AlaskaOptionVolumePercent",
-  "DiscoverCreditPricingType",
-  "MCDebitQualDebit_Discount",
-  "MCCreditQualCredit_Discount",
-  "VisaDebitQualDebit_Discount",
-  "VisaCreditQualCredit_Discount",
-  "DiscoverDebitQualDebit_Discount",
-  "MCDebitRetailInterchangeFeeFlag",
-  "StatementInterchangePrintOption",
-  "MCCreditRetailInterchangeFeeFlag",
-  "DiscoverCreditQualCredit_Discount",
-  "VisaDebitRetailInterchangeFeeFlag",
-  "VisaCreditRetailInterchangeFeeFlag",
-  "DiscoverDebitRetailInterchangeFeeFlag",
-  "DiscoverCreditRetailInterchangeFeeFlag"
-];
+// final List pricingControllerNames = [
+//   "AffnRate",
+//   "Cu24Rate",
+//   "NyceRate",
+//   "StarRate",
+//   "AccelRate",
+//   "PulseRate",
+//   "JeanieRate",
+//   "ShazamRate",
+//   "Star18Rate",
+//   "Star21Rate",
+//   "GenericRate",
+//   "MaestroRate",
+//   "BundleOption",
+//   "InterlinkRate",
+//   "DiscountMethod",
+//   "MCDebitFeeClass",
+//   "AlaskaOptionRate",
+//   // "DiscountCalcFlag" : {
+//   //     "attributes": {
+//   //         "xsi:nil"
+//   //     }
+//   // },
+//   //TODO FIGURE OUT NESTED CONTROLLER SHIT
+//   "MCCreditFeeClass",
+//   "AffnVolumePercent",
+//   "Cu24VolumePercent",
+//   "NyceVolumePercent",
+//   "StarVolumePercent",
+//   "VisaDebitFeeClass",
+//   "AccelVolumePercent",
+//   "BundledPricingType",
+//   "EnablePinDebitCard",
+//   "MCDebitPricingType",
+//   "PulseVolumePercent",
+//   "VisaCreditFeeClass",
+//   "JeanieVolumePercent",
+//   "MCCreditPricingType",
+//   "ShazamVolumePercent",
+//   "Star18VolumePercent",
+//   "Star21VolumePercent",
+//   "GenericVolumePercent",
+//   "MaestroVolumePercent",
+//   "VisaDebitPricingType",
+//   "DiscoverDebitFeeClass",
+//   "PassThruDebitNtwkFees",
+//   "VisaCreditPricingType",
+//   "DiscoverCreditFeeClass",
+//   "InterlinkVolumePercent",
+//   "DiscoverDebitPricingType",
+//   "AlaskaOptionVolumePercent",
+//   "DiscoverCreditPricingType",
+//   "MCDebitQualDebit_Discount",
+//   "MCCreditQualCredit_Discount",
+//   "VisaDebitQualDebit_Discount",
+//   "VisaCreditQualCredit_Discount",
+//   "DiscoverDebitQualDebit_Discount",
+//   "MCDebitRetailInterchangeFeeFlag",
+//   "StatementInterchangePrintOption",
+//   "MCCreditRetailInterchangeFeeFlag",
+//   "DiscoverCreditQualCredit_Discount",
+//   "VisaDebitRetailInterchangeFeeFlag",
+//   "VisaCreditRetailInterchangeFeeFlag",
+//   "DiscoverDebitRetailInterchangeFeeFlag",
+//   "DiscoverCreditRetailInterchangeFeeFlag"
+// ];
 //ApplicationInformation
 final List mpaInfoControllerNames = ["ClientDbaName", "NumberOfLocation"];
 
@@ -298,10 +311,16 @@ class AgreementBuilderState extends State<AgreementBuilder>
   Map files = {"file1": "", "file2": ""};
 
   var lead;
+  var rateReview;
+  var rateReviewSummary;
   var leadDocument;
   var isLoading = true;
+  var currentTab = 0;
+  var previousTab = 0;
   List owners;
   List<Widget> displayList;
+  var validationErrors;
+  Map isValidated = {};
 
   List<GlobalKey<FormState>> _formKeys = [
     GlobalKey<FormState>(),
@@ -313,6 +332,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
     super.initState();
     loadAgreementData(this.widget.leadId);
     loadOwnersData(this.widget.leadId);
+    loadRateReview(this.widget.leadId);
   }
 
   Future<void> initDocumentObjects() async {
@@ -381,11 +401,11 @@ class AgreementBuilderState extends State<AgreementBuilder>
           value: (i) =>
               MaskedTextController(mask: "******************************"));
 
-  final Map<String, MaskedTextController> _entitlementControllers =
-      Map.fromIterable(entitlementControllerNames,
-          key: (i) => i,
-          value: (i) =>
-              MaskedTextController(mask: "******************************"));
+  // final Map<String, MaskedTextController> _entitlementControllers =
+  //     Map.fromIterable(entitlementControllerNames,
+  //         key: (i) => i,
+  //         value: (i) =>
+  //             MaskedTextController(mask: "******************************"));
 
   final Map<String, MaskedTextController> _settlementControllers =
       Map.fromIterable(
@@ -394,17 +414,17 @@ class AgreementBuilderState extends State<AgreementBuilder>
           value: (i) =>
               MaskedTextController(mask: "******************************"));
 
-  final Map<String, MaskedTextController> _otherFeesControllers =
-      Map.fromIterable(otherFeesControllerNames,
-          key: (i) => i,
-          value: (i) =>
-              MaskedTextController(mask: "******************************"));
+  // final Map<String, MaskedTextController> _otherFeesControllers =
+  //     Map.fromIterable(otherFeesControllerNames,
+  //         key: (i) => i,
+  //         value: (i) =>
+  //             MaskedTextController(mask: "******************************"));
 
-  final Map<String, MaskedTextController> _pricingControllers =
-      Map.fromIterable(pricingControllerNames,
-          key: (i) => i,
-          value: (i) =>
-              MaskedTextController(mask: "******************************"));
+  // final Map<String, MaskedTextController> _pricingControllers =
+  //     Map.fromIterable(pricingControllerNames,
+  //         key: (i) => i,
+  //         value: (i) =>
+  //             MaskedTextController(mask: "******************************"));
 
   final Map<String, MaskedTextController> _mpaInfoControllers =
       Map.fromIterable(mpaInfoControllerNames,
@@ -431,8 +451,32 @@ class AgreementBuilderState extends State<AgreementBuilder>
     }
   }
 
+  Future<void> loadRateReview(leadId) async {
+    var resp = await this
+        .widget
+        .apiService
+        .authGet(context, "/ratereview/lead/" + this.widget.leadId);
+
+    if (resp.statusCode == 200) {
+      var body = resp.data;
+      if (body != null && body["document"] != null) {
+        var bodyDecoded = body;
+
+        setState(() {
+          rateReview = bodyDecoded;
+          if (rateReview["document"]["summaryPayload"] != null) {
+            rateReviewSummary = rateReview["document"]["summaryPayload"];
+          } else {
+            rateReviewSummary = null;
+          }
+        });
+      }
+    }
+  }
+
   Map businessPageControllers = {};
   Map settlementTransactPageControllers = {};
+
   Future<void> loadControllers() async {
     _generalControllers.forEach((j, k) {
       if (agreementBuilderObj["document"]["$j"] != null) {
@@ -551,44 +595,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
             if (ownersArr.length > 0) {
               setState(() {
                 owners = ownersArr;
-                // testOwner = ownersArr[0];
-                // emptyOwner["lead"] = lead["leadId"];
               });
-              // var inc = 1;
-              // for (var owner in owners) {
-              //   _ownershipControllers["Prin${inc.toString()}Dob"].text =
-              //       owner["document"]["PrinDob"];
-              //   _ownershipControllers["Prin${inc.toString()}Ssn"].text =
-              //       owner["document"]["PrinSsn"];
-              //   _ownershipControllers["Prin${inc.toString()}City"].text =
-              //       owner["document"]["PrinCity"];
-              //   _ownershipControllers["Prin${inc.toString()}Phone"].text =
-              //       owner["document"]["PrinPhone"];
-              //   _ownershipControllers["Prin${inc.toString()}State"].text =
-              //       owner["document"]["PrinState"];
-              //   _ownershipControllers["Prin${inc.toString()}Title"].text =
-              //       owner["document"]["PrinTitle"];
-              //   _ownershipControllers["Prin${inc.toString()}Address"].text =
-              //       owner["document"]["PrinAddress"];
-              //   _ownershipControllers["Prin${inc.toString()}LastName"].text =
-              //       owner["document"]["PrinLastName"];
-              //   _ownershipControllers["Prin${inc.toString()}First5Zip"].text =
-              //       owner["document"]["First5Zip"];
-              //   _ownershipControllers["Prin${inc.toString()}FirstName"].text =
-              //       owner["document"]["PrinFirstName"];
-              //   _ownershipControllers["Prin${inc.toString()}EmailAddress"]
-              //       .text = owner["document"]["PrinEmailAddress"];
-              //   _ownershipControllers["Prin${inc.toString()}GuarantorCode"]
-              //       .text = owner["document"]["PrinGuarantorCode"];
-              //   _ownershipControllers["Prin${inc.toString()}OwnershipPercent"]
-              //       .text = owner["document"]["PrinOwnershipPercent"];
-              //   _ownershipControllers["Prin${inc.toString()}DriverLicenseState"]
-              //       .text = owner["document"]["PrinDriverLicenseState"];
-              //   _ownershipControllers[
-              //           "Prin${inc.toString()}DriverLicenseNumber"]
-              //       .text = owner["document"]["PrinDriverLicenseNumber"];
-              //   inc++;
-              // }
             } else {
               setState(() {
                 ownersArr = [];
@@ -630,6 +637,68 @@ class AgreementBuilderState extends State<AgreementBuilder>
         //   isLoading = false;
         // });
       }
+    }
+  }
+
+  Future<void> validatePayload(payload) async {
+    var data = payload;
+    var resp = await this
+        .widget
+        .apiService
+        .authPost(context, "/merchant/validate", data);
+
+    if (resp.statusCode == 200) {
+      setState(() {
+        validationErrors = resp.data;
+      });
+      overallValidate(resp.data);
+    } else {
+      Fluttertoast.showToast(
+          msg: "Failed Validate!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0);
+    }
+  }
+
+  Future<void> overallValidate(errorObj) async {
+    if (errorObj["BusinessInfo"] == null &&
+        errorObj["MpaInfo"] == null &&
+        errorObj["CorporateInfo"] == null &&
+        errorObj["SiteInfo"] == null &&
+        errorObj["MotoBBInet"] == null &&
+        _formKeys[0].currentState.validate()) {
+      // if (previousTab == 0) {
+      isValidated["BusinessInfo"] = true;
+      // }
+    } else {
+      // if (previousTab == 0) {
+      isValidated["BusinessInfo"] = false;
+      // }
+    }
+
+    if (errorObj["Ownership"] == null && _formKeys[1].currentState.validate()) {
+      // if (previousTab == 0) {
+      isValidated["Ownership"] = true;
+      // }
+    } else {
+      // if (previousTab == 0) {
+      isValidated["Ownership"] = false;
+      // }
+    }
+
+    if (errorObj["Settlement"] == null &&
+        errorObj["Transaction"] == null &&
+        _formKeys[1].currentState.validate()) {
+      // if (previousTab == 0) {
+      isValidated["SettlementTransact"] = true;
+      // }
+    } else {
+      // if (previousTab == 0) {
+      isValidated["SettlementTransact"] = false;
+      // }
     }
   }
 
@@ -732,7 +801,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
             "/employee/" +
             UserService.employee.employee +
             "/document",
-        null);
+        {"null": null});
     if (resp2 != null) {
       if (resp2.statusCode == 200) {
         Fluttertoast.showToast(
@@ -770,13 +839,6 @@ class AgreementBuilderState extends State<AgreementBuilder>
     }
 
     loadAgreementData(this.widget.leadId);
-
-    // setState(() {
-    //   agreementDocument = agreementBuilderObj["document"];
-    //   print(agreementDocument);
-    //   isLoading = false;
-    // });
-    // print("GENERATE");
   }
 
   Future<void> updateAgreement(agreementBuilderId) async {
@@ -816,21 +878,46 @@ class AgreementBuilderState extends State<AgreementBuilder>
           textColor: Colors.white,
           fontSize: 16.0);
     }
+    await validatePayload(agreementBuilderObj["document"]);
+    // await validatePayload(agreementBuilderObj["document"]);
+
+    print("validate errors:");
+    print(validationErrors);
+
+    if (currentTab < 3) {
+      _formKeys[currentTab].currentState.validate();
+    }
   }
 
   Future<void> updateBusinessInfo() async {
     _generalControllers.forEach((j, k) {
       if (_generalControllers["$j"].text != null) {
-        agreementBuilderObj["document"]["$j"] =
-            _generalControllers["$j"].text.toString();
+        if (j.contains("Phone")) {
+          agreementBuilderObj["document"]["$j"] = _generalControllers["$j"]
+              .text
+              .toString()
+              .replaceAll(new RegExp('[^0-9]'), '');
+        } else {
+          agreementBuilderObj["document"]["$j"] =
+              _generalControllers["$j"].text.toString();
+        }
       }
     });
 
     _businessInfoControllers.forEach((j, k) {
       if (_businessInfoControllers["$j"].text != null) {
-        agreementBuilderObj["document"]["ApplicationInformation"]
-                ["MpaOutletInfo"]["Outlet"]["BusinessInfo"]["$j"] =
-            _businessInfoControllers["$j"].text.toString();
+        if (j.contains("Phone")) {
+          agreementBuilderObj["document"]["ApplicationInformation"]
+                  ["MpaOutletInfo"]["Outlet"]["BusinessInfo"]["$j"] =
+              _businessInfoControllers["$j"]
+                  .text
+                  .toString()
+                  .replaceAll(new RegExp('[^0-9]'), '');
+        } else {
+          agreementBuilderObj["document"]["ApplicationInformation"]
+                  ["MpaOutletInfo"]["Outlet"]["BusinessInfo"]["$j"] =
+              _businessInfoControllers["$j"].text.toString();
+        }
       }
     });
 
@@ -866,44 +953,53 @@ class AgreementBuilderState extends State<AgreementBuilder>
     });
 
     isDirtyStatus["businessInfoIsDirty"] = false;
-    Fluttertoast.showToast(
-        msg: "Business Info!",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-        backgroundColor: Colors.grey[600],
-        textColor: Colors.white,
-        fontSize: 16.0);
+    // Fluttertoast.showToast(
+    //     msg: "Business Info!",
+    //     toastLength: Toast.LENGTH_SHORT,
+    //     gravity: ToastGravity.BOTTOM,
+    //     backgroundColor: Colors.grey[600],
+    //     textColor: Colors.white,
+    //     fontSize: 16.0);
   }
 
   Future<void> updateOwners() async {
     Map ownershipItems = {};
     var i = 2;
+    var unorderedOwners = owners;
+    owners.sort((a, b) => b["document"]["PrinOwnershipPercent"]
+        .compareTo(a["document"]["PrinOwnershipPercent"]));
+    print(owners);
     for (var owner in owners) {
       var k = i;
       if (owner["document"]["PrinGuarantorCode"] == "1") {
         k = 1;
+        ownershipItems["Prin${k}GuarantorCode"] =
+            owner["document"]["PrinGuarantorCode"];
         i--;
       }
       ownershipItems["Prin${k}Dob"] = owner["document"]["PrinDob"];
-      ownershipItems["Prin${k}Ssn"] = owner["document"]["PrinSsn"];
       ownershipItems["Prin${k}City"] = owner["document"]["PrinCity"];
-      ownershipItems["Prin${k}Phone"] = owner["document"]["PrinPhone"];
+      ownershipItems["Prin${k}Phone"] =
+          owner["document"]["PrinPhone"].replaceAll(new RegExp('[^0-9]'), '');
       ownershipItems["Prin${k}State"] = owner["document"]["PrinState"];
       ownershipItems["Prin${k}Title"] = owner["document"]["PrinTitle"];
       ownershipItems["Prin${k}Address"] = owner["document"]["PrinAddress"];
       ownershipItems["Prin${k}LastName"] = owner["document"]["PrinLastName"];
       ownershipItems["Prin${k}First5Zip"] = owner["document"]["PrinFirst5Zip"];
       ownershipItems["Prin${k}FirstName"] = owner["document"]["PrinFirstName"];
-      ownershipItems["Prin${k}EmailAddress"] =
-          owner["document"]["PrinEmailAddress"];
-      ownershipItems["Prin${k}GuarantorCode"] =
-          owner["document"]["PrinGuarantorCode"];
       ownershipItems["Prin${k}OwnershipPercent"] =
           owner["document"]["PrinOwnershipPercent"];
       ownershipItems["Prin${k}DriverLicenseState"] =
           owner["document"]["PrinDriverLicenseState"];
       ownershipItems["Prin${k}DriverLicenseNumber"] =
           owner["document"]["PrinDriverLicenseNumber"];
+      if (k < 3) {
+        ownershipItems["Prin${k}Ssn"] = owner["document"]["PrinSsn"];
+        ownershipItems["Prin${k}EmailAddress"] =
+            owner["document"]["PrinEmailAddress"];
+      }
+
+      owner["number"] = k;
       i++;
     }
     agreementBuilderObj["document"]["ApplicationInformation"]["Ownership"] =
@@ -913,16 +1009,17 @@ class AgreementBuilderState extends State<AgreementBuilder>
     var resp = await this
         .widget
         .apiService
-        .authPost(context, "/businessowner", owners);
+        .authPost(context, "/businessowner", unorderedOwners);
 
     if (resp.statusCode == 200) {
-      Fluttertoast.showToast(
-          msg: "Owners Saved!",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.grey[600],
-          textColor: Colors.white,
-          fontSize: 16.0);
+      loadOwnersData(this.widget.leadId);
+      // Fluttertoast.showToast(
+      //     msg: "Owners Saved!",
+      //     toastLength: Toast.LENGTH_SHORT,
+      //     gravity: ToastGravity.BOTTOM,
+      //     backgroundColor: Colors.grey[600],
+      //     textColor: Colors.white,
+      //     fontSize: 16.0);
     } else {
       Fluttertoast.showToast(
           msg: "Failed to Save Owners!",
@@ -1009,13 +1106,13 @@ class AgreementBuilderState extends State<AgreementBuilder>
             "/document",
         data);
     if (resp.statusCode == 200) {
-      Fluttertoast.showToast(
-          msg: "Documents Saved!",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.grey[600],
-          textColor: Colors.white,
-          fontSize: 16.0);
+      // Fluttertoast.showToast(
+      //     msg: "Documents Saved!",
+      //     toastLength: Toast.LENGTH_SHORT,
+      //     gravity: ToastGravity.BOTTOM,
+      //     backgroundColor: Colors.grey[600],
+      //     textColor: Colors.white,
+      //     fontSize: 16.0);
     } else {
       Fluttertoast.showToast(
           msg: "Failed to Save Documents!",
@@ -1062,16 +1159,18 @@ class AgreementBuilderState extends State<AgreementBuilder>
 
   @override
   Widget build(BuildContext context) {
-    final _tabController = TabController(vsync: this, length: 5);
+    final _tabController =
+        TabController(vsync: this, length: 5, initialIndex: currentTab);
     _tabController.addListener(() {
-      // print(_tabController.index);
-      Fluttertoast.showToast(
-          msg: "Scrolled to index: ${_tabController.index}",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.grey[600],
-          textColor: Colors.white,
-          fontSize: 16.0);
+      currentTab = _tabController.index;
+      previousTab = _tabController.previousIndex;
+
+      if (isDirtyStatus["businessInfoIsDirty"] ||
+          isDirtyStatus["ownersIsDirty"] ||
+          isDirtyStatus["settlementTransactIsDirty"] ||
+          isDirtyStatus["documentsIsDirty"]) {
+        updateAgreement(agreementBuilderObj["agreement_builder"]);
+      }
     });
 
     return WillPopScope(
@@ -1084,15 +1183,36 @@ class AgreementBuilderState extends State<AgreementBuilder>
         child: Scaffold(
           backgroundColor: Color.fromARGB(255, 242, 242, 242),
           appBar: AppBar(
-              // key: Key("contactInfoPageAppBar"),
+              key: Key("agreementBuilderAppBar"),
               title: Text(isLoading ? "Loading..." : "Agreement Builder"),
               backgroundColor: Color.fromARGB(255, 21, 27, 38),
               bottom: TabBar(
                 isScrollable: false,
                 tabs: [
-                  Tab(text: "Business Info"),
-                  Tab(text: "Owner Info"),
-                  Tab(text: "Settlement/Transaction"),
+                  // Tab(
+                  //     icon: Icon(Icons.error_outline, color: Colors.red),
+                  //     text: "Business Info"),
+                  Tab(
+                      text: "Business Info",
+                      icon: isValidated["BusinessInfo"] != null
+                          ? isValidated["BusinessInfo"] == true
+                              ? Icon(Icons.done, color: Colors.green)
+                              : Icon(Icons.error_outline, color: Colors.red)
+                          : null),
+                  Tab(
+                      text: "Owner Info",
+                      icon: isValidated["Ownership"] != null
+                          ? isValidated["Ownership"] == true
+                              ? Icon(Icons.done, color: Colors.green)
+                              : Icon(Icons.error_outline, color: Colors.red)
+                          : null),
+                  Tab(
+                      text: "Settlement/Transaction",
+                      icon: isValidated["SettlementTransact"] != null
+                          ? isValidated["SettlementTransact"] == true
+                              ? Icon(Icons.done, color: Colors.green)
+                              : Icon(Icons.error_outline, color: Colors.red)
+                          : null),
                   Tab(text: "Documents"),
                   Tab(text: "Pricing")
                 ],
@@ -1105,13 +1225,15 @@ class AgreementBuilderState extends State<AgreementBuilder>
                       isDirtyStatus: isDirtyStatus,
                       controllers: businessPageControllers,
                       agreementDoc: agreementDocument,
-                      formKey: _formKeys[0]),
+                      formKey: _formKeys[0],
+                      validationErrors: validationErrors),
                   OwnerInfo(
                       isDirtyStatus: isDirtyStatus,
                       owners: owners,
                       controllers: _ownershipControllers,
                       lead: this.widget.leadId,
-                      formKey: _formKeys[1]),
+                      formKey: _formKeys[1],
+                      validationErrors: validationErrors),
                   Container(
                     padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
                     child: SingleChildScrollView(
@@ -1131,40 +1253,40 @@ class AgreementBuilderState extends State<AgreementBuilder>
                       files: files,
                       isDirtyStatus: isDirtyStatus,
                       fileStatus: docsAttached),
-                  Container(
-                    padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
-                    child: SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: <Widget>[
-                          CustomCard(
-                            key: Key("rates1"),
-                            icon: Icons.attach_money,
-                            title: "Rate Review",
-                            child: Column(
-                              children: <Widget>[
-                                //PUT GET INFO ROWS HERE
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  Pricing(
+                    rateReview: rateReview,
+                  )
                 ]),
           floatingActionButton: FloatingActionButton(
             onPressed: () async {
               updateAgreement(agreementBuilderObj["agreement_builder"]);
-              _formKeys[0].currentState.validate();
-              // _formKeys[1].currentState.validate();
-              // _formKeys[2].currentState.validate();
-              // for (var key in _formKeys) {
-              //   key.currentState.validate();
-              // }
             },
             backgroundColor: Color.fromARGB(500, 1, 224, 143),
             child: Icon(Icons.save),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget showInfoRow(label, value) {
+    if (value == null) {
+      value = "";
+    }
+    return Container(
+      child: Padding(
+        padding: EdgeInsets.all(8),
+        child: Row(
+          children: <Widget>[
+            Expanded(
+              flex: 4,
+              child: Text(
+                '$label: ',
+                style: TextStyle(fontSize: 16),
+              ),
+            ),
+            Expanded(flex: 8, child: Text(value)),
+          ],
         ),
       ),
     );
