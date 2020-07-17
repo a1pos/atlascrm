@@ -71,6 +71,7 @@ class SettlementTransactState extends State<SettlementTransact>
     {"value": "11", "name": "November"},
     {"value": "12", "name": "December"},
   ];
+  final settlementKey = GlobalKey<FormState>();
   void initState() {
     super.initState();
   }
@@ -139,12 +140,13 @@ class SettlementTransactState extends State<SettlementTransact>
         padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
         child: SingleChildScrollView(
           child: Form(
+            autovalidate: true,
             onChanged: () {
               setState(() {
                 this.widget.isDirtyStatus["settlementTransactIsDirty"] = true;
               });
             },
-            key: this.widget.formKey,
+            key: settlementKey,
             child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[

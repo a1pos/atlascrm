@@ -14,6 +14,7 @@ class OwnerInfo extends StatefulWidget {
   final String lead;
   final Key formKey;
   final Map validationErrors;
+  final Function callback;
 
   OwnerInfo(
       {this.owners,
@@ -21,13 +22,16 @@ class OwnerInfo extends StatefulWidget {
       this.lead,
       this.isDirtyStatus,
       this.formKey,
-      this.validationErrors});
+      this.validationErrors,
+      this.callback});
 
   @override
   OwnerInfoState createState() => OwnerInfoState();
 }
 
 class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
+  final ownersKey = GlobalKey<FormState>();
+
   void initState() {
     super.initState();
   }
@@ -170,6 +174,40 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
     }
   }
 
+  Future<void> deleteCheck(ownerId, index) async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Delete Owner?'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('Owner will be permanently removed.'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('Delete',
+                  style: TextStyle(fontSize: 17, color: Colors.red)),
+              onPressed: () {
+                deleteOwner(ownerId, index);
+                Navigator.of(context).pop();
+              },
+            ),
+            FlatButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> deleteOwner(ownerId, index) async {
     setState(() {
       this.widget.owners.removeAt(index);
@@ -216,8 +254,10 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
       var owner = this.widget.owners[index];
       var iterateLoc = index + 1;
       var ssnMask;
-      if (owner["document"]["PrinSsn"].length <= 9) {
-        ssnMask = "000000000";
+      if (owner["document"]["PrinSsn"] != null) {
+        if (owner["document"]["PrinSsn"].length < 11) {
+          ssnMask = "000000000";
+        }
       }
 
       return Card(
@@ -358,7 +398,7 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
             IconButton(
               icon: Icon(Icons.delete_forever, color: Colors.red, size: 30),
               onPressed: () {
-                deleteOwner(owner["business_owner"], index);
+                deleteCheck(owner["business_owner"], index);
               },
             )
           ]));
@@ -367,7 +407,8 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
 
   Widget build(BuildContext context) {
     return Form(
-      key: this.widget.formKey,
+      key: ownersKey,
+      autovalidate: true,
       onChanged: () {
         setState(() {
           this.widget.isDirtyStatus["ownersIsDirty"] = true;

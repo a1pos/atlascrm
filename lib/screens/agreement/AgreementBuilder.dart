@@ -640,7 +640,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
     }
   }
 
-  Future<void> validatePayload(payload) async {
+  Future<void> validatePayload(payload, page) async {
     var data = payload;
     var resp = await this
         .widget
@@ -651,7 +651,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
       setState(() {
         validationErrors = resp.data;
       });
-      overallValidate(resp.data);
+      overallValidate(resp.data, page);
     } else {
       Fluttertoast.showToast(
           msg: "Failed Validate!",
@@ -663,43 +663,37 @@ class AgreementBuilderState extends State<AgreementBuilder>
     }
   }
 
-  Future<void> overallValidate(errorObj) async {
+  Future<void> overallValidate(errorObj, page) async {
+    // if (page == 0) {
     if (errorObj["BusinessInfo"] == null &&
         errorObj["MpaInfo"] == null &&
         errorObj["CorporateInfo"] == null &&
         errorObj["SiteInfo"] == null &&
-        errorObj["MotoBBInet"] == null &&
-        _formKeys[0].currentState.validate()) {
-      // if (previousTab == 0) {
+        errorObj["MotoBBInet"] == null) {
       isValidated["BusinessInfo"] = true;
-      // }
     } else {
-      // if (previousTab == 0) {
       isValidated["BusinessInfo"] = false;
-      // }
     }
-
-    if (errorObj["Ownership"] == null && _formKeys[1].currentState.validate()) {
-      // if (previousTab == 0) {
+    // } else if (page == 1) {
+    if (errorObj["Ownership"] == null) {
       isValidated["Ownership"] = true;
-      // }
     } else {
-      // if (previousTab == 0) {
       isValidated["Ownership"] = false;
-      // }
+    }
+    // } else if (page == 2) {
+    if (errorObj["Settlement"] == null && errorObj["Transaction"] == null) {
+      isValidated["SettlementTransact"] = true;
+    } else {
+      isValidated["SettlementTransact"] = false;
     }
 
-    if (errorObj["Settlement"] == null &&
-        errorObj["Transaction"] == null &&
-        _formKeys[1].currentState.validate()) {
-      // if (previousTab == 0) {
-      isValidated["SettlementTransact"] = true;
-      // }
+    // } else if (page == 3) {
+    if (docsAttached["w9"] == true && docsAttached["voidedCheck"] == true) {
+      isValidated["Documents"] = true;
     } else {
-      // if (previousTab == 0) {
-      isValidated["SettlementTransact"] = false;
-      // }
+      isValidated["Documents"] = false;
     }
+    // }
   }
 
   Future<void> generateAgreement() async {
@@ -712,7 +706,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
         "leadDocument": lead["document"],
         "ApplicationInformation": {
           "MpaInfo": {},
-          "CorporateInfo": {},
+          "CorporateInfo": {"CurrentStmntProvided": "0"},
           "MpaOutletInfo": {
             "Outlet": {
               "SiteInfo": {},
@@ -841,7 +835,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
     loadAgreementData(this.widget.leadId);
   }
 
-  Future<void> updateAgreement(agreementBuilderId) async {
+  Future<void> updateAgreement(agreementBuilderId, validatorPage) async {
     if (isDirtyStatus["businessInfoIsDirty"]) {
       await updateBusinessInfo();
     }
@@ -878,25 +872,42 @@ class AgreementBuilderState extends State<AgreementBuilder>
           textColor: Colors.white,
           fontSize: 16.0);
     }
-    await validatePayload(agreementBuilderObj["document"]);
-    // await validatePayload(agreementBuilderObj["document"]);
+    await validatePayload(agreementBuilderObj["document"], validatorPage);
+    // await validatePayload(agreementBuilderObj["document"], validatorPage);
 
     print("validate errors:");
     print(validationErrors);
 
-    if (currentTab < 3) {
-      _formKeys[currentTab].currentState.validate();
-    }
+    // if (currentTab < 3) {
+    //   _formKeys[currentTab].currentState.validate();
+    // }
   }
 
   Future<void> updateBusinessInfo() async {
+    if (_generalControllers["corpSame"].text == "true") {
+      _corporateInfoControllers["SendMonthlyStmntTo"].text = "1";
+      _corporateInfoControllers["SendRetRequestTo"].text = "1";
+      _corporateInfoControllers["SendCBTo"].text = "1";
+      _businessInfoControllers["LocationAddress1"].clear();
+      _businessInfoControllers["City"].clear();
+      _businessInfoControllers["State"].clear();
+      _businessInfoControllers["First5Zip"].clear();
+    }
+    if (_generalControllers["corpSame"].text == "false") {
+      _generalControllers["corpSame"].clear();
+      agreementBuilderObj["document"]['corpSame'] = false;
+      print(agreementBuilderObj);
+    }
     _generalControllers.forEach((j, k) {
-      if (_generalControllers["$j"].text != null) {
+      if (_generalControllers["$j"].text != null &&
+          _generalControllers["$j"].text != "") {
         if (j.contains("Phone")) {
-          agreementBuilderObj["document"]["$j"] = _generalControllers["$j"]
-              .text
-              .toString()
-              .replaceAll(new RegExp('[^0-9]'), '');
+          if (agreementBuilderObj["document"]["$j"] != null) {
+            agreementBuilderObj["document"]["$j"] = _generalControllers["$j"]
+                .text
+                .toString()
+                .replaceAll(new RegExp('[^0-9]'), '');
+          }
         } else {
           agreementBuilderObj["document"]["$j"] =
               _generalControllers["$j"].text.toString();
@@ -905,7 +916,8 @@ class AgreementBuilderState extends State<AgreementBuilder>
     });
 
     _businessInfoControllers.forEach((j, k) {
-      if (_businessInfoControllers["$j"].text != null) {
+      if (_businessInfoControllers["$j"].text != null &&
+          _businessInfoControllers["$j"].text != "") {
         if (j.contains("Phone")) {
           agreementBuilderObj["document"]["ApplicationInformation"]
                   ["MpaOutletInfo"]["Outlet"]["BusinessInfo"]["$j"] =
@@ -968,7 +980,6 @@ class AgreementBuilderState extends State<AgreementBuilder>
     var unorderedOwners = owners;
     owners.sort((a, b) => b["document"]["PrinOwnershipPercent"]
         .compareTo(a["document"]["PrinOwnershipPercent"]));
-    print(owners);
     for (var owner in owners) {
       var k = i;
       if (owner["document"]["PrinGuarantorCode"] == "1") {
@@ -979,8 +990,10 @@ class AgreementBuilderState extends State<AgreementBuilder>
       }
       ownershipItems["Prin${k}Dob"] = owner["document"]["PrinDob"];
       ownershipItems["Prin${k}City"] = owner["document"]["PrinCity"];
-      ownershipItems["Prin${k}Phone"] =
-          owner["document"]["PrinPhone"].replaceAll(new RegExp('[^0-9]'), '');
+      if (ownershipItems["Prin${k}Phone"] != null) {
+        ownershipItems["Prin${k}Phone"] =
+            owner["document"]["PrinPhone"].replaceAll(new RegExp('[^0-9]'), '');
+      }
       ownershipItems["Prin${k}State"] = owner["document"]["PrinState"];
       ownershipItems["Prin${k}Title"] = owner["document"]["PrinTitle"];
       ownershipItems["Prin${k}Address"] = owner["document"]["PrinAddress"];
@@ -998,10 +1011,12 @@ class AgreementBuilderState extends State<AgreementBuilder>
         ownershipItems["Prin${k}EmailAddress"] =
             owner["document"]["PrinEmailAddress"];
       }
-
-      owner["number"] = k;
+      setState(() {
+        owner["number"] = k;
+      });
       i++;
     }
+    print(owners);
     agreementBuilderObj["document"]["ApplicationInformation"]["Ownership"] =
         ownershipItems;
     isDirtyStatus["ownersIsDirty"] = false;
@@ -1165,11 +1180,17 @@ class AgreementBuilderState extends State<AgreementBuilder>
       currentTab = _tabController.index;
       previousTab = _tabController.previousIndex;
 
+      print("Previous Tab: " +
+          previousTab.toString() +
+          "Current Tab: " +
+          currentTab.toString());
+
       if (isDirtyStatus["businessInfoIsDirty"] ||
           isDirtyStatus["ownersIsDirty"] ||
           isDirtyStatus["settlementTransactIsDirty"] ||
-          isDirtyStatus["documentsIsDirty"]) {
-        updateAgreement(agreementBuilderObj["agreement_builder"]);
+          isDirtyStatus["documentsIsDirty"] ||
+          currentTab == 4) {
+        updateAgreement(agreementBuilderObj["agreement_builder"], previousTab);
       }
     });
 
@@ -1213,8 +1234,18 @@ class AgreementBuilderState extends State<AgreementBuilder>
                               ? Icon(Icons.done, color: Colors.green)
                               : Icon(Icons.error_outline, color: Colors.red)
                           : null),
-                  Tab(text: "Documents"),
-                  Tab(text: "Pricing")
+                  Tab(
+                      text: "Documents",
+                      icon: isValidated["Documents"] != null
+                          ? isValidated["Documents"] == true
+                              ? Icon(Icons.done, color: Colors.green)
+                              : Icon(Icons.error_outline, color: Colors.red)
+                          : null),
+                  Tab(
+                      text: "Pricing",
+                      icon: rateReview != null
+                          ? Icon(Icons.done, color: Colors.green)
+                          : Icon(Icons.timer, color: Colors.amber))
                 ],
                 controller: _tabController,
               )),
@@ -1234,21 +1265,21 @@ class AgreementBuilderState extends State<AgreementBuilder>
                       lead: this.widget.leadId,
                       formKey: _formKeys[1],
                       validationErrors: validationErrors),
-                  Container(
-                    padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
-                    child: SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: <Widget>[
-                          SettlementTransact(
-                              isDirtyStatus: isDirtyStatus,
-                              controllers: settlementTransactPageControllers,
-                              agreementDoc: agreementDocument,
-                              formKey: _formKeys[2])
-                        ],
-                      ),
-                    ),
-                  ),
+                  // Container(
+                  //   padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
+                  //   child: SingleChildScrollView(
+                  //     child: Column(
+                  //       crossAxisAlignment: CrossAxisAlignment.stretch,
+                  //       children: <Widget>[
+                  SettlementTransact(
+                      isDirtyStatus: isDirtyStatus,
+                      controllers: settlementTransactPageControllers,
+                      agreementDoc: agreementDocument,
+                      formKey: _formKeys[2]),
+                  //       ],
+                  //     ),
+                  //   ),
+                  // ),
                   Documents(
                       files: files,
                       isDirtyStatus: isDirtyStatus,
@@ -1259,7 +1290,8 @@ class AgreementBuilderState extends State<AgreementBuilder>
                 ]),
           floatingActionButton: FloatingActionButton(
             onPressed: () async {
-              updateAgreement(agreementBuilderObj["agreement_builder"]);
+              updateAgreement(
+                  agreementBuilderObj["agreement_builder"], currentTab);
             },
             backgroundColor: Color.fromARGB(500, 1, 224, 143),
             child: Icon(Icons.save),

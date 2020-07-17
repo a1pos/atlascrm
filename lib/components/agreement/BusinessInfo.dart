@@ -18,13 +18,15 @@ class BusinessInfo extends StatefulWidget {
   final agreementDoc;
   final GlobalKey formKey;
   final Map validationErrors;
+  final Map isValid;
 
   BusinessInfo(
       {this.controllers,
       this.agreementDoc,
       this.isDirtyStatus,
       this.formKey,
-      this.validationErrors});
+      this.validationErrors,
+      this.isValid});
 
   @override
   BusinessInfoState createState() => BusinessInfoState();
@@ -234,6 +236,8 @@ class BusinessInfoState extends State<BusinessInfo>
     {"value": "2", "name": "Date of Delivery"},
     {"value": "3", "name": "Other"},
   ];
+
+  final businessKey = GlobalKey<FormState>();
   void initState() {
     super.initState();
   }
@@ -311,12 +315,15 @@ class BusinessInfoState extends State<BusinessInfo>
       padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
       child: SingleChildScrollView(
         child: Form(
+          autovalidate: true,
           onChanged: () {
+            // this.widget.isValid["BusinessInfo"] =
+            //     businessKey.currentState.validate();
             setState(() {
               this.widget.isDirtyStatus["businessInfoIsDirty"] = true;
             });
           },
-          key: this.widget.formKey,
+          key: businessKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
@@ -520,6 +527,11 @@ class BusinessInfoState extends State<BusinessInfo>
                               setState(() {
                                 this
                                     .widget
+                                    .controllers["corporateInfo"]
+                                        ["SendMonthlyStmntTo"]
+                                    .text = "1";
+                                this
+                                    .widget
                                     .controllers["general"]["corpSame"]
                                     .text = val.toString();
                                 print(this
@@ -606,13 +618,25 @@ class BusinessInfoState extends State<BusinessInfo>
                             .text,
                         this.widget.controllers["corporateInfo"]
                             ["SendMonthlyStmntTo"],
-                        sendLocations, validator: (newVal) {
-                      if (newVal == null) {
-                        return "Required";
+                        sendLocations,
+                        disabled: this
+                                    .widget
+                                    .controllers["general"]["corpSame"]
+                                    .text ==
+                                "true"
+                            ? true
+                            : false, validator: (newVal) {
+                      if (this.widget.controllers["general"]["corpSame"].text ==
+                          "true") {
+                        if (newVal == null) {
+                          return "Required";
+                        } else {
+                          return null;
+                        }
                       } else {
                         return null;
                       }
-                    }),
+                    }, disabledValue: "1"),
                     getInfoDropdown(
                         "Send Retrieval Requests To",
                         this
@@ -621,13 +645,25 @@ class BusinessInfoState extends State<BusinessInfo>
                             .text,
                         this.widget.controllers["corporateInfo"]
                             ["SendRetRequestTo"],
-                        sendLocations, validator: (newVal) {
-                      if (newVal == null) {
-                        return "Required";
+                        sendLocations,
+                        disabled: this
+                                    .widget
+                                    .controllers["general"]["corpSame"]
+                                    .text ==
+                                "true"
+                            ? true
+                            : false, validator: (newVal) {
+                      if (this.widget.controllers["general"]["corpSame"].text ==
+                          "true") {
+                        if (newVal == null) {
+                          return "Required";
+                        } else {
+                          return null;
+                        }
                       } else {
                         return null;
                       }
-                    }),
+                    }, disabledValue: "1"),
                     getInfoDropdown(
                         "Send Chargebacks To",
                         this
@@ -635,13 +671,25 @@ class BusinessInfoState extends State<BusinessInfo>
                             .controllers["corporateInfo"]["SendCBTo"]
                             .text,
                         this.widget.controllers["corporateInfo"]["SendCBTo"],
-                        sendLocations, validator: (newVal) {
-                      if (newVal == null) {
-                        return "Required";
+                        sendLocations,
+                        disabled: this
+                                    .widget
+                                    .controllers["general"]["corpSame"]
+                                    .text ==
+                                "true"
+                            ? true
+                            : false, validator: (newVal) {
+                      if (this.widget.controllers["general"]["corpSame"].text ==
+                          "true") {
+                        if (newVal == null) {
+                          return "Required";
+                        } else {
+                          return null;
+                        }
                       } else {
                         return null;
                       }
-                    }),
+                    }, disabledValue: "1"),
                   ],
                 ),
               ),
@@ -1163,13 +1211,28 @@ class BusinessInfoState extends State<BusinessInfo>
     );
   }
 
-  Widget getInfoDropdown(label, value, controller, dropList, {validator}) {
+  Widget getInfoDropdown(label, value, controller, dropList,
+      {validator, bool disabled, disabledValue}) {
     var _currentVal;
     _currentVal = null;
+    bool dropDisabled = false;
 
     if (value != null && value != "") {
       controller.text = value;
       _currentVal = controller.text;
+    }
+    var disVal;
+    var disText = "";
+
+    if (disabled == true) {
+      if (disabledValue != null) {
+        disVal = null;
+        disText = null;
+        _currentVal = disabledValue;
+      }
+      dropDisabled = disabled;
+      controller.text = disText;
+      value = disVal;
     }
 
     return Container(
@@ -1187,7 +1250,7 @@ class BusinessInfoState extends State<BusinessInfo>
             Expanded(
               flex: 8,
               child: DropdownButtonFormField<String>(
-                value: _currentVal,
+                value: _currentVal != null ? _currentVal : null,
                 validator: validator != null ? validator : null,
                 isExpanded: true,
                 hint: Text("Please choose one"),
@@ -1201,11 +1264,13 @@ class BusinessInfoState extends State<BusinessInfo>
                     ),
                   );
                 }).toList(),
-                onChanged: (newValue) {
-                  setState(() {
-                    controller.text = newValue;
-                  });
-                },
+                onChanged: dropDisabled
+                    ? null
+                    : (newValue) {
+                        setState(() {
+                          controller.text = newValue;
+                        });
+                      },
               ),
             ),
           ],
