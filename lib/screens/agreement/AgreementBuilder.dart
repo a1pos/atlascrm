@@ -664,6 +664,12 @@ class AgreementBuilderState extends State<AgreementBuilder>
   }
 
   Future<void> overallValidate(errorObj, page) async {
+    if (errorObj["Ownership"]["Prin1Ssn"] == "Too Long") {
+      errorObj["Ownership"].remove('Prin1Ssn');
+    }
+    if (errorObj["Ownership"]["Prin2Ssn"] == "Too Long") {
+      errorObj["Ownership"].remove('Prin2Ssn');
+    }
     // if (page == 0) {
     if (errorObj["BusinessInfo"] == null &&
         errorObj["MpaInfo"] == null &&
@@ -675,7 +681,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
       isValidated["BusinessInfo"] = false;
     }
     // } else if (page == 1) {
-    if (errorObj["Ownership"] == null) {
+    if (errorObj["Ownership"] == null || errorObj["Ownership"].length == 0) {
       isValidated["Ownership"] = true;
     } else {
       isValidated["Ownership"] = false;
@@ -835,12 +841,13 @@ class AgreementBuilderState extends State<AgreementBuilder>
     loadAgreementData(this.widget.leadId);
   }
 
-  Future<void> updateAgreement(agreementBuilderId, validatorPage) async {
+  Future<void> updateAgreement(agreementBuilderId, validatorPage,
+      {isSubmit}) async {
     if (isDirtyStatus["businessInfoIsDirty"]) {
       await updateBusinessInfo();
     }
     if (isDirtyStatus["ownersIsDirty"]) {
-      await updateOwners();
+      await updateOwners(isSubmit);
     }
     if (isDirtyStatus["settlementTransactIsDirty"]) {
       await updateSettlementTransact();
@@ -974,13 +981,21 @@ class AgreementBuilderState extends State<AgreementBuilder>
     //     fontSize: 16.0);
   }
 
-  Future<void> updateOwners() async {
+  Future<void> updateOwners(isSubmit) async {
     Map ownershipItems = {};
     var i = 2;
     var unorderedOwners = owners;
     owners.sort((a, b) => b["document"]["PrinOwnershipPercent"]
         .compareTo(a["document"]["PrinOwnershipPercent"]));
-    for (var owner in owners) {
+    var ownersInput;
+
+    if (isSubmit == true) {
+      ownersInput = owners;
+    } else {
+      ownersInput = unorderedOwners;
+    }
+
+    for (var owner in ownersInput) {
       var k = i;
       if (owner["document"]["PrinGuarantorCode"] == "1") {
         k = 1;
@@ -990,7 +1005,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
       }
       ownershipItems["Prin${k}Dob"] = owner["document"]["PrinDob"];
       ownershipItems["Prin${k}City"] = owner["document"]["PrinCity"];
-      if (ownershipItems["Prin${k}Phone"] != null) {
+      if (owner["document"]["PrinPhone"] != null) {
         ownershipItems["Prin${k}Phone"] =
             owner["document"]["PrinPhone"].replaceAll(new RegExp('[^0-9]'), '');
       }
@@ -1016,9 +1031,10 @@ class AgreementBuilderState extends State<AgreementBuilder>
       });
       i++;
     }
-    print(owners);
+    // print(owners);
     agreementBuilderObj["document"]["ApplicationInformation"]["Ownership"] =
         ownershipItems;
+
     isDirtyStatus["ownersIsDirty"] = false;
 
     var resp = await this
@@ -1180,10 +1196,10 @@ class AgreementBuilderState extends State<AgreementBuilder>
       currentTab = _tabController.index;
       previousTab = _tabController.previousIndex;
 
-      print("Previous Tab: " +
-          previousTab.toString() +
-          "Current Tab: " +
-          currentTab.toString());
+      // print("Previous Tab: " +
+      //     previousTab.toString() +
+      //     "Current Tab: " +
+      //     currentTab.toString());
 
       if (isDirtyStatus["businessInfoIsDirty"] ||
           isDirtyStatus["ownersIsDirty"] ||
@@ -1194,107 +1210,115 @@ class AgreementBuilderState extends State<AgreementBuilder>
       }
     });
 
-    return WillPopScope(
-      onWillPop: () {
-        leaveCheck();
-        return Future.value(false);
+    return GestureDetector(
+      onTap: () {
+        FocusScopeNode currentFocus = FocusScope.of(context);
+        if (!currentFocus.hasPrimaryFocus) {
+          currentFocus.unfocus();
+        }
       },
-      child: DefaultTabController(
-        length: 5,
-        child: Scaffold(
-          backgroundColor: Color.fromARGB(255, 242, 242, 242),
-          appBar: AppBar(
-              key: Key("agreementBuilderAppBar"),
-              title: Text(isLoading ? "Loading..." : "Agreement Builder"),
-              backgroundColor: Color.fromARGB(255, 21, 27, 38),
-              bottom: TabBar(
-                isScrollable: false,
-                tabs: [
-                  // Tab(
-                  //     icon: Icon(Icons.error_outline, color: Colors.red),
-                  //     text: "Business Info"),
-                  Tab(
-                      text: "Business Info",
-                      icon: isValidated["BusinessInfo"] != null
-                          ? isValidated["BusinessInfo"] == true
-                              ? Icon(Icons.done, color: Colors.green)
-                              : Icon(Icons.error_outline, color: Colors.red)
-                          : null),
-                  Tab(
-                      text: "Owner Info",
-                      icon: isValidated["Ownership"] != null
-                          ? isValidated["Ownership"] == true
-                              ? Icon(Icons.done, color: Colors.green)
-                              : Icon(Icons.error_outline, color: Colors.red)
-                          : null),
-                  Tab(
-                      text: "Settlement/Transaction",
-                      icon: isValidated["SettlementTransact"] != null
-                          ? isValidated["SettlementTransact"] == true
-                              ? Icon(Icons.done, color: Colors.green)
-                              : Icon(Icons.error_outline, color: Colors.red)
-                          : null),
-                  Tab(
-                      text: "Documents",
-                      icon: isValidated["Documents"] != null
-                          ? isValidated["Documents"] == true
-                              ? Icon(Icons.done, color: Colors.green)
-                              : Icon(Icons.error_outline, color: Colors.red)
-                          : null),
-                  Tab(
-                      text: "Pricing",
-                      icon: rateReview != null
-                          ? Icon(Icons.done, color: Colors.green)
-                          : Icon(Icons.timer, color: Colors.amber))
-                ],
-                controller: _tabController,
-              )),
-          body: isLoading
-              ? CenteredClearLoadingScreen()
-              : TabBarView(controller: _tabController, children: [
-                  BusinessInfo(
-                      isDirtyStatus: isDirtyStatus,
-                      controllers: businessPageControllers,
-                      agreementDoc: agreementDocument,
-                      formKey: _formKeys[0],
-                      validationErrors: validationErrors),
-                  OwnerInfo(
-                      isDirtyStatus: isDirtyStatus,
-                      owners: owners,
-                      controllers: _ownershipControllers,
-                      lead: this.widget.leadId,
-                      formKey: _formKeys[1],
-                      validationErrors: validationErrors),
-                  // Container(
-                  //   padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
-                  //   child: SingleChildScrollView(
-                  //     child: Column(
-                  //       crossAxisAlignment: CrossAxisAlignment.stretch,
-                  //       children: <Widget>[
-                  SettlementTransact(
-                      isDirtyStatus: isDirtyStatus,
-                      controllers: settlementTransactPageControllers,
-                      agreementDoc: agreementDocument,
-                      formKey: _formKeys[2]),
-                  //       ],
-                  //     ),
-                  //   ),
-                  // ),
-                  Documents(
-                      files: files,
-                      isDirtyStatus: isDirtyStatus,
-                      fileStatus: docsAttached),
-                  Pricing(
-                    rateReview: rateReview,
-                  )
-                ]),
-          floatingActionButton: FloatingActionButton(
-            onPressed: () async {
-              updateAgreement(
-                  agreementBuilderObj["agreement_builder"], currentTab);
-            },
-            backgroundColor: Color.fromARGB(500, 1, 224, 143),
-            child: Icon(Icons.save),
+      child: WillPopScope(
+        onWillPop: () {
+          leaveCheck();
+          return Future.value(false);
+        },
+        child: DefaultTabController(
+          length: 5,
+          child: Scaffold(
+            backgroundColor: Color.fromARGB(255, 242, 242, 242),
+            appBar: AppBar(
+                key: Key("agreementBuilderAppBar"),
+                title: Text(isLoading ? "Loading..." : "Agreement Builder"),
+                backgroundColor: Color.fromARGB(255, 21, 27, 38),
+                bottom: TabBar(
+                  isScrollable: true,
+                  tabs: [
+                    // Tab(
+                    //     icon: Icon(Icons.error_outline, color: Colors.red),
+                    //     text: "Business Info"),
+                    Tab(
+                        text: "Business Info",
+                        icon: isValidated["BusinessInfo"] != null
+                            ? isValidated["BusinessInfo"] == true
+                                ? Icon(Icons.done, color: Colors.green)
+                                : Icon(Icons.error_outline, color: Colors.red)
+                            : null),
+                    Tab(
+                        text: "Owner Info",
+                        icon: isValidated["Ownership"] != null
+                            ? isValidated["Ownership"] == true
+                                ? Icon(Icons.done, color: Colors.green)
+                                : Icon(Icons.error_outline, color: Colors.red)
+                            : null),
+                    Tab(
+                        text: "Settlement/Transaction",
+                        icon: isValidated["SettlementTransact"] != null
+                            ? isValidated["SettlementTransact"] == true
+                                ? Icon(Icons.done, color: Colors.green)
+                                : Icon(Icons.error_outline, color: Colors.red)
+                            : null),
+                    Tab(
+                        text: "Documents",
+                        icon: isValidated["Documents"] != null
+                            ? isValidated["Documents"] == true
+                                ? Icon(Icons.done, color: Colors.green)
+                                : Icon(Icons.error_outline, color: Colors.red)
+                            : null),
+                    Tab(
+                        text: "Pricing",
+                        icon: rateReview != null
+                            ? Icon(Icons.done, color: Colors.green)
+                            : Icon(Icons.timer, color: Colors.amber))
+                  ],
+                  controller: _tabController,
+                )),
+            body: isLoading
+                ? CenteredClearLoadingScreen()
+                : TabBarView(controller: _tabController, children: [
+                    BusinessInfo(
+                        isDirtyStatus: isDirtyStatus,
+                        controllers: businessPageControllers,
+                        agreementDoc: agreementDocument,
+                        formKey: _formKeys[0],
+                        validationErrors: validationErrors),
+                    OwnerInfo(
+                        isDirtyStatus: isDirtyStatus,
+                        owners: owners,
+                        controllers: _ownershipControllers,
+                        lead: this.widget.leadId,
+                        formKey: _formKeys[1],
+                        validationErrors: validationErrors),
+                    // Container(
+                    //   padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
+                    //   child: SingleChildScrollView(
+                    //     child: Column(
+                    //       crossAxisAlignment: CrossAxisAlignment.stretch,
+                    //       children: <Widget>[
+                    SettlementTransact(
+                        isDirtyStatus: isDirtyStatus,
+                        controllers: settlementTransactPageControllers,
+                        agreementDoc: agreementDocument,
+                        formKey: _formKeys[2]),
+                    //       ],
+                    //     ),
+                    //   ),
+                    // ),
+                    Documents(
+                        files: files,
+                        isDirtyStatus: isDirtyStatus,
+                        fileStatus: docsAttached),
+                    Pricing(
+                      rateReview: rateReview,
+                    )
+                  ]),
+            floatingActionButton: FloatingActionButton(
+              onPressed: () async {
+                updateAgreement(
+                    agreementBuilderObj["agreement_builder"], currentTab);
+              },
+              backgroundColor: Color.fromARGB(500, 1, 224, 143),
+              child: Icon(Icons.save),
+            ),
           ),
         ),
       ),

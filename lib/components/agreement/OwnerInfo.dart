@@ -174,6 +174,29 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
     }
   }
 
+  String validateSsnRow(newVal, errorLocation, errorName, {message}) {
+    if (this.widget.validationErrors != null) {
+      if (this.widget.validationErrors["$errorLocation"] != null) {
+        if (this.widget.validationErrors["$errorLocation"]["$errorName"] !=
+            null) {
+          return this
+              .widget
+              .validationErrors["$errorLocation"]["$errorName"]
+              .toString();
+        }
+      }
+    }
+    if (newVal.isEmpty) {
+      return message != null ? message : "Required";
+    } else if (newVal.length < 9) {
+      return "SSN is too Short";
+    } else if (newVal.length > 9 && newVal.length < 11) {
+      return "SSN is too Long";
+    } else {
+      return null;
+    }
+  }
+
   Future<void> deleteCheck(ownerId, index) async {
     return showDialog<void>(
       context: context,
@@ -256,7 +279,13 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
       var ssnMask;
       if (owner["document"]["PrinSsn"] != null) {
         if (owner["document"]["PrinSsn"].length < 11) {
-          ssnMask = "000000000";
+          setState(() {
+            ssnMask = "000000000";
+          });
+        } else {
+          setState(() {
+            ssnMask = null;
+          });
         }
       }
 
@@ -278,7 +307,7 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
                 object: "PrinFirstName",
                 index: index,
                 validator: (newValue) => validateRow(
-                    newValue, "Ownership", "Prin${owner["number"]}FirstName")),
+                    newValue, "Ownership", "Prin${iterateLoc}FirstName")),
             editObjectRow("Last Name", owner["document"]["PrinLastName"],
                 this.widget.controllers["Prin${iterateLoc}LastName"],
                 object: "PrinLastName",
@@ -310,9 +339,9 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
                 mask: "00/00/0000",
                 object: "PrinDob",
                 index: index,
-                validator: (newValue) => validateRow(
-                    newValue, "Ownership", "Prin${owner["number"]}FirstName")),
-            editObjectRow(
+                validator: (newValue) =>
+                    validateRow(newValue, "Ownership", "Prin${iterateLoc}Dob")),
+            editObjectSsnRow(
                 "Social Security Number",
                 owner["document"]["PrinSsn"],
                 this.widget.controllers["Prin${iterateLoc}Ssn"],
@@ -320,8 +349,8 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
                 object: "PrinSsn",
                 index: index,
                 mask: ssnMask,
-                validator: (newValue) => validateRow(
-                    newValue, "Ownership", "Prin${owner["number"]}Ssn")),
+                validator: (newValue) => validateSsnRow(
+                    newValue, "Ownership", "Prin${iterateLoc}Ssn")),
             editObjectRow(
                 "Ownership Percent",
                 owner["document"]["PrinOwnershipPercent"],
@@ -480,6 +509,75 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
                   setState(() {
                     this.widget.isDirtyStatus["ownersIsDirty"] = true;
                     this.widget.owners[index]["document"][object] = newValue;
+                  });
+                },
+                controller: controller,
+                validator: isValidating ? validator : null,
+                obscureText: isObscure,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget editObjectSsnRow(label, value, controller,
+      {object, index, mask, validator, obscure}) {
+    if (mask != null) {
+      controller.updateMask(mask);
+    }
+    if (mask == null) {
+      controller.updateMask(
+          "************************************************************");
+    }
+    bool isValidating = false;
+    bool isObscure = false;
+    if (validator != null) {
+      setState(() {
+        isValidating = true;
+      });
+    }
+    if (obscure != null) {
+      setState(() {
+        isObscure = obscure;
+      });
+    }
+
+    if (value != null) {
+      controller.text = value;
+    }
+
+    var valueFmt = value ?? "N/A";
+
+    if (valueFmt == "") {
+      valueFmt = "N/A";
+    }
+
+    return Container(
+      child: Padding(
+        padding: EdgeInsets.all(15),
+        child: Row(
+          children: <Widget>[
+            Expanded(
+              flex: 4,
+              child: Text(
+                '$label: ',
+                style: TextStyle(fontSize: 16),
+              ),
+            ),
+            Expanded(
+              flex: 8,
+              child: TextFormField(
+                onChanged: (newValue) {
+                  setState(() {
+                    this.widget.isDirtyStatus["ownersIsDirty"] = true;
+                    if (newValue.length <= 9) {
+                      this.widget.owners[index]["document"][object] = newValue;
+                    }
+                    if (newValue.length > 9) {
+                      this.widget.owners[index]["document"][object] = "";
+                    }
                   });
                 },
                 controller: controller,
