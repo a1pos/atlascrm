@@ -11,13 +11,15 @@ class SettlementTransact extends StatefulWidget {
   final agreementDoc;
   final GlobalKey formKey;
   final Map validationErrors;
+  final Map seasonalMerchant;
 
   SettlementTransact(
       {this.controllers,
       this.agreementDoc,
       this.isDirtyStatus,
       this.formKey,
-      this.validationErrors});
+      this.validationErrors,
+      this.seasonalMerchant});
 
   @override
   SettlementTransactState createState() => SettlementTransactState();
@@ -47,6 +49,7 @@ class SettlementTransactState extends State<SettlementTransact>
   List owners;
   Map testOwner;
   Map emptyOwner;
+  // bool seasonalMerchant = false;
   List<Widget> displayList;
   var accTypes = [
     {"value": "1", "name": "DDA"},
@@ -74,6 +77,30 @@ class SettlementTransactState extends State<SettlementTransact>
   final settlementKey = GlobalKey<FormState>();
   void initState() {
     super.initState();
+    seasonalCheck();
+  }
+
+  Future<void> seasonalCheck() async {
+    if (this.widget.controllers["transaction"]["SeasonalMerchant"].text ==
+        "1") {
+      setState(() {
+        this.widget.seasonalMerchant["seasonalMerchant"] = true;
+      });
+    }
+  }
+
+  Future<void> seasonalSwap(val) async {
+    if (val == "1") {
+      setState(() {
+        this.widget.seasonalMerchant["seasonalMerchant"] = true;
+      });
+    } else if (val == "0") {
+      setState(() {
+        this.widget.seasonalMerchant["seasonalMerchant"] = false;
+        this.widget.controllers["transaction"]["SeasonalTo"].text = null;
+        this.widget.controllers["transaction"]["SeasonalFrom"].text = null;
+      });
+    }
   }
 
   String validateRow(newVal, errorLocation, errorName, {message}) {
@@ -124,7 +151,6 @@ class SettlementTransactState extends State<SettlementTransact>
             ? this.widget.controllers["transaction"]["CcPercentTo"].text
             : "0");
     var currentTotal = valPos + valInet + valMo + valTo;
-    print(currentTotal);
     if (currentTotal != 100) {
       return "Values must add up to 100";
     } else {
@@ -163,13 +189,9 @@ class SettlementTransactState extends State<SettlementTransact>
                                 .controllers["settlement"]["DepositBankName"]
                                 .text,
                             this.widget.controllers["settlement"]
-                                ["DepositBankName"], validator: (newVal) {
-                          if (newVal.isEmpty) {
-                            return "Required";
-                          } else {
-                            return null;
-                          }
-                        }),
+                                ["DepositBankName"],
+                            validator: (newVal) => validateRow(
+                                newVal, "Settlement", "DepositBankName")),
                         getInfoDropdown(
                             "Account Type",
                             this
@@ -193,13 +215,9 @@ class SettlementTransactState extends State<SettlementTransact>
                                 .text,
                             this.widget.controllers["settlement"]
                                 ["TransitABANumber"],
-                            mask: '000000000', validator: (newVal) {
-                          if (newVal.isEmpty) {
-                            return "Required";
-                          } else {
-                            return null;
-                          }
-                        }),
+                            mask: '000000000',
+                            validator: (newVal) => validateRow(
+                                newVal, "Settlement", "TransitABANumber")),
                         getInfoRow(
                             "Deposit Account Number",
                             this
@@ -346,14 +364,10 @@ class SettlementTransactState extends State<SettlementTransact>
                             this.widget.controllers["transaction"]
                                 ["SeasonalFrom"],
                             seasonalMonths,
-                            disabled: this
-                                        .widget
-                                        .controllers["transaction"]
-                                            ["SeasonalMerchant"]
-                                        .text ==
-                                    "1"
-                                ? false
-                                : true, validator: (newVal) {
+                            disabled: !this
+                                .widget
+                                .seasonalMerchant["seasonalMerchant"],
+                            validator: (newVal) {
                           if (this
                                   .widget
                                   .controllers["transaction"]
@@ -378,14 +392,10 @@ class SettlementTransactState extends State<SettlementTransact>
                             this.widget.controllers["transaction"]
                                 ["SeasonalTo"],
                             seasonalMonths,
-                            disabled: this
-                                        .widget
-                                        .controllers["transaction"]
-                                            ["SeasonalMerchant"]
-                                        .text ==
-                                    "1"
-                                ? false
-                                : true, validator: (newVal) {
+                            disabled: !this
+                                .widget
+                                .seasonalMerchant["seasonalMerchant"],
+                            validator: (newVal) {
                           if (this
                                   .widget
                                   .controllers["transaction"]
@@ -501,14 +511,21 @@ class SettlementTransactState extends State<SettlementTransact>
   }
 
   Widget getInfoDropdown(label, value, controller, dropList,
-      {validator, bool disabled}) {
+      {validator, bool disabled, bool isSeasonal}) {
     var _currentVal;
     _currentVal = null;
     bool dropDisabled = false;
+    bool seasonalMerch = false;
+    if (isSeasonal ?? true) {
+      seasonalMerch = true;
+    }
+
     if (disabled != null) {
-      dropDisabled = disabled;
-      controller.text = "";
-      value = null;
+      if (disabled == true) {
+        dropDisabled = disabled;
+        controller.text = "";
+        value = null;
+      }
     }
 
     if (value != null && value != "") {
@@ -551,6 +568,9 @@ class SettlementTransactState extends State<SettlementTransact>
                         setState(() {
                           controller.text = newValue;
                         });
+                        if (seasonalMerch) {
+                          seasonalSwap(newValue);
+                        }
                       },
               ),
             ),

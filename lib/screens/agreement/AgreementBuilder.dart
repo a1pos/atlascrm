@@ -1,13 +1,9 @@
 import 'dart:async';
 import 'dart:developer';
-import 'dart:io';
 import 'package:atlascrm/components/agreement/Pricing.dart';
 import 'package:atlascrm/services/UserService.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:xml/xml.dart';
 import 'package:atlascrm/components/agreement/Documents.dart';
 import 'package:atlascrm/components/agreement/OwnerInfo.dart';
-import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
@@ -257,7 +253,7 @@ final List transactionControllerNames = [
 //   //         "xsi:nil"
 //   //     }
 //   // },
-//   //TODO FIGURE OUT NESTED CONTROLLER SHIT
+//   //TODO FIGURE OUT NESTED CONTROLLERS
 //   "MCCreditFeeClass",
 //   "AffnVolumePercent",
 //   "Cu24VolumePercent",
@@ -321,6 +317,10 @@ class AgreementBuilderState extends State<AgreementBuilder>
   List<Widget> displayList;
   var validationErrors;
   Map isValidated = {};
+  var agreementBuilderStatus;
+  bool allStepsComplete = false;
+  bool pricingDone = false;
+  Map seasonalMerchant = {"seasonalMerchant": false};
 
   List<GlobalKey<FormState>> _formKeys = [
     GlobalKey<FormState>(),
@@ -401,18 +401,18 @@ class AgreementBuilderState extends State<AgreementBuilder>
           value: (i) =>
               MaskedTextController(mask: "******************************"));
 
-  // final Map<String, MaskedTextController> _entitlementControllers =
-  //     Map.fromIterable(entitlementControllerNames,
-  //         key: (i) => i,
-  //         value: (i) =>
-  //             MaskedTextController(mask: "******************************"));
-
   final Map<String, MaskedTextController> _settlementControllers =
       Map.fromIterable(
           settlementControllerNames,
           key: (i) => i,
           value: (i) =>
               MaskedTextController(mask: "******************************"));
+
+  // final Map<String, MaskedTextController> _entitlementControllers =
+  //     Map.fromIterable(entitlementControllerNames,
+  //         key: (i) => i,
+  //         value: (i) =>
+  //             MaskedTextController(mask: "******************************"));
 
   // final Map<String, MaskedTextController> _otherFeesControllers =
   //     Map.fromIterable(otherFeesControllerNames,
@@ -448,6 +448,71 @@ class AgreementBuilderState extends State<AgreementBuilder>
           leadDocument = bodyDecoded["document"];
         });
       }
+    }
+  }
+
+  Future<void> loadAgreementStatus(leadId) async {
+    var resp = await this
+        .widget
+        .apiService
+        .authGet(context, "/agreementstatus/lead/" + this.widget.leadId);
+
+    if (resp.statusCode == 200) {
+      if (resp.data['agreement_status'] == null) {
+        var resp3 = await this.widget.apiService.authPost(
+            context,
+            "/agreementstatus/" +
+                "/lead/" +
+                this.widget.leadId +
+                "/employee/" +
+                UserService.employee.employee,
+            null);
+        if (resp3 != null) {
+          if (resp3.statusCode == 200) {
+            Fluttertoast.showToast(
+                msg: "Agreement Status Created!",
+                toastLength: Toast.LENGTH_SHORT,
+                gravity: ToastGravity.BOTTOM,
+                backgroundColor: Colors.grey[600],
+                textColor: Colors.white,
+                fontSize: 16.0);
+          }
+        } else {
+          throw new Error();
+        }
+      } else {
+        agreementBuilderStatus = resp.data;
+        if (agreementBuilderStatus["pricing"] != null) {
+          if (agreementBuilderStatus["pricing"] == true) {
+            setState(() {
+              pricingDone = true;
+            });
+          }
+        }
+        if (agreementBuilderStatus["w9"] != null &&
+            agreementBuilderStatus["voided_check"] != null &&
+            agreementBuilderStatus["valid_application"] != null &&
+            agreementBuilderStatus["rate_review"] != null &&
+            agreementBuilderStatus["pricing"] != null) {
+          if (agreementBuilderStatus["w9"] &&
+              agreementBuilderStatus["voided_check"] &&
+              agreementBuilderStatus["valid_application"] &&
+              agreementBuilderStatus["rate_review"] &&
+              agreementBuilderStatus["pricing"]) {
+            setState(() {
+              allStepsComplete = true;
+            });
+          }
+        }
+      }
+    } else {
+      Fluttertoast.showToast(
+          msg: "Failed to Load Status!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0);
     }
   }
 
@@ -612,6 +677,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
 
   Future<void> loadAgreementData(leadId) async {
     initStatusObjects();
+    await loadAgreementStatus(this.widget.leadId);
 
     var resp = await this
         .widget
@@ -628,14 +694,12 @@ class AgreementBuilderState extends State<AgreementBuilder>
         });
         await loadControllers();
         await loadDocuments(agreementBuilderObj["agreement_builder"]);
+
         setState(() {
           isLoading = false;
         });
       } else {
-        generateAgreement();
-        // setState(() {
-        //   isLoading = false;
-        // });
+        await generateAgreement();
       }
     }
   }
@@ -664,11 +728,21 @@ class AgreementBuilderState extends State<AgreementBuilder>
   }
 
   Future<void> overallValidate(errorObj, page) async {
-    if (errorObj["Ownership"]["Prin1Ssn"] == "Too Long") {
-      errorObj["Ownership"].remove('Prin1Ssn');
+    if (errorObj["Ownership"] != null) {
+      if (errorObj["Ownership"]["Prin1Ssn"] == "Too Long") {
+        errorObj["Ownership"].remove('Prin1Ssn');
+      }
+      if (errorObj["Ownership"]["Prin2Ssn"] == "Too Long") {
+        errorObj["Ownership"].remove('Prin2Ssn');
+      }
     }
-    if (errorObj["Ownership"]["Prin2Ssn"] == "Too Long") {
-      errorObj["Ownership"].remove('Prin2Ssn');
+    if (errorObj["Transaction"] != null) {
+      if (seasonalMerchant["seasonalMerchant"] == false &&
+          errorObj["Transaction"]["SeasonalFrom"] != null &&
+          errorObj["Transaction"]["SeasonalTo"] != null) {
+        errorObj["Transaction"].remove('SeasonalFrom');
+        errorObj["Transaction"].remove('SeasonalTo');
+      }
     }
     // if (page == 0) {
     if (errorObj["BusinessInfo"] == null &&
@@ -687,7 +761,9 @@ class AgreementBuilderState extends State<AgreementBuilder>
       isValidated["Ownership"] = false;
     }
     // } else if (page == 2) {
-    if (errorObj["Settlement"] == null && errorObj["Transaction"] == null) {
+    if (errorObj["Settlement"] == null &&
+        (errorObj["Transaction"] == null ||
+            errorObj["Transaction"].length == 0)) {
       isValidated["SettlementTransact"] = true;
     } else {
       isValidated["SettlementTransact"] = false;
@@ -700,6 +776,61 @@ class AgreementBuilderState extends State<AgreementBuilder>
       isValidated["Documents"] = false;
     }
     // }
+    if (isValidated["BusinessInfo"] == true &&
+        isValidated["Ownership"] == true &&
+        isValidated["SettlementTransact"] == true &&
+        isValidated["Documents"] == true) {
+      var resp = await this.widget.apiService.authPut(
+          context,
+          "/agreementstatus/lead/${this.widget.leadId}/employee/${UserService.employee.employee}",
+          [
+            {"valid_application": true}
+          ]);
+
+      if (resp.statusCode == 200) {
+        Fluttertoast.showToast(
+            msg: "Valid Application!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0);
+      } else {
+        Fluttertoast.showToast(
+            msg: "Failed Validate!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0);
+      }
+    } else {
+      var resp = await this.widget.apiService.authPut(
+          context,
+          "/agreementstatus/lead/${this.widget.leadId}/employee/${UserService.employee.employee}",
+          [
+            {"valid_application": false}
+          ]);
+
+      if (resp.statusCode == 200) {
+        Fluttertoast.showToast(
+            msg: "Incomplete Application!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0);
+      } else {
+        Fluttertoast.showToast(
+            msg: "Failed Validate!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0);
+      }
+    }
+    loadAgreementStatus(this.widget.leadId);
   }
 
   Future<void> generateAgreement() async {
@@ -816,27 +947,27 @@ class AgreementBuilderState extends State<AgreementBuilder>
       throw new Error();
     }
 
-    var resp3 = await this.widget.apiService.authPost(
-        context,
-        "/agreementstatus/" +
-            "/lead/" +
-            this.widget.leadId +
-            "/employee/" +
-            UserService.employee.employee,
-        null);
-    if (resp3 != null) {
-      if (resp3.statusCode == 200) {
-        Fluttertoast.showToast(
-            msg: "Agreement Status Created!",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.grey[600],
-            textColor: Colors.white,
-            fontSize: 16.0);
-      }
-    } else {
-      throw new Error();
-    }
+    // var resp3 = await this.widget.apiService.authPost(
+    //     context,
+    //     "/agreementstatus/" +
+    //         "/lead/" +
+    //         this.widget.leadId +
+    //         "/employee/" +
+    //         UserService.employee.employee,
+    //     null);
+    // if (resp3 != null) {
+    //   if (resp3.statusCode == 200) {
+    //     Fluttertoast.showToast(
+    //         msg: "Agreement Status Created!",
+    //         toastLength: Toast.LENGTH_SHORT,
+    //         gravity: ToastGravity.BOTTOM,
+    //         backgroundColor: Colors.grey[600],
+    //         textColor: Colors.white,
+    //         fontSize: 16.0);
+    //   }
+    // } else {
+    //   throw new Error();
+    // }
 
     loadAgreementData(this.widget.leadId);
   }
@@ -880,14 +1011,9 @@ class AgreementBuilderState extends State<AgreementBuilder>
           fontSize: 16.0);
     }
     await validatePayload(agreementBuilderObj["document"], validatorPage);
-    // await validatePayload(agreementBuilderObj["document"], validatorPage);
 
     print("validate errors:");
     print(validationErrors);
-
-    // if (currentTab < 3) {
-    //   _formKeys[currentTab].currentState.validate();
-    // }
   }
 
   Future<void> updateBusinessInfo() async {
@@ -972,13 +1098,6 @@ class AgreementBuilderState extends State<AgreementBuilder>
     });
 
     isDirtyStatus["businessInfoIsDirty"] = false;
-    // Fluttertoast.showToast(
-    //     msg: "Business Info!",
-    //     toastLength: Toast.LENGTH_SHORT,
-    //     gravity: ToastGravity.BOTTOM,
-    //     backgroundColor: Colors.grey[600],
-    //     textColor: Colors.white,
-    //     fontSize: 16.0);
   }
 
   Future<void> updateOwners(isSubmit) async {
@@ -1031,7 +1150,6 @@ class AgreementBuilderState extends State<AgreementBuilder>
       });
       i++;
     }
-    // print(owners);
     agreementBuilderObj["document"]["ApplicationInformation"]["Ownership"] =
         ownershipItems;
 
@@ -1044,13 +1162,6 @@ class AgreementBuilderState extends State<AgreementBuilder>
 
     if (resp.statusCode == 200) {
       loadOwnersData(this.widget.leadId);
-      // Fluttertoast.showToast(
-      //     msg: "Owners Saved!",
-      //     toastLength: Toast.LENGTH_SHORT,
-      //     gravity: ToastGravity.BOTTOM,
-      //     backgroundColor: Colors.grey[600],
-      //     textColor: Colors.white,
-      //     fontSize: 16.0);
     } else {
       Fluttertoast.showToast(
           msg: "Failed to Save Owners!",
@@ -1079,14 +1190,6 @@ class AgreementBuilderState extends State<AgreementBuilder>
           docsAttached["voidedCheck"] = true;
         });
       }
-
-      // Fluttertoast.showToast(
-      //     msg: "Documents Loaded",
-      //     toastLength: Toast.LENGTH_SHORT,
-      //     gravity: ToastGravity.BOTTOM,
-      //     backgroundColor: Colors.grey[600],
-      //     textColor: Colors.white,
-      //     fontSize: 16.0);
     } else {
       Fluttertoast.showToast(
           msg: "Failed to Load Documents!",
@@ -1136,15 +1239,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
             UserService.employee.employee +
             "/document",
         data);
-    if (resp.statusCode == 200) {
-      // Fluttertoast.showToast(
-      //     msg: "Documents Saved!",
-      //     toastLength: Toast.LENGTH_SHORT,
-      //     gravity: ToastGravity.BOTTOM,
-      //     backgroundColor: Colors.grey[600],
-      //     textColor: Colors.white,
-      //     fontSize: 16.0);
-    } else {
+    if (resp.statusCode != 200) {
       Fluttertoast.showToast(
           msg: "Failed to Save Documents!",
           toastLength: Toast.LENGTH_SHORT,
@@ -1196,11 +1291,6 @@ class AgreementBuilderState extends State<AgreementBuilder>
       currentTab = _tabController.index;
       previousTab = _tabController.previousIndex;
 
-      // print("Previous Tab: " +
-      //     previousTab.toString() +
-      //     "Current Tab: " +
-      //     currentTab.toString());
-
       if (isDirtyStatus["businessInfoIsDirty"] ||
           isDirtyStatus["ownersIsDirty"] ||
           isDirtyStatus["settlementTransactIsDirty"] ||
@@ -1233,9 +1323,6 @@ class AgreementBuilderState extends State<AgreementBuilder>
                 bottom: TabBar(
                   isScrollable: true,
                   tabs: [
-                    // Tab(
-                    //     icon: Icon(Icons.error_outline, color: Colors.red),
-                    //     text: "Business Info"),
                     Tab(
                         text: "Business Info",
                         icon: isValidated["BusinessInfo"] != null
@@ -1266,7 +1353,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
                             : null),
                     Tab(
                         text: "Pricing",
-                        icon: rateReview != null
+                        icon: pricingDone == true
                             ? Icon(Icons.done, color: Colors.green)
                             : Icon(Icons.timer, color: Colors.amber))
                   ],
@@ -1288,27 +1375,22 @@ class AgreementBuilderState extends State<AgreementBuilder>
                         lead: this.widget.leadId,
                         formKey: _formKeys[1],
                         validationErrors: validationErrors),
-                    // Container(
-                    //   padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
-                    //   child: SingleChildScrollView(
-                    //     child: Column(
-                    //       crossAxisAlignment: CrossAxisAlignment.stretch,
-                    //       children: <Widget>[
                     SettlementTransact(
-                        isDirtyStatus: isDirtyStatus,
-                        controllers: settlementTransactPageControllers,
-                        agreementDoc: agreementDocument,
-                        formKey: _formKeys[2]),
-                    //       ],
-                    //     ),
-                    //   ),
-                    // ),
+                      isDirtyStatus: isDirtyStatus,
+                      controllers: settlementTransactPageControllers,
+                      agreementDoc: agreementDocument,
+                      formKey: _formKeys[2],
+                      validationErrors: validationErrors,
+                      seasonalMerchant: seasonalMerchant,
+                    ),
                     Documents(
                         files: files,
                         isDirtyStatus: isDirtyStatus,
                         fileStatus: docsAttached),
                     Pricing(
+                      finalValidation: allStepsComplete,
                       rateReview: rateReview,
+                      pricingDone: pricingDone,
                     )
                   ]),
             floatingActionButton: FloatingActionButton(

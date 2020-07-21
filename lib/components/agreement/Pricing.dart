@@ -12,8 +12,9 @@ class Pricing extends StatefulWidget {
 
   final bool finalValidation;
   final Map rateReview;
+  final bool pricingDone;
 
-  Pricing({this.finalValidation, this.rateReview});
+  Pricing({this.finalValidation, this.rateReview, this.pricingDone});
 
   @override
   PricingState createState() => PricingState();
@@ -43,7 +44,7 @@ class PricingState extends State<Pricing> {
   Widget build(BuildContext context) {
     var rateReviewType;
     var rateReviewSummary;
-    if (this.widget.rateReview != null) {
+    if (this.widget.rateReview != null && this.widget.pricingDone == true) {
       rateReviewType = this.widget.rateReview["document"]["type"];
       rateReviewSummary = this.widget.rateReview["document"]["summaryPayload"];
       var x = num.parse(rateReviewSummary["monthlySavings"]);

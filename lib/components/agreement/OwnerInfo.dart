@@ -269,7 +269,18 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
     }
   }
 
-  Future<void> setGuarantor() async {}
+  Future<void> setGuarantor(val) async {
+    if (val == "1") {
+      setState(() {
+        guarantorSet = true;
+      });
+    } else if (val == "0") {
+      setState(() {
+        guarantorSet = false;
+      });
+    }
+  }
+
   Widget buildDLGridView() {
     return Column(
         // shrinkWrap: true,
@@ -287,6 +298,12 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
             ssnMask = null;
           });
         }
+      }
+
+      if (owner["document"]["PrinGuarantorCode"] == "1") {
+        setState(() {
+          guarantorSet = true;
+        });
       }
 
       return Card(
@@ -326,10 +343,12 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
                 owner["document"]["PrinGuarantorCode"], yesNoOptions,
                 object: "PrinGuarantorCode",
                 index: index,
-                setObj: guarantorSet,
+                disabled: guarantorSet &&
+                    owner["document"]["PrinGuarantorCode"] != "1",
+                guarantor: true,
                 setVal: "1", validator: (newValue) {
               if (newValue == null) {
-                return "Required";
+                return "One Guarantor Required";
               } else {
                 return null;
               }
@@ -654,9 +673,17 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
   }
 
   Widget editObjectDropdown(label, value, dropList,
-      {object, index, setObj, setVal, validator}) {
+      {object, index, setVal, validator, disabled, guarantor}) {
     var _currentVal;
     _currentVal = null;
+    bool isGuarantor = false;
+    bool isDisabled = false;
+    if (guarantor != null && guarantor == true) {
+      isGuarantor = guarantor;
+    }
+    if (disabled != null && disabled == true) {
+      isDisabled = disabled;
+    }
 
     if (value != null && value != "") {
       this.widget.owners[index]["document"][object] = value;
@@ -692,21 +719,18 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
                     ),
                   );
                 }).toList(),
-                onChanged: (newValue) {
-                  setState(() {
-                    this.widget.isDirtyStatus["ownersIsDirty"] = true;
-                    this.widget.owners[index]["document"][object] = newValue;
-
-                    if (setObj != null && setVal != null) {
-                      if (newValue == setVal) {
-                        setObj = true;
-                      } else {
-                        setObj = false;
-                      }
-                      print(setObj);
-                    }
-                  });
-                },
+                onChanged: isDisabled
+                    ? null
+                    : (newValue) {
+                        setState(() {
+                          this.widget.isDirtyStatus["ownersIsDirty"] = true;
+                          this.widget.owners[index]["document"][object] =
+                              newValue;
+                        });
+                        if (isGuarantor) {
+                          setGuarantor(newValue);
+                        }
+                      },
               ),
             ),
           ],
