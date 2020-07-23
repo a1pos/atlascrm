@@ -1,12 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-
+import 'package:http_parser/http_parser.dart';
 import 'package:atlascrm/config/ConfigSettings.dart';
 
 import 'package:atlascrm/services/StorageService.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/widgets.dart';
+import 'package:image/image.dart';
 import 'UserService.dart';
 
 class ApiService {
@@ -158,8 +159,26 @@ class ApiService {
       Map<String, dynamic> dataMap = {};
       var i = 1;
       for (var fPath in filePaths) {
+        var type = "application";
+        var subType = "octet-stream";
+        if (fPath.contains(".jpg") ||
+            fPath.contains(".jpeg") ||
+            fPath.contains(".JPG") ||
+            fPath.contains(".JPEG")) {
+          type = "image";
+          subType = "jpeg";
+        }
+        if (fPath.contains(".png") || fPath.contains(".PNG")) {
+          type = "image";
+          subType = "png";
+        }
+        if (fPath.contains(".pdf") || fPath.contains(".PDF")) {
+          type = "application";
+          subType = "pdf";
+        }
         if (fPath != "") {
-          dataMap["file$i"] = MultipartFile.fromFileSync(fPath);
+          dataMap["file$i"] = MultipartFile.fromFileSync(fPath,
+              contentType: MediaType(type, subType));
         } else {
           dataMap["file$i"] = "undefined";
         }

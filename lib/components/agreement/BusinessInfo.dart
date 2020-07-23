@@ -132,8 +132,8 @@ class BusinessInfoState extends State<BusinessInfo>
   var retrievalFaxRpt = [
     {"value": "4", "name": "3 - Mail Merchant"},
     {"value": "6", "name": "5 - Dispute Manager"},
-    {"value": "7", "name": "7 - Dispute Manager and Fax"},
-    {"value": "8", "name": "8 - Dispute Manager and Mail"}
+    {"value": "8", "name": "7 - Dispute Manager and Fax"},
+    {"value": "7", "name": "6 - Dispute Manager and Mail"}
   ];
   var businessTypes = [
     {"value": "1", "name": "Sole Proprietorship"},
@@ -277,7 +277,7 @@ class BusinessInfoState extends State<BusinessInfo>
 
   Future<void> setBusinessAddress(address) async {
     setState(() {
-      this.widget.controllers["businessInfo"]["Address1"].text =
+      this.widget.controllers["businessInfo"]["LocationAddress1"].text =
           address["address"];
 
       this.widget.controllers["businessInfo"]["City"].text = address["city"];
@@ -303,6 +303,42 @@ class BusinessInfoState extends State<BusinessInfo>
     }
     if (newVal.isEmpty) {
       return message != null ? message : "Required";
+    } else {
+      return null;
+    }
+  }
+
+  String validateAddedRows(newVal, errorLocation, errorName, {message}) {
+    if (this.widget.validationErrors != null) {
+      if (this.widget.validationErrors["$errorLocation"] != null) {
+        if (this.widget.validationErrors["$errorLocation"]["$errorName"] !=
+            null) {
+          return this
+              .widget
+              .validationErrors["$errorLocation"]["$errorName"]
+              .toString();
+        }
+      }
+    }
+    var valPos = int.parse(
+        this.widget.controllers["motoBBInet"]["TransDeliveredIn07"].text != ""
+            ? this.widget.controllers["motoBBInet"]["TransDeliveredIn07"].text
+            : "0");
+    var valInet = int.parse(
+        this.widget.controllers["motoBBInet"]["TransDeliveredIn814"].text != ""
+            ? this.widget.controllers["motoBBInet"]["TransDeliveredIn814"].text
+            : "0");
+    var valMo = int.parse(
+        this.widget.controllers["motoBBInet"]["TransDeliveredIn1530"].text != ""
+            ? this.widget.controllers["motoBBInet"]["TransDeliveredIn1530"].text
+            : "0");
+    var valTo = int.parse(
+        this.widget.controllers["motoBBInet"]["TransDeliveredOver30"].text != ""
+            ? this.widget.controllers["motoBBInet"]["TransDeliveredOver30"].text
+            : "0");
+    var currentTotal = valPos + valInet + valMo + valTo;
+    if (currentTotal != 100) {
+      return "Values must add up to 100";
     } else {
       return null;
     }
@@ -532,6 +568,15 @@ class BusinessInfoState extends State<BusinessInfo>
                                     .text = "1";
                                 this
                                     .widget
+                                    .controllers["corporateInfo"]
+                                        ["SendRetRequestTo"]
+                                    .text = "1";
+                                this
+                                    .widget
+                                    .controllers["corporateInfo"]["SendCBTo"]
+                                    .text = "1";
+                                this
+                                    .widget
                                     .controllers["general"]["corpSame"]
                                     .text = val.toString();
                                 print(this
@@ -603,7 +648,7 @@ class BusinessInfoState extends State<BusinessInfo>
                                                     .text
                                             : null,
                                         onAddressChange: (val) {
-                                          setCorpAddress(val);
+                                          setBusinessAddress(val);
                                         }),
                                   ),
                                 ],
@@ -1044,7 +1089,17 @@ class BusinessInfoState extends State<BusinessInfo>
                                 ? true
                                 : false,
                             onChanged: (val) {
+                              var motoValue;
+                              if (val == true) {
+                                motoValue = "1";
+                              } else if (val == false) {
+                                motoValue = "0";
+                              }
                               setState(() {
+                                this
+                                    .widget
+                                    .controllers["motoBBInet"]["MOTO"]
+                                    .text = motoValue;
                                 this
                                     .widget
                                     .controllers["general"]["motoCheck"]
@@ -1074,7 +1129,7 @@ class BusinessInfoState extends State<BusinessInfo>
                                 this.widget.controllers["motoBBInet"]
                                     ["TransDeliveredIn07"],
                                 mask: "000",
-                                validator: (newVal) => validateRow(newVal,
+                                validator: (newVal) => validateAddedRows(newVal,
                                     "MotoBBInet", "TransDeliveredIn07")),
                             getInfoRow(
                                 "% Transaction to Delivery 8-14 Days",
@@ -1086,7 +1141,7 @@ class BusinessInfoState extends State<BusinessInfo>
                                 this.widget.controllers["motoBBInet"]
                                     ["TransDeliveredIn814"],
                                 mask: "000",
-                                validator: (newVal) => validateRow(newVal,
+                                validator: (newVal) => validateAddedRows(newVal,
                                     "MotoBBInet", "TransDeliveredIn814")),
                             getInfoRow(
                                 "% Transaction to Delivery 15-30 Days",
@@ -1098,7 +1153,7 @@ class BusinessInfoState extends State<BusinessInfo>
                                 this.widget.controllers["motoBBInet"]
                                     ["TransDeliveredIn1530"],
                                 mask: "000",
-                                validator: (newVal) => validateRow(newVal,
+                                validator: (newVal) => validateAddedRows(newVal,
                                     "MotoBBInet", "TransDeliveredIn1530")),
                             getInfoRow(
                                 "% Transaction to Delivery +30 Days",
@@ -1110,7 +1165,7 @@ class BusinessInfoState extends State<BusinessInfo>
                                 this.widget.controllers["motoBBInet"]
                                     ["TransDeliveredOver30"],
                                 mask: "000",
-                                validator: (newVal) => validateRow(newVal,
+                                validator: (newVal) => validateAddedRows(newVal,
                                     "MotoBBInet", "TransDeliveredOver30")),
                             getInfoDropdown(
                                 "MC/Visa/Discover Network/Amex Sales Deposits",

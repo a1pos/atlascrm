@@ -13,8 +13,10 @@ class Pricing extends StatefulWidget {
   final bool finalValidation;
   final Map rateReview;
   final bool pricingDone;
+  final Function callback;
 
-  Pricing({this.finalValidation, this.rateReview, this.pricingDone});
+  Pricing(
+      {this.finalValidation, this.rateReview, this.pricingDone, this.callback});
 
   @override
   PricingState createState() => PricingState();
@@ -163,63 +165,94 @@ class PricingState extends State<Pricing> {
                                         "${rateReviewSummary["newFee"]}%")),
                                 TableCell(child: Text('')),
                               ]),
-                              TableRow(children: [
-                                TableCell(
-                                    child: Text('vs/mc/ds',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold))),
-                                TableCell(child: Text('Qual')),
-                                TableCell(
-                                    child: Text(
-                                        "${rateReviewSummary["currentQualCreditRate"]}%")),
-                                TableCell(
-                                  child: Text(
-                                      "${rateReviewSummary["newQualCreditRate"]}%"),
-                                ),
-                                TableCell(
-                                    child: Text(
-                                        "\$${rateReviewSummary["currentQualCreditFee"]}")),
-                                TableCell(
-                                    child: Text(
-                                        "\$${rateReviewSummary["newQualCreditFee"]}")),
-                                TableCell(child: Text('')),
-                              ]),
-                              TableRow(children: [
-                                TableCell(child: Text('')),
-                                TableCell(child: Text('Mid Qual')),
-                                TableCell(
-                                    child: Text(
-                                        "${rateReviewSummary["currentMidCreditRate"]}%")),
-                                TableCell(
-                                  child: Text(
-                                      "${rateReviewSummary["newMidCreditRate"]}%"),
-                                ),
-                                TableCell(
-                                    child: Text(
-                                        "\$${rateReviewSummary["currentMidCreditFee"]}")),
-                                TableCell(
-                                    child: Text(
-                                        "\$${rateReviewSummary["newMidCreditFee"]}")),
-                                TableCell(child: Text('')),
-                              ]),
-                              TableRow(children: [
-                                TableCell(child: Text('')),
-                                TableCell(child: Text('Non Qual')),
-                                TableCell(
-                                    child: Text(
-                                        "${rateReviewSummary["currentNonCreditRate"]}%")),
-                                TableCell(
-                                  child: Text(
-                                      "${rateReviewSummary["newNonCreditRate"]}%"),
-                                ),
-                                TableCell(
-                                    child: Text(
-                                        "\$${rateReviewSummary["currentNonCreditFee"]}")),
-                                TableCell(
-                                    child: Text(
-                                        "\$${rateReviewSummary["newNonCreditFee"]}")),
-                                TableCell(child: Text('')),
-                              ]),
+                              rateReviewType == "tier"
+                                  ? TableRow(children: [
+                                      TableCell(
+                                          child: Text('vs/mc/ds',
+                                              style: TextStyle(
+                                                  fontWeight:
+                                                      FontWeight.bold))),
+                                      TableCell(child: Text('Qual')),
+                                      TableCell(
+                                          child: Text(
+                                              "${rateReviewSummary["currentQualCreditRate"]}%")),
+                                      TableCell(
+                                        child: Text(
+                                            "${rateReviewSummary["newQualCreditRate"]}%"),
+                                      ),
+                                      TableCell(
+                                          child: Text(
+                                              "\$${rateReviewSummary["currentQualCreditFee"]}")),
+                                      TableCell(
+                                          child: Text(
+                                              "\$${rateReviewSummary["newQualCreditFee"]}")),
+                                      TableCell(child: Text('')),
+                                    ])
+                                  : TableRow(children: [
+                                      TableCell(child: Text("")),
+                                      TableCell(child: Text("")),
+                                      TableCell(child: Text("")),
+                                      TableCell(child: Text("")),
+                                      TableCell(child: Text("")),
+                                      TableCell(child: Text("")),
+                                      TableCell(child: Text("")),
+                                    ]),
+                              rateReviewType == "tier"
+                                  ? TableRow(children: [
+                                      TableCell(child: Text('')),
+                                      TableCell(child: Text('Mid Qual')),
+                                      TableCell(
+                                          child: Text(
+                                              "${rateReviewSummary["currentMidCreditRate"]}%")),
+                                      TableCell(
+                                        child: Text(
+                                            "${rateReviewSummary["newMidCreditRate"]}%"),
+                                      ),
+                                      TableCell(
+                                          child: Text(
+                                              "\$${rateReviewSummary["currentMidCreditFee"]}")),
+                                      TableCell(
+                                          child: Text(
+                                              "\$${rateReviewSummary["newMidCreditFee"]}")),
+                                      TableCell(child: Text('')),
+                                    ])
+                                  : TableRow(children: [
+                                      TableCell(child: Text("")),
+                                      TableCell(child: Text("")),
+                                      TableCell(child: Text("")),
+                                      TableCell(child: Text("")),
+                                      TableCell(child: Text("")),
+                                      TableCell(child: Text("")),
+                                      TableCell(child: Text("")),
+                                    ]),
+                              rateReviewType == "tier"
+                                  ? TableRow(children: [
+                                      TableCell(child: Text('')),
+                                      TableCell(child: Text('Non Qual')),
+                                      TableCell(
+                                          child: Text(
+                                              "${rateReviewSummary["currentNonCreditRate"]}%")),
+                                      TableCell(
+                                        child: Text(
+                                            "${rateReviewSummary["newNonCreditRate"]}%"),
+                                      ),
+                                      TableCell(
+                                          child: Text(
+                                              "\$${rateReviewSummary["currentNonCreditFee"]}")),
+                                      TableCell(
+                                          child: Text(
+                                              "\$${rateReviewSummary["newNonCreditFee"]}")),
+                                      TableCell(child: Text('')),
+                                    ])
+                                  : TableRow(children: [
+                                      TableCell(child: Text("")),
+                                      TableCell(child: Text("")),
+                                      TableCell(child: Text("")),
+                                      TableCell(child: Text("")),
+                                      TableCell(child: Text("")),
+                                      TableCell(child: Text("")),
+                                      TableCell(child: Text("")),
+                                    ]),
                               TableRow(children: [
                                 TableCell(
                                     child: Text('Pin Debit',
@@ -241,81 +274,94 @@ class PricingState extends State<Pricing> {
                                         "\$${rateReviewSummary["newPinDebitFee"]}")),
                                 TableCell(child: Text('')),
                               ]),
-                              TableRow(children: [
-                                TableCell(
-                                    child: Text('',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold))),
-                                TableCell(child: Text('Qual')),
-                                TableCell(
-                                    child: Text(
-                                        "${rateReviewSummary["currentQualPinDebitRate"]}%")),
-                                TableCell(
-                                  child: Text(
-                                      "${rateReviewSummary["newQualPinDebitRate"]}%"),
-                                ),
-                                TableCell(
-                                    child: Text(
-                                        "\$${rateReviewSummary["currentQualPinDebitFee"]}")),
-                                TableCell(
-                                    child: Text(
-                                        "\$${rateReviewSummary["newQualPinDebitFee"]}")),
-                                TableCell(child: Text('')),
-                              ]),
-                              TableRow(children: [
-                                TableCell(child: Text('')),
-                                TableCell(child: Text('Mid Qual')),
-                                TableCell(
-                                    child: Text(
-                                        "${rateReviewSummary["currentMidPinDebitRate"]}%")),
-                                TableCell(
-                                  child: Text(
-                                      "${rateReviewSummary["newMidPinDebitRate"]}%"),
-                                ),
-                                TableCell(
-                                    child: Text(
-                                        "\$${rateReviewSummary["currentMidPinDebitFee"]}")),
-                                TableCell(
-                                    child: Text(
-                                        "\$${rateReviewSummary["newMidPinDebitFee"]}")),
-                                TableCell(child: Text('')),
-                              ]),
-                              TableRow(children: [
-                                TableCell(child: Text('')),
-                                TableCell(child: Text('Non Qual')),
-                                TableCell(
-                                    child: Text(
-                                        "${rateReviewSummary["currentNonPinDebitRate"]}%")),
-                                TableCell(
-                                  child: Text(
-                                      "${rateReviewSummary["newNonPinDebitRate"]}%"),
-                                ),
-                                TableCell(
-                                    child: Text(
-                                        "\$${rateReviewSummary["currentNonPinDebitFee"]}")),
-                                TableCell(
-                                    child: Text(
-                                        "\$${rateReviewSummary["newNonPinDebitFee"]}")),
-                                TableCell(child: Text('')),
-                              ]),
-                              TableRow(children: [
-                                TableCell(child: Text('')),
-                                TableCell(child: Text('Mid Qual')),
-                                TableCell(
-                                    child: Text(
-                                        "${rateReviewSummary["currentMidPinDebitRate"]}%")),
-                                TableCell(
-                                  child: Text(
-                                      "${rateReviewSummary["newMidPinDebitRate"]}%"),
-                                ),
-                                TableCell(
-                                    child: Text(
-                                        "\$${rateReviewSummary["currentMidPinDebitFee"]}")),
-                                TableCell(
-                                    child: Text(
-                                        "\$${rateReviewSummary["newMidPinDebitFee"]}")),
-                                TableCell(child: Text('')),
-                              ]),
+                              rateReviewType == "tier"
+                                  ? TableRow(children: [
+                                      TableCell(
+                                          child: Text('',
+                                              style: TextStyle(
+                                                  fontWeight:
+                                                      FontWeight.bold))),
+                                      TableCell(child: Text('Qual')),
+                                      TableCell(
+                                          child: Text(
+                                              "${rateReviewSummary["currentQualPinDebitRate"]}%")),
+                                      TableCell(
+                                        child: Text(
+                                            "${rateReviewSummary["newQualPinDebitRate"]}%"),
+                                      ),
+                                      TableCell(
+                                          child: Text(
+                                              "\$${rateReviewSummary["currentQualPinDebitFee"]}")),
+                                      TableCell(
+                                          child: Text(
+                                              "\$${rateReviewSummary["newQualPinDebitFee"]}")),
+                                      TableCell(child: Text('')),
+                                    ])
+                                  : TableRow(children: [
+                                      TableCell(child: Text("")),
+                                      TableCell(child: Text("")),
+                                      TableCell(child: Text("")),
+                                      TableCell(child: Text("")),
+                                      TableCell(child: Text("")),
+                                      TableCell(child: Text("")),
+                                      TableCell(child: Text("")),
+                                    ]),
+                              rateReviewType == "tier"
+                                  ? TableRow(children: [
+                                      TableCell(child: Text('')),
+                                      TableCell(child: Text('Mid Qual')),
+                                      TableCell(
+                                          child: Text(
+                                              "${rateReviewSummary["currentMidPinDebitRate"]}%")),
+                                      TableCell(
+                                        child: Text(
+                                            "${rateReviewSummary["newMidPinDebitRate"]}%"),
+                                      ),
+                                      TableCell(
+                                          child: Text(
+                                              "\$${rateReviewSummary["currentMidPinDebitFee"]}")),
+                                      TableCell(
+                                          child: Text(
+                                              "\$${rateReviewSummary["newMidPinDebitFee"]}")),
+                                      TableCell(child: Text('')),
+                                    ])
+                                  : TableRow(children: [
+                                      TableCell(child: Text("")),
+                                      TableCell(child: Text("")),
+                                      TableCell(child: Text("")),
+                                      TableCell(child: Text("")),
+                                      TableCell(child: Text("")),
+                                      TableCell(child: Text("")),
+                                      TableCell(child: Text("")),
+                                    ]),
+                              rateReviewType == "tier"
+                                  ? TableRow(children: [
+                                      TableCell(child: Text('')),
+                                      TableCell(child: Text('Non Qual')),
+                                      TableCell(
+                                          child: Text(
+                                              "${rateReviewSummary["currentNonPinDebitRate"]}%")),
+                                      TableCell(
+                                        child: Text(
+                                            "${rateReviewSummary["newNonPinDebitRate"]}%"),
+                                      ),
+                                      TableCell(
+                                          child: Text(
+                                              "\$${rateReviewSummary["currentNonPinDebitFee"]}")),
+                                      TableCell(
+                                          child: Text(
+                                              "\$${rateReviewSummary["newNonPinDebitFee"]}")),
+                                      TableCell(child: Text('')),
+                                    ])
+                                  : TableRow(children: [
+                                      TableCell(child: Text("")),
+                                      TableCell(child: Text("")),
+                                      TableCell(child: Text("")),
+                                      TableCell(child: Text("")),
+                                      TableCell(child: Text("")),
+                                      TableCell(child: Text("")),
+                                      TableCell(child: Text("")),
+                                    ]),
                               TableRow(children: [
                                 TableCell(
                                     child: Text('Cost',
@@ -405,9 +451,12 @@ class PricingState extends State<Pricing> {
                         this.widget.finalValidation == true
                     ? Color.fromARGB(500, 1, 224, 143)
                     : Colors.grey,
-                onPressed: () {
-                  return null;
-                },
+                onPressed: this.widget.finalValidation != null &&
+                        this.widget.finalValidation == true
+                    ? this.widget.callback
+                    : () {
+                        return null;
+                      },
                 child: Text("Submit", style: TextStyle(color: Colors.white)),
               ),
             )

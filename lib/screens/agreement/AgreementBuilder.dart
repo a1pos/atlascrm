@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'dart:developer';
+import 'dart:io';
 import 'package:atlascrm/components/agreement/Pricing.dart';
+import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
+import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/components/agreement/Documents.dart';
 import 'package:atlascrm/components/agreement/OwnerInfo.dart';
@@ -54,7 +57,8 @@ final List businessInfoControllerNames = [
   "FederalTaxIdType",
   "LocationAddress1",
   "BusinessEmailAddress",
-  "ForeignEntityOrNonResidentAlien"
+  "ForeignEntityOrNonResidentAlien",
+  // "BusinessWebsiteAddress",
 ];
 
 final List siteInfoControllerNames = [
@@ -357,6 +361,57 @@ class AgreementBuilderState extends State<AgreementBuilder>
     });
   }
 
+  void submitResults(resultObj) async {
+    var errorArr = [];
+    if (resultObj["Errors"] != null) {
+      errorArr = resultObj["Errors"]["MerchantError"];
+    }
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return resultObj == null
+            ? CenteredLoadingSpinner()
+            : CustomCard(
+                title: 'Submission: ${resultObj["Status"]}',
+                child: Column(
+                  children: <Widget>[
+                    Padding(
+                      padding: const EdgeInsets.all(18.0),
+                      child: Row(
+                        children: <Widget>[
+                          Icon(Icons.error, color: Colors.red),
+                          Text("Errors: ${errorArr.length}",
+                              style: TextStyle(fontSize: 17))
+                        ],
+                      ),
+                    ),
+                    ListView(
+                      shrinkWrap: true,
+                      children: errorArr.map<Widget>((error) {
+                        return Column(
+                          children: <Widget>[
+                            Text("${error["ErrorDescription"]}"),
+                            Divider()
+                          ],
+                        );
+                      }).toList(),
+                    ),
+                    FlatButton(
+                      child: Text('Close',
+                          style: TextStyle(fontSize: 17, color: Colors.green)),
+                      onPressed: () {
+                        setState(() {
+                          Navigator.pop(context);
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              );
+      },
+    );
+  }
+
   //Default mask is 30 of any character
   final Map<String, MaskedTextController> _generalControllers =
       Map.fromIterable(generalControllerNames,
@@ -632,7 +687,8 @@ class AgreementBuilderState extends State<AgreementBuilder>
       };
       settlementTransactPageControllers = {
         "settlement": _settlementControllers,
-        "transaction": _transactionControllers
+        "transaction": _transactionControllers,
+        "businessInfo": _businessInfoControllers,
       };
     });
 
@@ -704,7 +760,31 @@ class AgreementBuilderState extends State<AgreementBuilder>
     }
   }
 
-  Future<void> validatePayload(payload, page) async {
+  Future<void> submitPayload() async {
+    var data = agreementBuilderObj;
+    var resp =
+        await this.widget.apiService.authPost(context, "/merchant/app", data);
+
+    if (resp.statusCode == 200) {
+      Fluttertoast.showToast(
+          msg: "SUBMIT!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0);
+    } else {
+      Fluttertoast.showToast(
+          msg: "Failed Submit!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0);
+    }
+  }
+
+  Future<void> validatePayload(payload) async {
     var data = payload;
     var resp = await this
         .widget
@@ -715,7 +795,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
       setState(() {
         validationErrors = resp.data;
       });
-      overallValidate(resp.data, page);
+      overallValidate(resp.data);
     } else {
       Fluttertoast.showToast(
           msg: "Failed Validate!",
@@ -727,7 +807,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
     }
   }
 
-  Future<void> overallValidate(errorObj, page) async {
+  Future<void> overallValidate(errorObj) async {
     if (errorObj["Ownership"] != null) {
       if (errorObj["Ownership"]["Prin1Ssn"] == "Too Long") {
         errorObj["Ownership"].remove('Prin1Ssn');
@@ -749,21 +829,31 @@ class AgreementBuilderState extends State<AgreementBuilder>
         errorObj["MpaInfo"] == null &&
         errorObj["CorporateInfo"] == null &&
         errorObj["SiteInfo"] == null &&
-        errorObj["MotoBBInet"] == null) {
+        errorObj["MotoBBInet"] == null &&
+        _mpaInfoControllers["ClientDbaName"].text != "") {
       isValidated["BusinessInfo"] = true;
     } else {
       isValidated["BusinessInfo"] = false;
     }
     // } else if (page == 1) {
-    if (errorObj["Ownership"] == null || errorObj["Ownership"].length == 0) {
-      isValidated["Ownership"] = true;
+    if ((errorObj["Ownership"] == null || errorObj["Ownership"].length == 0)) {
+      if (owners.length != 0) {
+        if (owners[0]["document"]["PrinFirstName"] != "") {
+          isValidated["Ownership"] = true;
+        } else {
+          isValidated["Ownership"] = false;
+        }
+      } else {
+        isValidated["Ownership"] = false;
+      }
     } else {
       isValidated["Ownership"] = false;
     }
     // } else if (page == 2) {
     if (errorObj["Settlement"] == null &&
         (errorObj["Transaction"] == null ||
-            errorObj["Transaction"].length == 0)) {
+            errorObj["Transaction"].length == 0) &&
+        _settlementControllers["DepositBankName"].text != "") {
       isValidated["SettlementTransact"] = true;
     } else {
       isValidated["SettlementTransact"] = false;
@@ -972,8 +1062,10 @@ class AgreementBuilderState extends State<AgreementBuilder>
     loadAgreementData(this.widget.leadId);
   }
 
-  Future<void> updateAgreement(agreementBuilderId, validatorPage,
-      {isSubmit}) async {
+  Future<void> updateAgreement(agreementBuilderId, {isSubmit}) async {
+    if (agreementBuilderObj["document"]["agreement_builder"] == null) {
+      agreementBuilderObj["document"]["agreement_builder"] = agreementBuilderId;
+    }
     if (isDirtyStatus["businessInfoIsDirty"]) {
       await updateBusinessInfo();
     }
@@ -1010,7 +1102,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
           textColor: Colors.white,
           fontSize: 16.0);
     }
-    await validatePayload(agreementBuilderObj["document"], validatorPage);
+    await validatePayload(agreementBuilderObj["document"]);
 
     print("validate errors:");
     print(validationErrors);
@@ -1126,6 +1218,8 @@ class AgreementBuilderState extends State<AgreementBuilder>
       ownershipItems["Prin${k}City"] = owner["document"]["PrinCity"];
       if (owner["document"]["PrinPhone"] != null) {
         ownershipItems["Prin${k}Phone"] =
+            owner["document"]["PrinPhone"].replaceAll(new RegExp('[^0-9]'), '');
+        owner["document"]["PrinPhone"] =
             owner["document"]["PrinPhone"].replaceAll(new RegExp('[^0-9]'), '');
       }
       ownershipItems["Prin${k}State"] = owner["document"]["PrinState"];
@@ -1296,7 +1390,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
           isDirtyStatus["settlementTransactIsDirty"] ||
           isDirtyStatus["documentsIsDirty"] ||
           currentTab == 4) {
-        updateAgreement(agreementBuilderObj["agreement_builder"], previousTab);
+        updateAgreement(agreementBuilderObj["agreement_builder"]);
       }
     });
 
@@ -1388,15 +1482,51 @@ class AgreementBuilderState extends State<AgreementBuilder>
                         isDirtyStatus: isDirtyStatus,
                         fileStatus: docsAttached),
                     Pricing(
-                      finalValidation: allStepsComplete,
-                      rateReview: rateReview,
-                      pricingDone: pricingDone,
-                    )
+                        finalValidation: allStepsComplete,
+                        rateReview: rateReview,
+                        pricingDone: pricingDone,
+                        callback: () async {
+                          await updateAgreement(
+                              agreementBuilderObj["agreement_builder"],
+                              isSubmit: true);
+                          setState(() {
+                            isLoading = true;
+                          });
+                          var data = agreementBuilderObj["document"];
+                          var resp = await this
+                              .widget
+                              .apiService
+                              .authPost(context, "/merchant/app", data);
+                          if (resp.statusCode == 200) {
+                            setState(() {
+                              isLoading = false;
+                            });
+                            print(resp);
+                            submitResults(resp.data);
+                            Fluttertoast.showToast(
+                                msg: "SUBMIT!",
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                backgroundColor: Colors.grey[600],
+                                textColor: Colors.white,
+                                fontSize: 16.0);
+                          } else {
+                            setState(() {
+                              isLoading = false;
+                            });
+                            Fluttertoast.showToast(
+                                msg: "Failed Submit!",
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                backgroundColor: Colors.grey[600],
+                                textColor: Colors.white,
+                                fontSize: 16.0);
+                          }
+                        })
                   ]),
             floatingActionButton: FloatingActionButton(
               onPressed: () async {
-                updateAgreement(
-                    agreementBuilderObj["agreement_builder"], currentTab);
+                updateAgreement(agreementBuilderObj["agreement_builder"]);
               },
               backgroundColor: Color.fromARGB(500, 1, 224, 143),
               child: Icon(Icons.save),

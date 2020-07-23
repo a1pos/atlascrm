@@ -227,13 +227,9 @@ class SettlementTransactState extends State<SettlementTransact>
                                 .text,
                             this.widget.controllers["settlement"]
                                 ["DepositAccountNumber"],
-                            mask: '0[0000000000000000]', validator: (newVal) {
-                          if (newVal.isEmpty) {
-                            return "Required";
-                          } else {
-                            return null;
-                          }
-                        }),
+                            mask: '00000000000000000',
+                            validator: (newVal) => validateRow(
+                                newVal, "Settlement", "DepositAccountNumber")),
                       ],
                     ),
                   ),
@@ -463,6 +459,30 @@ class SettlementTransactState extends State<SettlementTransact>
                                 newVal,
                                 "Transaction",
                                 "CcPercentTo")), //MAKE ADD UP TO 100 4/4
+                        // getInfoRow(
+                        //     "Business Website Address",
+                        //     this
+                        //         .widget
+                        //         .controllers["businessInfo"]
+                        //             ["BusinessWebsiteAddress"]
+                        //         .text,
+                        //     this.widget.controllers["businessInfo"]
+                        //         ["BusinessWebsiteAddress"],
+                        //     validator: this
+                        //                     .widget
+                        //                     .controllers["transaction"]
+                        //                         ["CcPercentInet"]
+                        //                     .text ==
+                        //                 "" ||
+                        //             this
+                        //                     .widget
+                        //                     .controllers["transaction"]
+                        //                         ["CcPercentInet"]
+                        //                     .text ==
+                        //                 "0"
+                        //         ? null
+                        //         : (newVal) => validateRow(newVal,
+                        //             "BusinessInfo", "BusinessWebsiteAddress")),
                       ],
                     ),
                   ),
