@@ -240,6 +240,33 @@ class BusinessInfoState extends State<BusinessInfo>
   final businessKey = GlobalKey<FormState>();
   void initState() {
     super.initState();
+    checkAddresses();
+  }
+
+  bool corpAddressError = false;
+  bool businessAddressError = false;
+
+  Future<void> checkAddresses() async {
+    if (this.widget.controllers["businessInfo"]["LocationAddress1"].text ==
+        "") {
+      setState(() {
+        businessAddressError = true;
+      });
+    } else {
+      setState(() {
+        businessAddressError = false;
+      });
+    }
+
+    if (this.widget.controllers["corporateInfo"]["Address1"].text == "") {
+      setState(() {
+        corpAddressError = true;
+      });
+    } else {
+      setState(() {
+        corpAddressError = false;
+      });
+    }
   }
 
   Future<void> setCorpAddress(address) async {
@@ -253,6 +280,7 @@ class BusinessInfoState extends State<BusinessInfo>
 
       this.widget.controllers["corporateInfo"]["First5Zip"].text =
           address["zipcode"];
+      this.widget.isDirtyStatus["businessInfoIsDirty"] = true;
     });
     if (this.widget.controllers["general"]["corpSame"].text == "true") {
       setBusinessAddress(address);
@@ -272,6 +300,7 @@ class BusinessInfoState extends State<BusinessInfo>
 
       this.widget.controllers["businessInfo"]["First5Zip"].text =
           this.widget.controllers["corporateInfo"]["First5Zip"].text;
+      this.widget.isDirtyStatus["businessInfoIsDirty"] = true;
     });
   }
 
@@ -286,6 +315,7 @@ class BusinessInfoState extends State<BusinessInfo>
 
       this.widget.controllers["businessInfo"]["First5Zip"].text =
           address["zipcode"];
+      this.widget.isDirtyStatus["businessInfoIsDirty"] = true;
     });
   }
 
@@ -355,6 +385,7 @@ class BusinessInfoState extends State<BusinessInfo>
           onChanged: () {
             // this.widget.isValid["BusinessInfo"] =
             //     businessKey.currentState.validate();
+            checkAddresses();
             setState(() {
               this.widget.isDirtyStatus["businessInfoIsDirty"] = true;
             });
@@ -539,8 +570,14 @@ class BusinessInfoState extends State<BusinessInfo>
                                       : null,
                                   onAddressChange: (val) {
                                     setCorpAddress(val);
-                                  }),
+                                    checkAddresses();
+                                  },
+                                  lineColor:
+                                      corpAddressError ? Colors.red : null),
                             ),
+                            corpAddressError
+                                ? Icon(Icons.error, color: Colors.red)
+                                : Container()
                           ],
                         ),
                       ),
@@ -611,8 +648,7 @@ class BusinessInfoState extends State<BusinessInfo>
                                     child: AddressSearch(
                                         locationValue: (this
                                                         .widget
-                                                        .controllers[
-                                                            "businessInfo"]
+                                                        .controllers["businessInfo"]
                                                             ["LocationAddress1"]
                                                         .text !=
                                                     null &&
@@ -649,8 +685,15 @@ class BusinessInfoState extends State<BusinessInfo>
                                             : null,
                                         onAddressChange: (val) {
                                           setBusinessAddress(val);
-                                        }),
+                                          checkAddresses();
+                                        },
+                                        lineColor: businessAddressError
+                                            ? Colors.red
+                                            : null),
                                   ),
+                                  businessAddressError == true
+                                      ? Icon(Icons.error, color: Colors.red)
+                                      : Container()
                                 ],
                               ),
                             ),
@@ -673,11 +716,10 @@ class BusinessInfoState extends State<BusinessInfo>
                             : false, validator: (newVal) {
                       if (this.widget.controllers["general"]["corpSame"].text ==
                           "true") {
-                        if (newVal == null) {
-                          return "Required";
-                        } else {
-                          return null;
-                        }
+                        return null;
+                      }
+                      if (newVal == null) {
+                        return "Required";
                       } else {
                         return null;
                       }
@@ -700,11 +742,10 @@ class BusinessInfoState extends State<BusinessInfo>
                             : false, validator: (newVal) {
                       if (this.widget.controllers["general"]["corpSame"].text ==
                           "true") {
-                        if (newVal == null) {
-                          return "Required";
-                        } else {
-                          return null;
-                        }
+                        return null;
+                      }
+                      if (newVal == null) {
+                        return "Required";
                       } else {
                         return null;
                       }
@@ -726,11 +767,10 @@ class BusinessInfoState extends State<BusinessInfo>
                             : false, validator: (newVal) {
                       if (this.widget.controllers["general"]["corpSame"].text ==
                           "true") {
-                        if (newVal == null) {
-                          return "Required";
-                        } else {
-                          return null;
-                        }
+                        return null;
+                      }
+                      if (newVal == null) {
+                        return "Required";
                       } else {
                         return null;
                       }

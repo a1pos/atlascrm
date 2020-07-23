@@ -11,11 +11,13 @@ class AddressSearch extends StatefulWidget {
   final Function onAddressChange;
   final TextEditingController controller;
   final bool returnNearby;
+  final Color lineColor;
   AddressSearch(
       {this.locationValue,
       this.onAddressChange,
       this.controller,
-      this.returnNearby});
+      this.returnNearby,
+      this.lineColor});
 
   @override
   _AddressSearchState createState() => _AddressSearchState();
@@ -51,7 +53,11 @@ class _AddressSearchState extends State<AddressSearch> {
         },
         child: Column(children: <Widget>[
           Align(alignment: Alignment.bottomLeft, child: Text(locationText)),
-          Divider(thickness: .5, color: Colors.black)
+          Divider(
+              thickness: .5,
+              color: this.widget.lineColor != null
+                  ? this.widget.lineColor
+                  : Colors.black)
         ]));
   }
 

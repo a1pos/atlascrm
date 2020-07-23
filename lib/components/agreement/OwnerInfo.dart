@@ -152,6 +152,7 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
       this.widget.owners[index]["document"]["PrinState"] = address["state"];
       this.widget.owners[index]["document"]["PrinFirst5Zip"] =
           address["zipcode"];
+      this.widget.isDirtyStatus["ownersIsDirty"] = true;
     });
   }
 
@@ -406,8 +407,16 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
                         onAddressChange: (val) {
                           var addObj = {"value": val, "index": index};
                           setAddress(addObj);
-                        }),
+                        },
+                        lineColor: this.widget.owners[index]["document"]
+                                    ["PrinAddress"] ==
+                                ""
+                            ? Colors.red
+                            : null),
                   ),
+                  this.widget.owners[index]["document"]["PrinAddress"] == ""
+                      ? Icon(Icons.error, color: Colors.red)
+                      : Container()
                 ],
               ),
             ),
