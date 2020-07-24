@@ -808,6 +808,10 @@ class AgreementBuilderState extends State<AgreementBuilder>
   }
 
   Future<void> overallValidate(errorObj) async {
+    if (_generalControllers["motoCheck"].text != "true" &&
+        errorObj["MotoBBInet"] != null) {
+      errorObj.remove('MotoBBInet');
+    }
     if (errorObj["Ownership"] != null) {
       if (errorObj["Ownership"]["Prin1Ssn"] == "Too Long") {
         errorObj["Ownership"].remove('Prin1Ssn');
@@ -1118,10 +1122,14 @@ class AgreementBuilderState extends State<AgreementBuilder>
       _businessInfoControllers["State"].clear();
       _businessInfoControllers["First5Zip"].clear();
     }
+
     if (_generalControllers["corpSame"].text == "false") {
       _generalControllers["corpSame"].clear();
       agreementBuilderObj["document"]['corpSame'] = false;
-      print(agreementBuilderObj);
+    }
+    if (_generalControllers["motoCheck"].text == "false") {
+      _generalControllers["motoCheck"].clear();
+      agreementBuilderObj["document"]["motoCheck"] = false;
     }
     _generalControllers.forEach((j, k) {
       if (_generalControllers["$j"].text != null &&
@@ -1196,12 +1204,13 @@ class AgreementBuilderState extends State<AgreementBuilder>
     Map ownershipItems = {};
     var i = 2;
     var unorderedOwners = owners;
-    owners.sort((a, b) => b["document"]["PrinOwnershipPercent"]
+    var orderedOwners = owners;
+    orderedOwners.sort((a, b) => b["document"]["PrinOwnershipPercent"]
         .compareTo(a["document"]["PrinOwnershipPercent"]));
     var ownersInput;
 
     if (isSubmit == true) {
-      ownersInput = owners;
+      ownersInput = orderedOwners;
     } else {
       ownersInput = unorderedOwners;
     }
@@ -1230,18 +1239,15 @@ class AgreementBuilderState extends State<AgreementBuilder>
       ownershipItems["Prin${k}FirstName"] = owner["document"]["PrinFirstName"];
       ownershipItems["Prin${k}OwnershipPercent"] =
           owner["document"]["PrinOwnershipPercent"];
-      ownershipItems["Prin${k}DriverLicenseState"] =
-          owner["document"]["PrinDriverLicenseState"];
-      ownershipItems["Prin${k}DriverLicenseNumber"] =
-          owner["document"]["PrinDriverLicenseNumber"];
       if (k < 3) {
         ownershipItems["Prin${k}Ssn"] = owner["document"]["PrinSsn"];
         ownershipItems["Prin${k}EmailAddress"] =
             owner["document"]["PrinEmailAddress"];
+        ownershipItems["Prin${k}DriverLicenseState"] =
+            owner["document"]["PrinDriverLicenseState"];
+        ownershipItems["Prin${k}DriverLicenseNumber"] =
+            owner["document"]["PrinDriverLicenseNumber"];
       }
-      setState(() {
-        owner["number"] = k;
-      });
       i++;
     }
     agreementBuilderObj["document"]["ApplicationInformation"]["Ownership"] =
@@ -1468,7 +1474,11 @@ class AgreementBuilderState extends State<AgreementBuilder>
                         controllers: _ownershipControllers,
                         lead: this.widget.leadId,
                         formKey: _formKeys[1],
-                        validationErrors: validationErrors),
+                        validationErrors: validationErrors,
+                        callback: () async {
+                          updateAgreement(
+                              agreementBuilderObj["agreement_builder"]);
+                        }),
                     SettlementTransact(
                       isDirtyStatus: isDirtyStatus,
                       controllers: settlementTransactPageControllers,

@@ -14,7 +14,7 @@ class OwnerInfo extends StatefulWidget {
   final String lead;
   final Key formKey;
   final Map validationErrors;
-  final Function callback;
+  final VoidCallback callback;
 
   OwnerInfo(
       {this.owners,
@@ -268,6 +268,8 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
           textColor: Colors.white,
           fontSize: 16.0);
     }
+    this.widget.isDirtyStatus["ownersIsDirty"] = true;
+    this.widget.callback();
   }
 
   Future<void> setGuarantor(val) async {
@@ -349,7 +351,7 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
                 guarantor: true,
                 setVal: "1", validator: (newValue) {
               if (newValue == null) {
-                return "One Guarantor Required";
+                return "Only one Guarantor Required";
               } else {
                 return null;
               }
