@@ -379,6 +379,30 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                             children: <Widget>[buildList()],
                           ),
                         ),
+                        CustomCard(
+                            key: Key("merchants4"),
+                            title: "Tools",
+                            icon: Icons.build,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: RaisedButton(
+                                color: Color.fromARGB(500, 1, 224, 143),
+                                child: Row(
+                                  children: <Widget>[
+                                    Icon(Icons.extension, color: Colors.white),
+                                    Text("Agreement Builder",
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold))
+                                  ],
+                                ),
+                                onPressed: () {
+                                  Navigator.pushNamed(
+                                      context, "/agreementbuilder",
+                                      arguments: merchant["lead"]);
+                                },
+                              ),
+                            )),
                         // // CustomCard(
                         // //     key: Key("merchants4"),
                         // //     title: "Notes",

@@ -9,6 +9,7 @@ import 'package:atlascrm/components/agreement/Documents.dart';
 import 'package:atlascrm/components/agreement/OwnerInfo.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
 import 'package:atlascrm/services/ApiService.dart';
+import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/components/agreement/BusinessInfo.dart';
@@ -221,7 +222,9 @@ final List transactionControllerNames = [
 //   "AmexOtherItemRateNotESA"
 // ];
 
-// final List otherFeesControllerNames = [
+final List otherFeesControllerNames = [
+  "UserDefinedPricing_GridLevel",
+  "UserDefinedPricing_GridValue"
 //   "BatchFee",
 //   "SaleTranFee",
 //   "ACHRejectFee",
@@ -232,7 +235,7 @@ final List transactionControllerNames = [
 //   "EarlyTerminationFee",
 //   "MonthlyStatementFee",
 //   "MonthlyMinimumProcessingFee"
-// ];
+];
 
 // final List pricingControllerNames = [
 //   "AffnRate",
@@ -331,12 +334,20 @@ class AgreementBuilderState extends State<AgreementBuilder>
     GlobalKey<FormState>(),
     GlobalKey<FormState>()
   ];
+  ConfettiController _controllerTopCenter;
 
   void initState() {
+    _controllerTopCenter =
+        ConfettiController(duration: const Duration(seconds: 1));
     super.initState();
     loadAgreementData(this.widget.leadId);
     loadOwnersData(this.widget.leadId);
     loadRateReview(this.widget.leadId);
+  }
+
+  void dispose() {
+    _controllerTopCenter.dispose();
+    super.dispose();
   }
 
   Future<void> initDocumentObjects() async {
@@ -365,6 +376,8 @@ class AgreementBuilderState extends State<AgreementBuilder>
     var errorArr = [];
     if (resultObj["Errors"] != null) {
       errorArr = resultObj["Errors"]["MerchantError"];
+    } else {
+      _controllerTopCenter.play();
     }
     showDialog(
       context: context,
@@ -375,27 +388,63 @@ class AgreementBuilderState extends State<AgreementBuilder>
                 title: 'Submission: ${resultObj["Status"]}',
                 child: Column(
                   children: <Widget>[
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: ConfettiWidget(
+                        confettiController: _controllerTopCenter,
+                        blastDirection: 0,
+                        maxBlastForce: 20,
+                        minBlastForce: 8,
+                        emissionFrequency: 0.5,
+                        numberOfParticles: 5,
+                        gravity: .5,
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: ConfettiWidget(
+                        confettiController: _controllerTopCenter,
+                        blastDirection: 3.14,
+                        maxBlastForce: 20,
+                        minBlastForce: 8,
+                        emissionFrequency: 0.5,
+                        numberOfParticles: 5,
+                        gravity: .5,
+                      ),
+                    ),
                     Padding(
                       padding: const EdgeInsets.all(18.0),
                       child: Row(
                         children: <Widget>[
-                          Icon(Icons.error, color: Colors.red),
+                          errorArr.length == 0
+                              ? Icon(Icons.done, color: Colors.green)
+                              : Icon(Icons.error, color: Colors.red),
                           Text("Errors: ${errorArr.length}",
                               style: TextStyle(fontSize: 17))
                         ],
                       ),
                     ),
-                    ListView(
-                      shrinkWrap: true,
-                      children: errorArr.map<Widget>((error) {
-                        return Column(
-                          children: <Widget>[
-                            Text("${error["ErrorDescription"]}"),
-                            Divider()
-                          ],
-                        );
-                      }).toList(),
-                    ),
+                    errorArr.length == 0
+                        ? Icon(Icons.thumb_up, color: Colors.green, size: 100)
+                        : SizedBox(
+                            height: 500,
+                            child: Scrollbar(
+                              child: ListView(
+                                // shrinkWrap: true,
+                                children: errorArr.map<Widget>((error) {
+                                  return Column(
+                                    children: <Widget>[
+                                      Text("${error["ErrorDescription"]}"),
+                                      Divider()
+                                    ],
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                          ),
+                    errorArr.length == 0
+                        ? Text("Nice! Application submitted")
+                        : Container(),
                     FlatButton(
                       child: Text('Close',
                           style: TextStyle(fontSize: 17, color: Colors.green)),
@@ -405,6 +454,13 @@ class AgreementBuilderState extends State<AgreementBuilder>
                         });
                       },
                     ),
+                    // FlatButton(
+                    //   child: Text('Party',
+                    //       style: TextStyle(fontSize: 17, color: Colors.green)),
+                    //   onPressed: () {
+                    //     _controllerTopCenter.play();
+                    //   },
+                    // ),
                   ],
                 ),
               );
@@ -469,11 +525,11 @@ class AgreementBuilderState extends State<AgreementBuilder>
   //         value: (i) =>
   //             MaskedTextController(mask: "******************************"));
 
-  // final Map<String, MaskedTextController> _otherFeesControllers =
-  //     Map.fromIterable(otherFeesControllerNames,
-  //         key: (i) => i,
-  //         value: (i) =>
-  //             MaskedTextController(mask: "******************************"));
+  final Map<String, MaskedTextController> _otherFeesControllers =
+      Map.fromIterable(otherFeesControllerNames,
+          key: (i) => i,
+          value: (i) =>
+              MaskedTextController(mask: "******************************"));
 
   // final Map<String, MaskedTextController> _pricingControllers =
   //     Map.fromIterable(pricingControllerNames,
@@ -556,6 +612,10 @@ class AgreementBuilderState extends State<AgreementBuilder>
               agreementBuilderStatus["pricing"]) {
             setState(() {
               allStepsComplete = true;
+            });
+          } else {
+            setState(() {
+              allStepsComplete = false;
             });
           }
         }
@@ -653,7 +713,6 @@ class AgreementBuilderState extends State<AgreementBuilder>
             .toString();
       }
     });
-
     //--SETTLEMENT/TRANSACT PAGE
     _settlementControllers.forEach((j, k) {
       if (agreementBuilderObj["document"]["ApplicationInformation"]
@@ -675,6 +734,13 @@ class AgreementBuilderState extends State<AgreementBuilder>
             .toString();
       }
     });
+    //--OTHER FEES
+    _otherFeesControllers.forEach((j, k) {
+      _otherFeesControllers["$j"].text = agreementBuilderObj["document"]
+                  ["ApplicationInformation"]["MpaOutletInfo"]["Outlet"]
+              ["OtherFees"]["$j"]
+          .toString();
+    });
 
     setState(() {
       businessPageControllers = {
@@ -689,6 +755,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
         "settlement": _settlementControllers,
         "transaction": _transactionControllers,
         "businessInfo": _businessInfoControllers,
+        "otherFees": _otherFeesControllers
       };
     });
 
@@ -818,6 +885,9 @@ class AgreementBuilderState extends State<AgreementBuilder>
       }
       if (errorObj["Ownership"]["Prin2Ssn"] == "Too Long") {
         errorObj["Ownership"].remove('Prin2Ssn');
+      }
+      if (errorObj["Ownership"]["Prin3Ssn"] == "Too Long") {
+        errorObj["Ownership"].remove('Prin3Ssn');
       }
     }
     if (errorObj["Transaction"] != null) {
@@ -1082,6 +1152,14 @@ class AgreementBuilderState extends State<AgreementBuilder>
     if (isDirtyStatus["documentsIsDirty"]) {
       await updateDocuments(agreementBuilderId);
     }
+    if (owners.length > 1) {
+      setState(() {
+        agreementBuilderObj["document"]["ApplicationInformation"]["Ownership"]
+            ["HasAdditionalOwner"] = "true";
+        agreementBuilderObj["document"]["ApplicationInformation"]["Ownership"]
+            ["NumberOfAdditionalOwner"] = (owners.length - 1).toString();
+      });
+    }
     var resp = await this.widget.apiService.authPut(
         context,
         "/agreementbuilder/" + agreementBuilderId,
@@ -1202,7 +1280,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
 
   Future<void> updateOwners(isSubmit) async {
     Map ownershipItems = {};
-    var i = 2;
+    var i;
     var unorderedOwners = owners;
     var orderedOwners = owners;
     orderedOwners.sort((a, b) => b["document"]["PrinOwnershipPercent"]
@@ -1211,17 +1289,21 @@ class AgreementBuilderState extends State<AgreementBuilder>
 
     if (isSubmit == true) {
       ownersInput = orderedOwners;
+      i = 2;
     } else {
       ownersInput = unorderedOwners;
+      i = 1;
     }
 
     for (var owner in ownersInput) {
       var k = i;
       if (owner["document"]["PrinGuarantorCode"] == "1") {
-        k = 1;
+        if (isSubmit == true) {
+          k = 1;
+          i--;
+        }
         ownershipItems["Prin${k}GuarantorCode"] =
             owner["document"]["PrinGuarantorCode"];
-        i--;
       }
       ownershipItems["Prin${k}Dob"] = owner["document"]["PrinDob"];
       ownershipItems["Prin${k}City"] = owner["document"]["PrinCity"];
@@ -1239,8 +1321,8 @@ class AgreementBuilderState extends State<AgreementBuilder>
       ownershipItems["Prin${k}FirstName"] = owner["document"]["PrinFirstName"];
       ownershipItems["Prin${k}OwnershipPercent"] =
           owner["document"]["PrinOwnershipPercent"];
+      ownershipItems["Prin${k}Ssn"] = owner["document"]["PrinSsn"];
       if (k < 3) {
-        ownershipItems["Prin${k}Ssn"] = owner["document"]["PrinSsn"];
         ownershipItems["Prin${k}EmailAddress"] =
             owner["document"]["PrinEmailAddress"];
         ownershipItems["Prin${k}DriverLicenseState"] =
@@ -1315,6 +1397,20 @@ class AgreementBuilderState extends State<AgreementBuilder>
         agreementBuilderObj["document"]["ApplicationInformation"]
                 ["MpaOutletInfo"]["Outlet"]["Transaction"]["$j"] =
             _transactionControllers["$j"].text.toString();
+      }
+    });
+    _otherFeesControllers.forEach((j, k) {
+      if (_otherFeesControllers["$j"].text != null &&
+          _otherFeesControllers["$j"].text != "null") {
+        agreementBuilderObj["document"]["ApplicationInformation"]
+                ["MpaOutletInfo"]["Outlet"]["OtherFees"]["$j"] =
+            _otherFeesControllers["$j"].text.toString();
+      } else if (j == "UserDefinedPricing_GridValue") {
+        agreementBuilderObj["document"]["ApplicationInformation"]
+            ["MpaOutletInfo"]["Outlet"]["OtherFees"]["$j"] = "null";
+      } else {
+        agreementBuilderObj["document"]["ApplicationInformation"]
+            ["MpaOutletInfo"]["Outlet"]["OtherFees"]["$j"] = null;
       }
     });
 
@@ -1496,6 +1592,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
                         rateReview: rateReview,
                         pricingDone: pricingDone,
                         callback: () async {
+                          isDirtyStatus["ownersIsDirty"] = true;
                           await updateAgreement(
                               agreementBuilderObj["agreement_builder"],
                               isSubmit: true);
@@ -1534,13 +1631,15 @@ class AgreementBuilderState extends State<AgreementBuilder>
                           }
                         })
                   ]),
-            floatingActionButton: FloatingActionButton(
-              onPressed: () async {
-                updateAgreement(agreementBuilderObj["agreement_builder"]);
-              },
-              backgroundColor: Color.fromARGB(500, 1, 224, 143),
-              child: Icon(Icons.save),
-            ),
+            floatingActionButton: isLoading
+                ? null
+                : FloatingActionButton(
+                    onPressed: () async {
+                      updateAgreement(agreementBuilderObj["agreement_builder"]);
+                    },
+                    backgroundColor: Color.fromARGB(500, 1, 224, 143),
+                    child: Icon(Icons.save),
+                  ),
           ),
         ),
       ),

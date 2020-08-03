@@ -2,6 +2,7 @@ import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
 import 'package:searchable_dropdown/searchable_dropdown.dart';
+import 'package:atlascrm/components/agreement/UserDefinedPricingDropdown.dart';
 
 class SettlementTransact extends StatefulWidget {
   final ApiService apiService = new ApiService();
@@ -483,6 +484,47 @@ class SettlementTransactState extends State<SettlementTransact>
                         //         ? null
                         //         : (newVal) => validateRow(newVal,
                         //             "BusinessInfo", "BusinessWebsiteAddress")),
+                      ],
+                    ),
+                  ),
+                  CustomCard(
+                    key: Key("settlementTransact3"),
+                    icon: Icons.devices,
+                    title: "Equipment",
+                    child: Column(
+                      children: <Widget>[
+                        UserDefinedPricingDropDown(
+                          value: this
+                              .widget
+                              .controllers["otherFees"]
+                                  ["UserDefinedPricing_GridValue"]
+                              .text,
+                          callback: (newVal) {
+                            if (newVal != null && newVal != "") {
+                              this.widget.isDirtyStatus[
+                                  "settlementTransactIsDirty"] = true;
+                              setState(() {
+                                this
+                                    .widget
+                                    .controllers["otherFees"]
+                                        ["UserDefinedPricing_GridLevel"]
+                                    .text = newVal["value"][0].toString();
+                                this
+                                    .widget
+                                    .controllers["otherFees"]
+                                        ["UserDefinedPricing_GridValue"]
+                                    .text = newVal["value"][1].toString();
+                              });
+                            }
+                          },
+                          validator: (newVal) {
+                            if (newVal == null) {
+                              return "Required";
+                            } else {
+                              return null;
+                            }
+                          },
+                        ),
                       ],
                     ),
                   ),

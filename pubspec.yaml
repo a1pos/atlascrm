@@ -53,6 +53,7 @@ dependencies:
   barcode_scan: ^3.0.1
   firebase_auth: ^0.16.1
   xml:
+  confetti: ^0.5.2
 
 dev_dependencies:
   flutter_test:

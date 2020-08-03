@@ -447,12 +447,10 @@ class PricingState extends State<Pricing> {
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
               child: FlatButton(
-                color: this.widget.finalValidation != null &&
-                        this.widget.finalValidation == true
+                color: this.widget.finalValidation == true
                     ? Color.fromARGB(500, 1, 224, 143)
                     : Colors.grey,
-                onPressed: this.widget.finalValidation != null &&
-                        this.widget.finalValidation == true
+                onPressed: this.widget.finalValidation == true
                     ? this.widget.callback
                     : () {
                         return null;
