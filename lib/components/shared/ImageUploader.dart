@@ -14,6 +14,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:multi_image_picker/multi_image_picker.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:pdf_flutter/pdf_flutter.dart';
+import 'package:photo_view/photo_view.dart';
 
 class ImageUploader extends StatefulWidget {
   final ApiService apiService = new ApiService();
@@ -109,6 +112,29 @@ class _ImageUploaderState extends State<ImageUploader> {
                 ],
               ),
             ),
+            MaterialButton(
+              padding: EdgeInsets.all(5),
+              color: Color.fromARGB(500, 1, 224, 143),
+              onPressed: () async {
+                var result = await FilePicker.getFilePath(
+                    type: FileType.custom, allowedExtensions: ['pdf']);
+                addImage(result);
+              },
+              child: Row(
+                children: <Widget>[
+                  Icon(
+                    Icons.insert_drive_file,
+                    color: Colors.white,
+                  ),
+                  Text(
+                    'PDF',
+                    style: TextStyle(
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         );
       },
@@ -194,7 +220,50 @@ class _ImageUploaderState extends State<ImageUploader> {
                 color: Colors.red,
                 // color: Colors.grey[300],
                 onPressed: () {
-                  deleteImage(asset);
+                  deleteCheck(asset);
+                  Navigator.pop(context);
+                },
+                child: Row(
+                  children: <Widget>[
+                    Icon(
+                      Icons.clear,
+                      color: Colors.white,
+                    ),
+                    Text(
+                      'Delete',
+                      style: TextStyle(
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        });
+  }
+
+  Future<void> viewPdf(asset) async {
+    // var newPath = asset. ;
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('View Statement'),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: <Widget>[
+                  PDF.network(asset["url"], height: 500, width: 300)
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              MaterialButton(
+                padding: EdgeInsets.all(5),
+                color: Colors.red,
+                // color: Colors.grey[300],
+                onPressed: () {
+                  deleteCheck(asset);
                   Navigator.pop(context);
                 },
                 child: Row(
@@ -223,23 +292,34 @@ class _ImageUploaderState extends State<ImageUploader> {
       crossAxisCount: 3,
       children: List.generate(imageDLList.length, (index) {
         Map imgFile = imageDLList[index];
+        var stringLen = imgFile["url"].length;
+        var extendo = imgFile["url"].substring(stringLen - 3, stringLen);
 
+        print(extendo);
         return GestureDetector(
             onTap: () {
-              viewImage(
-                imgFile,
-              );
+              if (extendo == "pdf") {
+                viewPdf(
+                  imgFile,
+                );
+              } else {
+                viewImage(
+                  imgFile,
+                );
+              }
             },
-            child: Container(
-              height: 300,
-              width: 300,
-              decoration: new BoxDecoration(
-                  image: new DecorationImage(
-                fit: BoxFit.fitWidth,
-                alignment: FractionalOffset.topCenter,
-                image: new NetworkImage(imgFile["url"]),
-              )),
-            ));
+            child: extendo == "pdf"
+                ? Icon(Icons.picture_as_pdf, size: 100)
+                : Container(
+                    height: 300,
+                    width: 300,
+                    decoration: BoxDecoration(
+                        image: DecorationImage(
+                      fit: BoxFit.fitWidth,
+                      alignment: FractionalOffset.topCenter,
+                      image: NetworkImage(imgFile["url"]),
+                    )),
+                  ));
       }),
     );
   }
@@ -252,7 +332,7 @@ class _ImageUploaderState extends State<ImageUploader> {
 
       if (resp.statusCode == 200) {
         Fluttertoast.showToast(
-            msg: "Image Deleted!",
+            msg: "File Deleted!",
             toastLength: Toast.LENGTH_SHORT,
             gravity: ToastGravity.BOTTOM,
             backgroundColor: Colors.grey[600],
@@ -273,6 +353,39 @@ class _ImageUploaderState extends State<ImageUploader> {
           textColor: Colors.white,
           fontSize: 16.0);
     }
+  }
+
+  Future<void> deleteCheck(asset) async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Delete this file'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('Are you sure?'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('Delete',
+                  style: TextStyle(fontSize: 17, color: Colors.red)),
+              onPressed: () {
+                deleteImage(asset);
+              },
+            ),
+            FlatButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   var loadedImage;
@@ -321,7 +434,7 @@ class _ImageUploaderState extends State<ImageUploader> {
       if (resp.statusCode == 200) {
         // await loadLeadData(this.widget.leadId);
         Fluttertoast.showToast(
-            msg: "Image Uploaded!",
+            msg: "File Uploaded!",
             toastLength: Toast.LENGTH_SHORT,
             gravity: ToastGravity.BOTTOM,
             backgroundColor: Colors.grey[600],
@@ -333,7 +446,7 @@ class _ImageUploaderState extends State<ImageUploader> {
         loadImages();
       } else {
         Fluttertoast.showToast(
-            msg: "Failed to upload image!",
+            msg: "Failed to upload file!",
             toastLength: Toast.LENGTH_SHORT,
             gravity: ToastGravity.BOTTOM,
             backgroundColor: Colors.grey[600],
