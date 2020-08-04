@@ -1682,7 +1682,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
 
     return Container(
       child: Padding(
-        padding: EdgeInsets.all(15),
+        padding: EdgeInsets.all(16),
         child: Row(
           children: <Widget>[
             Expanded(
