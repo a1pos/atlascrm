@@ -32,10 +32,16 @@ class _LeadsScreenState extends State<LeadsScreen> {
   bool isSearching = false;
   bool isFiltering = false;
 
+  var dropdownVal = "2";
+
   var currentSearch = "";
   var pageNum = 1;
   var filterEmployee = "";
-
+  var sortQueries = [
+    "sorters%5B0%5D%5Bfield%5D=created_at&sorters%5B0%5D%5Bdir%5D=desc",
+    "sorters%5B0%5D%5Bfield%5D=created_at&sorters%5B0%5D%5Bdir%5D=asc",
+    "sorters%5B0%5D%5Bfield%5D=document.businessName&sorters%5B0%5D%5Bdir%5D=asc"
+  ];
   var sortQuery =
       "sorters%5B0%5D%5Bfield%5D=document.businessName&sorters%5B0%5D%5Bdir%5D=asc";
   ScrollController _scrollController = ScrollController();
@@ -201,15 +207,17 @@ class _LeadsScreenState extends State<LeadsScreen> {
   }
 
   Future<void> clearSearch() async {
-    setState(() {
-      pageNum = 1;
-      currentSearch = "";
-      isSearching = false;
-      _searchController.clear();
-      leads = [];
-      leadsFull = [];
-    });
-    onScroll();
+    if (isSearching) {
+      setState(() {
+        pageNum = 1;
+        currentSearch = "";
+        isSearching = false;
+        _searchController.clear();
+        leads = [];
+        leadsFull = [];
+      });
+      onScroll();
+    }
   }
 
   Future<void> initEmployeeData() async {
@@ -273,9 +281,43 @@ class _LeadsScreenState extends State<LeadsScreen> {
       backgroundColor: Color.fromARGB(255, 242, 242, 242),
       drawer: CustomDrawer(),
       appBar: CustomAppBar(
-        key: Key("leadsScreenAppBar"),
-        title: Text("Leads"),
-      ),
+          key: Key("leadsScreenAppBar"),
+          title: Text("Leads"),
+          action: <Widget>[
+            Row(
+              children: <Widget>[
+                // Icon(Icons.sort),
+                Theme(
+                    data: Theme.of(context).copyWith(
+                      canvasColor: Colors.grey.shade900,
+                    ),
+                    child: DropdownButton(
+                        value: dropdownVal,
+                        items: [
+                          {'value': '0', 'text': 'Newest'},
+                          {'value': '1', 'text': 'Oldest'},
+                          {'value': '2', 'text': 'Alphabetical'}
+                        ].map<DropdownMenuItem<String>>((item) {
+                          return DropdownMenuItem<String>(
+                            value: item['value'],
+                            child: Text(item['text'],
+                                style: TextStyle(color: Colors.white)),
+                          );
+                        }).toList(),
+                        onChanged: (newVal) {
+                          setState(() {
+                            dropdownVal = newVal;
+                            sortQuery = sortQueries[int.parse(dropdownVal)];
+                            clearSearch();
+                            pageNum = 1;
+                            leads = [];
+                            leadsFull = [];
+                            onScroll();
+                          });
+                        })),
+              ],
+            )
+          ]),
       body: Container(
         padding: EdgeInsets.all(10),
         child: Column(
@@ -356,12 +398,16 @@ class _LeadsScreenState extends State<LeadsScreen> {
                         clearSearch();
                       },
                     )
-                  : IconButton(
-                      icon: Icon(Icons.search),
-                      onPressed: () {
-                        currentSearch = _searchController.text;
-                        searchLeads(_searchController.text);
-                      },
+                  : CircleAvatar(
+                      radius: 25,
+                      backgroundColor: Color.fromARGB(500, 1, 224, 143),
+                      child: IconButton(
+                        icon: Icon(Icons.search, color: Colors.white),
+                        onPressed: () {
+                          currentSearch = _searchController.text;
+                          searchLeads(_searchController.text);
+                        },
+                      ),
                     ),
             ],
           ),

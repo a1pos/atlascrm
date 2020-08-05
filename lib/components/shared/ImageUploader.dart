@@ -1,3 +1,5 @@
+import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
+import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:atlascrm/config/ConfigSettings.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -15,8 +17,9 @@ import 'package:multi_image_picker/multi_image_picker.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:pdf_flutter/pdf_flutter.dart';
 import 'package:photo_view/photo_view.dart';
+import 'package:flutter_pdfview/flutter_pdfview.dart';
+import 'package:http/http.dart' as http;
 
 class ImageUploader extends StatefulWidget {
   final ApiService apiService = new ApiService();
@@ -220,8 +223,8 @@ class _ImageUploaderState extends State<ImageUploader> {
                 color: Colors.red,
                 // color: Colors.grey[300],
                 onPressed: () {
-                  deleteCheck(asset);
                   Navigator.pop(context);
+                  deleteCheck(asset);
                 },
                 child: Row(
                   children: <Widget>[
@@ -243,17 +246,81 @@ class _ImageUploaderState extends State<ImageUploader> {
         });
   }
 
+  String path;
+  Future<String> get _localPath async {
+    final directory = await getApplicationDocumentsDirectory();
+
+    return directory.path;
+  }
+
+  Future<File> get _localFile async {
+    final path = await _localPath;
+    return File('$path/test.pdf');
+  }
+
+  Future<File> writeCounter(Uint8List stream) async {
+    final file = await _localFile;
+
+    // Write the file
+    return file.writeAsBytes(stream);
+  }
+
+  Future<bool> existsFile() async {
+    final file = await _localFile;
+    return file.exists();
+  }
+
+  Future<Uint8List> fetchPost(getUrl) async {
+    final response = await http.get(getUrl);
+    final responseJson = response.bodyBytes;
+
+    return responseJson;
+  }
+
+  // void loadPdf(getUrl) async {
+  //   await writeCounter(await fetchPost(getUrl));
+  //   await existsFile();
+  //   var midPath = (await _localFile).path;
+
+  //   setState(() {
+  //     path = midPath;
+  //   });
+
+  //   if (!mounted) return;
+  // }
+
   Future<void> viewPdf(asset) async {
     // var newPath = asset. ;
+
+    // loadPdf();
+    await writeCounter(await fetchPost(asset["url"]));
+    await existsFile();
+    var midPath = (await _localFile).path;
+
+    setState(() {
+      path = midPath;
+    });
+    // Navigator.pop(context);
+    if (!mounted) return;
     showDialog(
         context: context,
         builder: (BuildContext context) {
+          // return Scaffold(
+          //     appBar: AppBar(title: Text("Viewing PDF")),
+          //     body: Center(
+          //         child: Column(children: <Widget>[
+          //       Container(
+          //         height: 500,
+          //         child: PDFView(filePath: path),
+          //       )
+          //     ])));
           return AlertDialog(
             title: Text('View Statement'),
             content: SingleChildScrollView(
               child: ListBody(
                 children: <Widget>[
-                  PDF.network(asset["url"], height: 500, width: 300)
+                  Container(
+                      height: 500, width: 800, child: PDFView(filePath: path))
                 ],
               ),
             ),
@@ -263,8 +330,8 @@ class _ImageUploaderState extends State<ImageUploader> {
                 color: Colors.red,
                 // color: Colors.grey[300],
                 onPressed: () {
-                  deleteCheck(asset);
                   Navigator.pop(context);
+                  deleteCheck(asset);
                 },
                 child: Row(
                   children: <Widget>[
@@ -294,8 +361,6 @@ class _ImageUploaderState extends State<ImageUploader> {
         Map imgFile = imageDLList[index];
         var stringLen = imgFile["url"].length;
         var extendo = imgFile["url"].substring(stringLen - 3, stringLen);
-
-        print(extendo);
         return GestureDetector(
             onTap: () {
               if (extendo == "pdf") {
@@ -326,6 +391,8 @@ class _ImageUploaderState extends State<ImageUploader> {
 
   Future<void> deleteImage(asset) async {
     var name = asset["name"];
+    Navigator.pop(context);
+
     try {
       var resp = await this.widget.apiService.authDelete(
           context, "/lead/${this.widget.objectId}/statement/$name", null);
