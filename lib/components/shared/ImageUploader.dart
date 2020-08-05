@@ -21,6 +21,8 @@ import 'package:photo_view/photo_view.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:http/http.dart' as http;
 
+import 'CustomAppBar.dart';
+
 class ImageUploader extends StatefulWidget {
   final ApiService apiService = new ApiService();
 
@@ -210,39 +212,77 @@ class _ImageUploaderState extends State<ImageUploader> {
     showDialog(
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('View Statement'),
-            content: SingleChildScrollView(
-              child: ListBody(
-                children: <Widget>[Image.network(asset["url"])],
-              ),
-            ),
-            actions: <Widget>[
-              MaterialButton(
-                padding: EdgeInsets.all(5),
-                color: Colors.red,
-                // color: Colors.grey[300],
-                onPressed: () {
-                  Navigator.pop(context);
-                  deleteCheck(asset);
-                },
-                child: Row(
-                  children: <Widget>[
-                    Icon(
-                      Icons.clear,
-                      color: Colors.white,
+          return Scaffold(
+              appBar: CustomAppBar(
+                title: Text("Viewing Image"),
+                action: <Widget>[
+                  MaterialButton(
+                    padding: EdgeInsets.all(5),
+                    color: Colors.red,
+                    // color: Colors.grey[300],
+                    onPressed: () {
+                      deleteCheck(asset);
+                    },
+                    child: Row(
+                      children: <Widget>[
+                        Icon(
+                          Icons.clear,
+                          color: Colors.white,
+                        ),
+                        Text(
+                          'Delete',
+                          style: TextStyle(
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
                     ),
-                    Text(
-                      'Delete',
-                      style: TextStyle(
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          );
+              body: Center(
+                  child: Column(children: <Widget>[
+                Expanded(
+                  child: PhotoView(imageProvider: NetworkImage(asset["url"])),
+                )
+              ])));
+          // return AlertDialog(
+          //   title: Text('View Statement'),
+          //   content: SingleChildScrollView(
+          //     child: ListBody(
+          //       children: <Widget>[
+          //         Container(
+          //             child:
+          //                 PhotoView(imageProvider: NetworkImage(asset["url"])))
+          //       ],
+          //     ),
+          //   ),
+          //   actions: <Widget>[
+          //     MaterialButton(
+          //       padding: EdgeInsets.all(5),
+          //       color: Colors.red,
+          //       // color: Colors.grey[300],
+          //       onPressed: () {
+          //         Navigator.pop(context);
+          //         deleteCheck(asset);
+          //       },
+          //       child: Row(
+          //         children: <Widget>[
+          //           Icon(
+          //             Icons.clear,
+          //             color: Colors.white,
+          //           ),
+          //           Text(
+          //             'Delete',
+          //             style: TextStyle(
+          //               color: Colors.white,
+          //             ),
+          //           ),
+          //         ],
+          //       ),
+          //     ),
+          //   ],
+          // );
         });
   }
 
@@ -305,51 +345,76 @@ class _ImageUploaderState extends State<ImageUploader> {
     showDialog(
         context: context,
         builder: (BuildContext context) {
-          // return Scaffold(
-          //     appBar: AppBar(title: Text("Viewing PDF")),
-          //     body: Center(
-          //         child: Column(children: <Widget>[
-          //       Container(
-          //         height: 500,
-          //         child: PDFView(filePath: path),
-          //       )
-          //     ])));
-          return AlertDialog(
-            title: Text('View Statement'),
-            content: SingleChildScrollView(
-              child: ListBody(
-                children: <Widget>[
-                  Container(
-                      height: 500, width: 800, child: PDFView(filePath: path))
+          return Scaffold(
+              appBar: CustomAppBar(
+                title: Text("Viewing PDF"),
+                action: <Widget>[
+                  MaterialButton(
+                    padding: EdgeInsets.all(5),
+                    color: Colors.red,
+                    // color: Colors.grey[300],
+                    onPressed: () {
+                      deleteCheck(asset);
+                    },
+                    child: Row(
+                      children: <Widget>[
+                        Icon(
+                          Icons.clear,
+                          color: Colors.white,
+                        ),
+                        Text(
+                          'Delete',
+                          style: TextStyle(
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
-            ),
-            actions: <Widget>[
-              MaterialButton(
-                padding: EdgeInsets.all(5),
-                color: Colors.red,
-                // color: Colors.grey[300],
-                onPressed: () {
-                  Navigator.pop(context);
-                  deleteCheck(asset);
-                },
-                child: Row(
-                  children: <Widget>[
-                    Icon(
-                      Icons.clear,
-                      color: Colors.white,
-                    ),
-                    Text(
-                      'Delete',
-                      style: TextStyle(
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          );
+              body: Center(
+                  child: Column(children: <Widget>[
+                Expanded(
+                  child: PDFView(filePath: path),
+                )
+              ])));
+          // return AlertDialog(
+          //   title: Text('View Statement'),
+          //   content: SingleChildScrollView(
+          //     child: ListBody(
+          //       children: <Widget>[
+          //         Container(
+          //             height: 500, width: 800, child: PDFView(filePath: path))
+          //       ],
+          //     ),
+          //   ),
+          //   actions: <Widget>[
+          //     MaterialButton(
+          //       padding: EdgeInsets.all(5),
+          //       color: Colors.red,
+          //       // color: Colors.grey[300],
+          //       onPressed: () {
+          //         Navigator.pop(context);
+          //         deleteCheck(asset);
+          //       },
+          //       child: Row(
+          //         children: <Widget>[
+          //           Icon(
+          //             Icons.clear,
+          //             color: Colors.white,
+          //           ),
+          //           Text(
+          //             'Delete',
+          //             style: TextStyle(
+          //               color: Colors.white,
+          //             ),
+          //           ),
+          //         ],
+          //       ),
+          //     ),
+          //   ],
+          // );
         });
   }
 
@@ -392,7 +457,7 @@ class _ImageUploaderState extends State<ImageUploader> {
   Future<void> deleteImage(asset) async {
     var name = asset["name"];
     Navigator.pop(context);
-
+    Navigator.pop(context);
     try {
       var resp = await this.widget.apiService.authDelete(
           context, "/lead/${this.widget.objectId}/statement/$name", null);
