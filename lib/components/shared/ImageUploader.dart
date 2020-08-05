@@ -18,6 +18,7 @@ import 'package:atlascrm/services/UserService.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:photo_view/photo_view.dart';
+import 'package:photo_view/photo_view_gallery.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:http/http.dart' as http;
 
@@ -206,8 +207,8 @@ class _ImageUploaderState extends State<ImageUploader> {
   //     print(e);
   //   }
   // }
-
-  Future<void> viewImage(asset) async {
+  var currentImage;
+  Future<void> viewImage(asset, imgIndex) async {
     // var newPath = asset. ;
     showDialog(
         context: context,
@@ -221,7 +222,7 @@ class _ImageUploaderState extends State<ImageUploader> {
                     color: Colors.red,
                     // color: Colors.grey[300],
                     onPressed: () {
-                      deleteCheck(asset);
+                      deleteCheck(currentImage);
                     },
                     child: Row(
                       children: <Widget>[
@@ -242,9 +243,10 @@ class _ImageUploaderState extends State<ImageUploader> {
               ),
               body: Center(
                   child: Column(children: <Widget>[
-                Expanded(
-                  child: PhotoView(imageProvider: NetworkImage(asset["url"])),
-                )
+                Expanded(child: buildPhotoGallery(context, imgIndex)
+
+                    // PhotoView(imageProvider: NetworkImage(asset["url"])),
+                    )
               ])));
           // return AlertDialog(
           //   title: Text('View Statement'),
@@ -418,6 +420,43 @@ class _ImageUploaderState extends State<ImageUploader> {
         });
   }
 
+  List galleryImages = [];
+
+  Widget buildPhotoGallery(BuildContext context, page) {
+    PageController pageController = PageController(initialPage: page);
+
+    return Container(
+        child: PhotoViewGallery.builder(
+      scrollPhysics: const BouncingScrollPhysics(),
+      builder: (BuildContext context, int index) {
+        return PhotoViewGalleryPageOptions(
+          imageProvider: NetworkImage(galleryImages[index]["url"]),
+          initialScale: PhotoViewComputedScale.contained * 0.8,
+          // heroAttributes: HeroAttributes(tag: "image $index"),
+        );
+      },
+      itemCount: galleryImages.length,
+      loadingBuilder: (context, event) => Center(
+        child: Container(
+          width: 20.0,
+          height: 20.0,
+          child: CircularProgressIndicator(
+            value: event == null
+                ? 0
+                : event.cumulativeBytesLoaded / event.expectedTotalBytes,
+          ),
+        ),
+      ),
+      // backgroundDecoration: widget.backgroundDecoration,
+      pageController: pageController,
+      onPageChanged: (newVal) {
+        setState(() {
+          currentImage = galleryImages[newVal];
+        });
+      },
+    ));
+  }
+
   Widget buildDLGridView() {
     return GridView.count(
       shrinkWrap: true,
@@ -433,9 +472,19 @@ class _ImageUploaderState extends State<ImageUploader> {
                   imgFile,
                 );
               } else {
-                viewImage(
-                  imgFile,
-                );
+                setState(() {
+                  galleryImages = [];
+                  currentImage = imgFile;
+                });
+                for (var item in imageDLList) {
+                  var stringLen = item["url"].length;
+                  var extendo = item["url"].substring(stringLen - 3, stringLen);
+                  if (extendo != "pdf") {
+                    galleryImages.add(item);
+                  }
+                }
+                var imgIndex = galleryImages.indexOf(imgFile);
+                viewImage(imgFile, imgIndex);
               }
             },
             child: extendo == "pdf"
