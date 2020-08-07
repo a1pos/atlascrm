@@ -427,12 +427,17 @@ class _InventoryScreenState extends State<InventoryScreen> {
                         clearSearch();
                       },
                     )
-                  : IconButton(
-                      icon: Icon(Icons.center_focus_weak),
-                      onPressed: () {
-                        currentSearch = _searchController.text;
-                        scanBarcode();
-                      },
+                  : CircleAvatar(
+                      radius: 25,
+                      backgroundColor: Color.fromARGB(500, 1, 224, 143),
+                      child: IconButton(
+                        icon:
+                            Icon(Icons.center_focus_weak, color: Colors.white),
+                        onPressed: () {
+                          currentSearch = _searchController.text;
+                          scanBarcode();
+                        },
+                      ),
                     ),
             ],
           ),

@@ -6,6 +6,7 @@ import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/services/UserService.dart';
+import 'package:intl/intl.dart';
 import 'package:unicorndial/unicorndial.dart';
 import 'package:atlascrm/components/shared/MerchantDropdown.dart';
 
@@ -282,6 +283,50 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
     }
   }
 
+  Widget buildHistoryList() {
+    var historyList = [];
+    if (inventory["document"] != null) {
+      if (inventory["document"]["history"] != null) {
+        var reversed = List.from(inventory["document"]["history"].reversed);
+        historyList = reversed;
+      }
+    }
+    return ListView(
+        shrinkWrap: true,
+        children: List.generate(historyList.length, (index) {
+          var event = historyList[index];
+          DateTime date =
+              new DateTime.fromMillisecondsSinceEpoch(event["date"]);
+          var dateFormat = DateFormat.yMd().add_jm();
+          var eventDate = dateFormat.format(date);
+          return Card(
+              shape: new RoundedRectangleBorder(
+                  side: new BorderSide(color: Colors.grey[200], width: 2.0),
+                  borderRadius: BorderRadius.circular(4.0)),
+              child: ListTile(
+                  isThreeLine: true,
+                  title: Text(event["locationName"] != null
+                      ? event["locationName"]
+                      : ""),
+                  subtitle: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
+                        child: Text(event["employeeName"] != null
+                            ? event["employeeName"]
+                            : ""),
+                      )),
+                  trailing: Column(
+                    children: <Widget>[
+                      Text(eventDate),
+                      Text(event["description"] != null
+                          ? event["description"]
+                          : ""),
+                    ],
+                  )));
+        }));
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -357,6 +402,17 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
                               ),
                             ],
                           ),
+                        ),
+                        CustomCard(
+                          key: Key("inventory2"),
+                          icon: Icons.history,
+                          title: "Device History",
+                          child: ConstrainedBox(
+                              constraints: new BoxConstraints(
+                                minHeight: 35.0,
+                                maxHeight: 340.0,
+                              ),
+                              child: Scrollbar(child: buildHistoryList())),
                         ),
                       ],
                     ),
