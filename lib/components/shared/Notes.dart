@@ -43,6 +43,7 @@ class _NotesState extends State<Notes> {
   }
 
   Future<void> loadNotes(objectId, type) async {
+    notesController.clear();
     var resp = await this
         .widget
         .apiService
