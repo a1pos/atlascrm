@@ -148,7 +148,7 @@ class _NotesState extends State<Notes> {
                   var localDate = utcDatetime.toLocal();
 
                   var viewDate =
-                      DateFormat("yyyy-MM-dd HH:mm").add_jm().format(localDate);
+                      DateFormat("MM-dd-yyyy,").add_jm().format(localDate);
                   return Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Card(
