@@ -137,9 +137,18 @@ class _NotesState extends State<Notes> {
         !notesEmpty
             ? Column(
                 children: notesDisplay = notes.map((note) {
-                  var viewDate = DateFormat("yyyy-MM-dd HH:mm")
-                      .add_jm()
-                      .format(DateTime.parse(note["created_at"]));
+                  var utcDate = DateTime.parse(note["created_at"]);
+                  var utcDatetime = DateTime.utc(
+                      utcDate.year,
+                      utcDate.month,
+                      utcDate.day,
+                      utcDate.hour,
+                      utcDate.minute,
+                      utcDate.second);
+                  var localDate = utcDatetime.toLocal();
+
+                  var viewDate =
+                      DateFormat("yyyy-MM-dd HH:mm").add_jm().format(localDate);
                   return Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Card(
