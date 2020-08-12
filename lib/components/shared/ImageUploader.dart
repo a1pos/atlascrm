@@ -250,28 +250,30 @@ class _ImageUploaderState extends State<ImageUploader> {
               appBar: CustomAppBar(
                 title: Text("Viewing Image"),
                 action: <Widget>[
-                  MaterialButton(
-                    padding: EdgeInsets.all(5),
-                    color: Colors.red,
-                    // color: Colors.grey[300],
-                    onPressed: () {
-                      deleteCheck(currentImage);
-                    },
-                    child: Row(
-                      children: <Widget>[
-                        Icon(
-                          Icons.clear,
-                          color: Colors.white,
-                        ),
-                        Text(
-                          'Delete',
-                          style: TextStyle(
-                            color: Colors.white,
+                  uploadsComplete
+                      ? Container()
+                      : MaterialButton(
+                          padding: EdgeInsets.all(5),
+                          color: Colors.red,
+                          // color: Colors.grey[300],
+                          onPressed: () {
+                            deleteCheck(currentImage);
+                          },
+                          child: Row(
+                            children: <Widget>[
+                              Icon(
+                                Icons.clear,
+                                color: Colors.white,
+                              ),
+                              Text(
+                                'Delete',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
-                  ),
                 ],
               ),
               body: Center(
@@ -384,28 +386,30 @@ class _ImageUploaderState extends State<ImageUploader> {
               appBar: CustomAppBar(
                 title: Text("Viewing PDF"),
                 action: <Widget>[
-                  MaterialButton(
-                    padding: EdgeInsets.all(5),
-                    color: Colors.red,
-                    // color: Colors.grey[300],
-                    onPressed: () {
-                      deleteCheck(asset);
-                    },
-                    child: Row(
-                      children: <Widget>[
-                        Icon(
-                          Icons.clear,
-                          color: Colors.white,
-                        ),
-                        Text(
-                          'Delete',
-                          style: TextStyle(
-                            color: Colors.white,
+                  uploadsComplete
+                      ? Container()
+                      : MaterialButton(
+                          padding: EdgeInsets.all(5),
+                          color: Colors.red,
+                          // color: Colors.grey[300],
+                          onPressed: () {
+                            deleteCheck(asset);
+                          },
+                          child: Row(
+                            children: <Widget>[
+                              Icon(
+                                Icons.clear,
+                                color: Colors.white,
+                              ),
+                              Text(
+                                'Delete',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
-                  ),
                 ],
               ),
               body: Center(
