@@ -1,3 +1,4 @@
+import 'package:atlascrm/components/shared/PlacesSuggestions.dart';
 import 'package:atlascrm/config/ConfigSettings.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +18,7 @@ import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:http/http.dart' as http;
+import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 
 import 'CustomAppBar.dart';
 
@@ -25,7 +27,8 @@ class ImageUploader extends StatefulWidget {
 
   final String objectId;
   final String type;
-  ImageUploader({this.type, this.objectId});
+  final Map loading;
+  ImageUploader({this.type, this.objectId, this.loading});
 
   @override
   _ImageUploaderState createState() => _ImageUploaderState();
@@ -51,6 +54,8 @@ class _ImageUploaderState extends State<ImageUploader> {
     loadImages();
   }
 
+  var isLoading = false;
+
   var uploadsComplete = false;
   var dio = Dio();
 
@@ -66,10 +71,12 @@ class _ImageUploaderState extends State<ImageUploader> {
 
       if (resp.statusCode == 200) {
         if (resp.data != null && resp.data != "") {
-          if (resp.data["document"]["uploadComplete"] != null) {
-            setState(() {
-              uploadsComplete = true;
-            });
+          if (resp.data["document"] != null) {
+            if (resp.data["document"]["emailSent"] != null) {
+              setState(() {
+                uploadsComplete = true;
+              });
+            }
           }
         }
       }
@@ -87,7 +94,7 @@ class _ImageUploaderState extends State<ImageUploader> {
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text('Take a new picture or upload from gallery?'),
+                Text('Take a new picture, upload from gallery, or upload PDF?'),
               ],
             ),
           ),
@@ -204,8 +211,12 @@ class _ImageUploaderState extends State<ImageUploader> {
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text(
-                    'This will submit your statement to be reviewed. After the statement is submitted you cannot add any more files.'),
+                Text('This will submit your statement to be reviewed. '),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
+                  child: Text(
+                      'After this statement is submitted you cannot add any more files to it.'),
+                ),
               ],
             ),
           ),
@@ -626,13 +637,19 @@ class _ImageUploaderState extends State<ImageUploader> {
 
   Future<void> uploadComplete() async {
     try {
-      var resp = await this.widget.apiService.authPut(context,
-          "/lead/${this.widget.objectId}/statement", {"uploadComplete": true});
+      setState(() {
+        isLoading = true;
+      });
+      var resp = await this
+          .widget
+          .apiService
+          .authPut(context, "/lead/${this.widget.objectId}/statement", null);
 
       if (resp.statusCode == 200) {
         if (resp.data != null && resp.data != "") {
           setState(() {
             uploadsComplete = true;
+            isLoading = false;
           });
           Fluttertoast.showToast(
               msg: "Uploads complete!",
@@ -645,6 +662,9 @@ class _ImageUploaderState extends State<ImageUploader> {
       }
     } catch (err) {
       print(err);
+      setState(() {
+        isLoading = false;
+      });
       Fluttertoast.showToast(
           msg: "Failed to complete upload!",
           toastLength: Toast.LENGTH_SHORT,
@@ -699,69 +719,71 @@ class _ImageUploaderState extends State<ImageUploader> {
         key: Key("leads5"),
         title: "Statement Uploads",
         icon: Icons.file_upload,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: MaterialButton(
-                    padding: EdgeInsets.all(5),
-                    color: uploadsComplete
-                        ? Colors.grey
-                        : Color.fromARGB(500, 1, 224, 143),
-                    onPressed: uploadsComplete ? () {} : openImageUpload,
-                    child: Row(
-                      children: <Widget>[
-                        Icon(
-                          Icons.file_upload,
-                          color: Colors.white,
-                        ),
-                        Text(
-                          'Upload Files',
-                          style: TextStyle(
-                            color: Colors.white,
+        child: isLoading
+            ? CenteredLoadingSpinner()
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: MaterialButton(
+                          padding: EdgeInsets.all(5),
+                          color: uploadsComplete
+                              ? Colors.grey
+                              : Color.fromARGB(500, 1, 224, 143),
+                          onPressed: uploadsComplete ? () {} : openImageUpload,
+                          child: Row(
+                            children: <Widget>[
+                              Icon(
+                                Icons.file_upload,
+                                color: Colors.white,
+                              ),
+                              Text(
+                                'Upload Files',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: MaterialButton(
-                    padding: EdgeInsets.all(5),
-                    color: uploadsComplete || imageDLList.length == 0
-                        ? Colors.grey
-                        : Color.fromARGB(500, 1, 224, 143),
-                    onPressed: uploadsComplete || imageDLList.length == 0
-                        ? () {}
-                        : submitCheck,
-                    child: Row(
-                      children: <Widget>[
-                        Icon(
-                          Icons.done,
-                          color: Colors.white,
-                        ),
-                        Text(
-                          'Submit Statement',
-                          style: TextStyle(
-                            color: Colors.white,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: MaterialButton(
+                          padding: EdgeInsets.all(5),
+                          color: uploadsComplete || imageDLList.length == 0
+                              ? Colors.grey
+                              : Color.fromARGB(500, 1, 224, 143),
+                          onPressed: uploadsComplete || imageDLList.length == 0
+                              ? () {}
+                              : submitCheck,
+                          child: Row(
+                            children: <Widget>[
+                              Icon(
+                                Icons.done,
+                                color: Colors.white,
+                              ),
+                              Text(
+                                'Submit Statement',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
-            Flexible(
-              fit: FlexFit.loose,
-              child: buildDLGridView(),
-            ),
-          ],
-        ));
+                  Flexible(
+                    fit: FlexFit.loose,
+                    child: buildDLGridView(),
+                  ),
+                ],
+              ));
   }
 }
