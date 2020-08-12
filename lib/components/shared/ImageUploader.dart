@@ -1,5 +1,3 @@
-import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
-import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:atlascrm/config/ConfigSettings.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -8,8 +6,6 @@ import 'package:flutter/services.dart';
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:intl/intl.dart';
-import 'package:atlascrm/components/shared/Empty.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:image_picker/image_picker.dart';
@@ -51,13 +47,36 @@ class _ImageUploaderState extends State<ImageUploader> {
   @override
   void initState() {
     super.initState();
+    loadStatement();
     loadImages();
   }
 
+  var uploadsComplete = false;
   var dio = Dio();
 
   var _image;
   final picker = ImagePicker();
+
+  Future<void> loadStatement() async {
+    try {
+      var resp = await this
+          .widget
+          .apiService
+          .authGet(context, "/statement/${this.widget.objectId}/lead");
+
+      if (resp.statusCode == 200) {
+        if (resp.data != null && resp.data != "") {
+          if (resp.data["document"]["uploadComplete"] != null) {
+            setState(() {
+              uploadsComplete = true;
+            });
+          }
+        }
+      }
+    } catch (err) {
+      print(err);
+    }
+  }
 
   void openImageUpload() {
     showDialog(
@@ -176,37 +195,40 @@ class _ImageUploaderState extends State<ImageUploader> {
     }
   }
 
-  //started working on downloads
+  Future<void> submitCheck() async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Submit Statement?'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text(
+                    'This will submit your statement to be reviewed. After the statement is submitted you cannot add any more files.'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('Submit', style: TextStyle(fontSize: 17)),
+              onPressed: () {
+                uploadComplete();
+                Navigator.pop(context);
+              },
+            ),
+            FlatButton(
+              child: Text('Cancel', style: TextStyle(color: Colors.red)),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
-  // void showDownloadProgress(received, total) {
-  //   if (total != -1) {
-  //     print((received / total * 100).toStringAsFixed(0) + "%");
-  //   }
-  // }
-
-  // Future download2(Dio dio, String url, String savePath) async {
-  //   try {
-  //     Response response = await dio.get(
-  //       url,
-  //       onReceiveProgress: showDownloadProgress,
-  //       //Received data with List<int>
-  //       options: Options(
-  //           responseType: ResponseType.bytes,
-  //           followRedirects: false,
-  //           validateStatus: (status) {
-  //             return status < 500;
-  //           }),
-  //     );
-  //     print(response.headers);
-  //     File file = File(savePath);
-  //     var raf = file.openSync(mode: FileMode.write);
-  //     // response.data is List<int> type
-  //     raf.writeFromSync(response.data);
-  //     await raf.close();
-  //   } catch (e) {
-  //     print(e);
-  //   }
-  // }
   var currentImage;
   Future<void> viewImage(asset, imgIndex) async {
     // var newPath = asset. ;
@@ -602,6 +624,37 @@ class _ImageUploaderState extends State<ImageUploader> {
     }
   }
 
+  Future<void> uploadComplete() async {
+    try {
+      var resp = await this.widget.apiService.authPut(context,
+          "/lead/${this.widget.objectId}/statement", {"uploadComplete": true});
+
+      if (resp.statusCode == 200) {
+        if (resp.data != null && resp.data != "") {
+          setState(() {
+            uploadsComplete = true;
+          });
+          Fluttertoast.showToast(
+              msg: "Uploads complete!",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.grey[600],
+              textColor: Colors.white,
+              fontSize: 16.0);
+        }
+      }
+    } catch (err) {
+      print(err);
+      Fluttertoast.showToast(
+          msg: "Failed to complete upload!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0);
+    }
+  }
+
   Future<void> addImage(path) async {
     // Uri fileUri = Uri.parse(path);
     // File newFile = File.fromUri(fileUri);
@@ -649,27 +702,60 @@ class _ImageUploaderState extends State<ImageUploader> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(50, 0, 50, 15),
-              child: MaterialButton(
-                padding: EdgeInsets.all(5),
-                color: Color.fromARGB(500, 1, 224, 143),
-                onPressed: openImageUpload,
-                child: Row(
-                  children: <Widget>[
-                    Icon(
-                      Icons.file_upload,
-                      color: Colors.white,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: MaterialButton(
+                    padding: EdgeInsets.all(5),
+                    color: uploadsComplete
+                        ? Colors.grey
+                        : Color.fromARGB(500, 1, 224, 143),
+                    onPressed: uploadsComplete ? () {} : openImageUpload,
+                    child: Row(
+                      children: <Widget>[
+                        Icon(
+                          Icons.file_upload,
+                          color: Colors.white,
+                        ),
+                        Text(
+                          'Upload Files',
+                          style: TextStyle(
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
                     ),
-                    Text(
-                      'Upload images',
-                      style: TextStyle(
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: MaterialButton(
+                    padding: EdgeInsets.all(5),
+                    color: uploadsComplete || imageDLList.length == 0
+                        ? Colors.grey
+                        : Color.fromARGB(500, 1, 224, 143),
+                    onPressed: uploadsComplete || imageDLList.length == 0
+                        ? () {}
+                        : submitCheck,
+                    child: Row(
+                      children: <Widget>[
+                        Icon(
+                          Icons.done,
+                          color: Colors.white,
+                        ),
+                        Text(
+                          'Submit Statement',
+                          style: TextStyle(
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
             Flexible(
               fit: FlexFit.loose,
