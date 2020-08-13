@@ -17,6 +17,8 @@ import 'package:atlascrm/screens/merchants/MerchantsScreen.dart';
 import 'package:atlascrm/screens/merchants/ViewMerchantScreen.dart';
 import 'package:atlascrm/screens/inventory/InventoryScreen.dart';
 import 'package:atlascrm/screens/inventory/ViewInventoryScreen.dart';
+import 'package:atlascrm/screens/installs/InstallsScreen.dart';
+import 'package:atlascrm/screens/installs/ViewInstallScreen.dart';
 import 'package:atlascrm/screens/mileage/MileageScreen.dart';
 import 'package:atlascrm/screens/tasks/TaskScreen.dart';
 import 'package:atlascrm/screens/tasks/ViewTaskScreen.dart';
@@ -137,6 +139,9 @@ class _AtlasCRMState extends State<AtlasCRM> {
           case "/inventory":
             return MaterialPageRoute(builder: (context) => InventoryScreen());
             break;
+          case "/installs":
+            return MaterialPageRoute(builder: (context) => InstallsScreen());
+            break;
           case "/logout":
             handleLogoutRoute();
             return MaterialPageRoute(builder: (context) => AtlasCRM());
@@ -151,6 +156,9 @@ class _AtlasCRMState extends State<AtlasCRM> {
           case '/viewinventory':
             return SlideRightRoute(
                 page: ViewInventoryScreen(settings.arguments));
+            break;
+          case '/viewinstall':
+            return SlideRightRoute(page: ViewInstallScreen(settings.arguments));
             break;
           case '/employeemgmt':
             return MaterialPageRoute(

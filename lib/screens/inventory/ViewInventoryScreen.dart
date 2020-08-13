@@ -165,7 +165,7 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
       }
     } else {
       Fluttertoast.showToast(
-          msg: "Failed to udpate lead!",
+          msg: "Failed to udpate device!",
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.grey[600],

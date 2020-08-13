@@ -53,7 +53,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
   bool isChanged = false;
   var lead;
   var leadDocument;
-  var isLoading = true;
+  bool isLoading = true;
   var displayPhone;
   void initState() {
     super.initState();
@@ -483,7 +483,9 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                           ),
                         ),
                         ImageUploader(
-                            type: "statement", objectId: lead["lead"]),
+                            type: "statement",
+                            objectId: lead["lead"],
+                            loading: {"loading": isLoading}),
                       ],
                     ),
                   ),

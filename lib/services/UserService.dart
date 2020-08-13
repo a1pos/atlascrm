@@ -24,13 +24,15 @@ class UserService {
 
   Future<bool> isAuthenticated(context) async {
     try {
-      if (await googleSignIn.isSignedIn()) {
-        var googleSignInAccount = await googleSignIn.signInSilently();
+      print("about to check google sign in");
+      var isGoogleSignedIn = await googleSignIn.isSignedIn();
+      print("isGoogleSignedIn $isGoogleSignedIn");
+      if (isGoogleSignedIn) {
+        var googleSignInAccount =
+            await googleSignIn.signInSilently(suppressErrors: false);
         googleSignInAuthentication = await googleSignInAccount.authentication;
-
-        var isGoogleSignedIn = await firebaseAuth.currentUser();
-
-        if (isGoogleSignedIn != null) {
+        var firebaseUser = await firebaseAuth.currentUser();
+        if (firebaseUser != null) {
           var isAuthed = await authorizeEmployee(context);
           if (isAuthed) {
             return true;
@@ -38,7 +40,7 @@ class UserService {
         }
       }
     } catch (err) {
-      log(err);
+      print(err);
     }
     return false;
   }
