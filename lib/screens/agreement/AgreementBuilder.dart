@@ -878,6 +878,19 @@ class AgreementBuilderState extends State<AgreementBuilder>
         errorObj["MotoBBInet"] != null) {
       errorObj.remove('MotoBBInet');
     }
+    if (_generalControllers["corpSame"].text == "true" &&
+        errorObj["BusinessInfo"] != null) {
+      if (errorObj["BusinessInfo"]["City"] != null) {
+        errorObj["BusinessInfo"].remove('LocationAddress1');
+        errorObj["BusinessInfo"].remove('City');
+        errorObj["BusinessInfo"].remove('State');
+        errorObj["BusinessInfo"].remove('First5Zip');
+        var businessErrorEmpty = errorObj["BusinessInfo"].isEmpty;
+        if (businessErrorEmpty == true) {
+          errorObj.remove('BusinessInfo');
+        }
+      }
+    }
     if (errorObj["Ownership"] != null) {
       if (errorObj["Ownership"]["Prin1Ssn"] == "Too Long") {
         errorObj["Ownership"].remove('Prin1Ssn');

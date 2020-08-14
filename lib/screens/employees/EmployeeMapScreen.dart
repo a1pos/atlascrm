@@ -81,7 +81,9 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
               infoWindow: InfoWindow(
                 snippet: location["employee_document"]["fullName"] +
                     " " +
-                    datetimeFmt,
+                    datetimeFmt +
+                    " Stops:" +
+                    location["stop_count"],
                 title: location["employee_document"]["email"],
               ),
               icon: icon,
@@ -98,7 +100,9 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
               ),
               markerId: markerId,
               infoWindow: InfoWindow(
-                snippet: location["employee_document"]["fullName"],
+                snippet: location["employee_document"]["fullName"] +
+                    " Stops:" +
+                    location["stop_count"],
                 title: location["employee_document"]["email"],
               ),
               icon: icon,
@@ -123,7 +127,10 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
         ),
       );
     });
-
+    DateTime now = DateTime.now();
+    var time = DateTime(now.year, now.month, now.day, 7, now.minute, now.second,
+        now.millisecond, now.microsecond);
+    var today = DateFormat('yyyy-MM-dd HH:mm:ss.SSS').format(time);
     var lastLocationResponse = await this
         .widget
         .apiService
@@ -132,6 +139,11 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
       if (lastLocationResponse.statusCode == 200) {
         var lastLocationArr = lastLocationResponse.data;
         for (var item in lastLocationArr) {
+          var stopCount = await this.widget.apiService.authGet(
+              context, "/employee/stopcount/${item["employee"]}/" + today);
+
+          var count = await stopCount.data;
+
           var employeeDocument = item["employee_document"];
 
           var isActive = item["is_employee_active"];
@@ -164,7 +176,11 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
                   markerId: markerId,
                   infoWindow: InfoWindow(
                     title: employeeDocument["email"],
-                    snippet: employeeDocument["fullName"] + " " + datetimeFmt,
+                    snippet: employeeDocument["fullName"] +
+                        " " +
+                        datetimeFmt +
+                        " Stops:" +
+                        count.length.toString(),
                   ),
                   icon: icon),
             );

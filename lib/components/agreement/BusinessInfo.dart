@@ -247,6 +247,11 @@ class BusinessInfoState extends State<BusinessInfo>
   bool businessAddressError = false;
 
   Future<void> checkAddresses() async {
+    if (this.widget.controllers["general"]["corpSame"].text == "true" &&
+        this.widget.controllers["corporateInfo"]["Address1"].text != "") {
+      setSameAddress();
+    }
+
     if (this.widget.controllers["businessInfo"]["LocationAddress1"].text ==
         "") {
       setState(() {
@@ -291,7 +296,6 @@ class BusinessInfoState extends State<BusinessInfo>
     setState(() {
       this.widget.controllers["businessInfo"]["LocationAddress1"].text =
           this.widget.controllers["corporateInfo"]["Address1"].text;
-
       this.widget.controllers["businessInfo"]["City"].text =
           this.widget.controllers["corporateInfo"]["City"].text;
 
@@ -302,6 +306,7 @@ class BusinessInfoState extends State<BusinessInfo>
           this.widget.controllers["corporateInfo"]["First5Zip"].text;
       this.widget.isDirtyStatus["businessInfoIsDirty"] = true;
     });
+    setState(() {});
   }
 
   Future<void> setBusinessAddress(address) async {

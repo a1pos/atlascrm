@@ -33,20 +33,23 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
 
   DateTime _startDate = DateTime.now().toUtc();
   DateTime _endDate = DateTime.now().toUtc();
-
+  var numberStops = 0;
+  var currentDate = DateTime.now();
   CameraPosition _kGooglePlex;
 
   @override
   void initState() {
     super.initState();
 
-    loadMarkerHistory(null, null);
+    loadMarkerHistory(null);
   }
 
-  Future<void> loadMarkerHistory(DateTime startDate, DateTime endDate) async {
+  Future<void> loadMarkerHistory(DateTime startDate) async {
+    var endDate;
     setState(() {
       isLoading = true;
       _markers.clear();
+      _polyline.clear();
     });
 
     var homeIcon = await BitmapDescriptor.fromAssetImage(
@@ -54,20 +57,18 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
 
     var url = "/employee/locationdata/" + this.widget.employeeId;
 
-    if (startDate != null && endDate != null) {
-      if (startDate.day == endDate.day) {
-        startDate = DateTime(startDate.toUtc().year, startDate.toUtc().month,
-            startDate.toUtc().day, 0, 0);
+    if (startDate != null) {
+      startDate = DateTime(startDate.toUtc().year, startDate.toUtc().month,
+          startDate.toUtc().day, 7, 0);
 
-        endDate = DateTime(startDate.toUtc().year, startDate.toUtc().month,
-            startDate.toUtc().day, 23, 59);
-      }
+      endDate = DateTime(startDate.toUtc().year, startDate.toUtc().month,
+          startDate.toUtc().day, 23, 59);
 
       url += "?startDate=" + startDate.toString();
       url += "&endDate=" + endDate.toString();
     } else {
       startDate =
-          DateTime(_startDate.year, _startDate.month, _startDate.day, 0, 0);
+          DateTime(_startDate.year, _startDate.month, _startDate.day, 7, 0);
 
       endDate = DateTime(_endDate.year, _endDate.month, _endDate.day, 23, 59);
 
@@ -79,6 +80,15 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
     if (resp.statusCode == 200) {
       var locationDataDecoded = resp.data;
       var locationDataArray = List.from(locationDataDecoded);
+      var stopCount = await apiService.authGet(
+          context,
+          "/employee/stopcount/${this.widget.employeeId}/" +
+              startDate.toString());
+
+      var count = await stopCount.data;
+      setState(() {
+        numberStops = count.length;
+      });
 
       if (locationDataArray.length > 0) {
         var markers = List<Marker>();
@@ -194,9 +204,8 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    var formatter = DateFormat('yyyy-MM-dd');
+    var formatter = DateFormat.yMMMMd('en_US');
     String startDateFmt = formatter.format(_startDate);
-    String endDateFmt = formatter.format(_endDate);
 
     return Scaffold(
       appBar: CustomAppBar(
@@ -217,18 +226,17 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
                         child: MaterialButton(
                           color: Colors.grey[200],
                           onPressed: () async {
-                            final List<DateTime> picked =
-                                await DateRangePicker.showDatePicker(
-                                    context: context,
-                                    initialFirstDate: DateTime.now(),
-                                    initialLastDate: DateTime.now(),
-                                    firstDate: DateTime(2015),
-                                    lastDate: new DateTime(2040));
-                            if (picked != null && picked.length == 2) {
-                              await loadMarkerHistory(picked[0], picked[1]);
+                            final DateTime picked = await showDatePicker(
+                                context: context,
+                                initialDate: currentDate,
+                                firstDate: DateTime(2015),
+                                lastDate: new DateTime(2040));
+                            if (picked != null) {
+                              currentDate = picked;
+                              await loadMarkerHistory(picked);
                             }
                           },
-                          child: new Text("Pick date range"),
+                          child: new Text(startDateFmt),
                         ),
                       ),
                       Expanded(
@@ -236,8 +244,8 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
-                            Text('Start Date: $startDateFmt'),
-                            Text('End Date: $endDateFmt'),
+                            // Text('Date: $startDateFmt'),
+                            Text('Number of Stops: ${numberStops.toString()}'),
                           ],
                         ),
                       ),
