@@ -7,7 +7,6 @@ import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CustomDrawer.dart';
 import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
-import 'package:atlascrm/models/Lead.dart';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:flutter/material.dart';
@@ -148,7 +147,7 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
     }
   }
 
-  Future<void> searchLeads(searchString) async {
+  Future<void> searchMerchants(searchString) async {
     setState(() {
       currentSearch = searchString;
       pageNum = 1;
@@ -294,7 +293,7 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
                 child: TextField(
                   controller: _searchController,
                   onEditingComplete: () {
-                    searchLeads(_searchController.text);
+                    searchMerchants(_searchController.text);
                     currentSearch = _searchController.text;
                   },
                   decoration: InputDecoration(
@@ -309,12 +308,16 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
                         clearSearch();
                       },
                     )
-                  : IconButton(
-                      icon: Icon(Icons.search),
-                      onPressed: () {
-                        currentSearch = _searchController.text;
-                        searchLeads(_searchController.text);
-                      },
+                  : CircleAvatar(
+                      radius: 25,
+                      backgroundColor: Color.fromARGB(500, 1, 224, 143),
+                      child: IconButton(
+                        icon: Icon(Icons.search, color: Colors.white),
+                        onPressed: () {
+                          currentSearch = _searchController.text;
+                          searchMerchants(_searchController.text);
+                        },
+                      ),
                     ),
             ],
           ),

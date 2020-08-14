@@ -1,5 +1,4 @@
 import 'dart:developer';
-import 'package:atlascrm/components/inventory/InventoryLocationDropDown.dart';
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
@@ -9,8 +8,6 @@ import 'package:atlascrm/components/shared/Empty.dart';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
 
-import '../inventory/InventoryAdd.dart';
-
 class InstallsScreen extends StatefulWidget {
   final ApiService apiService = new ApiService();
 
@@ -19,8 +16,8 @@ class InstallsScreen extends StatefulWidget {
 }
 
 class _InstallsScreenState extends State<InstallsScreen> {
-  var inventory = [];
-  var inventoryFull = [];
+  var installs = [];
+  var installsFull = [];
   var employees = [];
   var employeesFull = [];
   var columns = [];
@@ -49,12 +46,12 @@ class _InstallsScreenState extends State<InstallsScreen> {
 
     initEmployeeData();
 
-    initInventoryData();
+    initInstallsData();
 
     _scrollController.addListener(() {
       if (_scrollController.position.pixels ==
           _scrollController.position.maxScrollExtent) {
-        // onScroll();
+        onScroll();
       }
     });
   }
@@ -65,30 +62,30 @@ class _InstallsScreenState extends State<InstallsScreen> {
     super.dispose();
   }
 
-  Future<void> initInventoryData() async {
+  Future<void> initInstallsData() async {
     try {
       var endpoint =
           "/ticket?page=$pageNum&size=10&searchString=&installView=true&closedTickets=false";
       var resp = await this.widget.apiService.authGet(context, endpoint);
       if (resp != null) {
         if (resp.statusCode == 200) {
-          var inventoryArrDecoded = resp.data["data"];
-          if (inventoryArrDecoded != null) {
-            var inventoryArr = List.from(inventoryArrDecoded);
-            if (inventoryArr.length > 0) {
+          var installsArrDecoded = resp.data["data"];
+          if (installsArrDecoded != null) {
+            var installsArr = List.from(installsArrDecoded);
+            if (installsArr.length > 0) {
               setState(() {
                 isEmpty = false;
                 isLoading = false;
-                inventory += inventoryArr;
-                inventoryFull += inventoryArr;
+                installs += installsArr;
+                installsFull += installsArr;
                 pageNum++;
               });
             } else {
               setState(() {
                 if (pageNum == 1) {
                   isEmpty = true;
-                  inventoryArr = [];
-                  inventoryFull = [];
+                  installsArr = [];
+                  installsFull = [];
                 }
                 isLoading = false;
               });
@@ -109,61 +106,57 @@ class _InstallsScreenState extends State<InstallsScreen> {
     try {
       var endpoint;
 
-      endpoint = "/ticket?page=$pageNum&size=10";
+      endpoint =
+          "/ticket?page=$pageNum&size=10&searchString=&installView=true&closedTickets=false";
       if (isSearching) {
         endpoint =
-            "/inventory?searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
+            "/ticket?searchString=$currentSearch&page=$pageNum&size=10&installView=true&closedTickets=false";
       }
-      if (isFiltering) {
-        endpoint =
-            "/ticket?searchEmployee=$filterEmployee&page=$pageNum&size=10&$sortQuery";
-      }
-      if (isLocFiltering) {
-        endpoint =
-            "/inventory?searchLocation=$filterLocation&page=$pageNum&size=10&$sortQuery";
-      }
-      if (isSearching && isFiltering) {
-        endpoint =
-            "/inventory?searchEmployee=$filterEmployee&searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
-      }
-      if (isSearching && isLocFiltering) {
-        endpoint =
-            "/inventory?searchLocatation=$filterLocation&searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
-      }
-      if (isFiltering && isLocFiltering) {
-        endpoint =
-            "/inventory?searchLocation=$filterLocation&searchEmployee=$filterEmployee&page=$pageNum&size=10&$sortQuery";
-      }
-      if (isSearching && isFiltering && isLocFiltering) {
-        endpoint =
-            "/inventory?searchLocation=$filterLocation&searchEmployee=$filterEmployee&searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
-      }
+      // if (isFiltering) {
+      //   endpoint =
+      //       "/ticket?searchEmployee=$filterEmployee&page=$pageNum&size=10&$sortQuery";
+      // }
+      // if (isLocFiltering) {
+      //   endpoint =
+      //       "/ticket?searchLocation=$filterLocation&page=$pageNum&size=10&$sortQuery";
+      // }
+      // if (isSearching && isFiltering) {
+      //   endpoint =
+      //       "/ticket?searchEmployee=$filterEmployee&searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
+      // }
+      // if (isSearching && isLocFiltering) {
+      //   endpoint =
+      //       "/ticket?searchLocatation=$filterLocation&searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
+      // }
+      // if (isFiltering && isLocFiltering) {
+      //   endpoint =
+      //       "/ticket?searchLocation=$filterLocation&searchEmployee=$filterEmployee&page=$pageNum&size=10&$sortQuery";
+      // }
+      // if (isSearching && isFiltering && isLocFiltering) {
+      //   endpoint =
+      //       "/ticket?searchLocation=$filterLocation&searchEmployee=$filterEmployee&searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
+      // }
 
       var resp = await this.widget.apiService.authGet(context, endpoint);
       if (resp != null) {
         if (resp.statusCode == 200) {
-          var inventoryArrDecoded = resp.data["data"];
-          if (inventoryArrDecoded != null) {
-            var inventoryArr = List.from(inventoryArrDecoded);
-            if (inventoryArr.length > 0) {
-              if (isSearching) {
-                var sendable = {"id": inventoryArr[0]["inventory"]};
-                Navigator.pushNamed(context, "/viewinventory",
-                    arguments: sendable);
-              }
+          var installsArrDecoded = resp.data["data"];
+          if (installsArrDecoded != null) {
+            var installsArr = List.from(installsArrDecoded);
+            if (installsArr.length > 0) {
               setState(() {
                 isEmpty = false;
                 isLoading = false;
-                inventory += inventoryArr;
-                inventoryFull += inventoryArr;
+                installs += installsArr;
+                installsFull += installsArr;
                 pageNum++;
               });
             } else {
               setState(() {
                 if (pageNum == 1) {
                   isEmpty = true;
-                  inventoryArr = [];
-                  inventoryFull = [];
+                  installsArr = [];
+                  installsFull = [];
                 }
                 isLoading = false;
               });
@@ -180,13 +173,13 @@ class _InstallsScreenState extends State<InstallsScreen> {
     }
   }
 
-  Future<void> searchInventory(searchString) async {
+  Future<void> searchInstalls(searchString) async {
     setState(() {
       currentSearch = searchString;
       pageNum = 1;
       isSearching = true;
-      inventory = [];
-      inventoryFull = [];
+      installs = [];
+      installsFull = [];
       onScroll();
     });
   }
@@ -196,8 +189,8 @@ class _InstallsScreenState extends State<InstallsScreen> {
       filterEmployee = employeeId;
       pageNum = 1;
       isFiltering = true;
-      inventory = [];
-      inventoryFull = [];
+      installs = [];
+      installsFull = [];
       onScroll();
     });
   }
@@ -208,8 +201,8 @@ class _InstallsScreenState extends State<InstallsScreen> {
       filterLocation = locItem["location"];
       pageNum = 1;
       isLocFiltering = true;
-      inventory = [];
-      inventoryFull = [];
+      installs = [];
+      installsFull = [];
       onScroll();
       Navigator.pop(context);
     });
@@ -219,11 +212,11 @@ class _InstallsScreenState extends State<InstallsScreen> {
     if (isLocFiltering) {
       setState(() {
         pageNum = 1;
-        locationSearch = "All Inventory";
+        locationSearch = "All installs";
         filterLocation = "";
         isLocFiltering = false;
-        inventory = [];
-        inventoryFull = [];
+        installs = [];
+        installsFull = [];
       });
       onScroll();
     }
@@ -235,8 +228,8 @@ class _InstallsScreenState extends State<InstallsScreen> {
         filterEmployee = "";
         pageNum = 1;
         isFiltering = false;
-        inventory = [];
-        inventoryFull = [];
+        installs = [];
+        installsFull = [];
       });
       onScroll();
     }
@@ -248,8 +241,8 @@ class _InstallsScreenState extends State<InstallsScreen> {
       currentSearch = "";
       isSearching = false;
       _searchController.clear();
-      inventory = [];
-      inventoryFull = [];
+      installs = [];
+      installsFull = [];
     });
     onScroll();
   }
@@ -286,32 +279,6 @@ class _InstallsScreenState extends State<InstallsScreen> {
     }
   }
 
-  void openLocationFilter() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Filter by Location'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                InventoryLocationDropDown(
-                    value: filterLocation,
-                    callback: (newVal) {
-                      if (newVal != null) {
-                        filterByLocation(newVal);
-                      } else {
-                        clearLocFilter();
-                      }
-                    })
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   void openInstall(ticket) {
     Map sendable = {"id": ticket["number"], "ticket": ticket};
     Navigator.pushNamed(context, "/viewinstall", arguments: sendable);
@@ -323,7 +290,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
       backgroundColor: Color.fromARGB(255, 242, 242, 242),
       drawer: CustomDrawer(),
       appBar: CustomAppBar(
-        key: Key("inventoryscreenappbar"),
+        key: Key("installsscreenappbar"),
         title: Text(isLoading ? "Loading..." : "$locationSearch"),
       ),
       body: Container(
@@ -349,27 +316,62 @@ class _InstallsScreenState extends State<InstallsScreen> {
     return Container(
       child: Column(
         children: <Widget>[
-          Padding(
-              padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
-              child: EmployeeDropDown(
-                  callback: (val) {
-                    if (val != null) {
-                      filterByEmployee(val);
-                    } else {
-                      clearFilter();
-                    }
+          // Padding(
+          //     padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
+          //     child: EmployeeDropDown(
+          //         callback: (val) {
+          //           if (val != null) {
+          //             filterByEmployee(val);
+          //           } else {
+          //             clearFilter();
+          //           }
+          //         },
+          //         role: "tech")),
+          Row(
+            children: <Widget>[
+              Expanded(
+                flex: 1,
+                child: TextField(
+                  controller: _searchController,
+                  onEditingComplete: () {
+                    searchInstalls(_searchController.text);
+                    currentSearch = _searchController.text;
                   },
-                  role: "tech")),
+                  decoration: InputDecoration(
+                    labelText: "Search Installs",
+                  ),
+                ),
+              ),
+              isSearching
+                  ? IconButton(
+                      icon: Icon(Icons.clear),
+                      onPressed: () {
+                        clearSearch();
+                      },
+                    )
+                  : CircleAvatar(
+                      radius: 25,
+                      backgroundColor: Color.fromARGB(500, 1, 224, 143),
+                      child: IconButton(
+                        icon: Icon(Icons.search, color: Colors.white),
+                        onPressed: () {
+                          currentSearch = _searchController.text;
+                          searchInstalls(_searchController.text);
+                        },
+                      ),
+                    ),
+            ],
+          ),
           isEmpty
               ? Padding(
                   padding: const EdgeInsets.fromLTRB(8, 200, 8, 0),
-                  child: Empty("No inventory found"),
+                  child: Empty("No installs found"),
                 )
               : Expanded(
                   flex: 6,
                   child: ListView(
                     controller: _scrollController,
-                    children: inventory.map((item) {
+                    children: installs.map((item) {
                       var employeeName;
 
                       return GestureDetector(

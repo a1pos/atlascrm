@@ -88,9 +88,13 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
       if (body != null) {
         var bodyDecoded = body;
         if (bodyDecoded[0]["inventory"] != null) {
-          setState(() {
-            devices = bodyDecoded;
-          });
+          for (Map device in bodyDecoded) {
+            if (device["is_installed"] != true) {
+              setState(() {
+                devices.add(device);
+              });
+            }
+          }
         }
       }
     }
