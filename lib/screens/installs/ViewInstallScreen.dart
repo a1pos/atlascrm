@@ -10,6 +10,7 @@ import 'package:barcode_scan/model/scan_options.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/services/UserService.dart';
+import 'package:intl/intl.dart';
 
 class ViewInstallScreen extends StatefulWidget {
   final ApiService apiService = ApiService();
@@ -447,8 +448,14 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
     }
   }
 
+  var installDate;
+
   @override
   Widget build(BuildContext context) {
+    if (this.widget.incoming["ticket"]["due_date"] != null) {
+      installDate = DateFormat.yMMMMd('en_US')
+          .format(DateTime.parse(this.widget.incoming["ticket"]["due_date"]));
+    }
     return WillPopScope(
       onWillPop: () {
         Navigator.pop(context);
@@ -510,6 +517,9 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
                                   "Description",
                                   this.widget.incoming["ticket"]["document"]
                                       ["description"]),
+                              this.widget.incoming["ticket"]["due_date"] != null
+                                  ? showInfoRow("Due Date", installDate)
+                                  : Container(),
                             ],
                           ),
                         ),

@@ -3,7 +3,6 @@ import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CustomDrawer.dart';
-import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
@@ -26,6 +25,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
   var isEmpty = true;
 
   bool isSearching = false;
+  bool myTickets = false;
   bool isFiltering = false;
   bool isLocFiltering = false;
 
@@ -112,6 +112,14 @@ class _InstallsScreenState extends State<InstallsScreen> {
         endpoint =
             "/ticket?searchString=$currentSearch&page=$pageNum&size=10&installView=true&closedTickets=false";
       }
+      if (myTickets) {
+        endpoint =
+            "/ticket?page=$pageNum&size=10&searchString=&installView=true&closedTickets=false&myTickets=true";
+      }
+      if (isSearching && myTickets) {
+        endpoint =
+            "/ticket?searchString=$currentSearch&page=$pageNum&size=10&installView=true&closedTickets=false&myTickets=true";
+      }
       // if (isFiltering) {
       //   endpoint =
       //       "/ticket?searchEmployee=$filterEmployee&page=$pageNum&size=10&$sortQuery";
@@ -178,6 +186,26 @@ class _InstallsScreenState extends State<InstallsScreen> {
       currentSearch = searchString;
       pageNum = 1;
       isSearching = true;
+      installs = [];
+      installsFull = [];
+      onScroll();
+    });
+  }
+
+  Future<void> filterMyTickets() async {
+    setState(() {
+      pageNum = 1;
+      myTickets = true;
+      installs = [];
+      installsFull = [];
+      onScroll();
+    });
+  }
+
+  Future<void> filterAllTickets() async {
+    setState(() {
+      pageNum = 1;
+      myTickets = false;
       installs = [];
       installsFull = [];
       onScroll();
@@ -362,6 +390,55 @@ class _InstallsScreenState extends State<InstallsScreen> {
                     ),
             ],
           ),
+          MaterialButton(
+            padding: EdgeInsets.all(5),
+            color: Color.fromARGB(500, 1, 224, 143),
+            onPressed: () {
+              if (myTickets) {
+                filterAllTickets();
+              } else {
+                filterMyTickets();
+              }
+            },
+            child: myTickets
+                ? Row(
+                    children: <Widget>[
+                      Icon(
+                        Icons.list,
+                        color: Colors.white,
+                      ),
+                      Text(
+                        'All Installs',
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  )
+                : Row(
+                    children: <Widget>[
+                      Icon(
+                        Icons.account_circle,
+                        color: Colors.white,
+                      ),
+                      Text(
+                        'My Installs',
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
+          // Switch(
+          //     value: myTickets,
+          //     onChanged: (newVal) {
+          //       if (newVal == true) {
+          //         filterMyTickets();
+          //       } else {
+          //         filterAllTickets();
+          //       }
+          //     }),
           isEmpty
               ? Padding(
                   padding: const EdgeInsets.fromLTRB(8, 200, 8, 0),
