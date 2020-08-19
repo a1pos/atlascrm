@@ -1019,7 +1019,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
         "leadDocument": lead["document"],
         "ApplicationInformation": {
           "MpaInfo": {},
-          "CorporateInfo": {"CurrentStmntProvided": "0"},
+          "CorporateInfo": {},
           "MpaOutletInfo": {
             "Outlet": {
               "SiteInfo": {},
