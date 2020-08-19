@@ -65,13 +65,17 @@ class _TaskScreenState extends State<TaskScreen> {
     setState(() {
       _calendarEvents = {};
       for (var item in activeTasks) {
-        var itemDate = DateTime.parse(item["date"]);
-        itemDate = DateTime(
-            itemDate.year, itemDate.month, itemDate.day, 12, 0, 0, 0, 0);
-        if (_calendarEvents[itemDate] == null) {
-          _calendarEvents[itemDate] = [item];
+        if (item["date"] != null) {
+          var itemDate = DateTime.parse(item["date"]);
+          itemDate = DateTime(
+              itemDate.year, itemDate.month, itemDate.day, 12, 0, 0, 0, 0);
+          if (_calendarEvents[itemDate] == null) {
+            _calendarEvents[itemDate] = [item];
+          } else {
+            _calendarEvents[itemDate].add(item);
+          }
         } else {
-          _calendarEvents[itemDate].add(item);
+          continue;
         }
       }
     });
@@ -560,9 +564,14 @@ class _TaskScreenState extends State<TaskScreen> {
               ? Empty("No Active Tasks found")
               : Column(
                   children: activeTasks.map((t) {
-                    var tDate = DateFormat("EEE, MMM d, ''yy")
-                        .add_jm()
-                        .format(DateTime.parse(t['date']));
+                    var tDate;
+                    if (t['date'] != null) {
+                      tDate = DateFormat("EEE, MMM d, ''yy")
+                          .add_jm()
+                          .format(DateTime.parse(t['date']));
+                    } else {
+                      tDate = "";
+                    }
                     return GestureDetector(
                       onTap: () {
                         Navigator.pushNamed(context, "/viewtask",

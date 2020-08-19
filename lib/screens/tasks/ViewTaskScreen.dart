@@ -40,6 +40,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
   var leadDropdownValue;
   DateTime initDate;
   TimeOfDay initTime;
+  var viewDate;
   @override
   void initState() {
     super.initState();
@@ -63,9 +64,19 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
       var body = resp.data;
       if (body != null) {
         var bodyDecoded = body;
-        initDate = DateTime.parse(bodyDecoded["date"]);
-        initTime = TimeOfDay.fromDateTime(initDate);
-        var viewDate = DateFormat("yyyy-MM-dd HH:mm").format(initDate);
+
+        if (bodyDecoded["date"] != null) {
+          initDate = DateTime.parse(bodyDecoded["date"]);
+          initTime = TimeOfDay.fromDateTime(initDate);
+          viewDate = DateFormat("yyyy-MM-dd HH:mm").format(initDate);
+          setState(() {
+            taskDateController.text = viewDate;
+          });
+        } else {
+          initDate = DateTime.now();
+          initTime = TimeOfDay.fromDateTime(initDate);
+        }
+
         setState(() {
           task = bodyDecoded;
           taskTypeDropdownValue = bodyDecoded["type"];
@@ -73,7 +84,6 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
           taskPriorityDropdownValue = bodyDecoded["priority"].toString();
           taskTitleController.text = bodyDecoded["document"]["title"];
           taskTitleController.addListener(changeButton);
-          taskDateController.text = viewDate;
           taskDateController.addListener(changeButton);
           taskDescController.text = bodyDecoded["document"]["notes"];
           taskDescController.addListener(changeButton);
@@ -89,6 +99,16 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
 
   Future<void> updateTask(complete) async {
     try {
+      if (taskDateController.text == null || taskDateController.text == "") {
+        Fluttertoast.showToast(
+            msg: "Date is required!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0);
+        return;
+      }
       var token = UserService.googleSignInAuthentication.accessToken;
       var data = {
         "task": task["task"],

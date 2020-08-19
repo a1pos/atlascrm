@@ -37,10 +37,11 @@ class _TasksState extends State<Tasks> {
               tasks = tasksArrDecoded;
               activeTasks =
                   tasks.where((e) => e["document"]["active"]).toList();
-              isLoading = false;
               if (activeTasks.length > 0) {
                 isEmpty = false;
               }
+              isLoading = false;
+              print(activeTasks);
             });
           } else {
             setState(() {
@@ -77,9 +78,14 @@ class _TasksState extends State<Tasks> {
                     children: [
                       Column(
                         children: activeTasks.map((t) {
-                          var tDate = DateFormat("EEE, MMM d, ''yy")
-                              .add_jm()
-                              .format(DateTime.parse(t['date']));
+                          var tDate;
+                          if (t['date'] != null) {
+                            tDate = DateFormat("EEE, MMM d, ''yy")
+                                .add_jm()
+                                .format(DateTime.parse(t['date']));
+                          } else {
+                            tDate = "";
+                          }
                           return GestureDetector(
                             onTap: () {
                               Navigator.pushNamed(context, "/viewtask",
