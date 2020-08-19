@@ -33,9 +33,14 @@ class ViewLeadScreen extends StatefulWidget {
   ViewLeadScreenState createState() => ViewLeadScreenState();
 }
 
+class LeadSaveController {
+  void Function() methodA;
+}
+
 class ViewLeadScreenState extends State<ViewLeadScreen> {
   final _leadFormKey = GlobalKey<FormState>();
 
+  var leadSaveController = LeadSaveController();
   var firstNameController = TextEditingController();
   var lastNameController = TextEditingController();
   var emailAddrController = TextEditingController();
@@ -55,6 +60,8 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
   var leadDocument;
   bool isLoading = true;
   var displayPhone;
+  var statementDirty = TextEditingController();
+
   void initState() {
     super.initState();
     loadLeadData(this.widget.leadId);
@@ -149,7 +156,6 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
           backgroundColor: Colors.grey[600],
           textColor: Colors.white,
           fontSize: 16.0);
-      Navigator.pushNamed(context, '/leads');
     } else {
       Fluttertoast.showToast(
           msg: "Failed to udpate lead!",
@@ -223,12 +229,53 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
     }
   }
 
+  Future<void> popCheck() async {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Unsent Statement'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('This lead has an unsent statement.'),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
+                  child: Text(
+                      'Would you like to submit your statement to be reviewed?'),
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('Submit', style: TextStyle(fontSize: 17)),
+              onPressed: () {
+                leadSaveController.methodA();
+                Navigator.pop(context);
+              },
+            ),
+            FlatButton(
+              child: Text('Cancel', style: TextStyle(color: Colors.red)),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: () {
-        Navigator.pop(context);
-
+      onWillPop: () async {
+        if (statementDirty.text == "true") {
+          await popCheck();
+        } else {
+          Navigator.pop(context);
+        }
         return Future.value(false);
       },
       child: Scaffold(
@@ -314,15 +361,8 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                                 }
                                 return null;
                               }),
-                              validatorRow(
-                                  "Last Name",
-                                  leadDocument["lastName"],
-                                  lastNameController, (val) {
-                                if (val.isEmpty) {
-                                  return 'Please enter a contact last name';
-                                }
-                                return null;
-                              }),
+                              getInfoRow("Last Name", leadDocument["lastName"],
+                                  lastNameController),
                               validatorRow(
                                   "Email Address",
                                   leadDocument["emailAddr"],
@@ -485,7 +525,9 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
                         ImageUploader(
                             type: "statement",
                             objectId: lead["lead"],
-                            loading: {"loading": isLoading}),
+                            loading: {"loading": isLoading},
+                            controller: leadSaveController,
+                            dirtyFlag: {"flag": statementDirty}),
                       ],
                     ),
                   ),
@@ -493,6 +535,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
               ),
         floatingActionButton: FloatingActionButton(
           onPressed: () async {
+            leadSaveController.methodA();
             if (_leadFormKey.currentState.validate()) {
               updateLead(this.widget.leadId);
             }
@@ -530,6 +573,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
             Expanded(
               flex: 8,
               child: TextField(
+                onChanged: (s) {},
                 controller: controller,
               ),
             ),

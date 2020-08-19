@@ -1,5 +1,6 @@
 import 'package:atlascrm/components/shared/PlacesSuggestions.dart';
 import 'package:atlascrm/config/ConfigSettings.dart';
+import 'package:atlascrm/screens/leads/ViewLeadScreen.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:atlascrm/services/ApiService.dart';
@@ -28,10 +29,17 @@ class ImageUploader extends StatefulWidget {
   final String objectId;
   final String type;
   final Map loading;
-  ImageUploader({this.type, this.objectId, this.loading});
+  final LeadSaveController controller;
+  final Map dirtyFlag;
+  ImageUploader(
+      {this.type,
+      this.objectId,
+      this.loading,
+      this.controller,
+      this.dirtyFlag});
 
   @override
-  _ImageUploaderState createState() => _ImageUploaderState();
+  _ImageUploaderState createState() => _ImageUploaderState(controller);
 }
 
 bool isFocused = false;
@@ -41,6 +49,10 @@ List notesDisplay;
 var notesEmpty = true;
 
 class _ImageUploaderState extends State<ImageUploader> {
+  _ImageUploaderState(LeadSaveController controller) {
+    controller.methodA = submitCheck;
+  }
+
   static const platform = const MethodChannel('com.ces.atlascrm.channel');
   List<Asset> images = [];
 
@@ -76,13 +88,98 @@ class _ImageUploaderState extends State<ImageUploader> {
               setState(() {
                 uploadsComplete = true;
               });
+            } else {
+              setState(() {
+                this.widget.dirtyFlag["flag"].text = "true";
+              });
+              return showDialog<void>(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Text('Unsent Statement'),
+                    content: SingleChildScrollView(
+                      child: ListBody(
+                        children: <Widget>[
+                          Text('This lead has an unsent statement.'),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
+                            child: Text(
+                                'Would you like to submit your statement to be reviewed?'),
+                          ),
+                        ],
+                      ),
+                    ),
+                    actions: <Widget>[
+                      FlatButton(
+                        child: Text('Submit', style: TextStyle(fontSize: 17)),
+                        onPressed: () {
+                          uploadComplete();
+                          Navigator.pop(context);
+                        },
+                      ),
+                      FlatButton(
+                        child:
+                            Text('Cancel', style: TextStyle(color: Colors.red)),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                    ],
+                  );
+                },
+              );
             }
+          } else {
+            setState(() {
+              this.widget.dirtyFlag["flag"].text = "true";
+            });
+
+            return showDialog<void>(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text('Unsent Statement'),
+                  content: SingleChildScrollView(
+                    child: ListBody(
+                      children: <Widget>[
+                        Text('This lead has an unsent statement.'),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
+                          child: Text(
+                              'Would you like to submit your statement to be reviewed?'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  actions: <Widget>[
+                    FlatButton(
+                      child: Text('Submit', style: TextStyle(fontSize: 17)),
+                      onPressed: () {
+                        uploadComplete();
+                        Navigator.pop(context);
+                      },
+                    ),
+                    FlatButton(
+                      child:
+                          Text('Cancel', style: TextStyle(color: Colors.red)),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ],
+                );
+              },
+            );
           }
         }
       }
     } catch (err) {
       print(err);
     }
+  }
+
+  Future<void> dirtyCheck() async {
+    if (imageDLList.length < 0) {}
   }
 
   void openImageUpload() {
@@ -203,41 +300,50 @@ class _ImageUploaderState extends State<ImageUploader> {
   }
 
   Future<void> submitCheck() async {
-    return showDialog<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Submit Statement?'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text('This will submit your statement to be reviewed. '),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
-                  child: Text(
-                      'After this statement is submitted you cannot add any more files to it.'),
-                ),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            FlatButton(
-              child: Text('Submit', style: TextStyle(fontSize: 17)),
-              onPressed: () {
-                uploadComplete();
-                Navigator.pop(context);
-              },
-            ),
-            FlatButton(
-              child: Text('Cancel', style: TextStyle(color: Colors.red)),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
+    if (uploadsComplete || imageDLList.length == 0) {
+      return;
+    } else {
+      setState(() {
+        this.widget.dirtyFlag["flag"].text = "false";
+      });
+      uploadComplete();
+
+      // return showDialog<void>(
+      //   context: context,
+      //   builder: (BuildContext context) {
+      //     return AlertDialog(
+      //       title: Text('Submit Statement?'),
+      //       content: SingleChildScrollView(
+      //         child: ListBody(
+      //           children: <Widget>[
+      //             Text('This will submit your statement to be reviewed. '),
+      //             Padding(
+      //               padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
+      //               child: Text(
+      //                   'After this statement is submitted you cannot add any more files to it.'),
+      //             ),
+      //           ],
+      //         ),
+      //       ),
+      //       actions: <Widget>[
+      //         FlatButton(
+      //           child: Text('Submit', style: TextStyle(fontSize: 17)),
+      //           onPressed: () {
+      //             uploadComplete();
+      //             Navigator.pop(context);
+      //           },
+      //         ),
+      //         FlatButton(
+      //           child: Text('Cancel', style: TextStyle(color: Colors.red)),
+      //           onPressed: () {
+      //             Navigator.of(context).pop();
+      //           },
+      //         ),
+      //       ],
+      //     );
+      //   },
+      // );
+    }
   }
 
   var currentImage;
@@ -549,6 +655,11 @@ class _ImageUploaderState extends State<ImageUploader> {
           context, "/lead/${this.widget.objectId}/statement/$name", null);
 
       if (resp.statusCode == 200) {
+        if (imageDLList.length == 1) {
+          setState(() {
+            this.widget.dirtyFlag["flag"].text = "false";
+          });
+        }
         Fluttertoast.showToast(
             msg: "File Deleted!",
             toastLength: Toast.LENGTH_SHORT,
@@ -656,7 +767,7 @@ class _ImageUploaderState extends State<ImageUploader> {
             isLoading = false;
           });
           Fluttertoast.showToast(
-              msg: "Uploads complete!",
+              msg: "Statement Submited!",
               toastLength: Toast.LENGTH_SHORT,
               gravity: ToastGravity.BOTTOM,
               backgroundColor: Colors.grey[600],
@@ -690,6 +801,9 @@ class _ImageUploaderState extends State<ImageUploader> {
           "/employee/${UserService.employee.employee}/${this.widget.objectId}/${this.widget.type}",
           path);
       if (resp.statusCode == 200) {
+        setState(() {
+          this.widget.dirtyFlag["flag"].text = "true";
+        });
         // await loadLeadData(this.widget.leadId);
         Fluttertoast.showToast(
             msg: "File Uploaded!",
@@ -731,56 +845,53 @@ class _ImageUploaderState extends State<ImageUploader> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: MaterialButton(
-                          padding: EdgeInsets.all(5),
-                          color: uploadsComplete
-                              ? Colors.grey
-                              : Color.fromARGB(500, 1, 224, 143),
-                          onPressed: uploadsComplete ? () {} : openImageUpload,
-                          child: Row(
-                            children: <Widget>[
-                              Icon(
-                                Icons.file_upload,
+                      MaterialButton(
+                        // padding: EdgeInsets.all(5),
+                        color: uploadsComplete
+                            ? Colors.grey
+                            : Color.fromARGB(500, 1, 224, 143),
+                        onPressed: uploadsComplete ? () {} : openImageUpload,
+                        child: Row(
+                          children: <Widget>[
+                            Icon(
+                              Icons.file_upload,
+                              color: Colors.white,
+                            ),
+                            Text(
+                              'Upload Files',
+                              style: TextStyle(
                                 color: Colors.white,
                               ),
-                              Text(
-                                'Upload Files',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: MaterialButton(
-                          padding: EdgeInsets.all(5),
-                          color: uploadsComplete || imageDLList.length == 0
-                              ? Colors.grey
-                              : Color.fromARGB(500, 1, 224, 143),
-                          onPressed: uploadsComplete || imageDLList.length == 0
-                              ? () {}
-                              : submitCheck,
-                          child: Row(
-                            children: <Widget>[
-                              Icon(
-                                Icons.done,
-                                color: Colors.white,
-                              ),
-                              Text(
-                                'Submit Statement',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
+                      // Padding(
+                      //   padding: const EdgeInsets.all(8.0),
+                      //   child: MaterialButton(
+                      //     padding: EdgeInsets.all(5),
+                      //     color: uploadsComplete || imageDLList.length == 0
+                      //         ? Colors.grey
+                      //         : Color.fromARGB(500, 1, 224, 143),
+                      //     onPressed: uploadsComplete || imageDLList.length == 0
+                      //         ? () {}
+                      //         : submitCheck,
+                      //     child: Row(
+                      //       children: <Widget>[
+                      //         Icon(
+                      //           Icons.done,
+                      //           color: Colors.white,
+                      //         ),
+                      //         Text(
+                      //           'Submit Statement',
+                      //           style: TextStyle(
+                      //             color: Colors.white,
+                      //           ),
+                      //         ),
+                      //       ],
+                      //     ),
+                      //   ),
+                      // ),
                     ],
                   ),
                   Flexible(
