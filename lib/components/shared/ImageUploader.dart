@@ -558,7 +558,16 @@ class _ImageUploaderState extends State<ImageUploader> {
               }
             },
             child: extendo == "pdf"
-                ? Icon(Icons.picture_as_pdf, size: 100)
+                ? Container(
+                    height: 300,
+                    width: 300,
+                    decoration: BoxDecoration(
+                        image: DecorationImage(
+                      fit: BoxFit.fitWidth,
+                      alignment: FractionalOffset.topCenter,
+                      image: AssetImage("assets/pdf_thumbnail.png"),
+                    )),
+                  )
                 : Container(
                     height: 300,
                     width: 300,

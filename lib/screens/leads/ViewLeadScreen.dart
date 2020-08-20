@@ -68,7 +68,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
   var displayPhone;
   var statementDirty = TextEditingController();
   final scrollController = ScrollController();
-  var repeats = 5;
+  var repeats = 2;
 
   void initState() {
     super.initState();
