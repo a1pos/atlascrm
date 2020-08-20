@@ -33,7 +33,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
   var pageNum = 1;
   var filterEmployee = "";
   var filterLocation = "";
-  var locationSearch = "Installs";
+  var locationSearch = "All Installs";
 
   var sortQuery =
       "sorters%5B0%5D%5Bfield%5D=employee&sorters%5B0%5D%5Bdir%5D=asc";

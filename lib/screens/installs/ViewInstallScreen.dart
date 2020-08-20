@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:intl/intl.dart';
+import 'package:maps_launcher/maps_launcher.dart';
 
 class ViewInstallScreen extends StatefulWidget {
   final ApiService apiService = ApiService();
@@ -43,6 +44,7 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
   var merchant;
   var isRunning = false;
   var destination;
+  var merchantLocation = "";
   void initState() {
     super.initState();
     loadMerchantData();
@@ -77,6 +79,39 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
         merchant = null;
         isLoading = false;
       });
+    }
+    if (merchant != null) {
+      if (merchant['document']['ApplicationInformation']['MpaOutletInfo']
+                  ['Outlet']['BusinessInfo']['LocationAddress1'] !=
+              null &&
+          merchant['document']['ApplicationInformation']['MpaOutletInfo']
+                  ['Outlet']['BusinessInfo']['LocationAddress1'] !=
+              "") {
+        merchantLocation = merchant['document']['ApplicationInformation']
+                    ['MpaOutletInfo']['Outlet']['BusinessInfo']
+                ['LocationAddress1'] +
+            ", " +
+            merchant['document']['ApplicationInformation']['MpaOutletInfo']
+                ['Outlet']['BusinessInfo']['City'] +
+            ", " +
+            merchant['document']['ApplicationInformation']['MpaOutletInfo']
+                ['Outlet']['BusinessInfo']['State'] +
+            ", " +
+            merchant['document']['ApplicationInformation']['MpaOutletInfo']
+                ['Outlet']['BusinessInfo']['First5Zip'];
+      } else {
+        merchantLocation = merchant['document']['ApplicationInformation']
+                ["CorporateInfo"]['Address1'] +
+            ", " +
+            merchant['document']['ApplicationInformation']["CorporateInfo"]
+                ['City'] +
+            ", " +
+            merchant['document']['ApplicationInformation']["CorporateInfo"]
+                ['State'] +
+            ", " +
+            merchant['document']['ApplicationInformation']["CorporateInfo"]
+                ['First5Zip'];
+      }
     }
   }
 
@@ -502,32 +537,22 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
                                                 TextStyle(color: Colors.red)),
                                       ],
                                     ),
-                              merchant != null
-                                  ? showInfoRow(
-                                      "Location",
-                                      merchant['document']['ApplicationInformation']
-                                                      ['MpaOutletInfo']
-                                                  ['Outlet']['BusinessInfo']
-                                              ['LocationAddress1'] +
-                                          ", " +
-                                          merchant['document']['ApplicationInformation']
-                                                  ['MpaOutletInfo']['Outlet']
-                                              ['BusinessInfo']['City'] +
-                                          ", " +
-                                          merchant['document']['ApplicationInformation']
-                                                  ['MpaOutletInfo']['Outlet']
-                                              ['BusinessInfo']['State'] +
-                                          ", " +
-                                          merchant['document']['ApplicationInformation']
-                                                  ['MpaOutletInfo']['Outlet']
-                                              ['BusinessInfo']['First5Zip'])
-                                  : Container(),
                               showInfoRow(
                                   "Description",
                                   this.widget.incoming["ticket"]["document"]
                                       ["description"]),
                               this.widget.incoming["ticket"]["due_date"] != null
                                   ? showInfoRow("Due Date", installDate)
+                                  : Container(),
+                              merchant != null
+                                  ? MaterialButton(
+                                      color: Colors.grey[200],
+                                      child: showInfoRow(
+                                          "Location", merchantLocation),
+                                      onPressed: () {
+                                        MapsLauncher.launchQuery(
+                                            merchantLocation);
+                                      })
                                   : Container(),
                             ],
                           ),
