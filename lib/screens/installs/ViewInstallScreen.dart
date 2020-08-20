@@ -641,16 +641,14 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
                   ),
                 ),
               ),
-        floatingActionButton: merchant != null
-            ? isRunning
-                ? FloatingActionButton(
-                    onPressed: installCheck,
-                    backgroundColor: Color.fromARGB(500, 1, 224, 143),
-                    foregroundColor: Colors.white,
-                    child: Icon(Icons.done),
-                    splashColor: Colors.white,
-                  )
-                : Container()
+        floatingActionButton: merchant != null || isRunning
+            ? FloatingActionButton(
+                onPressed: installCheck,
+                backgroundColor: Color.fromARGB(500, 1, 224, 143),
+                foregroundColor: Colors.white,
+                child: Icon(Icons.done),
+                splashColor: Colors.white,
+              )
             : Container(),
       ),
     );
