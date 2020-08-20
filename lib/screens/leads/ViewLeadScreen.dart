@@ -38,7 +38,7 @@ class LeadSaveController {
   void Function() methodA;
 }
 
-bool pulseVisibility = false;
+bool pulseVisibility;
 
 class ViewLeadScreenState extends State<ViewLeadScreen>
     with SingleTickerProviderStateMixin {
@@ -72,15 +72,19 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
 
   void initState() {
     super.initState();
+    pulseVisibility = true;
     loadLeadData(this.widget.leadId);
     statementDirty.addListener(() {
       setState(() {});
+      if (statementDirty.text == "true") {
+        pulseController.forward();
+      }
     });
     pulseController =
         AnimationController(vsync: this, duration: Duration(seconds: 1));
     // pulseController.repeat(reverse: true);
-    pulseController.forward();
-    pulse = Tween(begin: 2.0, end: 10.0).animate(pulseController)
+
+    pulse = Tween(begin: 2.0, end: 15.0).animate(pulseController)
       ..addStatusListener((status) {
         if (repeats > 0 && statementDirty.text == "true") {
           if (status == AnimationStatus.completed) {
@@ -91,6 +95,9 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
           repeats--;
         } else {
           pulseController.stop();
+          setState(() {
+            pulseVisibility = false;
+          });
         }
       })
       ..addListener(() {
@@ -266,17 +273,6 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
     }
   }
 
-  void startAnimation() {
-    setState(() {
-      pulseVisibility = true;
-    });
-    pulseController.stop();
-    pulseController.reset();
-    pulseController.repeat(
-      period: Duration(seconds: 1),
-    );
-  }
-
   Future<void> popCheck() async {
     return showDialog(
       context: context,
@@ -306,8 +302,6 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                               curve: Curves.fastOutSlowIn,
                             );
                             Navigator.pop(context);
-                            startAnimation();
-                            // pulseController.forward();
                           })),
                 ],
               ),
@@ -369,10 +363,14 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                   ? Container(
                       decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.red[900],
+                          color: pulseVisibility
+                              ? Colors.red[600]
+                              : Color.fromRGBO(0, 0, 0, 0),
                           boxShadow: [
                             BoxShadow(
-                                color: Colors.red[900],
+                                color: pulseVisibility
+                                    ? Colors.red[600]
+                                    : Color.fromRGBO(0, 0, 0, 0),
                                 blurRadius: pulse.value,
                                 spreadRadius: pulse.value)
                           ]),
