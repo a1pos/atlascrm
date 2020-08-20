@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:intl/intl.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
@@ -37,8 +38,13 @@ class LeadSaveController {
   void Function() methodA;
 }
 
-class ViewLeadScreenState extends State<ViewLeadScreen> {
+bool pulseVisibility = false;
+
+class ViewLeadScreenState extends State<ViewLeadScreen>
+    with SingleTickerProviderStateMixin {
   final _leadFormKey = GlobalKey<FormState>();
+  AnimationController pulseController;
+  Animation pulse;
 
   var leadSaveController = LeadSaveController();
   var firstNameController = TextEditingController();
@@ -61,10 +67,41 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
   bool isLoading = true;
   var displayPhone;
   var statementDirty = TextEditingController();
+  final scrollController = ScrollController();
+  var repeats = 5;
 
   void initState() {
     super.initState();
     loadLeadData(this.widget.leadId);
+    statementDirty.addListener(() {
+      setState(() {});
+    });
+    pulseController =
+        AnimationController(vsync: this, duration: Duration(seconds: 1));
+    // pulseController.repeat(reverse: true);
+    pulseController.forward();
+    pulse = Tween(begin: 2.0, end: 10.0).animate(pulseController)
+      ..addStatusListener((status) {
+        if (repeats > 0 && statementDirty.text == "true") {
+          if (status == AnimationStatus.completed) {
+            pulseController.reverse();
+          } else if (status == AnimationStatus.dismissed) {
+            pulseController.forward();
+          }
+          repeats--;
+        } else {
+          pulseController.stop();
+        }
+      })
+      ..addListener(() {
+        setState(() {});
+      });
+  }
+
+  @override
+  void dispose() {
+    pulseController.dispose();
+    super.dispose();
   }
 
   Future<void> loadLeadData(leadId) async {
@@ -229,34 +266,56 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
     }
   }
 
+  void startAnimation() {
+    setState(() {
+      pulseVisibility = true;
+    });
+    pulseController.stop();
+    pulseController.reset();
+    pulseController.repeat(
+      period: Duration(seconds: 1),
+    );
+  }
+
   Future<void> popCheck() async {
     return showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Unsent Statement'),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(10.0))),
+          title: Text('Lead Actions'),
           content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text('This lead has an unsent statement.'),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
-                  child: Text(
-                      'Would you like to submit your statement to be reviewed?'),
-                ),
-              ],
+            child: Container(
+              child: ListBody(
+                children: <Widget>[
+                  Card(
+                      shape: RoundedRectangleBorder(
+                          side: new BorderSide(
+                              color: Colors.red[200], width: 2.0),
+                          borderRadius: BorderRadius.circular(4.0)),
+                      child: ListTile(
+                          leading: Icon(Icons.priority_high, color: Colors.red),
+                          title: Text("Unsent Statement"),
+                          subtitle:
+                              Text("Please submit your statement for review."),
+                          onTap: () {
+                            scrollController.animateTo(
+                              scrollController.position.maxScrollExtent,
+                              duration: Duration(seconds: 1),
+                              curve: Curves.fastOutSlowIn,
+                            );
+                            Navigator.pop(context);
+                            startAnimation();
+                            // pulseController.forward();
+                          })),
+                ],
+              ),
             ),
           ),
           actions: <Widget>[
             FlatButton(
-              child: Text('Submit', style: TextStyle(fontSize: 17)),
-              onPressed: () {
-                leadSaveController.methodA();
-                Navigator.pop(context);
-              },
-            ),
-            FlatButton(
-              child: Text('Cancel', style: TextStyle(color: Colors.red)),
+              child: Text('Close', style: TextStyle(color: Colors.red)),
               onPressed: () {
                 Navigator.pop(context);
               },
@@ -267,15 +326,35 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
     );
   }
 
+  Widget button;
+  actionButton() {
+    if (statementDirty.text == "true") {
+      setState(() {
+        button = CircleAvatar(
+          radius: 25,
+          backgroundColor: Colors.red,
+          child: IconButton(
+            icon: Icon(Icons.priority_high, color: Colors.white),
+            onPressed: () {},
+          ),
+        );
+      });
+    } else {
+      setState(() {
+        button = IconButton(
+          icon: Icon(Icons.done, color: Colors.green),
+          onPressed: () {},
+        );
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        if (statementDirty.text == "true") {
-          await popCheck();
-        } else {
-          Navigator.pop(context);
-        }
+        Navigator.pop(context);
+
         return Future.value(false);
       },
       child: Scaffold(
@@ -283,23 +362,48 @@ class ViewLeadScreenState extends State<ViewLeadScreen> {
         appBar: CustomAppBar(
           key: Key("viewTasksAppBar"),
           title: Text(isLoading ? "Loading..." : leadDocument["businessName"]),
-          // action: <Widget>[
-          //   Padding(
-          //     padding: const EdgeInsets.fromLTRB(5, 8, 10, 8),
-          //     child: IconButton(
-          //       onPressed: () {
-          //         deleteCheck(this.widget.leadId);
-          //       },
-          //       icon: Icon(Icons.delete, color: Colors.white),
-          //     ),
-          //   )
-          // ],
+          action: <Widget>[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(5, 8, 10, 8),
+              child: statementDirty.text == "true"
+                  ? Container(
+                      decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.red[900],
+                          boxShadow: [
+                            BoxShadow(
+                                color: Colors.red[900],
+                                blurRadius: pulse.value,
+                                spreadRadius: pulse.value)
+                          ]),
+                      child: SizedBox(
+                          width: 55.0,
+                          height: 55.0,
+                          child: CircleAvatar(
+                            radius: 15,
+                            backgroundColor: Colors.red,
+                            child: IconButton(
+                              icon: Icon(Icons.priority_high,
+                                  color: Colors.white),
+                              onPressed: () {
+                                popCheck();
+                              },
+                            ),
+                          )),
+                    )
+                  : IconButton(
+                      icon: Icon(Icons.done, color: Colors.green),
+                      onPressed: () {},
+                    ),
+            )
+          ],
         ),
         body: isLoading
             ? CenteredClearLoadingScreen()
             : Container(
                 padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
                 child: SingleChildScrollView(
+                  controller: scrollController,
                   child: Form(
                     key: _leadFormKey,
                     child: Column(

@@ -92,84 +92,11 @@ class _ImageUploaderState extends State<ImageUploader> {
               setState(() {
                 this.widget.dirtyFlag["flag"].text = "true";
               });
-              return showDialog<void>(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    title: Text('Unsent Statement'),
-                    content: SingleChildScrollView(
-                      child: ListBody(
-                        children: <Widget>[
-                          Text('This lead has an unsent statement.'),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
-                            child: Text(
-                                'Would you like to submit your statement to be reviewed?'),
-                          ),
-                        ],
-                      ),
-                    ),
-                    actions: <Widget>[
-                      FlatButton(
-                        child: Text('Submit', style: TextStyle(fontSize: 17)),
-                        onPressed: () {
-                          uploadComplete();
-                          Navigator.pop(context);
-                        },
-                      ),
-                      FlatButton(
-                        child:
-                            Text('Cancel', style: TextStyle(color: Colors.red)),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                    ],
-                  );
-                },
-              );
             }
           } else {
             setState(() {
               this.widget.dirtyFlag["flag"].text = "true";
             });
-
-            return showDialog<void>(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  title: Text('Unsent Statement'),
-                  content: SingleChildScrollView(
-                    child: ListBody(
-                      children: <Widget>[
-                        Text('This lead has an unsent statement.'),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
-                          child: Text(
-                              'Would you like to submit your statement to be reviewed?'),
-                        ),
-                      ],
-                    ),
-                  ),
-                  actions: <Widget>[
-                    FlatButton(
-                      child: Text('Submit', style: TextStyle(fontSize: 17)),
-                      onPressed: () {
-                        uploadComplete();
-                        Navigator.pop(context);
-                      },
-                    ),
-                    FlatButton(
-                      child:
-                          Text('Cancel', style: TextStyle(color: Colors.red)),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                  ],
-                );
-              },
-            );
           }
         }
       }

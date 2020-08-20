@@ -194,6 +194,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
 
   Future<void> filterMyTickets() async {
     setState(() {
+      locationSearch = "My installs";
       pageNum = 1;
       myTickets = true;
       installs = [];
@@ -204,6 +205,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
 
   Future<void> filterAllTickets() async {
     setState(() {
+      locationSearch = "All installs";
       pageNum = 1;
       myTickets = false;
       installs = [];
@@ -320,6 +322,12 @@ class _InstallsScreenState extends State<InstallsScreen> {
       appBar: CustomAppBar(
         key: Key("installsscreenappbar"),
         title: Text(isLoading ? "Loading..." : "$locationSearch"),
+        action: [
+          myTickets
+              ? IconButton(icon: Icon(Icons.list), onPressed: filterAllTickets)
+              : IconButton(
+                  icon: Icon(Icons.account_circle), onPressed: filterMyTickets)
+        ],
       ),
       body: Container(
         padding: EdgeInsets.all(10),
@@ -390,55 +398,6 @@ class _InstallsScreenState extends State<InstallsScreen> {
                     ),
             ],
           ),
-          MaterialButton(
-            padding: EdgeInsets.all(5),
-            color: Color.fromARGB(500, 1, 224, 143),
-            onPressed: () {
-              if (myTickets) {
-                filterAllTickets();
-              } else {
-                filterMyTickets();
-              }
-            },
-            child: myTickets
-                ? Row(
-                    children: <Widget>[
-                      Icon(
-                        Icons.list,
-                        color: Colors.white,
-                      ),
-                      Text(
-                        'All Installs',
-                        style: TextStyle(
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  )
-                : Row(
-                    children: <Widget>[
-                      Icon(
-                        Icons.account_circle,
-                        color: Colors.white,
-                      ),
-                      Text(
-                        'My Installs',
-                        style: TextStyle(
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-          ),
-          // Switch(
-          //     value: myTickets,
-          //     onChanged: (newVal) {
-          //       if (newVal == true) {
-          //         filterMyTickets();
-          //       } else {
-          //         filterAllTickets();
-          //       }
-          //     }),
           isEmpty
               ? Padding(
                   padding: const EdgeInsets.fromLTRB(8, 200, 8, 0),

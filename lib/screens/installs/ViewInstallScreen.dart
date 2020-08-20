@@ -492,7 +492,16 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
                                       merchant["document"]
                                               ["ApplicationInformation"]
                                           ["MpaInfo"]["ClientDbaName"])
-                                  : Container(),
+                                  : Row(
+                                      children: <Widget>[
+                                        Icon(Icons.info_outline,
+                                            color: Colors.red),
+                                        Text(
+                                            "Notice: No merchant record found for this ticket",
+                                            style:
+                                                TextStyle(color: Colors.red)),
+                                      ],
+                                    ),
                               merchant != null
                                   ? showInfoRow(
                                       "Location",
@@ -523,91 +532,101 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
                             ],
                           ),
                         ),
-                        CustomCard(
-                          key: Key("install2"),
-                          icon: Icons.devices,
-                          title: "Checkout Devices",
-                          child: Column(
-                            children: <Widget>[
-                              Row(
-                                children: <Widget>[
-                                  Expanded(
-                                    child: getInfoRow(
-                                        "S/N",
-                                        serialNumberController.text,
-                                        serialNumberController, (serial) {
-                                      checkoutDevice(serial);
-                                    }),
-                                  ),
-                                  CircleAvatar(
-                                    radius: 25,
-                                    backgroundColor:
-                                        Color.fromARGB(500, 1, 224, 143),
-                                    child: IconButton(
-                                      icon: Icon(Icons.center_focus_weak,
-                                          color: Colors.white),
-                                      onPressed: () {
-                                        scanBarcode();
-                                      },
+                        merchant != null
+                            ? CustomCard(
+                                key: Key("install2"),
+                                icon: Icons.devices,
+                                title: "Checkout Devices",
+                                child: Column(
+                                  children: <Widget>[
+                                    Row(
+                                      children: <Widget>[
+                                        Expanded(
+                                          child: getInfoRow(
+                                              "S/N",
+                                              serialNumberController.text,
+                                              serialNumberController, (serial) {
+                                            checkoutDevice(serial);
+                                          }),
+                                        ),
+                                        CircleAvatar(
+                                          radius: 25,
+                                          backgroundColor:
+                                              Color.fromARGB(500, 1, 224, 143),
+                                          child: IconButton(
+                                            icon: Icon(Icons.center_focus_weak,
+                                                color: Colors.white),
+                                            onPressed: () {
+                                              scanBarcode();
+                                            },
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ),
-                                ],
-                              ),
-                              buildList()
-                            ],
-                          ),
-                        ),
-                        CustomCard(
-                          key: Key("install3"),
-                          icon: Icons.directions,
-                          title: "Mileage",
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: <Widget>[
-                              isRunning
-                                  ? GestureDetector(
-                                      onTap: () {
-                                        toggleTripStatus();
-                                      },
-                                      child: CircleAvatar(
-                                        radius: 60,
-                                        backgroundColor: Colors.red,
-                                        child: Text("STOP TRIP",
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold)),
-                                      ),
-                                    )
-                                  : GestureDetector(
-                                      onTap: () {
-                                        toggleTripStatus();
-                                      },
-                                      child: CircleAvatar(
-                                        radius: 60,
-                                        backgroundColor:
-                                            Color.fromARGB(500, 1, 224, 143),
-                                        child: Text("START TRIP",
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold)),
-                                      ),
-                                    ),
-                            ],
-                          ),
-                        ),
+                                    buildList()
+                                  ],
+                                ),
+                              )
+                            : Container(),
+                        merchant != null
+                            ? CustomCard(
+                                key: Key("install3"),
+                                icon: Icons.directions,
+                                title: "Mileage",
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: <Widget>[
+                                    isRunning
+                                        ? GestureDetector(
+                                            onTap: () {
+                                              toggleTripStatus();
+                                            },
+                                            child: CircleAvatar(
+                                              radius: 60,
+                                              backgroundColor: Colors.red,
+                                              child: Text("STOP TRIP",
+                                                  style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontWeight:
+                                                          FontWeight.bold)),
+                                            ),
+                                          )
+                                        : GestureDetector(
+                                            onTap: () {
+                                              toggleTripStatus();
+                                            },
+                                            child: CircleAvatar(
+                                              radius: 60,
+                                              backgroundColor: Color.fromARGB(
+                                                  500, 1, 224, 143),
+                                              child: Text("START TRIP",
+                                                  style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontWeight:
+                                                          FontWeight.bold)),
+                                            ),
+                                          ),
+                                  ],
+                                ),
+                              )
+                            : Container(),
                       ],
                     ),
                   ),
                 ),
               ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: installCheck,
-          backgroundColor: Color.fromARGB(500, 1, 224, 143),
-          foregroundColor: Colors.white,
-          child: Icon(Icons.done),
-          splashColor: Colors.white,
-        ),
+        floatingActionButton: merchant != null
+            ? isRunning
+                ? FloatingActionButton(
+                    onPressed: installCheck,
+                    backgroundColor: Color.fromARGB(500, 1, 224, 143),
+                    foregroundColor: Colors.white,
+                    child: Icon(Icons.done),
+                    splashColor: Colors.white,
+                  )
+                : Container()
+            : Container(),
       ),
     );
   }
