@@ -854,6 +854,10 @@ class BusinessInfoState extends State<BusinessInfo>
                       value:
                           this.widget.controllers["businessInfo"]["Sic"].text,
                       callback: (newVal) {
+                        setState(() {
+                          this.widget.isDirtyStatus["businessInfoIsDirty"] =
+                              true;
+                        });
                         if (newVal != null && newVal != "") {
                           setState(() {
                             this
@@ -1074,20 +1078,20 @@ class BusinessInfoState extends State<BusinessInfo>
                         return null;
                       }
                     }),
-                    getInfoDropdown(
-                        "Refund Policy",
-                        this
-                            .widget
-                            .controllers["siteInfo"]["RefundPolicy"]
-                            .text,
-                        this.widget.controllers["siteInfo"]["RefundPolicy"],
-                        yesNoOptions, validator: (newVal) {
-                      if (newVal == null) {
-                        return "Required";
-                      } else {
-                        return null;
-                      }
-                    }),
+                    // getInfoDropdown(
+                    //     "Refund Policy",
+                    //     this
+                    //         .widget
+                    //         .controllers["siteInfo"]["RefundPolicy"]
+                    //         .text,
+                    //     this.widget.controllers["siteInfo"]["RefundPolicy"],
+                    //     yesNoOptions, validator: (newVal) {
+                    //   if (newVal == null) {
+                    //     return "Required";
+                    //   } else {
+                    //     return null;
+                    //   }
+                    // }),
                     getInfoDropdown(
                         "Refund Type",
                         this.widget.controllers["siteInfo"]["RefundType"].text,

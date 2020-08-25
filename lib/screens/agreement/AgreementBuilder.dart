@@ -58,7 +58,7 @@ final List businessInfoControllerNames = [
   "LocationAddress1",
   "BusinessEmailAddress",
   "ForeignEntityOrNonResidentAlien",
-  // "BusinessWebsiteAddress",
+  "BusinessWebsiteAddress",
 ];
 
 final List siteInfoControllerNames = [
@@ -66,7 +66,7 @@ final List siteInfoControllerNames = [
   "Location",
   "RefundType",
   "NoOfRegister",
-  "RefundPolicy",
+  // "RefundPolicy",
   "ReturnPolicy",
   "NoOfEmployees",
   "SquareFootage",
@@ -102,7 +102,7 @@ final List corporateInfoControllerNames = [
   "BusinessStartDate",
   "StateIncorporated",
   "SendMonthlyStmntTo",
-  "CurrentStmntProvided",
+  // "CurrentStmntProvided",
   "StatementHoldRefValue",
   "RetrievalFaxRptCodeRefValue"
 ];
@@ -878,6 +878,15 @@ class AgreementBuilderState extends State<AgreementBuilder>
         errorObj["MotoBBInet"] != null) {
       errorObj.remove('MotoBBInet');
     }
+    if (errorObj["CorporateInfo"] != null) {
+      if (errorObj["CorporateInfo"]["CurrentStmntProvided"] != null) {
+        errorObj["CorporateInfo"].remove('CurrentStmntProvided');
+      }
+      var corporateErrorEmpty = errorObj["CorporateInfo"].isEmpty;
+      if (corporateErrorEmpty == true) {
+        errorObj.remove('CorporateInfo');
+      }
+    }
     if (_generalControllers["corpSame"].text == "true" &&
         errorObj["BusinessInfo"] != null) {
       if (errorObj["BusinessInfo"]["City"] != null) {
@@ -964,16 +973,16 @@ class AgreementBuilderState extends State<AgreementBuilder>
           ]);
 
       if (resp.statusCode == 200) {
-        Fluttertoast.showToast(
-            msg: "Valid Application!",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.grey[600],
-            textColor: Colors.white,
-            fontSize: 16.0);
+        // Fluttertoast.showToast(
+        //     msg: "Valid Application!",
+        //     toastLength: Toast.LENGTH_SHORT,
+        //     gravity: ToastGravity.BOTTOM,
+        //     backgroundColor: Colors.grey[600],
+        //     textColor: Colors.white,
+        //     fontSize: 16.0);
       } else {
         Fluttertoast.showToast(
-            msg: "Failed Validate!",
+            msg: "Missing something!",
             toastLength: Toast.LENGTH_SHORT,
             gravity: ToastGravity.BOTTOM,
             backgroundColor: Colors.grey[600],

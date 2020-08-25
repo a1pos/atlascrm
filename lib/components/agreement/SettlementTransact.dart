@@ -460,30 +460,47 @@ class SettlementTransactState extends State<SettlementTransact>
                                 newVal,
                                 "Transaction",
                                 "CcPercentTo")), //MAKE ADD UP TO 100 4/4
-                        // getInfoRow(
-                        //     "Business Website Address",
-                        //     this
-                        //         .widget
-                        //         .controllers["businessInfo"]
-                        //             ["BusinessWebsiteAddress"]
-                        //         .text,
-                        //     this.widget.controllers["businessInfo"]
-                        //         ["BusinessWebsiteAddress"],
-                        //     validator: this
-                        //                     .widget
-                        //                     .controllers["transaction"]
-                        //                         ["CcPercentInet"]
-                        //                     .text ==
-                        //                 "" ||
-                        //             this
-                        //                     .widget
-                        //                     .controllers["transaction"]
-                        //                         ["CcPercentInet"]
-                        //                     .text ==
-                        //                 "0"
-                        //         ? null
-                        //         : (newVal) => validateRow(newVal,
-                        //             "BusinessInfo", "BusinessWebsiteAddress")),
+                        this
+                                        .widget
+                                        .controllers["transaction"]
+                                            ["CcPercentInet"]
+                                        .text ==
+                                    "" ||
+                                this
+                                        .widget
+                                        .controllers["transaction"]
+                                            ["CcPercentInet"]
+                                        .text ==
+                                    "0"
+                            ? Container()
+                            : getInfoRow(
+                                "Business Website Address",
+                                this
+                                    .widget
+                                    .controllers["businessInfo"]
+                                        ["BusinessWebsiteAddress"]
+                                    .text,
+                                this.widget.controllers["businessInfo"]
+                                    ["BusinessWebsiteAddress"],
+                                validator: this
+                                                .widget
+                                                .controllers["transaction"]
+                                                    ["CcPercentInet"]
+                                                .text ==
+                                            "" ||
+                                        this
+                                                .widget
+                                                .controllers["transaction"]
+                                                    ["CcPercentInet"]
+                                                .text ==
+                                            "0"
+                                    ? null
+                                    : (newVal) {
+                                        this.widget.isDirtyStatus[
+                                            "businessInfoIsDirty"] = true;
+                                        validateRow(newVal, "BusinessInfo",
+                                            "BusinessWebsiteAddress");
+                                      }),
                       ],
                     ),
                   ),
@@ -533,7 +550,7 @@ class SettlementTransactState extends State<SettlementTransact>
         ));
   }
 
-  Widget getInfoRow(label, value, controller, {mask, validator}) {
+  Widget getInfoRow(label, value, controller, {mask, validator, onChanged}) {
     if (mask != null) {
       controller.updateMask(mask);
     }
