@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 class CenteredClearLoadingScreen extends StatefulWidget {
+  final String loadText;
+
+  CenteredClearLoadingScreen({this.loadText});
   @override
   _CenteredClearLoadingScreenState createState() =>
       _CenteredClearLoadingScreenState();
@@ -23,7 +26,9 @@ class _CenteredClearLoadingScreenState
               ),
               Padding(
                 padding: EdgeInsets.all(50),
-                child: Text('Loading...'),
+                child: this.widget.loadText != null
+                    ? Text(this.widget.loadText)
+                    : Text('Loading...'),
               )
             ],
           ),

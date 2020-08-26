@@ -327,6 +327,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
   bool allStepsComplete = false;
   bool pricingDone = false;
   Map seasonalMerchant = {"seasonalMerchant": false};
+  var loadText;
 
   List<GlobalKey<FormState>> _formKeys = [
     GlobalKey<FormState>(),
@@ -449,6 +450,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
                           style: TextStyle(fontSize: 17, color: Colors.green)),
                       onPressed: () {
                         setState(() {
+                          Navigator.pop(context);
                           Navigator.pop(context);
                         });
                       },
@@ -833,7 +835,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
 
     if (resp.statusCode == 200) {
       Fluttertoast.showToast(
-          msg: "SUBMIT!",
+          msg: "Submitting Application",
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.grey[600],
@@ -874,6 +876,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
   }
 
   Future<void> overallValidate(errorObj) async {
+    var refillWebsiteError;
     if (_generalControllers["motoCheck"].text != "true" &&
         errorObj["MotoBBInet"] != null) {
       errorObj.remove('MotoBBInet');
@@ -919,6 +922,15 @@ class AgreementBuilderState extends State<AgreementBuilder>
         errorObj["Transaction"].remove('SeasonalTo');
       }
     }
+    if (errorObj["BusinessInfo"] != null) {
+      if (errorObj["BusinessInfo"]["BusinessWebsiteAddress"] != null) {
+        refillWebsiteError = errorObj["BusinessInfo"]["BusinessWebsiteAddress"];
+        errorObj["BusinessInfo"].remove('BusinessWebsiteAddress');
+        if (errorObj["BusinessInfo"].isEmpty) {
+          errorObj.remove('BusinessInfo');
+        }
+      }
+    }
     // if (page == 0) {
     if (errorObj["BusinessInfo"] == null &&
         errorObj["MpaInfo"] == null &&
@@ -930,6 +942,16 @@ class AgreementBuilderState extends State<AgreementBuilder>
     } else {
       isValidated["BusinessInfo"] = false;
     }
+
+    if (refillWebsiteError != null) {
+      if (errorObj["BusinessInfo"] != null) {
+        errorObj["BusinessInfo"]["BusinessWebsiteAddress"] = refillWebsiteError;
+      } else {
+        errorObj["BusinessInfo"] = {};
+        errorObj["BusinessInfo"]["BusinessWebsiteAddress"] = refillWebsiteError;
+      }
+    }
+
     // } else if (page == 1) {
     if ((errorObj["Ownership"] == null || errorObj["Ownership"].length == 0)) {
       if (owners.length != 0) {
@@ -950,6 +972,11 @@ class AgreementBuilderState extends State<AgreementBuilder>
             errorObj["Transaction"].length == 0) &&
         _settlementControllers["DepositBankName"].text != "") {
       isValidated["SettlementTransact"] = true;
+      if (errorObj["BusinessInfo"] != null) {
+        if (errorObj["BusinessInfo"]["BusinessWebsiteAddress"] != null) {
+          isValidated["SettlementTransact"] = false;
+        }
+      }
     } else {
       isValidated["SettlementTransact"] = false;
     }
@@ -1437,13 +1464,13 @@ class AgreementBuilderState extends State<AgreementBuilder>
 
     isDirtyStatus["settlementTransactIsDirty"] = false;
 
-    Fluttertoast.showToast(
-        msg: "Settlement Transact!",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-        backgroundColor: Colors.grey[600],
-        textColor: Colors.white,
-        fontSize: 16.0);
+    // Fluttertoast.showToast(
+    //     msg: "Settlement Transact!",
+    //     toastLength: Toast.LENGTH_SHORT,
+    //     gravity: ToastGravity.BOTTOM,
+    //     backgroundColor: Colors.grey[600],
+    //     textColor: Colors.white,
+    //     fontSize: 16.0);
   }
 
   Future<void> updateDocuments(agreementBuilderId) async {
@@ -1537,47 +1564,53 @@ class AgreementBuilderState extends State<AgreementBuilder>
                 key: Key("agreementBuilderAppBar"),
                 title: Text(isLoading ? "Loading..." : "Agreement Builder"),
                 backgroundColor: Color.fromARGB(255, 21, 27, 38),
-                bottom: TabBar(
-                  isScrollable: true,
-                  tabs: [
-                    Tab(
-                        text: "Business Info",
-                        icon: isValidated["BusinessInfo"] != null
-                            ? isValidated["BusinessInfo"] == true
-                                ? Icon(Icons.done, color: Colors.green)
-                                : Icon(Icons.error_outline, color: Colors.red)
-                            : null),
-                    Tab(
-                        text: "Owner Info",
-                        icon: isValidated["Ownership"] != null
-                            ? isValidated["Ownership"] == true
-                                ? Icon(Icons.done, color: Colors.green)
-                                : Icon(Icons.error_outline, color: Colors.red)
-                            : null),
-                    Tab(
-                        text: "Settlement/Transaction",
-                        icon: isValidated["SettlementTransact"] != null
-                            ? isValidated["SettlementTransact"] == true
-                                ? Icon(Icons.done, color: Colors.green)
-                                : Icon(Icons.error_outline, color: Colors.red)
-                            : null),
-                    Tab(
-                        text: "Documents",
-                        icon: isValidated["Documents"] != null
-                            ? isValidated["Documents"] == true
-                                ? Icon(Icons.done, color: Colors.green)
-                                : Icon(Icons.error_outline, color: Colors.red)
-                            : null),
-                    Tab(
-                        text: "Pricing",
-                        icon: pricingDone == true
-                            ? Icon(Icons.done, color: Colors.green)
-                            : Icon(Icons.timer, color: Colors.amber))
-                  ],
-                  controller: _tabController,
-                )),
+                bottom: isLoading
+                    ? null
+                    : TabBar(
+                        isScrollable: true,
+                        tabs: [
+                          Tab(
+                              text: "Business Info",
+                              icon: isValidated["BusinessInfo"] != null
+                                  ? isValidated["BusinessInfo"] == true
+                                      ? Icon(Icons.done, color: Colors.green)
+                                      : Icon(Icons.error_outline,
+                                          color: Colors.red)
+                                  : null),
+                          Tab(
+                              text: "Owner Info",
+                              icon: isValidated["Ownership"] != null
+                                  ? isValidated["Ownership"] == true
+                                      ? Icon(Icons.done, color: Colors.green)
+                                      : Icon(Icons.error_outline,
+                                          color: Colors.red)
+                                  : null),
+                          Tab(
+                              text: "Settlement/Transaction",
+                              icon: isValidated["SettlementTransact"] != null
+                                  ? isValidated["SettlementTransact"] == true
+                                      ? Icon(Icons.done, color: Colors.green)
+                                      : Icon(Icons.error_outline,
+                                          color: Colors.red)
+                                  : null),
+                          Tab(
+                              text: "Documents",
+                              icon: isValidated["Documents"] != null
+                                  ? isValidated["Documents"] == true
+                                      ? Icon(Icons.done, color: Colors.green)
+                                      : Icon(Icons.error_outline,
+                                          color: Colors.red)
+                                  : null),
+                          Tab(
+                              text: "Pricing",
+                              icon: pricingDone == true
+                                  ? Icon(Icons.done, color: Colors.green)
+                                  : Icon(Icons.timer, color: Colors.amber))
+                        ],
+                        controller: _tabController,
+                      )),
             body: isLoading
-                ? CenteredClearLoadingScreen()
+                ? CenteredClearLoadingScreen(loadText: loadText)
                 : TabBarView(controller: _tabController, children: [
                     BusinessInfo(
                         isDirtyStatus: isDirtyStatus,
@@ -1618,6 +1651,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
                               agreementBuilderObj["agreement_builder"],
                               isSubmit: true);
                           setState(() {
+                            loadText = "Submitting Agreement";
                             isLoading = true;
                           });
                           var data = agreementBuilderObj["document"];
@@ -1627,6 +1661,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
                               .authPost(context, "/merchant/app", data);
                           if (resp.statusCode == 200) {
                             setState(() {
+                              loadText = null;
                               isLoading = false;
                             });
                             print(resp);
@@ -1640,6 +1675,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
                                 fontSize: 16.0);
                           } else {
                             setState(() {
+                              loadText = null;
                               isLoading = false;
                             });
                             Fluttertoast.showToast(

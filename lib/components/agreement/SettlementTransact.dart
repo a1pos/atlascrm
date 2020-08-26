@@ -50,6 +50,7 @@ class SettlementTransactState extends State<SettlementTransact>
   List owners;
   Map testOwner;
   Map emptyOwner;
+
   // bool seasonalMerchant = false;
   List<Widget> displayList;
   var accTypes = [
@@ -135,6 +136,10 @@ class SettlementTransactState extends State<SettlementTransact>
         }
       }
     }
+
+    if (newVal.isEmpty) {
+      return message != null ? message : "Required";
+    }
     var valPos = int.parse(
         this.widget.controllers["transaction"]["CcPercentPos"].text != ""
             ? this.widget.controllers["transaction"]["CcPercentPos"].text
@@ -162,6 +167,34 @@ class SettlementTransactState extends State<SettlementTransact>
   @override
   Widget build(BuildContext context) {
     agreementDocument = this.widget.agreementDoc;
+    TextEditingController businessWebsite =
+        this.widget.controllers["businessInfo"]["BusinessWebsiteAddress"];
+
+    businessWebsite.addListener(() {
+      if (this.widget.isDirtyStatus["businessInfoIsDirty"] != true) {
+        if (this.mounted) {
+          setState(() {
+            this.widget.isDirtyStatus["businessInfoIsDirty"] = true;
+          });
+        }
+      }
+    });
+
+    TextEditingController internetPercent =
+        this.widget.controllers["transaction"]["CcPercentInet"];
+    internetPercent.addListener(() {
+      if (this.widget.controllers["transaction"]["CcPercentInet"].text == "0" ||
+          this.widget.controllers["transaction"]["CcPercentInet"].text == "") {
+        if (this.mounted) {
+          setState(() {
+            this
+                .widget
+                .controllers["businessInfo"]["BusinessWebsiteAddress"]
+                .text = "";
+          });
+        }
+      }
+    });
 
     return Container(
         padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
@@ -482,25 +515,8 @@ class SettlementTransactState extends State<SettlementTransact>
                                     .text,
                                 this.widget.controllers["businessInfo"]
                                     ["BusinessWebsiteAddress"],
-                                validator: this
-                                                .widget
-                                                .controllers["transaction"]
-                                                    ["CcPercentInet"]
-                                                .text ==
-                                            "" ||
-                                        this
-                                                .widget
-                                                .controllers["transaction"]
-                                                    ["CcPercentInet"]
-                                                .text ==
-                                            "0"
-                                    ? null
-                                    : (newVal) {
-                                        this.widget.isDirtyStatus[
-                                            "businessInfoIsDirty"] = true;
-                                        validateRow(newVal, "BusinessInfo",
-                                            "BusinessWebsiteAddress");
-                                      }),
+                                validator: (newVal) => validateRow(newVal,
+                                    "BusinessInfo", "BusinessWebsiteAddress")),
                       ],
                     ),
                   ),
@@ -550,7 +566,7 @@ class SettlementTransactState extends State<SettlementTransact>
         ));
   }
 
-  Widget getInfoRow(label, value, controller, {mask, validator, onChanged}) {
+  Widget getInfoRow(label, value, controller, {mask, validator}) {
     if (mask != null) {
       controller.updateMask(mask);
     }
