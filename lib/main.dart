@@ -27,7 +27,9 @@ import 'package:atlascrm/services/UserService.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:atlascrm/services/api.dart';
 
 List<CameraDescription> cameras;
 
@@ -108,120 +110,125 @@ class _AtlasCRMState extends State<AtlasCRM> {
   }
 
   Widget getHomeScreen() {
-    return MaterialApp(
-      title: 'ATLAS CRM',
-      theme: ThemeData(
-        primarySwatch: Colors.green,
-        backgroundColor: Colors.orange,
-        brightness: Brightness.light,
-        fontFamily: "LatoRegular",
-      ),
-      home: isAuthenticated
-          ? UserService.isAdmin
-              ? AdminDashboardScreen()
-              : SalesDashboardScreen()
-          : AuthScreen(),
-      initialRoute: "/",
-      onGenerateRoute: (RouteSettings settings) {
-        switch (settings.name) {
-          case '/dashboard':
-            return MaterialPageRoute(
-                builder: (context) => UserService.isAdmin
-                    ? AdminDashboardScreen()
-                    : SalesDashboardScreen());
-            break;
-          case "/leads":
-            return MaterialPageRoute(builder: (context) => LeadsScreen());
-            break;
-          case "/merchants":
-            return MaterialPageRoute(builder: (context) => MerchantsScreen());
-            break;
-          case "/inventory":
-            return MaterialPageRoute(builder: (context) => InventoryScreen());
-            break;
-          case "/installs":
-            return MaterialPageRoute(builder: (context) => InstallsScreen());
-            break;
-          case "/logout":
-            handleLogoutRoute();
-            return MaterialPageRoute(builder: (context) => AtlasCRM());
-            break;
-          case '/viewlead':
-            return SlideRightRoute(page: ViewLeadScreen(settings.arguments));
-            break;
-          case '/viewmerchant':
-            return SlideRightRoute(
-                page: ViewMerchantScreen(settings.arguments));
-            break;
-          case '/viewinventory':
-            return SlideRightRoute(
-                page: ViewInventoryScreen(settings.arguments));
-            break;
-          case '/viewinstall':
-            return SlideRightRoute(page: ViewInstallScreen(settings.arguments));
-            break;
-          case '/employeemgmt':
-            return MaterialPageRoute(
-                builder: (context) => EmployeesManagementScreen());
-            break;
-          case '/employeemap':
-            return SlideRightRoute(
-              page: EmployeeMapScreen(),
-            );
-            break;
-          case '/employeemaphistory':
-            return SlideRightRoute(
-              page: EmployeeMapHistoryScreen(settings.arguments),
-            );
-            break;
-          case '/tasks':
-            return SlideRightRoute(
-              page: TaskScreen(),
-            );
-            break;
-          case '/employeelist':
-            return SlideRightRoute(
-              page: EmployeeListScreen(true),
-            );
-            break;
-          case '/employeecallhistory':
-            return SlideRightRoute(
-              page: EmployeeCallHistoryScreen(settings.arguments),
-            );
-            break;
-          case '/viewemployee':
-            return SlideRightRoute(
-                page: ViewEmployeeScreen(settings.arguments));
-            break;
-          case '/viewtask':
-            return SlideRightRoute(page: ViewTaskScreen(settings.arguments));
-            break;
-          case '/agreementbuilder':
-            return SlideRightRoute(page: AgreementBuilder(settings.arguments));
-            break;
-          case '/camera':
-            return SlideRightRoute(
-                page:
-                    CameraPage(cameras: cameras, callback: settings.arguments));
-            break;
-          case '/mileage':
-            return MaterialPageRoute(builder: (context) => MileageScreen());
-            break;
-          case '/docusigner':
-            return SlideRightRoute(
-              page: CustomWebView(
-                title: "Docusigner",
-                selectedUrl:
-                    "https://demo.docusign.net/Member/PowerFormSigning.aspx?PowerFormId=c04d3d47-c7be-46d5-a10a-471e8c9e531b&env=demo&acct=d805e4d3-b594-4e79-9d49-243e076e75e6&v=2",
-              ),
-            );
+    return GraphQLProvider(
+      client: client,
+      child: MaterialApp(
+        title: 'ATLAS CRM',
+        theme: ThemeData(
+          primarySwatch: Colors.green,
+          backgroundColor: Colors.orange,
+          brightness: Brightness.light,
+          fontFamily: "LatoRegular",
+        ),
+        home: isAuthenticated
+            ? UserService.isAdmin
+                ? AdminDashboardScreen()
+                : SalesDashboardScreen()
+            : AuthScreen(),
+        initialRoute: "/",
+        onGenerateRoute: (RouteSettings settings) {
+          switch (settings.name) {
+            case '/dashboard':
+              return MaterialPageRoute(
+                  builder: (context) => UserService.isAdmin
+                      ? AdminDashboardScreen()
+                      : SalesDashboardScreen());
+              break;
+            case "/leads":
+              return MaterialPageRoute(builder: (context) => LeadsScreen());
+              break;
+            case "/merchants":
+              return MaterialPageRoute(builder: (context) => MerchantsScreen());
+              break;
+            case "/inventory":
+              return MaterialPageRoute(builder: (context) => InventoryScreen());
+              break;
+            case "/installs":
+              return MaterialPageRoute(builder: (context) => InstallsScreen());
+              break;
+            case "/logout":
+              handleLogoutRoute();
+              return MaterialPageRoute(builder: (context) => AtlasCRM());
+              break;
+            case '/viewlead':
+              return SlideRightRoute(page: ViewLeadScreen(settings.arguments));
+              break;
+            case '/viewmerchant':
+              return SlideRightRoute(
+                  page: ViewMerchantScreen(settings.arguments));
+              break;
+            case '/viewinventory':
+              return SlideRightRoute(
+                  page: ViewInventoryScreen(settings.arguments));
+              break;
+            case '/viewinstall':
+              return SlideRightRoute(
+                  page: ViewInstallScreen(settings.arguments));
+              break;
+            case '/employeemgmt':
+              return MaterialPageRoute(
+                  builder: (context) => EmployeesManagementScreen());
+              break;
+            case '/employeemap':
+              return SlideRightRoute(
+                page: EmployeeMapScreen(),
+              );
+              break;
+            case '/employeemaphistory':
+              return SlideRightRoute(
+                page: EmployeeMapHistoryScreen(settings.arguments),
+              );
+              break;
+            case '/tasks':
+              return SlideRightRoute(
+                page: TaskScreen(),
+              );
+              break;
+            case '/employeelist':
+              return SlideRightRoute(
+                page: EmployeeListScreen(true),
+              );
+              break;
+            case '/employeecallhistory':
+              return SlideRightRoute(
+                page: EmployeeCallHistoryScreen(settings.arguments),
+              );
+              break;
+            case '/viewemployee':
+              return SlideRightRoute(
+                  page: ViewEmployeeScreen(settings.arguments));
+              break;
+            case '/viewtask':
+              return SlideRightRoute(page: ViewTaskScreen(settings.arguments));
+              break;
+            case '/agreementbuilder':
+              return SlideRightRoute(
+                  page: AgreementBuilder(settings.arguments));
+              break;
+            case '/camera':
+              return SlideRightRoute(
+                  page: CameraPage(
+                      cameras: cameras, callback: settings.arguments));
+              break;
+            case '/mileage':
+              return MaterialPageRoute(builder: (context) => MileageScreen());
+              break;
+            case '/docusigner':
+              return SlideRightRoute(
+                page: CustomWebView(
+                  title: "Docusigner",
+                  selectedUrl:
+                      "https://demo.docusign.net/Member/PowerFormSigning.aspx?PowerFormId=c04d3d47-c7be-46d5-a10a-471e8c9e531b&env=demo&acct=d805e4d3-b594-4e79-9d49-243e076e75e6&v=2",
+                ),
+              );
 
-            break;
-          case '/settings':
-            // return MaterialPageRoute(builder: (context) => SettingsScreen());
-            break;
-        }
-      },
+              break;
+            case '/settings':
+              // return MaterialPageRoute(builder: (context) => SettingsScreen());
+              break;
+          }
+        },
+      ),
     );
   }
 }

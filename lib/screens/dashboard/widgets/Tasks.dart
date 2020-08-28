@@ -5,6 +5,7 @@ import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
 
 class Tasks extends StatefulWidget {
   @override
@@ -22,7 +23,7 @@ class _TasksState extends State<Tasks> {
   void initState() {
     super.initState();
 
-    initTasks();
+    // initTasks();
   }
 
   Future<void> initTasks() async {
@@ -62,47 +63,69 @@ class _TasksState extends State<Tasks> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: isLoading
-          ? Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                CenteredLoadingSpinner(),
-              ],
-            )
-          : isEmpty
-              ? Empty("No Active Tasks found")
-              : SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      Column(
-                        children: activeTasks.map((t) {
-                          var tDate;
-                          if (t['date'] != null) {
-                            tDate = DateFormat("EEE, MMM d, ''yy")
-                                .add_jm()
-                                .format(DateTime.parse(t['date']));
-                          } else {
-                            tDate = "";
-                          }
-                          return GestureDetector(
-                            onTap: () {
-                              Navigator.pushNamed(context, "/viewtask",
-                                  arguments: t["task"]);
-                            },
-                            child: TaskItem(
-                                title: t["document"]["title"],
-                                description: t["document"]["notes"],
-                                dateTime: tDate,
-                                type: t["typetitle"],
-                                priority: t["priority"]),
-                          );
-                        }).toList(),
-                      ),
-                    ],
-                  ),
-                ),
-    );
+    return Query(
+        options: QueryOptions(documentNode: gql("""
+      query getTasks {
+        tasks {
+          task
+          task_type{task_type}
+          employee{employee}
+          date
+          priority
+          task_status{task_status}
+          document
+          merchant{merchant}
+          lead{lead}
+          created_by
+          updated_by    
+          created_at
+      }}
+  """), pollInterval: 1000),
+        builder: (QueryResult result,
+            {VoidCallback refetch, FetchMore fetchMore}) {
+          return Container(
+              child: result.loading
+                  ? Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        CenteredLoadingSpinner(),
+                      ],
+                    )
+                  : result.data.length == 0
+                      ? Empty("No Active Tasks found")
+                      : buildDLGridView(result.data["tasks"]));
+        });
   }
+}
+
+Widget buildDLGridView(list) {
+  return list.length == 0
+      ? Empty("No Active Tasks found")
+      : ListView(
+          shrinkWrap: true,
+          children: List.generate(list.length, (index) {
+            var task = list[index];
+
+            var tDate;
+            if (task['date'] != null) {
+              tDate = DateFormat("EEE, MMM d, ''yy")
+                  .add_jm()
+                  .format(DateTime.parse(task['date']));
+            } else {
+              tDate = "";
+            }
+            return GestureDetector(
+              onTap: () {
+                // Navigator.pushNamed(context, "/viewtask",
+                //     arguments: task["task"]);
+              },
+              child: TaskItem(
+                  title: task["document"]["title"],
+                  description: task["document"]["notes"],
+                  dateTime: tDate,
+                  type: task["typetitle"],
+                  priority: task["priority"]),
+            );
+          }));
 }
