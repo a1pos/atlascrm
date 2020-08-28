@@ -11,6 +11,7 @@ class UserService {
 
   static bool isAdmin = false;
   static bool isTech = false;
+  static bool isSales = false;
 
   final ApiService apiService = new ApiService();
   final SocketService socketService = new SocketService();
@@ -99,6 +100,12 @@ class UserService {
           socketService.initWebSocketConnection();
         } else {
           isTech = false;
+        }
+        if (roles.contains("sales")) {
+          isSales = true;
+          socketService.initWebSocketConnection();
+        } else {
+          isSales = false;
         }
         return true;
       }

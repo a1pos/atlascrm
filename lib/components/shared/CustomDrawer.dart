@@ -67,53 +67,59 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 Navigator.popAndPushNamed(context, "/dashboard");
               },
             ),
-            ListTile(
-              leading: Icon(
-                Icons.playlist_add_check,
-                color: Colors.white,
-              ),
-              title: Text(
-                'Tasks',
-                style: TextStyle(
-                  color: Colors.white,
-                ),
-              ),
-              onTap: () {
-                Navigator.popAndPushNamed(context, "/tasks");
-              },
-            ),
-            UserService.isTech
-                ? Container()
-                : ListTile(
+            UserService.isAdmin || UserService.isSales || UserService.isTech
+                ? ListTile(
                     leading: Icon(
-                      Icons.attach_money,
+                      Icons.playlist_add_check,
                       color: Colors.white,
                     ),
                     title: Text(
-                      'Leads',
+                      'Tasks',
                       style: TextStyle(
                         color: Colors.white,
                       ),
                     ),
                     onTap: () {
-                      Navigator.popAndPushNamed(context, "/leads");
+                      Navigator.popAndPushNamed(context, "/tasks");
                     },
-                  ),
-            ListTile(
-              leading: Icon(
-                Icons.people,
-                color: Colors.white,
-              ),
-              title: Text(
-                'Merchants',
-                style: TextStyle(
-                  color: Colors.white,
-                ),
-              ),
-              onTap: () {
-                Navigator.popAndPushNamed(context, "/merchants");
-              },
-            ),
+                  )
+                : Container(),
+            UserService.isAdmin || UserService.isSales || UserService.isTech
+                ? UserService.isTech
+                    ? Container()
+                    : ListTile(
+                        leading: Icon(
+                          Icons.attach_money,
+                          color: Colors.white,
+                        ),
+                        title: Text(
+                          'Leads',
+                          style: TextStyle(
+                            color: Colors.white,
+                          ),
+                        ),
+                        onTap: () {
+                          Navigator.popAndPushNamed(context, "/leads");
+                        },
+                      )
+                : Container(),
+            UserService.isTech || UserService.isAdmin || UserService.isSales
+                ? ListTile(
+                    leading: Icon(
+                      Icons.people,
+                      color: Colors.white,
+                    ),
+                    title: Text(
+                      'Merchants',
+                      style: TextStyle(
+                        color: Colors.white,
+                      ),
+                    ),
+                    onTap: () {
+                      Navigator.popAndPushNamed(context, "/merchants");
+                    },
+                  )
+                : Container(),
             UserService.isTech || UserService.isAdmin
                 ? ListTile(
                     leading: Icon(
@@ -182,6 +188,39 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     },
                   )
                 : Text(""),
+            // Expanded(
+            //   child: Theme(
+            //     data: Theme.of(context).copyWith(
+            //         accentColor: Colors.white,
+            //         unselectedWidgetColor: Colors.white..withOpacity(0.8)),
+            //     child: ExpansionTile(
+            //       title: Text("Expansion Title",
+            //           style: TextStyle(color: Colors.white)),
+            //       children: <Widget>[
+            //         Text("children 1", style: TextStyle(color: Colors.white)),
+            //         Text("children 2", style: TextStyle(color: Colors.white)),
+            //         UserService.isAdmin
+            //             ? ListTile(
+            //                 leading: Icon(
+            //                   Icons.account_box,
+            //                   color: Colors.white,
+            //                 ),
+            //                 title: Text(
+            //                   'Users',
+            //                   style: TextStyle(
+            //                     color: Colors.white,
+            //                   ),
+            //                 ),
+            //                 onTap: () {
+            //                   Navigator.popAndPushNamed(
+            //                       context, "/employeemgmt");
+            //                 },
+            //               )
+            //             : Text(""),
+            //       ],
+            //     ),
+            //   ),
+            // ),
             Expanded(
               child: Align(
                 alignment: Alignment.bottomCenter,
