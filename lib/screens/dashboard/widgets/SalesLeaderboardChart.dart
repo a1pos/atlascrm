@@ -34,42 +34,42 @@ class _SalesLeaderboardChartState extends State<SalesLeaderboardChart> {
   int agreementTotal = 0;
   int statementTotal = 0;
 
-  Future<void> addStatement(employeeId) async {
-    try {
-      var resp = await apiService.authPost(
-          context,
-          "/employees/$employeeId/statements",
-          {"leadId": "00000000-0000-0000-0000-000000000000"});
-      if (resp != null) {
-        if (resp.statusCode == 200) {
-          var tasksArrDecoded = resp.data;
-          if (tasksArrDecoded != null) {
-            Fluttertoast.showToast(
-                msg: "Added statement",
-                toastLength: Toast.LENGTH_SHORT,
-                gravity: ToastGravity.BOTTOM,
-                backgroundColor: Colors.grey[600],
-                textColor: Colors.white,
-                fontSize: 16.0);
-          }
-        } else {
-          throw new Error();
-        }
-      } else {
-        throw new Error();
-      }
-    } catch (err) {
-      print(err);
+  // Future<void> addStatement(employeeId) async {
+  //   try {
+  //     var resp = await apiService.authPost(
+  //         context,
+  //         "/employees/$employeeId/statements",
+  //         {"leadId": "00000000-0000-0000-0000-000000000000"});
+  //     if (resp != null) {
+  //       if (resp.statusCode == 200) {
+  //         var tasksArrDecoded = resp.data;
+  //         if (tasksArrDecoded != null) {
+  //           Fluttertoast.showToast(
+  //               msg: "Added statement",
+  //               toastLength: Toast.LENGTH_SHORT,
+  //               gravity: ToastGravity.BOTTOM,
+  //               backgroundColor: Colors.grey[600],
+  //               textColor: Colors.white,
+  //               fontSize: 16.0);
+  //         }
+  //       } else {
+  //         throw new Error();
+  //       }
+  //     } else {
+  //       throw new Error();
+  //     }
+  //   } catch (err) {
+  //     print(err);
 
-      Fluttertoast.showToast(
-          msg: "Failed to add statement for employee!",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.grey[600],
-          textColor: Colors.white,
-          fontSize: 16.0);
-    }
-  }
+  //     Fluttertoast.showToast(
+  //         msg: "Failed to add statement for employee!",
+  //         toastLength: Toast.LENGTH_SHORT,
+  //         gravity: ToastGravity.BOTTOM,
+  //         backgroundColor: Colors.grey[600],
+  //         textColor: Colors.white,
+  //         fontSize: 16.0);
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {

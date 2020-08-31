@@ -111,7 +111,7 @@ class _AtlasCRMState extends State<AtlasCRM> {
 
   Widget getHomeScreen() {
     return GraphQLProvider(
-      client: client,
+      client: ValueNotifier<GraphQLClient>(client),
       child: MaterialApp(
         title: 'ATLAS CRM',
         theme: ThemeData(

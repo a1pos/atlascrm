@@ -76,6 +76,11 @@ class _SalesDashboardScreenState extends State<SalesDashboardScreen> {
             children: <Widget>[
               Column(
                 children: <Widget>[
+                  MaterialButton(
+                      child: Text("GOTOLEAD"),
+                      onPressed: () {
+                        Navigator.popAndPushNamed(context, "/leads");
+                      }),
                   CustomCard(
                     key: Key("salesLeaderboard1"),
                     title: "Sales Leaderboard",

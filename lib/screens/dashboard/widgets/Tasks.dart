@@ -64,23 +64,29 @@ class _TasksState extends State<Tasks> {
   @override
   Widget build(BuildContext context) {
     return Query(
-        options: QueryOptions(documentNode: gql("""
-      query getTasks {
-        tasks {
-          task
-          task_type{task_type}
-          employee{employee}
-          date
-          priority
-          task_status{task_status}
-          document
-          merchant{merchant}
-          lead{lead}
-          created_by
-          updated_by    
-          created_at
-      }}
-  """), pollInterval: 1000),
+        options: QueryOptions(
+            documentNode: gql("""
+              query EmployeeTasks (\$employee: ID!){
+                employee(employee:\$employee){
+                  tasks {
+                    task
+                    task_type{task_type}
+                    employee{employee}
+                    date
+                    priority
+                    task_status{task_status}
+                    document
+                    merchant{merchant}
+                    lead{lead}
+                    created_by
+                    updated_by      
+                    created_at
+                  }
+                }
+              }
+            """),
+            pollInterval: 1000,
+            variables: {"employee": "7a9c7054-aaa0-47af-84b4-8470de04620a"}),
         builder: (QueryResult result,
             {VoidCallback refetch, FetchMore fetchMore}) {
           return Container(
@@ -92,9 +98,9 @@ class _TasksState extends State<Tasks> {
                         CenteredLoadingSpinner(),
                       ],
                     )
-                  : result.data.length == 0
+                  : result.data == null
                       ? Empty("No Active Tasks found")
-                      : buildDLGridView(result.data["tasks"]));
+                      : buildDLGridView(result.data["employee"]["tasks"]));
         });
   }
 }
