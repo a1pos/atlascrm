@@ -1050,20 +1050,20 @@ class BusinessInfoState extends State<BusinessInfo>
                         return null;
                       }
                     }),
-                    getInfoDropdown(
-                        "Customer Deposit Required",
-                        this
-                            .widget
-                            .controllers["siteInfo"]["DepositRequired"]
-                            .text,
-                        this.widget.controllers["siteInfo"]["DepositRequired"],
-                        yesNoOptions, validator: (newVal) {
-                      if (newVal == null) {
-                        return "Required";
-                      } else {
-                        return null;
-                      }
-                    }),
+                    // getInfoDropdown(
+                    //     "Customer Deposit Required",
+                    //     this
+                    //         .widget
+                    //         .controllers["siteInfo"]["DepositRequired"]
+                    //         .text,
+                    //     this.widget.controllers["siteInfo"]["DepositRequired"],
+                    //     yesNoOptions, validator: (newVal) {
+                    //   if (newVal == null) {
+                    //     return "Required";
+                    //   } else {
+                    //     return null;
+                    //   }
+                    // }),
                     getInfoDropdown(
                         "Return Policy",
                         this

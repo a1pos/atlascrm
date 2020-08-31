@@ -73,7 +73,7 @@ final List siteInfoControllerNames = [
   "NumberOfLevels",
   "SiteVisitation",
   "StoreLocatedOn",
-  "DepositRequired",
+  // "DepositRequired",
   "OtherOccupiedBy",
   "RefPolicyRefDays",
   "MerchantNameSiteDisplay"
