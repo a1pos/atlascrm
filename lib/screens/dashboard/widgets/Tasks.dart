@@ -70,7 +70,8 @@ class _TasksState extends State<Tasks> {
                 employee(employee:\$employee){
                   tasks {
                     task
-                    task_type{task_type}
+                    task_type{task_type
+                    title}
                     employee{employee}
                     date
                     priority
@@ -85,8 +86,8 @@ class _TasksState extends State<Tasks> {
                 }
               }
             """),
-            pollInterval: 1000,
-            variables: {"employee": "7a9c7054-aaa0-47af-84b4-8470de04620a"}),
+            pollInterval: 30,
+            variables: {"employee": "${UserService.employee.employee}"}),
         builder: (QueryResult result,
             {VoidCallback refetch, FetchMore fetchMore}) {
           return Container(
@@ -100,12 +101,13 @@ class _TasksState extends State<Tasks> {
                     )
                   : result.data == null
                       ? Empty("No Active Tasks found")
-                      : buildDLGridView(result.data["employee"]["tasks"]));
+                      : buildDLGridView(
+                          context, result.data["employee"]["tasks"]));
         });
   }
 }
 
-Widget buildDLGridView(list) {
+Widget buildDLGridView(BuildContext context, list) {
   return list.length == 0
       ? Empty("No Active Tasks found")
       : ListView(
@@ -123,14 +125,14 @@ Widget buildDLGridView(list) {
             }
             return GestureDetector(
               onTap: () {
-                // Navigator.pushNamed(context, "/viewtask",
-                //     arguments: task["task"]);
+                Navigator.pushNamed(context, "/viewtask",
+                    arguments: task["task"]);
               },
               child: TaskItem(
                   title: task["document"]["title"],
                   description: task["document"]["notes"],
                   dateTime: tDate,
-                  type: task["typetitle"],
+                  type: task["task_type"]["title"],
                   priority: task["priority"]),
             );
           }));

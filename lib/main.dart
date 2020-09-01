@@ -76,10 +76,12 @@ class _AtlasCRMState extends State<AtlasCRM> {
         ),
       );
     } else {
-      setState(() {
-        isLoading = false;
-        isAuthenticated = false;
-      });
+      if (this.mounted) {
+        setState(() {
+          isLoading = false;
+          isAuthenticated = false;
+        });
+      }
     }
   }
 

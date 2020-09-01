@@ -15,10 +15,12 @@ import 'package:atlascrm/components/task/TaskTypeDropDown.dart';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/StorageService.dart';
 import 'package:atlascrm/services/UserService.dart';
+import 'package:atlascrm/services/api.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/screens/leads/LeadStepper.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import 'package:intl/intl.dart';
@@ -151,28 +153,45 @@ class _TaskScreenState extends State<TaskScreen> {
 
   Future<void> initTasks() async {
     try {
-      var resp = await this
-          .widget
-          .apiService
-          .authGet(context, "/employee/${UserService.employee.employee}/task");
-      if (resp != null) {
-        if (resp.statusCode == 200) {
-          var tasksArrDecoded = resp.data;
-          if (tasksArrDecoded != null) {
-            setState(() {
-              tasks = tasksArrDecoded;
-              activeTasks =
-                  tasks.where((e) => e["document"]["active"]).toList();
-              tasksFull = activeTasks;
-              if (activeTasks.length > 0) {
-                isEmpty = false;
+      QueryOptions options = QueryOptions(
+          documentNode: gql("""
+              query EmployeeTasks (\$employee: ID!){
+                employee(employee:\$employee){
+                  tasks {
+                    task
+                    task_type{task_type}
+                    employee{employee}
+                    date
+                    priority
+                    task_status{task_status}
+                    document
+                    merchant{merchant}
+                    lead{lead}
+                    created_by
+                    updated_by      
+                    created_at
+                  }
+                }
               }
-              isLoading = false;
-            });
-            await fillEvents();
-          }
-        } else {
-          throw new Error();
+            """),
+          pollInterval: 5,
+          variables: {"employee": "${UserService.employee.employee}"});
+
+      final QueryResult result = await client.query(options);
+
+      if (!result.hasException) {
+        var tasksArrDecoded = result.data["employee"]["tasks"];
+        if (tasksArrDecoded != null) {
+          setState(() {
+            tasks = tasksArrDecoded;
+            activeTasks = tasks.where((e) => e["document"]["active"]).toList();
+            tasksFull = activeTasks;
+            if (activeTasks.length > 0) {
+              isEmpty = false;
+            }
+            isLoading = false;
+          });
+          await fillEvents();
         }
       } else {
         throw new Error();
@@ -536,6 +555,104 @@ class _TaskScreenState extends State<TaskScreen> {
         splashColor: Colors.white,
       ),
     );
+  }
+
+  Widget taskList() {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          TextField(
+            decoration: InputDecoration(
+              labelText: "Search Tasks",
+            ),
+            onChanged: (value) {
+              var filtered = tasksFull.where((e) {
+                String title = e["document"]["title"];
+                String notes = e["document"]["notes"];
+                return title.toLowerCase().contains(value.toLowerCase()) ||
+                    notes.toLowerCase().contains(value.toLowerCase());
+              }).toList();
+
+              setState(() {
+                activeTasks = filtered.toList();
+              });
+            },
+          ),
+          _buildCalendar(),
+          isEmpty
+              ? Empty("No Active Tasks found")
+              : Column(
+                  children: activeTasks.map((t) {
+                    var tDate;
+                    if (t['date'] != null) {
+                      tDate = DateFormat("EEE, MMM d, ''yy")
+                          .add_jm()
+                          .format(DateTime.parse(t['date']));
+                    } else {
+                      tDate = "";
+                    }
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(context, "/viewtask",
+                            arguments: t["task"]);
+                      },
+                      child: TaskItem(
+                          title: t["document"]["title"],
+                          description: t["document"]["notes"],
+                          dateTime: tDate,
+                          type: t["typetitle"],
+                          priority: t["priority"]),
+                    );
+                  }).toList(),
+                ),
+        ],
+      ),
+    );
+
+    // Query(
+    //     options: QueryOptions(
+    //         documentNode: gql("""
+    //           query EmployeeTasks (\$employee: ID!){
+    //             employee(employee:\$employee){
+    //               tasks {
+    //                 task
+    //                 task_type{task_type}
+    //                 employee{employee}
+    //                 date
+    //                 priority
+    //                 task_status{task_status}
+    //                 document
+    //                 merchant{merchant}
+    //                 lead{lead}
+    //                 created_by
+    //                 updated_by
+    //                 created_at
+    //               }
+    //             }
+    //           }
+    //         """),
+    //         pollInterval: 30,
+    //         variables: {"employee": "${UserService.employee.employee}"}),
+    //     builder: (QueryResult result,
+    //         {VoidCallback refetch, FetchMore fetchMore}) {
+    //       tasks = result.data["employee"]["tasks"];
+    //       activeTasks = tasks.where((e) => e["document"]["active"]).toList();
+    //       tasksFull = activeTasks;
+    //       fillEvents();
+
+    //       // return Container(
+    //       //     child: result.loading
+    //       //         ? Row(
+    //       //             crossAxisAlignment: CrossAxisAlignment.stretch,
+    //       //             mainAxisAlignment: MainAxisAlignment.center,
+    //       //             children: <Widget>[
+    //       //               CenteredLoadingSpinner(),
+    //       //             ],
+    //       //           )
+    //       //         : result.data == null
+    //       //             ? Empty("No Active Tasks found")
+    //       //             : buildDLGridView(result.data["employee"]["tasks"]));
+    //     });
   }
 
   Widget getTasks() {

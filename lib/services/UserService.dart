@@ -69,12 +69,9 @@ class UserService {
     await firebaseAuth.signOut();
   }
 
-  Future linkGoogleAccount() async {
+  Future linkGoogleAccount(context) async {
     var user = await firebaseAuth.currentUser();
     MutationOptions mutateOptions = MutationOptions(
-      onCompleted: (resultData) async {
-        print(await resultData);
-      },
       documentNode: gql("""
                    mutation {
                     add_employee(
@@ -87,6 +84,7 @@ class UserService {
                           email: "${user.email}",
                           googleUserId: "${googleSignIn.currentUser.id}"
                         } 
+                      is_active: true,
                       }
                     )
                   }
@@ -95,11 +93,10 @@ class UserService {
     final QueryResult result = await client.mutate(mutateOptions);
 
     if (result.hasException) {
-      print(result.exception.toString());
-      return;
+      return null;
     } else {
-      print(result.data);
-      return result.data;
+      var resp = await authorizeEmployee(context);
+      return resp;
     }
     // var userObj = {
     //   'fullName': user.displayName,
@@ -114,8 +111,8 @@ class UserService {
   }
 
   Future<bool> authorizeEmployee(context) async {
+    var user = await firebaseAuth.currentUser();
     try {
-      var user = await firebaseAuth.currentUser();
       QueryOptions queryOptions = QueryOptions(
         documentNode: gql("""
                 query{
@@ -123,17 +120,26 @@ class UserService {
                     employee
                     document
                     employee_account_type
-                    company
+                    company{company}
                     is_active
                   }}
             """),
       );
       final QueryResult result = await client.query(queryOptions);
-      print(result);
-      if (result.hasException == false) {
+
+      if (result.hasException == false && result.data["authorize"] != null) {
         var empDecoded = result.data["authorize"];
-        employee = Employee.fromJson(empDecoded);
-        var roles = List.from(employee.document["roles"]);
+        employee = Employee.fromJson({
+          "employee": empDecoded["employee"],
+          "is_active": empDecoded["is_active"],
+          "document": empDecoded["document"],
+          "employee_account_type": empDecoded["employee_account_type"],
+          "company": empDecoded["company"]["company"],
+        });
+        var roles = [];
+        if (employee.document["roles"] != null) {
+          roles = List.from(employee.document["roles"]);
+        }
         if (roles.contains("admin")) {
           isAdmin = true;
           socketService.initWebSocketConnection();
@@ -148,6 +154,7 @@ class UserService {
         }
         return true;
       }
+      return false;
     } catch (err) {
       print(err);
     }

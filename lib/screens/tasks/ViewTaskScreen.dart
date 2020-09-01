@@ -7,9 +7,11 @@ import 'package:atlascrm/components/task/TaskTypeDropDown.dart';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/StorageService.dart';
 import 'package:atlascrm/services/UserService.dart';
+import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:intl/intl.dart';
 
 class ViewTaskScreen extends StatefulWidget {
@@ -55,41 +57,53 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
   }
 
   Future<void> loadTaskData() async {
-    var resp = await this
-        .widget
-        .apiService
-        .authGet(context, "/task/" + this.widget.taskId);
+    QueryOptions options = QueryOptions(documentNode: gql("""
+              query {task(task: "${this.widget.taskId}"){
+                    task
+                    task_type{task_type}
+                    employee{employee}
+                    date
+                    priority
+                    task_status{task_status}
+                    document
+                    merchant{merchant}
+                    lead{lead}
+                    created_by
+                    updated_by      
+                    created_at
+              }}
+            """));
 
-    if (resp.statusCode == 200) {
-      var body = resp.data;
-      if (body != null) {
-        var bodyDecoded = body;
+    final QueryResult result = await client.query(options);
 
-        if (bodyDecoded["date"] != null) {
-          initDate = DateTime.parse(bodyDecoded["date"]);
-          initTime = TimeOfDay.fromDateTime(initDate);
-          viewDate = DateFormat("yyyy-MM-dd HH:mm").format(initDate);
-          setState(() {
-            taskDateController.text = viewDate;
-          });
-        } else {
-          initDate = DateTime.now();
-          initTime = TimeOfDay.fromDateTime(initDate);
-        }
+    var body = result.data["task"];
+    if (body != null) {
+      var bodyDecoded = body;
 
+      if (bodyDecoded["date"] != null) {
+        initDate = DateTime.parse(bodyDecoded["date"]);
+        initTime = TimeOfDay.fromDateTime(initDate);
+        viewDate = DateFormat("yyyy-MM-dd HH:mm").format(initDate);
         setState(() {
-          task = bodyDecoded;
-          taskTypeDropdownValue = bodyDecoded["type"];
-          employeeDropdownValue = bodyDecoded["owner"];
-          taskPriorityDropdownValue = bodyDecoded["priority"].toString();
-          taskTitleController.text = bodyDecoded["document"]["title"];
-          taskTitleController.addListener(changeButton);
-          taskDateController.addListener(changeButton);
-          taskDescController.text = bodyDecoded["document"]["notes"];
-          taskDescController.addListener(changeButton);
-          leadDropdownValue = bodyDecoded["lead"];
+          taskDateController.text = viewDate;
         });
+      } else {
+        initDate = DateTime.now();
+        initTime = TimeOfDay.fromDateTime(initDate);
       }
+
+      setState(() {
+        task = bodyDecoded;
+        taskTypeDropdownValue = bodyDecoded["task_type"]["task_type"];
+        employeeDropdownValue = bodyDecoded["employee"]["employee"];
+        taskPriorityDropdownValue = bodyDecoded["priority"].toString();
+        taskTitleController.text = bodyDecoded["document"]["title"];
+        taskTitleController.addListener(changeButton);
+        taskDateController.addListener(changeButton);
+        taskDescController.text = bodyDecoded["document"]["notes"];
+        taskDescController.addListener(changeButton);
+        leadDropdownValue = bodyDecoded["lead"]["lead"];
+      });
     }
 
     setState(() {

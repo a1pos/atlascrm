@@ -34,15 +34,16 @@ class _AuthScreenState extends State<AuthScreen> {
     try {
       var succeeded = await this.widget.userService.signInWithGoogle(context);
       if (succeeded) {
-        var resp = await this.widget.userService.linkGoogleAccount();
-        if (resp != null) {
-          var isAuthed =
-              await this.widget.userService.authorizeEmployee(context);
-          if (isAuthed) {
-            Navigator.of(context).pushNamed("/dashboard");
-          }
+        var isAuthed = await this.widget.userService.authorizeEmployee(context);
+        if (isAuthed) {
+          Navigator.of(context).pushNamed("/dashboard");
         } else {
-          throw ('ERROR');
+          var resp = await this.widget.userService.linkGoogleAccount(context);
+          if (resp == true) {
+            Navigator.of(context).pushNamed("/dashboard");
+          } else {
+            throw ('ERROR');
+          }
         }
       } else {
         throw ('ERROR');
