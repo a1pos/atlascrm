@@ -9,7 +9,9 @@ import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/UserService.dart';
+import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
 
 class MerchantsScreen extends StatefulWidget {
   final ApiService apiService = new ApiService();
@@ -64,11 +66,29 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
 
   Future<void> initMerchantsData() async {
     try {
-      var endpoint = "/merchant?page=$pageNum&size=10";
-      var resp = await this.widget.apiService.authGet(context, endpoint);
-      if (resp != null) {
-        if (resp.statusCode == 200) {
-          var merchantsArrDecoded = resp.data["data"];
+      QueryOptions options = QueryOptions(documentNode: gql("""
+             query GetMerchants(\$input: JSON) {
+              merchants(input: \$input) {
+              merchant
+              document
+              employee {
+                employee
+                document
+              }
+            }
+          }
+            """), pollInterval: 5, variables: {
+        "input": {"employee": "${UserService.employee.employee}"}
+      });
+
+      final QueryResult result = await client.query(options);
+
+      // var endpoint = "/merchant?page=$pageNum&size=10";
+      // var resp = await this.widget.apiService.authGet(context, endpoint);
+
+      if (result != null) {
+        if (result.hasException == false) {
+          var merchantsArrDecoded = result.data["merchants"];
           if (merchantsArrDecoded != null) {
             var merchantsArr = List.from(merchantsArrDecoded);
             if (merchantsArr.length > 0) {

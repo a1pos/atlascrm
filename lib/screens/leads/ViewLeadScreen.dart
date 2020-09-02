@@ -1,20 +1,16 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
-import 'dart:math';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
-import 'package:intl/intl.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
 import 'package:atlascrm/services/ApiService.dart';
+import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/components/shared/AddressSearch.dart';
 import 'package:atlascrm/components/shared/Notes.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/components/shared/ImageUploader.dart';
 
 class LeadInfoEntry {
@@ -112,13 +108,20 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
   }
 
   Future<void> loadLeadData(leadId) async {
-    var resp = await this
-        .widget
-        .apiService
-        .authGet(context, "/lead/" + this.widget.leadId);
+    QueryOptions options =
+        QueryOptions(fetchPolicy: FetchPolicy.networkOnly, documentNode: gql("""
+      query{lead(lead:"${this.widget.leadId}"){
+        lead
+        document
+        employee{employee}
+		    }
+      }
+    """));
 
-    if (resp.statusCode == 200) {
-      var body = resp.data;
+    final QueryResult result = await client.query(options);
+
+    if (result.hasException == false) {
+      var body = result.data["lead"];
       if (body != null) {
         var bodyDecoded = body;
 
@@ -172,25 +175,32 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
   Future<void> updateLead(leadId) async {
     String rawNumber = phoneNumberController.text;
     var filteredNumber = rawNumber.replaceAll(RegExp("[^0-9]"), "");
-    var leadToUpdate = {
-      "businessName": businessNameController.text,
-      "businessType": "",
-      "firstName": firstNameController.text,
-      "lastName": lastNameController.text,
-      "emailAddr": emailAddrController.text,
-      "phoneNumber": filteredNumber,
-      "dbaName": dbaController.text,
-      "address": businessAddress["address"],
-      "city": businessAddress["city"],
-      "state": businessAddress["state"],
-      "zipCode": businessAddress["zipcode"],
-    };
-    var resp = await this
-        .widget
-        .apiService
-        .authPut(context, "/lead/" + this.widget.leadId, leadToUpdate);
 
-    if (resp.statusCode == 200) {
+    MutationOptions mutateOptions = MutationOptions(
+      documentNode: gql("""
+       mutation{update_lead(
+          input:{
+            lead:"${this.widget.leadId}"
+	          document: {
+              dbaName: "${dbaController.text}"
+              city: "${businessAddress["city"]}"
+              state: "${businessAddress["state"]}"
+              address: "${businessAddress["address"]}"
+      	      zipCode: "${businessAddress["zipcode"]}"
+      	      emailAddr: "${emailAddrController.text}"
+              firstName: "${firstNameController.text}"
+              lastName: "${lastNameController.text}"
+              phoneNumber: "$filteredNumber"
+              businessName: "${businessNameController.text}"
+              leadSource: "${leadSourceController.text}"
+           }
+          }
+        )}
+            """),
+    );
+    final QueryResult result = await client.mutate(mutateOptions);
+
+    if (result.hasException == false) {
       await loadLeadData(this.widget.leadId);
 
       Fluttertoast.showToast(

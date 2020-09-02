@@ -3,8 +3,10 @@ import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
 import 'package:atlascrm/services/ApiService.dart';
+import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
 
@@ -54,13 +56,20 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
   }
 
   Future<void> loadMerchantData(merchantId) async {
-    var resp = await this
-        .widget
-        .apiService
-        .authGet(context, "/merchant/" + this.widget.merchantId);
+    QueryOptions options =
+        QueryOptions(fetchPolicy: FetchPolicy.networkOnly, documentNode: gql("""
+      query{merchant(merchant:"${this.widget.merchantId}"){
+        merchant
+        document
+        employee{employee}
+		    }
+      }
+    """));
 
-    if (resp.statusCode == 200) {
-      var body = resp.data;
+    final QueryResult result = await client.query(options);
+
+    if (result.hasException == false) {
+      var body = result.data["merchant"];
       if (body != null) {
         var bodyDecoded = body;
 
@@ -71,6 +80,10 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
         });
       }
     }
+
+    setState(() {
+      isLoading = false;
+    });
 
     var resp2 = await this
         .widget
@@ -109,6 +122,7 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
       "state": businessAddress["state"],
       "zipCode": businessAddress["zipcode"],
     };
+
     var resp = await this.widget.apiService.authPut(
         context, "/merchant/" + this.widget.merchantId, merchantToUpdate);
 

@@ -8,7 +8,9 @@ import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/UserService.dart';
+import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
 
 import 'LeadStepper.dart';
 
@@ -57,7 +59,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
 
     _scrollController.addListener(() {
       if (_scrollController.position.pixels ==
-          _scrollController.position.maxScrollExtent) {
+          0.9 * _scrollController.position.maxScrollExtent) {
         onScroll();
       }
     });
@@ -71,13 +73,29 @@ class _LeadsScreenState extends State<LeadsScreen> {
 
   Future<void> initLeadsData() async {
     try {
-      var endpoint = UserService.isAdmin
-          ? "/lead?page=$pageNum&size=10&$sortQuery"
-          : "/employee/${UserService.employee.employee}/lead?page=$pageNum&size=10&$sortQuery";
-      var resp = await this.widget.apiService.authGet(context, endpoint);
-      if (resp != null) {
-        if (resp.statusCode == 200) {
-          var leadsArrDecoded = resp.data["data"];
+      QueryOptions options = QueryOptions(documentNode: gql("""
+             query GetLeads(\$input: JSON) {
+              leads(input: \$input) {
+              lead
+              document
+              employee {
+                employee
+                document
+              }
+            }
+          }
+            """), pollInterval: 5, variables: {
+        "input": {"employee": "${UserService.employee.employee}"}
+      });
+
+      final QueryResult result = await client.query(options);
+      // var endpoint = UserService.isAdmin
+      //     ? "/lead?page=$pageNum&size=10&$sortQuery"
+      //     : "/employee/${UserService.employee.employee}/lead?page=$pageNum&size=10&$sortQuery";
+      // var resp = await this.widget.apiService.authGet(context, endpoint);
+      if (result != null) {
+        if (result.hasException == false) {
+          var leadsArrDecoded = result.data["leads"];
           if (leadsArrDecoded != null) {
             var leadsArr = List.from(leadsArrDecoded);
             if (leadsArr.length > 0) {

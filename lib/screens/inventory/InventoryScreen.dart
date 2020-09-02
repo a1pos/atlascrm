@@ -1,5 +1,7 @@
 import 'dart:developer';
 import 'package:atlascrm/components/inventory/InventoryLocationDropDown.dart';
+import 'package:atlascrm/services/api.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
@@ -69,11 +71,34 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
   Future<void> initInventoryData() async {
     try {
-      var endpoint = "/inventory?page=$pageNum&size=10&$sortQuery";
-      var resp = await this.widget.apiService.authGet(context, endpoint);
-      if (resp != null) {
-        if (resp.statusCode == 200) {
-          var inventoryArrDecoded = resp.data["data"];
+      QueryOptions options = QueryOptions(documentNode: gql("""
+             query GetInventorys() {
+              inventorys() {
+              inventory
+              is_installed
+              employee(
+              employee
+              document
+              )
+              serial
+              inventory_location(
+                name
+              )
+              inventory_price_tier(
+                model
+              )
+              document
+            }
+          }
+            """), pollInterval: 5, variables: {"input": {}});
+
+      final QueryResult result = await client.query(options);
+      // var endpoint = "/inventory?page=$pageNum&size=10&$sortQuery";
+      // var resp = await this.widget.apiService.authGet(context, endpoint);
+
+      if (result != null) {
+        if (result.hasException == false) {
+          var inventoryArrDecoded = result.data["inventorys"];
           if (inventoryArrDecoded != null) {
             var inventoryArr = List.from(inventoryArrDecoded);
             if (inventoryArr.length > 0) {
@@ -463,18 +488,19 @@ class _InventoryScreenState extends State<InventoryScreen> {
                     controller: _scrollController,
                     children: inventory.map((item) {
                       var employeeName;
-                      var nameIndex;
+                      // var nameIndex;
                       var merchantName;
                       var itemName;
                       var location;
                       var setIcon;
-                      nameIndex = employees
-                          .indexWhere((e) => e["employee"] == item["employee"]);
-                      if (nameIndex != -1) {
-                        employeeName = employees[nameIndex]["title"];
-                      } else {
-                        employeeName = null;
-                      }
+
+                      // nameIndex = employees
+                      //     .indexWhere((e) => e["employee"] == item["employee"]);
+                      // if (nameIndex != -1) {
+                      //   employeeName = employees[nameIndex]["title"];
+                      // } else {
+                      //   employeeName = null;
+                      // }
 
                       var invDate = DateFormat("EEE, MMM d, ''yy")
                           .add_jm()
