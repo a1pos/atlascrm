@@ -110,13 +110,16 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
   Future<void> loadLeadData(leadId) async {
     QueryOptions options =
         QueryOptions(fetchPolicy: FetchPolicy.networkOnly, documentNode: gql("""
-      query{lead(lead:"${this.widget.leadId}"){
-        lead
-        document
-        employee{employee}
-		    }
-      }
-    """));
+        query Lead(\$lead: uuid!) {
+          lead_by_pk(lead: \$lead) {
+            lead
+            document
+            employee: employeeByEmployee {
+              fullName: document(path: "fullName")
+            }
+          }
+        }
+    """), variables: {"lead": this.widget.leadId});
 
     final QueryResult result = await client.query(options);
 

@@ -66,25 +66,27 @@ class _TasksState extends State<Tasks> {
     return Query(
         options: QueryOptions(
             documentNode: gql("""
-              query EmployeeTasks (\$employee: ID!){
-                employee(employee:\$employee){
-                  tasks {
-                    task
-                    task_type{task_type
-                    title}
-                    employee{employee}
-                    date
-                    priority
-                    task_status{task_status}
-                    document
-                    merchant{merchant}
-                    lead{lead}
-                    created_by
-                    updated_by      
-                    created_at
-                  }
+          query EmployeeTasks(\$employee: uuid!) {
+            employee_by_pk(employee: \$employee) {
+              tasks {
+                task
+                taskTypeByTaskType {
+                  task_type
+                  title
                 }
+                employee
+                date
+                priority
+                task_status
+                document
+                merchant
+                lead
+                created_by
+                updated_by
+                created_at
               }
+            }   
+          }
             """),
             pollInterval: 30,
             variables: {"employee": "${UserService.employee.employee}"}),

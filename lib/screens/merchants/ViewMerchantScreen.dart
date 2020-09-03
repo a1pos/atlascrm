@@ -58,13 +58,17 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
   Future<void> loadMerchantData(merchantId) async {
     QueryOptions options =
         QueryOptions(fetchPolicy: FetchPolicy.networkOnly, documentNode: gql("""
-      query{merchant(merchant:"${this.widget.merchantId}"){
-        merchant
-        document
-        employee{employee}
+      query Merchant(\$merchant: uuid!){
+        merchant_by_pk(merchant: \$merchant){
+          merchant
+          document
+          employee: employeeByEmployee{
+            employee
+            document
+          }
 		    }
       }
-    """));
+    """), variables: {"merchant": merchant});
 
     final QueryResult result = await client.query(options);
 

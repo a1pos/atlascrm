@@ -71,39 +71,114 @@ class UserService {
 
   Future linkGoogleAccount(context) async {
     var user = await firebaseAuth.currentUser();
-    MutationOptions mutateOptions = MutationOptions(
-      documentNode: gql("""
-                   mutation {
-                    add_employee(
-                      input: { employee_account_type: 2, document: {
-                          googleIdToken: "${googleSignInAuthentication.idToken}",
-                          googleClaims: {
-                            picture: "${user.photoUrl}"
-                          },
-                          fullName: "${user.displayName}",
-                          email: "${user.email}",
-                          googleUserId: "${googleSignIn.currentUser.id}"
-                        } 
-                      is_active: true,
-                      }
-                    )
-                  }
-            """),
-    );
-    final QueryResult result = await client.mutate(mutateOptions);
 
-    if (result.hasException) {
-      return null;
+    QueryOptions options = QueryOptions(documentNode: gql("""
+        query EmployeeExistCheck(\$document: jsonb) {
+              employee(where:  { document: { _contains: \$document } }) {
+                    document
+                    employee
+                  }
+                }
+            """), pollInterval: 5, variables: {
+      "document": {"email": "${user.email}"}
+    });
+
+    final QueryResult result1 = await client.query(options);
+
+    print(result1);
+    if (result1.data["employee"].length == 0) {
+      MutationOptions mutateOptions = MutationOptions(documentNode: gql("""
+              mutation linkNewEmployee(
+                    \$company: uuid
+                    \$document: jsonb
+                    \$employee_account_type: Int
+                  ) {
+                    insert_employee(
+                      objects: {
+                        company: \$company
+                        document: \$document
+                        employee_account_type: \$employee_account_type
+                        created_by: "00000000-0000-0000-0000-000000000000"
+                        updated_by: "00000000-0000-0000-0000-000000000000"
+                      }
+                    ) {
+                      returning {
+                        company
+                        employee
+                        document
+                        is_active
+                      }
+                    }
+                  }
+            """), variables: {
+        "company": "e80724af-c512-41d5-96c3-4a890e4e62d5",
+        "document": {
+          "picture": user.photoUrl,
+          "fullName": user.displayName,
+          "email": user.email,
+          "uid": user.uid,
+          "roles": ["admin"]
+        },
+        "employee_account_type": 1
+      });
+      final QueryResult result = await client.mutate(mutateOptions);
+
+      if (result.hasException) {
+        return null;
+      } else {
+        var empDecoded = result1.data["employee"][0];
+        employee = Employee.fromJson({
+          "employee": empDecoded["employee"],
+          // "is_active": empDecoded["is_active"],
+          "document": empDecoded["document"],
+          // "employee_account_type": empDecoded["employee_account_type"],
+          // "company": empDecoded["company"]["company"],
+        });
+        var roles = [];
+        if (employee.document["roles"] != null) {
+          roles = List.from(employee.document["roles"]);
+        }
+        if (roles.contains("admin")) {
+          isAdmin = true;
+          socketService.initWebSocketConnection();
+        } else {
+          isAdmin = false;
+        }
+        if (roles.contains("tech")) {
+          isTech = true;
+          socketService.initWebSocketConnection();
+        } else {
+          isTech = false;
+        }
+        return true;
+      }
     } else {
-      var resp = await authorizeEmployee(context);
-      return resp;
+      var empDecoded = result1.data["employee"][0];
+      employee = Employee.fromJson({
+        "employee": empDecoded["employee"],
+        // "is_active": empDecoded["is_active"],
+        "document": empDecoded["document"],
+        // "employee_account_type": empDecoded["employee_account_type"],
+        // "company": empDecoded["company"]["company"],
+      });
+      var roles = [];
+      if (employee.document["roles"] != null) {
+        roles = List.from(employee.document["roles"]);
+      }
+      if (roles.contains("admin")) {
+        isAdmin = true;
+        socketService.initWebSocketConnection();
+      } else {
+        isAdmin = false;
+      }
+      if (roles.contains("tech")) {
+        isTech = true;
+        socketService.initWebSocketConnection();
+      } else {
+        isTech = false;
+      }
+      return true;
     }
-    // var userObj = {
-    //   'fullName': user.displayName,
-    //   'email': user.email,
-    //   'googleUserId': googleSignIn.currentUser.id
-    // };
-    // return await apiService.publicPost("link", userObj);
   }
 
   Employee getCurrentEmployee() {

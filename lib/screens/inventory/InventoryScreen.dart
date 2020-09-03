@@ -51,7 +51,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
   void initState() {
     super.initState();
 
-    initEmployeeData();
+    // initEmployeeData();
 
     initInventoryData();
 
@@ -72,25 +72,30 @@ class _InventoryScreenState extends State<InventoryScreen> {
   Future<void> initInventoryData() async {
     try {
       QueryOptions options = QueryOptions(documentNode: gql("""
-             query GetInventorys() {
-              inventorys() {
-              inventory
-              is_installed
-              employee(
-              employee
-              document
-              )
-              serial
-              inventory_location(
-                name
-              )
-              inventory_price_tier(
-                model
-              )
+        query Inventory {
+          inventory {
+            inventory
+            merchantByMerchant {
+              merchant
               document
             }
+            is_installed
+            employee: employeeByEmployee {
+              employee
+              document
+            }
+            serial
+            locationName: inventoryLocationByInventoryLocation {
+              name
+            }
+            model: inventoryPriceTierByInventoryPriceTier {
+              model
+            }
+            document
+            created_at
           }
-            """), pollInterval: 5, variables: {"input": {}});
+        }
+      """), pollInterval: 5);
 
       final QueryResult result = await client.query(options);
       // var endpoint = "/inventory?page=$pageNum&size=10&$sortQuery";
@@ -98,7 +103,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
       if (result != null) {
         if (result.hasException == false) {
-          var inventoryArrDecoded = result.data["inventorys"];
+          var inventoryArrDecoded = result.data["inventory"];
           if (inventoryArrDecoded != null) {
             var inventoryArr = List.from(inventoryArrDecoded);
             if (inventoryArr.length > 0) {
@@ -487,7 +492,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
                   child: ListView(
                     controller: _scrollController,
                     children: inventory.map((item) {
-                      var employeeName;
+                      var employeeName = item["employee"]["employee"] == null
+                          ? null
+                          : item["employee"]["document"]["fullName"];
                       // var nameIndex;
                       var merchantName;
                       var itemName;
@@ -505,31 +512,34 @@ class _InventoryScreenState extends State<InventoryScreen> {
                       var invDate = DateFormat("EEE, MMM d, ''yy")
                           .add_jm()
                           .format(DateTime.parse(item['created_at']));
-                      if (item["model"]?.isEmpty ?? true) {
+                      if (item["inventory_price_tier"]["model"]?.isEmpty ??
+                          true) {
                         itemName = "";
                       } else {
-                        itemName = item["model"];
+                        itemName = item["inventory_price_tier"]["model"];
                       }
                       if (item["locationname"]?.isEmpty ?? true) {
                         location = "";
                       } else {
                         location = item["locationname"];
                       }
-                      if (item["merchantname"]?.isEmpty ?? true) {
+                      if (item["merchant"]["merchant"] == null) {
                         merchantName = "Not yet assigned";
                       } else {
-                        merchantName = item["merchantname"];
+                        merchantName = item["merchant"]["document"]
+                                ["ApplicationInfo"]["MpaOutletInfo"]["Outlet"]
+                            ["BusinessInfo"]["IrsName"];
                       }
 
                       if (item["is_installed"] == true) {
                         setIcon = Icons.done;
                       }
-                      if (item["merchant"] != null &&
+                      if (item["merchant"]["merchant"] != null &&
                           item["is_installed"] != true) {
                         setIcon = Icons.directions_car;
                       }
-                      if (item["merchant"] == null &&
-                          item["employee"] == null) {
+                      if (item["merchant"]["merchant"] == null &&
+                          item["employee"]["employee"] == null) {
                         setIcon = Icons.business;
                       }
 

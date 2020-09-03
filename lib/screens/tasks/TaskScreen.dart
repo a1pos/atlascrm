@@ -154,33 +154,33 @@ class _TaskScreenState extends State<TaskScreen> {
   Future<void> initTasks() async {
     try {
       QueryOptions options = QueryOptions(
-          documentNode: gql("""
-              query EmployeeTasks (\$employee: ID!){
-                employee(employee:\$employee){
-                  tasks {
-                    task
-                    task_type{task_type}
-                    employee{employee}
-                    date
-                    priority
-                    task_status{task_status}
-                    document
-                    merchant{merchant}
-                    lead{lead}
-                    created_by
-                    updated_by      
-                    created_at
-                  }
-                }
+        documentNode: gql("""
+          query EmployeeTasks {
+            employee_by_pk(employee: "16a9424f-4c7d-44d7-87cd-029b3d13ad6d") {
+              tasks {
+                task
+                task_type
+                employee
+                date
+                priority
+                task_status
+                document
+                merchant
+                lead
+                created_by
+                updated_by
+                created_at
               }
+            }
+          }
             """),
-          pollInterval: 5,
-          variables: {"employee": "${UserService.employee.employee}"});
+        //  variables: {"employee": "${UserService.employee.employee}"}
+      );
 
       final QueryResult result = await client.query(options);
 
       if (!result.hasException) {
-        var tasksArrDecoded = result.data["employee"]["tasks"];
+        var tasksArrDecoded = result.data["employee_by_pk"]["tasks"];
         if (tasksArrDecoded != null) {
           setState(() {
             tasks = tasksArrDecoded;
@@ -198,6 +198,7 @@ class _TaskScreenState extends State<TaskScreen> {
       }
     } catch (err) {
       print(err);
+      isLoading = false;
 
       Fluttertoast.showToast(
           msg: "Failed to load tasks for employee!",

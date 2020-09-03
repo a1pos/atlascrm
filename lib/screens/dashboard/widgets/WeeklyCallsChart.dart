@@ -26,15 +26,15 @@ class _WeeklyCallsChartState extends State<WeeklyCallsChart> {
         domainFn: (OrdinalSales sales, _) => sales.year,
         measureFn: (OrdinalSales sales, _) => sales.sales,
         data: [
-          OrdinalSales('2014', 5),
-          OrdinalSales('2015', 25),
-          OrdinalSales('2016', 100),
-          OrdinalSales('2017', 75),
+          OrdinalSales('Oh', 5),
+          OrdinalSales('Jeez', 25),
+          OrdinalSales('Aw', 100),
+          OrdinalSales('Man', 75),
         ],
       )
     ];
 
-    getWeeklyCalls();
+    // getWeeklyCalls();
 
     isLoading = false;
   }

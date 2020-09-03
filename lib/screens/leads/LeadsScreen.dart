@@ -73,20 +73,35 @@ class _LeadsScreenState extends State<LeadsScreen> {
 
   Future<void> initLeadsData() async {
     try {
-      QueryOptions options = QueryOptions(documentNode: gql("""
-             query GetLeads(\$input: JSON) {
-              leads(input: \$input) {
-              lead
-              document
-              employee {
-                employee
+      QueryOptions options;
+      if (UserService.isAdmin) {
+        options = QueryOptions(documentNode: gql("""
+        query GetAllLeads {
+          lead {
+            lead
+            document
+            employee: employeeByEmployee{
+              employee
+              fullName: document(path: "fullName")
+            }
+          }
+        }
+      """));
+      } else {
+        options = QueryOptions(
+            documentNode: gql("""
+          query GetEmployeeLeads(\$employee: uuid!) {
+            employee_by_pk(employee: \$employee) {
+              leads {
+                lead
                 document
               }
             }
           }
-            """), pollInterval: 5, variables: {
-        "input": {"employee": "${UserService.employee.employee}"}
-      });
+      """),
+            pollInterval: 5,
+            variables: {"employee": "${UserService.employee.employee}"});
+      }
 
       final QueryResult result = await client.query(options);
       // var endpoint = UserService.isAdmin
@@ -95,7 +110,9 @@ class _LeadsScreenState extends State<LeadsScreen> {
       // var resp = await this.widget.apiService.authGet(context, endpoint);
       if (result != null) {
         if (result.hasException == false) {
-          var leadsArrDecoded = result.data["leads"];
+          var leadsArrDecoded = UserService.isAdmin
+              ? result.data["lead"]
+              : result.data["employee"]["leads"];
           if (leadsArrDecoded != null) {
             var leadsArr = List.from(leadsArrDecoded);
             if (leadsArr.length > 0) {

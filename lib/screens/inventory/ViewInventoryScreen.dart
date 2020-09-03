@@ -3,9 +3,11 @@ import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
 import 'package:atlascrm/services/ApiService.dart';
+import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/services/UserService.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:unicorndial/unicorndial.dart';
 import 'package:atlascrm/components/shared/MerchantDropdown.dart';
@@ -105,13 +107,29 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
   }
 
   Future<void> loadInventoryData() async {
-    var resp = await this
-        .widget
-        .apiService
-        .authGet(context, "/inventory/${this.widget.incoming["id"]}");
+    QueryOptions options = QueryOptions(documentNode: gql("""
+        query {inventory(inventory: "${this.widget.incoming["id"]}"){
+          inventory
+          is_installed
+          employee{
+            employee
+            document
+          }
+          serial
+          inventory_location{
+            name
+          }
+          inventory_price_tier{
+            model
+          }
+          document
+        }}
+            """));
 
-    if (resp.statusCode == 200) {
-      var body = resp.data;
+    final QueryResult result = await client.query(options);
+
+    if (result.hasException == false) {
+      var body = result.data;
       if (body != null) {
         var bodyDecoded = body;
 

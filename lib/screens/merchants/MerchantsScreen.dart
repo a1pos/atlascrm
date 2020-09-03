@@ -66,20 +66,34 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
 
   Future<void> initMerchantsData() async {
     try {
-      QueryOptions options = QueryOptions(documentNode: gql("""
-             query GetMerchants(\$input: JSON) {
-              merchants(input: \$input) {
+      QueryOptions options;
+      if (UserService.isAdmin) {
+        options = QueryOptions(documentNode: gql("""
+        query Merchants {
+          merchant {
+            employee: employeeByEmployee{
+              firstName: document(path: "fullName")
+            }
               merchant
               document
-              employee {
-                employee
-                document
-              }
+            
+          }
+        }
+            """));
+      } else {
+        options = QueryOptions(documentNode: gql("""
+        query EmployeeMerchants(\$employee: uuid!) {
+          employee_by_pk(employee: \$employee) {
+            employee
+            document
+            merchants {
+              merchant
+              document
             }
           }
-            """), pollInterval: 5, variables: {
-        "input": {"employee": "${UserService.employee.employee}"}
-      });
+        }
+            """), variables: {"employee": "${UserService.employee.employee}"});
+      }
 
       final QueryResult result = await client.query(options);
 
@@ -88,7 +102,7 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
 
       if (result != null) {
         if (result.hasException == false) {
-          var merchantsArrDecoded = result.data["merchants"];
+          var merchantsArrDecoded = result.data["merchant"];
           if (merchantsArrDecoded != null) {
             var merchantsArr = List.from(merchantsArrDecoded);
             if (merchantsArr.length > 0) {
