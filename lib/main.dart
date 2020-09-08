@@ -58,12 +58,12 @@ class _AtlasCRMState extends State<AtlasCRM> {
   @override
   void initState() {
     super.initState();
-
+    setPublicGraphQLClient();
     isAuthCheck();
   }
 
   Future<void> isAuthCheck() async {
-    var isAuthed = await this.widget.userService.isAuthenticated(context);
+    var isAuthed = UserService.isAuthenticated;
     if (isAuthed) {
       setState(() {
         isLoading = false;

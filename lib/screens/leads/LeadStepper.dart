@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:convert';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/UserService.dart';
+import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/components/shared/AddressSearch.dart';
@@ -9,6 +10,8 @@ import 'package:flutter/foundation.dart';
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
 import 'package:atlascrm/components/shared/PlacesSuggestions.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:intl/intl.dart';
 
 class LeadStepper extends StatefulWidget {
   final Function successCallback;
@@ -31,7 +34,7 @@ class LeadStepperState extends State<LeadStepper> {
   bool isSaveDisabled;
   bool isAddress = false;
   bool isLoading = true;
-  var leads;
+  // var leads;
 
   final UserService userService = new UserService();
   final ApiService apiService = new ApiService();
@@ -55,42 +58,10 @@ class LeadStepperState extends State<LeadStepper> {
   var locationValue;
   @override
   void initState() {
-    initLeadsData();
     super.initState();
     isSaveDisabled = false;
     _currentStep = 0;
     _selectedBusinessType = null;
-  }
-
-  Future<void> initLeadsData() async {
-    try {
-      var endpoint = "/lead";
-      var resp = await this.widget.apiService.authGet(context, endpoint);
-      if (resp != null) {
-        if (resp.statusCode == 200) {
-          var leadsArrDecoded = resp.data["data"];
-          if (leadsArrDecoded != null) {
-            var leadsArr = List.from(leadsArrDecoded);
-            if (leadsArr.length > 0) {
-              setState(() {
-                isLoading = false;
-                leads = leadsArr;
-              });
-            } else {
-              setState(() {
-                isLoading = false;
-                leadsArr = [];
-              });
-            }
-          }
-        }
-      }
-      setState(() {
-        isLoading = false;
-      });
-    } catch (err) {
-      log(err);
-    }
   }
 
   Future<void> addressCheck(addressObj) async {
@@ -98,6 +69,7 @@ class LeadStepperState extends State<LeadStepper> {
     var zip = Uri.encodeComponent(addressObj["address"]["zipcode"]);
     var shortAddress =
         Uri.encodeComponent(addressObj["shortaddress"]["address"]);
+
     try {
       var endpoint = "/lead/address?address=$address&zipCode=$zip";
       var resp = await this.widget.apiService.authGet(context, endpoint);
@@ -190,62 +162,84 @@ class LeadStepperState extends State<LeadStepper> {
     );
   }
 
-  Future<void> initBusinessTypes() async {
-    try {
-      _selectedBusinessType = null;
+//This doesn't get used, need to work business types into db logic
 
-      var resp = await apiService.authGet(context, "/business/types");
-      if (resp != null) {
-        if (resp.statusCode == 200) {
-          var bizTypesArrDecoded = resp.data;
-          if (bizTypesArrDecoded != null) {
-            var bizTypesArr = List.from(bizTypesArrDecoded);
-            if (bizTypesArr.length > 0) {
-              setState(() {
-                businessTypes = bizTypesArr;
-              });
-            }
-          }
-        }
-      }
-    } catch (err) {
-      log(err);
-    }
-  }
+  // Future<void> initBusinessTypes() async {
+  //   try {
+  //     _selectedBusinessType = null;
+
+  //     var resp = await apiService.authGet(context, "/business/types");
+  //     if (resp != null) {
+  //       if (resp.statusCode == 200) {
+  //         var bizTypesArrDecoded = resp.data;
+  //         if (bizTypesArrDecoded != null) {
+  //           var bizTypesArr = List.from(bizTypesArrDecoded);
+  //           if (bizTypesArr.length > 0) {
+  //             setState(() {
+  //               businessTypes = bizTypesArr;
+  //             });
+  //           }
+  //         }
+  //       }
+  //     }
+  //   } catch (err) {
+  //     log(err);
+  //   }
+  // }
 
   Future<void> addLead() async {
     try {
       String rawNumber = phoneNumberController.text;
       var filteredNumber = rawNumber.replaceAll(RegExp("[^0-9]"), "");
+      var created =
+          DateFormat('yyyy-MM-dd HH:mm:ss.mmmuu').format(DateTime.now());
       var lead = {
-        "firstName": firstNameController.text,
-        "lastName": lastNameController.text,
-        "emailAddr": emailAddrController.text,
-        "phoneNumber": filteredNumber,
-        "businessName": businessNameController.text,
-        "dbaName": dbaNameController.text,
-        "address": businessAddress["address"],
-        "city": businessAddress["city"],
-        "state": businessAddress["state"],
-        "zipCode": businessAddress["zipcode"]
+        "employee": UserService.employee.employee,
+        "is_active": true,
+        "document": {
+          "firstName": firstNameController.text,
+          "lastName": lastNameController.text,
+          "emailAddr": emailAddrController.text,
+          "phoneNumber": filteredNumber,
+          "businessName": businessNameController.text,
+          "dbaName": dbaNameController.text,
+          "address": businessAddress["address"],
+          "city": businessAddress["city"],
+          "state": businessAddress["state"],
+          "zipCode": businessAddress["zipcode"]
+        },
+        "created_by": UserService.employee.employee,
+        "created_at": created,
+        "updated_by": UserService.employee.employee,
+        "updated_at": created,
       };
 
-      var resp = await apiService.authPost(
-          context, "/lead/${UserService.employee.employee}", lead);
-      if (resp != null) {
-        if (resp.statusCode == 200) {
-          Navigator.pop(context);
-
-          Fluttertoast.showToast(
-              msg: "Successfully added lead!",
-              toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.grey[600],
-              textColor: Colors.white,
-              fontSize: 16.0);
-
-          await this.widget.successCallback();
+      MutationOptions mutateOptions = MutationOptions(documentNode: gql("""
+        mutation MyMutation(\$objects: [lead_insert_input!]!) {
+          insert_lead(objects: \$objects) {
+            returning {
+            document
+            }
+          }
         }
+      """), variables: {"objects": lead});
+      final QueryResult result = await client.mutate(mutateOptions);
+
+      // var resp = await apiService.authPost(
+      //     context, "/lead/${UserService.employee.employee}", lead);
+      // if (resp != null) {
+      if (result.hasException == false) {
+        Navigator.pop(context);
+
+        Fluttertoast.showToast(
+            msg: "Successfully added lead!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0);
+
+        await this.widget.successCallback();
       } else {
         Fluttertoast.showToast(
             msg: "Failed to add lead!",

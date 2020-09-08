@@ -1,5 +1,7 @@
 import 'package:atlascrm/services/ApiService.dart';
+import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:searchable_dropdown/searchable_dropdown.dart';
 
 class EmployeeDropDown extends StatefulWidget {
@@ -38,10 +40,20 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
   var startVal;
 
   Future<void> initEmployees() async {
-    var employeesResp = await apiService.authGet(context, "/employee");
-    if (employeesResp != null) {
-      if (employeesResp.statusCode == 200) {
-        var employeeArrDecoded = employeesResp.data;
+    QueryOptions options = QueryOptions(documentNode: gql("""
+      query Employee {
+        employee {
+          employee
+          fullName:document(path:"fullName")
+        }
+      }
+    """));
+
+    final QueryResult result = await client.query(options);
+
+    if (result != null) {
+      if (!result.hasException) {
+        var employeeArrDecoded = result.data["employee"];
         if (employeeArrDecoded != null) {
           if (this.mounted) {
             setState(() {
@@ -51,7 +63,7 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
         }
         for (var employee in employees) {
           if (this.widget.value == employee["employee"]) {
-            startVal = employee["title"];
+            startVal = employee["fullName"];
           }
         }
       }
@@ -83,10 +95,10 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
           // menuConstraints: BoxConstraints.tight(Size.fromHeight(350)),
           items: employees.map<DropdownMenuItem<String>>((dynamic item) {
             var employeeName;
-            if (item["title"]?.isEmpty ?? true) {
+            if (item["fullName"]?.isEmpty ?? true) {
               employeeName = "";
             } else {
-              employeeName = item["title"];
+              employeeName = item["fullName"];
             }
             return DropdownMenuItem<String>(
               value: employeeName,
@@ -102,7 +114,7 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
                   setState(() {
                     var setVal;
                     for (var employee in employees) {
-                      if (newValue == employee["title"]) {
+                      if (newValue == employee["fullName"]) {
                         setVal = employee["employee"];
                         // {
                         //   "name": employee["title"],

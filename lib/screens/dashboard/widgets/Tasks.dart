@@ -63,10 +63,8 @@ class _TasksState extends State<Tasks> {
 
   @override
   Widget build(BuildContext context) {
-    return Query(
-        options: QueryOptions(
-            documentNode: gql("""
-          query EmployeeTasks(\$employee: uuid!) {
+    return Subscription("EmployeeTasks", """
+          subscription EmployeeTasks(\$employee: uuid!) {
             employee_by_pk(employee: \$employee) {
               tasks {
                 task
@@ -87,25 +85,68 @@ class _TasksState extends State<Tasks> {
               }
             }   
           }
-            """),
-            pollInterval: 30,
-            variables: {"employee": "${UserService.employee.employee}"}),
-        builder: (QueryResult result,
-            {VoidCallback refetch, FetchMore fetchMore}) {
-          return Container(
-              child: result.loading
-                  ? Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        CenteredLoadingSpinner(),
-                      ],
-                    )
-                  : result.data == null
-                      ? Empty("No Active Tasks found")
-                      : buildDLGridView(
-                          context, result.data["employee"]["tasks"]));
-        });
+            """, builder: ({error, bool loading, payload}) {
+      print(error);
+      // return Container(
+      //   child: Text(loading.toString()),
+      // );
+      return Container(
+          child: loading
+              ? Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    CenteredLoadingSpinner(),
+                  ],
+                )
+              : payload.data == null
+                  ? Empty("No Active Tasks found")
+                  : buildDLGridView(
+                      context, payload.data["employee"]["tasks"]));
+    }, variables: {"employee": "${UserService.employee.employee}"});
+    // return Query(
+    //     options: QueryOptions(
+    //         documentNode: gql("""
+    //       subscription EmployeeTasks(\$employee: uuid!) {
+    //         employee_by_pk(employee: \$employee) {
+    //           tasks {
+    //             task
+    //             taskTypeByTaskType {
+    //               task_type
+    //               title
+    //             }
+    //             employee
+    //             date
+    //             priority
+    //             task_status
+    //             document
+    //             merchant
+    //             lead
+    //             created_by
+    //             updated_by
+    //             created_at
+    //           }
+    //         }
+    //       }
+    //         """),
+    //         pollInterval: 1,
+    //         variables: {"employee": "${UserService.employee.employee}"}),
+    //     builder: (QueryResult result,
+    //         {VoidCallback refetch, FetchMore fetchMore}) {
+    //       return Container(
+    //           child: result.loading
+    //               ? Row(
+    //                   crossAxisAlignment: CrossAxisAlignment.stretch,
+    //                   mainAxisAlignment: MainAxisAlignment.center,
+    //                   children: <Widget>[
+    //                     CenteredLoadingSpinner(),
+    //                   ],
+    //                 )
+    //               : result.data == null
+    //                   ? Empty("No Active Tasks found")
+    //                   : buildDLGridView(
+    //                       context, result.data["employee"]["tasks"]));
+    //     });
   }
 }
 

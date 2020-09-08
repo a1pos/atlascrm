@@ -665,8 +665,8 @@ class _ImageUploaderState extends State<ImageUploader> {
       if (resp.statusCode == 200) {
         if (resp.data != null && resp.data != "") {
           for (var imgUrl in resp.data) {
-            var url =
-                "${ConfigSettings.API_URL}_a1/uploads/statement_photos/$imgUrl";
+            var url = "a1/uploads/statement_photos/$imgUrl";
+            // var url = "${ConfigSettings.API_URL}_a1/uploads/statement_photos/$imgUrl";
             setState(() {
               imageDLList.add({"name": imgUrl, "url": url});
             });

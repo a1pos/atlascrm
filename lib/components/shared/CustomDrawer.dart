@@ -39,7 +39,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     maxRadius: 45,
                   ),
                   Text(
-                    UserService.employee.document["fullName"],
+                    UserService.employee.document["displayName"],
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 18,

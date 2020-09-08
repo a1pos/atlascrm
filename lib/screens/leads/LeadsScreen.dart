@@ -77,7 +77,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
       if (UserService.isAdmin) {
         options = QueryOptions(documentNode: gql("""
         query GetAllLeads {
-          lead {
+          lead (offset: 0, limit: 10){
             lead
             document
             employee: employeeByEmployee{
@@ -92,7 +92,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
             documentNode: gql("""
           query GetEmployeeLeads(\$employee: uuid!) {
             employee_by_pk(employee: \$employee) {
-              leads {
+              leads (offset: 0, limit: 10){
                 lead
                 document
               }
@@ -121,7 +121,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
                 isLoading = false;
                 leads += leadsArr;
                 leadsFull += leadsArr;
-                pageNum++;
+                // pageNum++;
               });
             } else {
               setState(() {
@@ -136,44 +136,80 @@ class _LeadsScreenState extends State<LeadsScreen> {
           }
         }
       }
-
       setState(() {
         isLoading = false;
       });
     } catch (err) {
       log(err);
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
   Future<void> onScroll() async {
     try {
-      var endpoint;
+      // var endpoint;
+      // if (UserService.isAdmin) {
+      //   endpoint = "/lead?page=$pageNum&size=10&$sortQuery";
+      //   if (isSearching) {
+      //     endpoint =
+      //         "/lead?searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
+      //   }
+      //   if (isFiltering) {
+      //     endpoint =
+      //         "/employee/$filterEmployee/lead?page=$pageNum&size=10&$sortQuery";
+      //   }
+      //   if (isSearching && isFiltering) {
+      //     endpoint =
+      //         "/employee/$filterEmployee/lead?searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
+      //   }
+      // } else if (isSearching) {
+      //   endpoint =
+      //       "/employee/${UserService.employee.employee}/lead?searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
+      // } else {
+      //   endpoint =
+      //       "/employee/${UserService.employee.employee}/lead?page=$pageNum&size=10&$sortQuery";
+      // }
+
+      var offsetAmount = pageNum * 10;
+      QueryOptions options;
       if (UserService.isAdmin) {
-        endpoint = "/lead?page=$pageNum&size=10&$sortQuery";
-        if (isSearching) {
-          endpoint =
-              "/lead?searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
+        options = QueryOptions(documentNode: gql("""
+        query GetAllLeads {
+          lead (offset: $offsetAmount, limit: 10){
+            lead
+            document
+            employee: employeeByEmployee{
+              employee
+              fullName: document(path: "fullName")
+            }
+          }
         }
-        if (isFiltering) {
-          endpoint =
-              "/employee/$filterEmployee/lead?page=$pageNum&size=10&$sortQuery";
-        }
-        if (isSearching && isFiltering) {
-          endpoint =
-              "/employee/$filterEmployee/lead?searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
-        }
-      } else if (isSearching) {
-        endpoint =
-            "/employee/${UserService.employee.employee}/lead?searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
+      """));
       } else {
-        endpoint =
-            "/employee/${UserService.employee.employee}/lead?page=$pageNum&size=10&$sortQuery";
+        options = QueryOptions(
+            documentNode: gql("""
+          query GetEmployeeLeads(\$employee: uuid!) {
+            employee_by_pk(employee: \$employee) {
+              leads (offset: $offsetAmount, limit: 10) {
+                lead
+                document
+              }
+            }
+          }
+      """),
+            pollInterval: 5,
+            variables: {"employee": "${UserService.employee.employee}"});
       }
 
-      var resp = await this.widget.apiService.authGet(context, endpoint);
-      if (resp != null) {
-        if (resp.statusCode == 200) {
-          var leadsArrDecoded = resp.data["data"];
+      final QueryResult result = await client.query(options);
+
+      if (result != null) {
+        if (!result.hasException) {
+          var leadsArrDecoded = UserService.isAdmin
+              ? result.data["lead"]
+              : result.data["employee"]["leads"];
           if (leadsArrDecoded != null) {
             var leadsArr = List.from(leadsArrDecoded);
             if (leadsArr.length > 0) {
@@ -459,7 +495,10 @@ class _LeadsScreenState extends State<LeadsScreen> {
                 : Container(),
           ),
           isEmpty
-              ? Empty("No leads found")
+              ? Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 45, 0, 0),
+                  child: Empty("No leads found"),
+                )
               : Expanded(
                   flex: 6,
                   child: ListView(

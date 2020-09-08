@@ -66,7 +66,7 @@ class _TaskScreenState extends State<TaskScreen> {
   Future<void> fillEvents() async {
     setState(() {
       _calendarEvents = {};
-      for (var item in activeTasks) {
+      for (var item in tasks) {
         if (item["date"] != null) {
           var itemDate = DateTime.parse(item["date"]);
           itemDate = DateTime(
@@ -79,6 +79,22 @@ class _TaskScreenState extends State<TaskScreen> {
         } else {
           continue;
         }
+      }
+      if (_calendarController.selectedDay != null) {
+        DateTime currentDay = _calendarController.selectedDay;
+        setState(() {
+          isEmpty = true;
+        });
+        _calendarEvents.forEach((k, v) {
+          if (k.day == currentDay.day &&
+              k.month == currentDay.month &&
+              k.year == currentDay.year) {
+            activeTasks = v;
+            setState(() {
+              isEmpty = false;
+            });
+          }
+        });
       }
     });
   }
@@ -93,6 +109,11 @@ class _TaskScreenState extends State<TaskScreen> {
       onDaySelected: (date, events) {
         setState(() {
           activeTasks = events;
+          if (activeTasks.length == 0) {
+            isEmpty = true;
+          } else {
+            isEmpty = false;
+          }
         });
       },
       // code to replace bubbles with numbers on calendar
@@ -152,62 +173,62 @@ class _TaskScreenState extends State<TaskScreen> {
   }
 
   Future<void> initTasks() async {
-    try {
-      QueryOptions options = QueryOptions(
-        documentNode: gql("""
-          query EmployeeTasks {
-            employee_by_pk(employee: "16a9424f-4c7d-44d7-87cd-029b3d13ad6d") {
-              tasks {
-                task
-                task_type
-                employee
-                date
-                priority
-                task_status
-                document
-                merchant
-                lead
-                created_by
-                updated_by
-                created_at
-              }
-            }
-          }
+    Operation options = Operation(
+      documentNode: gql("""
+          subscription Tasks {
+  task {
+    task
+    taskTypeByTaskType {
+      task_type
+      title
+    }
+    employee
+    date
+    priority
+    task_status
+    document
+    merchant
+    lead
+    created_by
+    updated_by
+    created_at
+  }
+}
             """),
-        //  variables: {"employee": "${UserService.employee.employee}"}
-      );
+      //  variables: {"employee": "${UserService.employee.employee}"}
+    );
 
-      final QueryResult result = await client.query(options);
-
-      if (!result.hasException) {
-        var tasksArrDecoded = result.data["employee_by_pk"]["tasks"];
+    var result = wsClient.subscribe(options);
+    result.listen(
+      (data) async {
+        var tasksArrDecoded = data.data["task"];
         if (tasksArrDecoded != null) {
           setState(() {
             tasks = tasksArrDecoded;
-            activeTasks = tasks.where((e) => e["document"]["active"]).toList();
-            tasksFull = activeTasks;
-            if (activeTasks.length > 0) {
+            // activeTasks = tasks.where((e) => e["document"]["active"]).toList();
+            tasksFull = tasks;
+            if (tasks.length > 0) {
               isEmpty = false;
             }
             isLoading = false;
           });
           await fillEvents();
         }
-      } else {
-        throw new Error();
-      }
-    } catch (err) {
-      print(err);
-      isLoading = false;
+        isLoading = false;
+      },
+      onError: (error) {
+        print(error);
+        isLoading = false;
 
-      Fluttertoast.showToast(
-          msg: "Failed to load tasks for employee!",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.grey[600],
-          textColor: Colors.white,
-          fontSize: 16.0);
-    }
+        Fluttertoast.showToast(
+            msg: "Failed to load tasks for employee!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0);
+      },
+    );
   }
 
   Future newCalendarEvent(token, data) async {
@@ -679,7 +700,10 @@ class _TaskScreenState extends State<TaskScreen> {
           ),
           _buildCalendar(),
           isEmpty
-              ? Empty("No Active Tasks found")
+              ? Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 100, 0, 0),
+                  child: Empty("No Active Tasks found"),
+                )
               : Column(
                   children: activeTasks.map((t) {
                     var tDate;
