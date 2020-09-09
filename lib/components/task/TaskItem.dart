@@ -37,15 +37,18 @@ class _TaskItemState extends State<TaskItem> {
     ];
     var index =
         _types.indexWhere((typeObj) => typeObj.name == this.widget.type);
-    Icon taskIcon;
-    if (index != -1) {
+    var taskIcon;
+    if (index > 0) {
       taskIcon = Icon(_types[index].icon);
     } else {
-      taskIcon = Icon(Icons.category);
+      // taskIcon = Icon(Icons.category);
+      taskIcon = null;
     }
     return Center(
       child: Card(
-        color: _colors[this.widget.priority],
+        color: this.widget.priority == -1
+            ? Colors.white
+            : _colors[this.widget.priority],
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[

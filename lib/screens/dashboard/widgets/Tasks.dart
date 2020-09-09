@@ -3,7 +3,9 @@ import 'package:atlascrm/components/shared/Empty.dart';
 import 'package:atlascrm/components/task/TaskItem.dart';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/UserService.dart';
+import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 
@@ -23,47 +25,12 @@ class _TasksState extends State<Tasks> {
   void initState() {
     super.initState();
 
-    // initTasks();
+    initTasks();
+    print(UserService.employee);
   }
 
   Future<void> initTasks() async {
-    try {
-      var resp = await apiService.authGet(
-          context, "/employee/${UserService.employee.employee}/task");
-      if (resp != null) {
-        if (resp.statusCode == 200) {
-          var tasksArrDecoded = resp.data;
-          if (tasksArrDecoded != null && tasksArrDecoded.length > 0) {
-            setState(() {
-              tasks = tasksArrDecoded;
-              activeTasks =
-                  tasks.where((e) => e["document"]["active"]).toList();
-              if (activeTasks.length > 0) {
-                isEmpty = false;
-              }
-              isLoading = false;
-              print(activeTasks);
-            });
-          } else {
-            setState(() {
-              isLoading = false;
-              isEmpty = true;
-            });
-          }
-        } else {
-          throw new Error();
-        }
-      } else {
-        throw new Error();
-      }
-    } catch (err) {
-      print(err);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Subscription("EmployeeTasks", """
+    Operation options = Operation(operationName: "Tasks", documentNode: gql("""
           subscription EmployeeTasks(\$employee: uuid!) {
             employee_by_pk(employee: \$employee) {
               tasks {
@@ -83,51 +50,82 @@ class _TasksState extends State<Tasks> {
                 updated_by
                 created_at
               }
-            }   
+            }
           }
-            """, builder: ({error, bool loading, payload}) {
-      print(error);
-      // return Container(
-      //   child: Text(loading.toString()),
-      // );
-      return Container(
-          child: loading
-              ? Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    CenteredLoadingSpinner(),
-                  ],
-                )
-              : payload.data == null
-                  ? Empty("No Active Tasks found")
-                  : buildDLGridView(
-                      context, payload.data["employee"]["tasks"]));
-    }, variables: {"employee": "${UserService.employee.employee}"});
+            """), variables: {"employee": "${UserService.employee.employee}"});
+
+    var result = wsClient.subscribe(options);
+    result.listen(
+      (data) async {
+        var tasksArrDecoded = data.data["task"];
+        if (tasksArrDecoded != null) {
+          setState(() {
+            tasks = tasksArrDecoded;
+            // activeTasks = tasks.where((e) => e["document"]["active"]).toList();
+            activeTasks = tasks;
+            if (tasks.length > 0) {
+              isEmpty = false;
+            }
+            isLoading = false;
+          });
+          // await fillEvents();
+        }
+        isLoading = false;
+      },
+      onError: (error) {
+        print(error);
+        isLoading = false;
+
+        Fluttertoast.showToast(
+            msg: "Failed to load tasks for employee!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0);
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        child: isLoading
+            ? Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  CenteredLoadingSpinner(),
+                ],
+              )
+            : activeTasks == null
+                ? Empty("No Active Tasks found")
+                : buildDLGridView(context, activeTasks));
+
     // return Query(
     //     options: QueryOptions(
     //         documentNode: gql("""
-    //       subscription EmployeeTasks(\$employee: uuid!) {
-    //         employee_by_pk(employee: \$employee) {
-    //           tasks {
-    //             task
-    //             taskTypeByTaskType {
-    //               task_type
-    //               title
-    //             }
-    //             employee
-    //             date
-    //             priority
-    //             task_status
-    //             document
-    //             merchant
-    //             lead
-    //             created_by
-    //             updated_by
-    //             created_at
-    //           }
-    //         }
+    // subscription EmployeeTasks(\$employee: uuid!) {
+    //   employee_by_pk(employee: \$employee) {
+    //     tasks {
+    //       task
+    //       taskTypeByTaskType {
+    //         task_type
+    //         title
     //       }
+    //       employee
+    //       date
+    //       priority
+    //       task_status
+    //       document
+    //       merchant
+    //       lead
+    //       created_by
+    //       updated_by
+    //       created_at
+    //     }
+    //   }
+    // }
     //         """),
     //         pollInterval: 1,
     //         variables: {"employee": "${UserService.employee.employee}"}),
@@ -159,12 +157,21 @@ Widget buildDLGridView(BuildContext context, list) {
             var task = list[index];
 
             var tDate;
+            var tType = "none";
+            var tPriority = -1;
+
             if (task['date'] != null) {
               tDate = DateFormat("EEE, MMM d, ''yy")
                   .add_jm()
                   .format(DateTime.parse(task['date']));
             } else {
               tDate = "";
+            }
+            if (task["taskTypeByTaskType"] != null) {
+              tType = task["taskTypeByTaskType"]["title"];
+            }
+            if (task["priority"] != null) {
+              tPriority = task["priority"];
             }
             return GestureDetector(
               onTap: () {
@@ -175,8 +182,8 @@ Widget buildDLGridView(BuildContext context, list) {
                   title: task["document"]["title"],
                   description: task["document"]["notes"],
                   dateTime: tDate,
-                  type: task["task_type"]["title"],
-                  priority: task["priority"]),
+                  type: tType,
+                  priority: tPriority),
             );
           }));
 }

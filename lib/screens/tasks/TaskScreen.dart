@@ -176,29 +176,29 @@ class _TaskScreenState extends State<TaskScreen> {
     Operation options = Operation(
       documentNode: gql("""
           subscription Tasks {
-  task {
-    task
-    taskTypeByTaskType {
-      task_type
-      title
-    }
-    employee
-    date
-    priority
-    task_status
-    document
-    merchant
-    lead
-    created_by
-    updated_by
-    created_at
-  }
-}
+            task {
+              task
+              taskTypeByTaskType {
+                task_type
+                title
+              }
+              employee
+              date
+              priority
+              task_status
+              document
+              merchant
+              lead
+              created_by
+              updated_by
+              created_at
+            }
+          }
             """),
       //  variables: {"employee": "${UserService.employee.employee}"}
     );
 
-    var result = wsClient.subscribe(options);
+    var result = client.subscribe(options);
     result.listen(
       (data) async {
         var tasksArrDecoded = data.data["task"];
