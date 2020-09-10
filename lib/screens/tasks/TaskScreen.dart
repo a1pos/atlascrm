@@ -230,13 +230,11 @@ class _TaskScreenState extends State<TaskScreen> {
   }
 
   Future newCalendarEvent(token, data) async {
-    var taskOwner = UserService.isAdmin
+    var taskEmployee = UserService.isAdmin
         ? employeeDropdownValue
         : UserService.employee.employee;
-    var resp1 = await this
-        .widget
-        .apiService
-        .authPost(context, "/googlecalendar/" + token + "/" + taskOwner, data);
+    var resp1 = await this.widget.apiService.authPost(
+        context, "/googlecalendar/" + token + "/" + taskEmployee, data);
     if (resp1 != null) {
       if (resp1.statusCode == 200) {
         var event = await resp1.data["eventid"];
@@ -252,43 +250,81 @@ class _TaskScreenState extends State<TaskScreen> {
   Future<void> createTask() async {
     var successMsg = "Task created, but couldn't add Calendar Event!";
     var msgLength = Toast.LENGTH_SHORT;
-    var taskOwner = UserService.isAdmin
+    var taskEmployee = UserService.isAdmin
         ? employeeDropdownValue
         : UserService.employee.employee;
     var token = UserService.googleSignInAuthentication.accessToken;
-    var data = {
-      "type": taskTypeDropdownValue,
-      "owner": taskOwner,
-      "created_by": UserService.employee.employee,
-      "date": taskDateController.text,
+
+    var openStatus;
+
+    QueryOptions options = QueryOptions(documentNode: gql("""
+      query TaskStatus {
+        task_status {
+          task_status
+          document
+          title
+        }
+      }
+    """));
+
+    final QueryResult result0 = await client.query(options);
+
+    if (result0 != null) {
+      if (result0.hasException == false) {
+        result0.data["task_status"].forEach((item) {
+          if (item["title"] == "Open") {
+            openStatus = item["task_status"];
+          }
+        });
+
+        await initTasks();
+      }
+    } else {
+      print(new Error());
+      throw new Error();
+    }
+
+    var timeNow = DateFormat("yyyy-MM-dd HH:mm").format(DateTime.now());
+
+    Map data = {
+      "task_status": openStatus,
+      "task_type": taskTypeDropdownValue,
       "priority": taskPriorityDropdownValue,
       "lead": leadDropdownValue,
+      "employee": taskEmployee,
       "document": {
-        "title": taskTitleController.text,
         "notes": taskDescController.text,
+        "title": taskDescController.text,
         "active": true,
-      }
+        "eventid": null
+      },
+      "date": taskDateController.text,
+      "created_by": "16a9424f-4c7d-44d7-87cd-029b3d13ad6d",
+      "created_at": timeNow,
+      "updated_by": "16a9424f-4c7d-44d7-87cd-029b3d13ad6d",
+      "updated_at": timeNow
     };
-    var event = await newCalendarEvent(token, data);
-    if (event != null) {
-      data["document"]["eventid"] = event;
-      successMsg = "Successfully created task!";
-      msgLength = Toast.LENGTH_LONG;
-    }
+
+    //GOOGLECALENDAR LOGIC
+    // var event = await newCalendarEvent(token, data);
+    // if (event != null) {
+    //   data["document"]["eventid"] = event;
+    //   successMsg = "Successfully created task!";
+    //   msgLength = Toast.LENGTH_LONG;
+    // }
 
     try {
       MutationOptions options = MutationOptions(documentNode: gql("""
-        mutation UpdateTask {
-
+        mutation InsertTask(\$data: [task_insert_input!]! = {}) {
+          insert_task(objects: \$data) {
+            returning {
+              task
+            }
+          }
         }
-            """));
+            """), variables: {"data": data});
 
       final QueryResult result = await client.mutate(options);
-
-      // var resp = await this
-      //     .widget
-      //     .apiService
-      //     .authPost(context, "/employee/" + taskOwner + "/task", data);
 
       if (result != null) {
         if (result.hasException == false) {
@@ -637,51 +673,6 @@ class _TaskScreenState extends State<TaskScreen> {
         ],
       ),
     );
-
-    // Query(
-    //     options: QueryOptions(
-    //         documentNode: gql("""
-    //           query EmployeeTasks (\$employee: ID!){
-    //             employee(employee:\$employee){
-    //               tasks {
-    //                 task
-    //                 task_type{task_type}
-    //                 employee{employee}
-    //                 date
-    //                 priority
-    //                 task_status{task_status}
-    //                 document
-    //                 merchant{merchant}
-    //                 lead{lead}
-    //                 created_by
-    //                 updated_by
-    //                 created_at
-    //               }
-    //             }
-    //           }
-    //         """),
-    //         pollInterval: 30,
-    //         variables: {"employee": "${UserService.employee.employee}"}),
-    //     builder: (QueryResult result,
-    //         {VoidCallback refetch, FetchMore fetchMore}) {
-    //       tasks = result.data["employee"]["tasks"];
-    //       activeTasks = tasks.where((e) => e["document"]["active"]).toList();
-    //       tasksFull = activeTasks;
-    //       fillEvents();
-
-    //       // return Container(
-    //       //     child: result.loading
-    //       //         ? Row(
-    //       //             crossAxisAlignment: CrossAxisAlignment.stretch,
-    //       //             mainAxisAlignment: MainAxisAlignment.center,
-    //       //             children: <Widget>[
-    //       //               CenteredLoadingSpinner(),
-    //       //             ],
-    //       //           )
-    //       //         : result.data == null
-    //       //             ? Empty("No Active Tasks found")
-    //       //             : buildDLGridView(result.data["employee"]["tasks"]));
-    //     });
   }
 
   Widget getTasks() {
