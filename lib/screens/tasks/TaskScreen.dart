@@ -173,43 +173,41 @@ class _TaskScreenState extends State<TaskScreen> {
   }
 
   Future<void> initTasks() async {
-    Operation options = Operation(
-      documentNode: gql("""
-          subscription Tasks {
-            task {
-              task
-              taskTypeByTaskType {
-                task_type
-                title
+    Operation options =
+        Operation(operationName: "EmployeeTasks", documentNode: gql("""
+          subscription EmployeeTasks(\$employee: uuid!) {
+            employee_by_pk(employee: \$employee) {
+              tasks {
+                task
+                taskTypeByTaskType {
+                  task_type
+                  title
+                }
+                employee
+                date
+                priority
+                task_status
+                document
+                merchant
+                lead
+                created_by
+                updated_by
+                created_at
               }
-              employee
-              date
-              priority
-              task_status
-              document
-              merchant
-              lead
-              created_by
-              updated_by
-              created_at
             }
           }
-            """),
-      //  variables: {"employee": "${UserService.employee.employee}"}
-    );
+            """), variables: {"employee": "${UserService.employee.employee}"});
 
     var result = client.subscribe(options);
     result.listen(
       (data) async {
-        var tasksArrDecoded = data.data["task"];
+        var tasksArrDecoded = data.data["employee_by_pk"]["tasks"];
         if (tasksArrDecoded != null) {
           setState(() {
             tasks = tasksArrDecoded;
             // activeTasks = tasks.where((e) => e["document"]["active"]).toList();
             tasksFull = tasks;
-            if (tasks.length > 0) {
-              isEmpty = false;
-            }
+            // if (tasks.length > 0) {}
             isLoading = false;
           });
           await fillEvents();
@@ -279,12 +277,21 @@ class _TaskScreenState extends State<TaskScreen> {
     }
 
     try {
-      var resp = await this
-          .widget
-          .apiService
-          .authPost(context, "/employee/" + taskOwner + "/task", data);
-      if (resp != null) {
-        if (resp.statusCode == 200) {
+      MutationOptions options = MutationOptions(documentNode: gql("""
+        mutation UpdateTask {
+
+        }
+            """));
+
+      final QueryResult result = await client.mutate(options);
+
+      // var resp = await this
+      //     .widget
+      //     .apiService
+      //     .authPost(context, "/employee/" + taskOwner + "/task", data);
+
+      if (result != null) {
+        if (result.hasException == false) {
           Fluttertoast.showToast(
               msg: successMsg,
               toastLength: msgLength,
@@ -602,7 +609,7 @@ class _TaskScreenState extends State<TaskScreen> {
           ),
           _buildCalendar(),
           isEmpty
-              ? Empty("No Active Tasks found")
+              ? Empty("No Active Tasks today")
               : Column(
                   children: activeTasks.map((t) {
                     var tDate;
@@ -702,7 +709,7 @@ class _TaskScreenState extends State<TaskScreen> {
           isEmpty
               ? Padding(
                   padding: const EdgeInsets.fromLTRB(0, 100, 0, 0),
-                  child: Empty("No Active Tasks found"),
+                  child: Empty("No Active Tasks today"),
                 )
               : Column(
                   children: activeTasks.map((t) {

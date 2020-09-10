@@ -58,25 +58,27 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
 
   Future<void> loadTaskData() async {
     QueryOptions options = QueryOptions(documentNode: gql("""
-              query {task(task: "${this.widget.taskId}"){
-                    task
-                    task_type{task_type}
-                    employee{employee}
-                    date
-                    priority
-                    task_status{task_status}
-                    document
-                    merchant{merchant}
-                    lead{lead}
-                    created_by
-                    updated_by      
-                    created_at
-              }}
-            """));
+      query Task{
+        task_by_pk(task: "${this.widget.taskId}"){
+          task
+          task_type
+          employee
+          date
+          priority
+          task_status
+          document
+          merchant
+          lead
+          created_by
+          updated_by      
+          created_at
+        }
+      }
+            """), fetchPolicy: FetchPolicy.networkOnly);
 
     final QueryResult result = await client.query(options);
 
-    var body = result.data["task"];
+    var body = result.data["task_by_pk"];
     if (body != null) {
       var bodyDecoded = body;
 
@@ -94,15 +96,15 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
 
       setState(() {
         task = bodyDecoded;
-        taskTypeDropdownValue = bodyDecoded["task_type"]["task_type"];
-        employeeDropdownValue = bodyDecoded["employee"]["employee"];
+        taskTypeDropdownValue = bodyDecoded["task_type"];
+        employeeDropdownValue = bodyDecoded["employee"];
         taskPriorityDropdownValue = bodyDecoded["priority"].toString();
         taskTitleController.text = bodyDecoded["document"]["title"];
         taskTitleController.addListener(changeButton);
         taskDateController.addListener(changeButton);
         taskDescController.text = bodyDecoded["document"]["notes"];
         taskDescController.addListener(changeButton);
-        leadDropdownValue = bodyDecoded["lead"]["lead"];
+        leadDropdownValue = bodyDecoded["lead"];
       });
     }
 
@@ -123,57 +125,76 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
             fontSize: 16.0);
         return;
       }
-      var token = UserService.googleSignInAuthentication.accessToken;
-      var data = {
+      // var token = UserService.googleSignInAuthentication.accessToken;
+
+      Map data = {
+        "task_status": task["task_status"],
+        "task_type": taskTypeDropdownValue,
         "task": task["task"],
-        "status": task["status"],
-        "type": taskTypeDropdownValue,
-        "owner": employeeDropdownValue,
-        "date": taskDateController.text,
         "priority": taskPriorityDropdownValue,
         "lead": leadDropdownValue,
-        "document": !complete
-            ? {
-                "title": taskTitleController.text,
-                "notes": taskDescController.text,
-                "eventid": task["document"]["eventid"],
-                "active": true,
-              }
-            : {
-                "title": taskTitleController.text,
-                "notes": taskDescController.text,
-                "eventid": task["document"]["eventid"],
-                "active": false,
-              }
+        "employee": employeeDropdownValue,
+        "document": {
+          "notes": taskDescController.text,
+          "title": taskTitleController.text,
+          "active": !complete,
+          "eventid": task["document"]["eventid"]
+        },
+        "date": taskDateController.text
       };
-      var resp1 =
-          await apiService.authPut(context, "/googlecalendar/" + token, data);
-      if (resp1 != null) {
-        if (resp1.statusCode == 200) {
-          // Fluttertoast.showToast(
-          //     msg: "Successfully updated Calendar Event!",
-          //     toastLength: Toast.LENGTH_SHORT,
-          //     gravity: ToastGravity.BOTTOM,
-          //     backgroundColor: Colors.grey[600],
-          //     textColor: Colors.white,
-          //     fontSize: 16.0);
-          var event = resp1.data["eventid"];
-          print('TASK: ' + task["task"]);
-          data["document"]["eventid"] = event;
+
+      print(data);
+      // var resp1 =
+      //     await apiService.authPut(context, "/googlecalendar/" + token, data);
+      // if (resp1 != null) {
+      //   if (resp1.statusCode == 200) {
+      //     // Fluttertoast.showToast(
+      //     //     msg: "Successfully updated Calendar Event!",
+      //     //     toastLength: Toast.LENGTH_SHORT,
+      //     //     gravity: ToastGravity.BOTTOM,
+      //     //     backgroundColor: Colors.grey[600],
+      //     //     textColor: Colors.white,
+      //     //     fontSize: 16.0);
+      //     var event = resp1.data["eventid"];
+      //     print('TASK: ' + task["task"]);
+      //     data["document"]["eventid"] = event;
+      //   }
+      // } else {
+      //   Fluttertoast.showToast(
+      //       msg: "Couldn't update Calendar Event",
+      //       toastLength: Toast.LENGTH_SHORT,
+      //       gravity: ToastGravity.BOTTOM,
+      //       backgroundColor: Colors.grey[600],
+      //       textColor: Colors.white,
+      //       fontSize: 16.0);
+      // }
+
+      MutationOptions options = MutationOptions(documentNode: gql("""
+        mutation UpdateTask(\$data: task_set_input = {}) {
+          update_task_by_pk (pk_columns: {task: "${this.widget.taskId}"}, _set: \$data) {
+            priority
+            updated_by
+            updated_at
+            task_type
+            task_status
+            task
+            merchant
+            lead
+            employee
+            document
+            date
+            created_by
+            created_at
+          }
         }
-      } else {
-        Fluttertoast.showToast(
-            msg: "Couldn't update Calendar Event",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.grey[600],
-            textColor: Colors.white,
-            fontSize: 16.0);
-      }
-      var resp =
-          await apiService.authPut(context, "/task/" + task["task"], data);
-      if (resp != null) {
-        if (resp.statusCode == 200) {
+            """), variables: {"data": data});
+
+      final QueryResult result = await client.mutate(options);
+
+      // var resp =
+      //     await apiService.authPut(context, "/task/" + task["task"], data);
+      if (result != null) {
+        if (result.hasException == false) {
           !complete
               ? Fluttertoast.showToast(
                   msg: "Successfully updated task!",

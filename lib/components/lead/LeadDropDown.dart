@@ -1,5 +1,6 @@
-import 'package:atlascrm/services/ApiService.dart';
+import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:searchable_dropdown/searchable_dropdown.dart';
 
 class LeadDropDown extends StatefulWidget {
@@ -15,7 +16,6 @@ class LeadDropDown extends StatefulWidget {
 }
 
 class _LeadDropDownState extends State<LeadDropDown> {
-  final ApiService apiService = ApiService();
   var leads = [];
   var disabled;
 
@@ -36,11 +36,38 @@ class _LeadDropDownState extends State<LeadDropDown> {
   var startVal;
 
   Future<void> initLeads(e) async {
-    var leadsResp = await apiService.authGet(context,
-        this.widget.employeeId == null ? "/lead" : "/employee/$e/lead");
-    if (leadsResp != null) {
-      if (leadsResp.statusCode == 200) {
-        var leadsArrDecoded = leadsResp.data["data"];
+    QueryOptions options;
+    if (this.widget.employeeId == null) {
+      options = QueryOptions(documentNode: gql("""
+            query Leads {
+              lead{
+                lead
+                document
+              }  
+            }
+            """));
+    } else {
+      options = QueryOptions(documentNode: gql("""
+            query EmployeeLeads {
+              employee_by_pk(employee: "${this.widget.employeeId}") {
+                leads {
+                  lead
+                  document
+                }
+              }
+            }
+            """));
+    }
+
+    final QueryResult result = await client.query(options);
+    var leadsArrDecoded;
+    if (result != null) {
+      if (result.hasException == false) {
+        if (this.widget.employeeId == null) {
+          leadsArrDecoded = result.data["lead"];
+        } else {
+          leadsArrDecoded = result.data["employee_by_pk"]["leads"];
+        }
         if (leadsArrDecoded != null) {
           if (this.mounted) {
             setState(() {

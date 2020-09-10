@@ -38,7 +38,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       ),
     );
 
-    initStatistics();
+    // initStatistics();
   }
 
   Future<void> initStatistics() async {

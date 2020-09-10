@@ -6,6 +6,8 @@ HttpLink _httpLink = HttpLink(
 );
 
 InMemoryCache cache = InMemoryCache();
+InMemoryCache cache2 = InMemoryCache();
+
 // WebSocketLink _defWs = WebSocketLink(
 //     url: "wss://busy-buzzard-29.hasura.app/v1/graphql",
 //     config: SocketClientConfig(
@@ -43,7 +45,7 @@ setPrivateGraphQLClient(token) {
   link = link.concat(authws);
 
   final GraphQLClient aCLient = GraphQLClient(link: link, cache: cache);
-  final GraphQLClient bCLient = GraphQLClient(link: authws, cache: cache);
+  final GraphQLClient bCLient = GraphQLClient(link: authws, cache: cache2);
 
   client = aCLient;
   wsClient = bCLient;

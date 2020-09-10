@@ -30,7 +30,8 @@ class _TasksState extends State<Tasks> {
   }
 
   Future<void> initTasks() async {
-    Operation options = Operation(operationName: "Tasks", documentNode: gql("""
+    Operation options =
+        Operation(operationName: "EmployeeTasks", documentNode: gql("""
           subscription EmployeeTasks(\$employee: uuid!) {
             employee_by_pk(employee: \$employee) {
               tasks {
@@ -57,7 +58,7 @@ class _TasksState extends State<Tasks> {
     var result = wsClient.subscribe(options);
     result.listen(
       (data) async {
-        var tasksArrDecoded = data.data["task"];
+        var tasksArrDecoded = data.data["employee_by_pk"]["tasks"];
         if (tasksArrDecoded != null) {
           setState(() {
             tasks = tasksArrDecoded;
@@ -73,8 +74,10 @@ class _TasksState extends State<Tasks> {
         isLoading = false;
       },
       onError: (error) {
-        print(error);
-        isLoading = false;
+        print("STREAM LISTEN ERROR: " + error);
+        setState(() {
+          isLoading = false;
+        });
 
         Fluttertoast.showToast(
             msg: "Failed to load tasks for employee!",

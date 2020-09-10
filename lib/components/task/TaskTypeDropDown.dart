@@ -1,5 +1,6 @@
-import 'package:atlascrm/services/ApiService.dart';
+import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
 
 class TaskTypeDropDown extends StatefulWidget {
   final String employeeId;
@@ -13,8 +14,6 @@ class TaskTypeDropDown extends StatefulWidget {
 }
 
 class _TaskTypeDropDownState extends State<TaskTypeDropDown> {
-  final ApiService apiService = ApiService();
-
   var types = [];
 
   @override
@@ -25,22 +24,25 @@ class _TaskTypeDropDownState extends State<TaskTypeDropDown> {
   }
 
   Future<void> initTypes() async {
-    var taskTypesResp = await apiService.authGet(context, "/task/type");
-    if (taskTypesResp != null) {
-      if (taskTypesResp.statusCode == 200) {
-        var taskTypesArrDecoded = taskTypesResp.data;
-        if (taskTypesArrDecoded != null) {
-          var temp = [];
-          for (var item in taskTypesArrDecoded) {
-            temp.add({
-              "type": item["type"],
-              "parent": item["parent"],
-              "title": item["title"]
-            });
-          }
+    QueryOptions options = QueryOptions(documentNode: gql("""
+      query TaskTypes {
+        task_type {
+          task_type
+          document
+          parent
+          title
+        }
+      }
+    """));
 
+    final QueryResult result = await client.query(options);
+
+    if (result != null) {
+      if (result.hasException == false) {
+        var taskTypesArrDecoded = result.data["task_type"];
+        if (taskTypesArrDecoded != null) {
           setState(() {
-            types = temp;
+            types = taskTypesArrDecoded;
           });
         }
       }
@@ -72,13 +74,13 @@ class _TaskTypeDropDownState extends State<TaskTypeDropDown> {
           items: types.map((dynamic item) {
             if (item["parent"] != null) {
               return DropdownMenuItem<String>(
-                value: item["type"],
+                value: item["task_type"],
                 child: Text('${item["title"]}'),
               );
             }
 
             return DropdownMenuItem<String>(
-              value: item["type"],
+              value: item["task_type"],
               child: Text(
                 '> ${item["title"]}',
                 style: TextStyle(

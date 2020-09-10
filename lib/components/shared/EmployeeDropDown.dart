@@ -44,7 +44,7 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
       query Employee {
         employee {
           employee
-          fullName:document(path:"fullName")
+          displayName:document(path:"displayName")
         }
       }
     """));
@@ -52,7 +52,7 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
     final QueryResult result = await client.query(options);
 
     if (result != null) {
-      if (!result.hasException) {
+      if (result.hasException == false) {
         var employeeArrDecoded = result.data["employee"];
         if (employeeArrDecoded != null) {
           if (this.mounted) {
@@ -63,7 +63,7 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
         }
         for (var employee in employees) {
           if (this.widget.value == employee["employee"]) {
-            startVal = employee["fullName"];
+            startVal = employee["displayName"];
           }
         }
       }
@@ -95,10 +95,10 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
           // menuConstraints: BoxConstraints.tight(Size.fromHeight(350)),
           items: employees.map<DropdownMenuItem<String>>((dynamic item) {
             var employeeName;
-            if (item["fullName"]?.isEmpty ?? true) {
+            if (item["displayName"]?.isEmpty ?? true) {
               employeeName = "";
             } else {
-              employeeName = item["fullName"];
+              employeeName = item["displayName"];
             }
             return DropdownMenuItem<String>(
               value: employeeName,
@@ -114,7 +114,7 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
                   setState(() {
                     var setVal;
                     for (var employee in employees) {
-                      if (newValue == employee["fullName"]) {
+                      if (newValue == employee["displayName"]) {
                         setVal = employee["employee"];
                         // {
                         //   "name": employee["title"],
