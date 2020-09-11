@@ -10,6 +10,7 @@ import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 
 import 'LeadStepper.dart';
@@ -37,15 +38,14 @@ class _LeadsScreenState extends State<LeadsScreen> {
   var dropdownVal = "2";
 
   var currentSearch = "";
-  var pageNum = 1;
+  var pageNum = 0;
   var filterEmployee = "";
   var sortQueries = [
-    "sorters%5B0%5D%5Bfield%5D=created_at&sorters%5B0%5D%5Bdir%5D=desc",
-    "sorters%5B0%5D%5Bfield%5D=created_at&sorters%5B0%5D%5Bdir%5D=asc",
-    "sorters%5B0%5D%5Bfield%5D=document.businessName&sorters%5B0%5D%5Bdir%5D=asc"
+    "updated_at: desc",
+    "updated_at: asc",
+    "leadbusinessname: desc"
   ];
-  var sortQuery =
-      "sorters%5B0%5D%5Bfield%5D=document.businessName&sorters%5B0%5D%5Bdir%5D=asc";
+  var sortQuery = "updated_at: desc";
   ScrollController _scrollController = ScrollController();
   TextEditingController _searchController = TextEditingController();
 
@@ -53,13 +53,13 @@ class _LeadsScreenState extends State<LeadsScreen> {
   void initState() {
     super.initState();
     if (UserService.isAdmin) {
-      initEmployeeData();
+      // initEmployeeData();
     }
     initLeadsData();
 
     _scrollController.addListener(() {
       if (_scrollController.position.pixels ==
-          0.9 * _scrollController.position.maxScrollExtent) {
+          _scrollController.position.maxScrollExtent) {
         onScroll();
       }
     });
@@ -71,48 +71,33 @@ class _LeadsScreenState extends State<LeadsScreen> {
     super.dispose();
   }
 
+  var initParams = "offset: 0, limit: 3, order_by: {updated_at: desc}";
   Future<void> initLeadsData() async {
     try {
-      QueryOptions options;
-      if (UserService.isAdmin) {
-        options = QueryOptions(documentNode: gql("""
-        query GetAllLeads {
-          lead (offset: 0, limit: 10){
-            lead
-            document
-            employee: employeeByEmployee{
-              employee
-              fullName: document(path: "fullName")
-            }
-          }
-        }
-      """));
-      } else {
-        options = QueryOptions(
-            documentNode: gql("""
-          query GetEmployeeLeads(\$employee: uuid!) {
-            employee_by_pk(employee: \$employee) {
-              leads (offset: 0, limit: 10){
-                lead
-                document
-              }
-            }
-          }
-      """),
-            pollInterval: 5,
-            variables: {"employee": "${UserService.employee.employee}"});
+      if (!UserService.isAdmin) {
+        initParams =
+            'offset: 0, limit: 3, order_by: {updated_at: desc}, where: {employee: {_eq: "${UserService.employee.employee}"}}';
       }
+      print(initParams);
+      QueryOptions options = QueryOptions(documentNode: gql("""
+          query GetAllLeads {
+            v_lead($initParams) {
+              lead
+              updated_at
+              employee
+              employeefullname
+              leadbusinessname
+              leadfirstname
+              leadlastname
+            }
+          }
+      """));
 
       final QueryResult result = await client.query(options);
-      // var endpoint = UserService.isAdmin
-      //     ? "/lead?page=$pageNum&size=10&$sortQuery"
-      //     : "/employee/${UserService.employee.employee}/lead?page=$pageNum&size=10&$sortQuery";
-      // var resp = await this.widget.apiService.authGet(context, endpoint);
+
       if (result != null) {
         if (result.hasException == false) {
-          var leadsArrDecoded = UserService.isAdmin
-              ? result.data["lead"]
-              : result.data["employee"]["leads"];
+          var leadsArrDecoded = result.data["v_lead"];
           if (leadsArrDecoded != null) {
             var leadsArr = List.from(leadsArrDecoded);
             if (leadsArr.length > 0) {
@@ -121,7 +106,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
                 isLoading = false;
                 leads += leadsArr;
                 leadsFull += leadsArr;
-                // pageNum++;
+                pageNum++;
               });
             } else {
               setState(() {
@@ -149,67 +134,53 @@ class _LeadsScreenState extends State<LeadsScreen> {
 
   Future<void> onScroll() async {
     try {
-      // var endpoint;
-      // if (UserService.isAdmin) {
-      //   endpoint = "/lead?page=$pageNum&size=10&$sortQuery";
-      //   if (isSearching) {
-      //     endpoint =
-      //         "/lead?searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
-      //   }
-      //   if (isFiltering) {
-      //     endpoint =
-      //         "/employee/$filterEmployee/lead?page=$pageNum&size=10&$sortQuery";
-      //   }
-      //   if (isSearching && isFiltering) {
-      //     endpoint =
-      //         "/employee/$filterEmployee/lead?searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
-      //   }
-      // } else if (isSearching) {
-      //   endpoint =
-      //       "/employee/${UserService.employee.employee}/lead?searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
-      // } else {
-      //   endpoint =
-      //       "/employee/${UserService.employee.employee}/lead?page=$pageNum&size=10&$sortQuery";
-      // }
-
-      var offsetAmount = pageNum * 10;
-      QueryOptions options;
+      var offsetAmount = pageNum * 3;
+      var limitAmount = 3;
+      var params;
+      var searchParams =
+          '	_or: [{leadbusinessname: {_ilike: "%$currentSearch%"}}, {employeefullname: {_ilike: "%$currentSearch%"}}, {leademailaddress: {_ilike: "%$currentSearch%"}}, {leadfirstname: {_ilike: "%$currentSearch%"}}, {leadlastname: {_ilike: "%$currentSearch%"}}, {leaddbaname: {_ilike: "%$currentSearch%"}}, {leadphonenumber: {_ilike: "%$currentSearch%"}},]';
       if (UserService.isAdmin) {
-        options = QueryOptions(documentNode: gql("""
-        query GetAllLeads {
-          lead (offset: $offsetAmount, limit: 10){
-            lead
-            document
-            employee: employeeByEmployee{
-              employee
-              fullName: document(path: "fullName")
-            }
-          }
+        params =
+            "offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}";
+        if (isSearching) {
+          params =
+              'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {$searchParams}';
         }
-      """));
+        if (isFiltering) {
+          params =
+              'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "$filterEmployee"}}';
+        }
+        if (isSearching && isFiltering) {
+          params =
+              'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "$filterEmployee"}, $searchParams}';
+        }
+      } else if (isSearching) {
+        params =
+            'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "${UserService.employee.employee}"}, $searchParams}';
       } else {
-        options = QueryOptions(
-            documentNode: gql("""
-          query GetEmployeeLeads(\$employee: uuid!) {
-            employee_by_pk(employee: \$employee) {
-              leads (offset: $offsetAmount, limit: 10) {
-                lead
-                document
-              }
-            }
-          }
-      """),
-            pollInterval: 5,
-            variables: {"employee": "${UserService.employee.employee}"});
+        params =
+            'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "${UserService.employee.employee}"}';
       }
 
-      final QueryResult result = await client.query(options);
+      Operation options =
+          Operation(operationName: "GetAllLeads", documentNode: gql("""
+          subscription GetAllLeads {
+            v_lead($params) {
+              lead
+              updated_at
+              employee
+              employeefullname
+              leadbusinessname
+              leadfirstname
+              leadlastname
+            }
+          }
+            """));
 
-      if (result != null) {
-        if (!result.hasException) {
-          var leadsArrDecoded = UserService.isAdmin
-              ? result.data["lead"]
-              : result.data["employee"]["leads"];
+      var result = wsClient.subscribe(options);
+      result.listen(
+        (data) async {
+          var leadsArrDecoded = data.data["v_lead"];
           if (leadsArrDecoded != null) {
             var leadsArr = List.from(leadsArrDecoded);
             if (leadsArr.length > 0) {
@@ -220,19 +191,62 @@ class _LeadsScreenState extends State<LeadsScreen> {
                 leadsFull += leadsArr;
                 pageNum++;
               });
-            } else {
-              setState(() {
-                if (pageNum == 1) {
-                  isEmpty = true;
-                  leadsArr = [];
-                  leadsFull = [];
-                }
-                isLoading = false;
-              });
             }
+            isLoading = false;
+          } else {
+            setState(() {
+              if (pageNum == 0) {
+                isEmpty = true;
+                // leadsArr = [];
+                leadsFull = [];
+              }
+              isLoading = false;
+            });
           }
-        }
-      }
+        },
+        onError: (error) {
+          print("STREAM LISTEN ERROR: " + error);
+          setState(() {
+            isLoading = false;
+          });
+
+          Fluttertoast.showToast(
+              msg: "Failed to load leads for employee!",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.grey[600],
+              textColor: Colors.white,
+              fontSize: 16.0);
+        },
+      );
+
+      // if (result != null) {
+      //   if (!result.hasException) {
+      //     var leadsArrDecoded = result.data["v_lead"]
+
+      //     if (leadsArrDecoded != null) {
+      //       var leadsArr = List.from(leadsArrDecoded);
+      //       if (leadsArr.length > 0) {
+      //         setState(() {
+      //           isEmpty = false;
+      //           isLoading = false;
+      //           leads += leadsArr;
+      //           leadsFull += leadsArr;
+      //           pageNum++;
+      //         });
+      //       } else {
+      //         setState(() {
+      //           if (pageNum == 0) {
+      //             isEmpty = true;
+      //             leadsArr = [];
+      //             leadsFull = [];
+      //           }
+      //           isLoading = false;
+      //         });
+      //       }
+      //     }
+      //   }
+      // }
 
       setState(() {
         isLoading = false;
@@ -245,7 +259,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
   Future<void> searchLeads(searchString) async {
     setState(() {
       currentSearch = searchString;
-      pageNum = 1;
+      pageNum = 0;
       isSearching = true;
       leads = [];
       leadsFull = [];
@@ -256,7 +270,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
   Future<void> filterByEmployee(employeeId) async {
     setState(() {
       filterEmployee = employeeId;
-      pageNum = 1;
+      pageNum = 0;
       isFiltering = true;
       leads = [];
       leadsFull = [];
@@ -268,7 +282,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
     if (isFiltering) {
       setState(() {
         filterEmployee = "";
-        pageNum = 1;
+        pageNum = 0;
         isFiltering = false;
         leads = [];
         leadsFull = [];
@@ -280,7 +294,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
   Future<void> clearSearch() async {
     if (isSearching) {
       setState(() {
-        pageNum = 1;
+        pageNum = 0;
         currentSearch = "";
         isSearching = false;
         _searchController.clear();
@@ -380,7 +394,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
                             dropdownVal = newVal;
                             sortQuery = sortQueries[int.parse(dropdownVal)];
                             clearSearch();
-                            pageNum = 1;
+                            pageNum = 0;
                             leads = [];
                             leadsFull = [];
                             onScroll();
@@ -505,33 +519,25 @@ class _LeadsScreenState extends State<LeadsScreen> {
                     controller: _scrollController,
                     children: leads.map((lead) {
                       var employeeName;
-                      var nameIndex;
 
                       if (UserService.isAdmin) {
-                        nameIndex = employees.indexWhere(
-                            (e) => e["employee"] == lead["employee"]);
-                        if (nameIndex != -1) {
-                          employeeName = employees[nameIndex]["title"];
+                        if (lead["employeefullname"] != null) {
+                          employeeName = lead["employeefullname"];
                         } else {
                           employeeName = "Not Found";
                         }
                       }
-                      var fullName;
-                      var businessName;
-                      if (lead["document"]?.isEmpty ?? true) {
-                        fullName = "";
-                        businessName = "";
-                      } else {
-                        if (lead["document"]["firstName"] != null &&
-                            lead["document"]["lastName"] != null) {
-                          fullName = lead["document"]["firstName"] +
-                              " " +
-                              lead["document"]["lastName"];
-                        } else if (lead["document"]["firstName"] != null) {
-                          fullName = lead["document"]["firstName"];
-                        }
-                        businessName = lead["document"]["businessName"];
+                      var fullName = "";
+                      var businessName = "";
+
+                      if (lead["leadfirstname"] != null &&
+                          lead["leadlastname"] != null) {
+                        fullName =
+                            lead["leadfirstname"] + " " + lead["leadlastname"];
+                      } else if (lead["leadfirstname"] != null) {
+                        fullName = lead["leadfirstname"];
                       }
+                      businessName = lead["leadbusinessname"];
 
                       return GestureDetector(
                         onTap: () {
