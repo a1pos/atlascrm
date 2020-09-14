@@ -1,14 +1,15 @@
 import 'dart:async';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
+import 'package:atlascrm/services/UserService.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
-import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/components/shared/AddressSearch.dart';
 import 'package:atlascrm/components/shared/Notes.dart';
+import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
 import 'package:atlascrm/components/shared/ImageUploader.dart';
@@ -20,8 +21,6 @@ class LeadInfoEntry {
 }
 
 class ViewLeadScreen extends StatefulWidget {
-  final ApiService apiService = new ApiService();
-
   final String leadId;
 
   ViewLeadScreen(this.leadId);
@@ -124,7 +123,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
     final QueryResult result = await client.query(options);
 
     if (result.hasException == false) {
-      var body = result.data["lead"];
+      var body = result.data["lead_by_pk"];
       if (body != null) {
         var bodyDecoded = body;
 
@@ -178,29 +177,33 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
   Future<void> updateLead(leadId) async {
     String rawNumber = phoneNumberController.text;
     var filteredNumber = rawNumber.replaceAll(RegExp("[^0-9]"), "");
+    var updated = DateFormat('yyyy-MM-dd HH:mm:ss.mmm').format(DateTime.now());
 
-    MutationOptions mutateOptions = MutationOptions(
-      documentNode: gql("""
-       mutation{update_lead(
-          input:{
-            lead:"${this.widget.leadId}"
-	          document: {
-              dbaName: "${dbaController.text}"
-              city: "${businessAddress["city"]}"
-              state: "${businessAddress["state"]}"
-              address: "${businessAddress["address"]}"
-      	      zipCode: "${businessAddress["zipcode"]}"
-      	      emailAddr: "${emailAddrController.text}"
-              firstName: "${firstNameController.text}"
-              lastName: "${lastNameController.text}"
-              phoneNumber: "$filteredNumber"
-              businessName: "${businessNameController.text}"
-              leadSource: "${leadSourceController.text}"
-           }
+    Map data = {
+      "updated_at": updated,
+      "updated_by": UserService.employee.employee,
+      "document": {
+        "dbaName": "${dbaController.text}",
+        "city": "${businessAddress["city"]}",
+        "state": "${businessAddress["state"]}",
+        "address": "${businessAddress["address"]}",
+        "zipCode": "${businessAddress["zipcode"]}",
+        "emailAddr": "${emailAddrController.text}",
+        "firstName": "${firstNameController.text}",
+        "lastName": "${lastNameController.text}",
+        "phoneNumber": "$filteredNumber",
+        "businessName": "${businessNameController.text}",
+        "leadSource": "${leadSourceController.text}"
+      }
+    };
+
+    MutationOptions mutateOptions = MutationOptions(documentNode: gql("""
+        mutation UpdateLead (\$data: lead_set_input){
+          update_lead_by_pk(pk_columns: {lead: "$leadId"}, _set: \$data){
+            lead
           }
-        )}
-            """),
-    );
+        }
+      """), variables: {"data": data});
     final QueryResult result = await client.mutate(mutateOptions);
 
     if (result.hasException == false) {
@@ -248,8 +251,6 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
               child: Text('Delete',
                   style: TextStyle(fontSize: 17, color: Colors.red)),
               onPressed: () {
-                deleteLead(leadId);
-
                 Navigator.of(context).pop();
               },
             ),
@@ -257,33 +258,6 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
         );
       },
     );
-  }
-
-  Future<void> deleteLead(leadId) async {
-    var resp = await this
-        .widget
-        .apiService
-        .authDelete(context, "/lead/" + this.widget.leadId, null);
-
-    if (resp.statusCode == 200) {
-      Navigator.popAndPushNamed(context, "/leads");
-
-      Fluttertoast.showToast(
-          msg: "Successful delete!",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.grey[600],
-          textColor: Colors.white,
-          fontSize: 16.0);
-    } else {
-      Fluttertoast.showToast(
-          msg: "Failed to delete lead!",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.grey[600],
-          textColor: Colors.white,
-          fontSize: 16.0);
-    }
   }
 
   Future<void> popCheck() async {
@@ -637,12 +611,12 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                             ],
                           ),
                         ),
-                        ImageUploader(
-                            type: "statement",
-                            objectId: lead["lead"],
-                            loading: {"loading": isLoading},
-                            controller: leadSaveController,
-                            dirtyFlag: {"flag": statementDirty}),
+                        // ImageUploader(
+                        //     type: "statement",
+                        //     objectId: lead["lead"],
+                        //     loading: {"loading": isLoading},
+                        //     controller: leadSaveController,
+                        //     dirtyFlag: {"flag": statementDirty}),
                       ],
                     ),
                   ),
@@ -650,7 +624,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
               ),
         floatingActionButton: FloatingActionButton(
           onPressed: () async {
-            leadSaveController.methodA();
+            // leadSaveController.methodA();
             if (_leadFormKey.currentState.validate()) {
               updateLead(this.widget.leadId);
             }

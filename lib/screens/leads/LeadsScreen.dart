@@ -24,7 +24,6 @@ class LeadsScreen extends StatefulWidget {
 
 class _LeadsScreenState extends State<LeadsScreen> {
   var leads = [];
-  var leadsFull = [];
   var employees = [];
   var employeesFull = [];
   var columns = [];
@@ -43,9 +42,9 @@ class _LeadsScreenState extends State<LeadsScreen> {
   var sortQueries = [
     "updated_at: desc",
     "updated_at: asc",
-    "leadbusinessname: desc"
+    "leadbusinessname: asc"
   ];
-  var sortQuery = "updated_at: desc";
+  var sortQuery = "leadbusinessname: asc";
   ScrollController _scrollController = ScrollController();
   TextEditingController _searchController = TextEditingController();
 
@@ -71,14 +70,69 @@ class _LeadsScreenState extends State<LeadsScreen> {
     super.dispose();
   }
 
-  var initParams = "offset: 0, limit: 3, order_by: {updated_at: desc}";
+  var initParams = "offset: 0, limit: 10, order_by: {leadbusinessname: asc}";
   Future<void> initLeadsData() async {
     try {
       if (!UserService.isAdmin) {
         initParams =
-            'offset: 0, limit: 3, order_by: {updated_at: desc}, where: {employee: {_eq: "${UserService.employee.employee}"}}';
+            'offset: 0, limit: 10, order_by: {leadbusinessname: asc}, where: {employee: {_eq: "${UserService.employee.employee}"}}';
       }
       print(initParams);
+// Maybe add subs in eventually? --------
+      // Operation options =
+      //     Operation(operationName: "GetAllLeads", documentNode: gql("""
+      //     subscription GetAllLeads {
+      //       v_lead($initParams) {
+      //         lead
+      //         updated_at
+      //         employee
+      //         employeefullname
+      //         leadbusinessname
+      //         leadfirstname
+      //         leadlastname
+      //       }
+      //     }
+      //       """));
+
+      // var result = wsClient.subscribe(options);
+      // result.listen(
+      //   (data) async {
+      //     var leadsArrDecoded = data.data["v_lead"];
+      //     if (leadsArrDecoded != null) {
+      //       var leadsArr = List.from(leadsArrDecoded);
+      //       if (leadsArr.length > 0) {
+      //         setState(() {
+      //           isEmpty = false;
+      //           isLoading = false;
+      //           leads += leadsArr;
+      //           pageNum++;
+      //         });
+      //       }
+      //     } else {
+      //       setState(() {
+      //         if (pageNum == 1) {
+      //           isEmpty = true;
+      //           // leadsArr = [];
+      //         }
+      //       });
+      //     }
+      //   },
+      //   onError: (error) {
+      //     print("STREAM LISTEN ERROR: " + error);
+      //     setState(() {
+      //       isLoading = false;
+      //     });
+
+      //     Fluttertoast.showToast(
+      //         msg: "Failed to load leads for employee!",
+      //         toastLength: Toast.LENGTH_SHORT,
+      //         gravity: ToastGravity.BOTTOM,
+      //         backgroundColor: Colors.grey[600],
+      //         textColor: Colors.white,
+      //         fontSize: 16.0);
+      //   },
+      // );
+
       QueryOptions options = QueryOptions(documentNode: gql("""
           query GetAllLeads {
             v_lead($initParams) {
@@ -91,7 +145,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
               leadlastname
             }
           }
-      """));
+      """), fetchPolicy: FetchPolicy.networkOnly);
 
       final QueryResult result = await client.query(options);
 
@@ -105,7 +159,6 @@ class _LeadsScreenState extends State<LeadsScreen> {
                 isEmpty = false;
                 isLoading = false;
                 leads += leadsArr;
-                leadsFull += leadsArr;
                 pageNum++;
               });
             } else {
@@ -113,12 +166,19 @@ class _LeadsScreenState extends State<LeadsScreen> {
                 if (pageNum == 1) {
                   isEmpty = true;
                   leadsArr = [];
-                  leadsFull = [];
                 }
                 isLoading = false;
               });
             }
           }
+        } else {
+          Fluttertoast.showToast(
+              msg: result.exception.toString(),
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.grey[600],
+              textColor: Colors.white,
+              fontSize: 16.0);
         }
       }
       setState(() {
@@ -134,8 +194,8 @@ class _LeadsScreenState extends State<LeadsScreen> {
 
   Future<void> onScroll() async {
     try {
-      var offsetAmount = pageNum * 3;
-      var limitAmount = 3;
+      var offsetAmount = pageNum * 10;
+      var limitAmount = 10;
       var params;
       var searchParams =
           '	_or: [{leadbusinessname: {_ilike: "%$currentSearch%"}}, {employeefullname: {_ilike: "%$currentSearch%"}}, {leademailaddress: {_ilike: "%$currentSearch%"}}, {leadfirstname: {_ilike: "%$currentSearch%"}}, {leadlastname: {_ilike: "%$currentSearch%"}}, {leaddbaname: {_ilike: "%$currentSearch%"}}, {leadphonenumber: {_ilike: "%$currentSearch%"}},]';
@@ -162,9 +222,75 @@ class _LeadsScreenState extends State<LeadsScreen> {
             'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "${UserService.employee.employee}"}';
       }
 
-      Operation options =
-          Operation(operationName: "GetAllLeads", documentNode: gql("""
-          subscription GetAllLeads {
+      // Operation options =
+      //     Operation(operationName: "GetAllLeads", documentNode: gql("""
+      //     subscription GetAllLeads {
+      //       v_lead($params) {
+      //         lead
+      //         updated_at
+      //         employee
+      //         employeefullname
+      //         leadbusinessname
+      //         leadfirstname
+      //         leadlastname
+      //       }
+      //     }
+      //       """));
+
+      // var result = wsClient.subscribe(options);
+
+      // result.listen(
+      //   (data) async {
+      //     var leadsArrDecoded = data.data["v_lead"];
+      //     if (leadsArrDecoded != null) {
+      //       var leadsArr = List.from(leadsArrDecoded);
+      //       if (leadsArr.length > 0) {
+      //         setState(() {
+      //           for (var incLead in leadsArr) {
+      //             for (var currentLead in leads) {
+      //               if (incLead["lead"] == currentLead["lead"]) {
+      //                 var oldIndex = leads.indexOf(currentLead);
+      //                 leads[oldIndex] = incLead;
+      //                 var newIndex = leadsArr.indexOf(incLead);
+      //                 leadsArr.removeAt(newIndex);
+      //               }
+      //             }
+      //           }
+      //           isEmpty = false;
+      //           isLoading = false;
+      //           leads += leadsArr;
+      //           pageNum++;
+      //         });
+      //       }
+      //       isLoading = false;
+      //     } else {
+      //       setState(() {
+      //         if (pageNum == 1) {
+      //           isEmpty = true;
+      //           // leadsArr = [];
+      //         }
+      //         isLoading = false;
+      //       });
+      //     }
+      //   },
+      //   onError: (error) {
+      //     print("STREAM LISTEN ERROR: " + error);
+      //     setState(() {
+      //       isLoading = false;
+      //     });
+
+      //     Fluttertoast.showToast(
+      //         msg: "Failed to load leads for employee!",
+      //         toastLength: Toast.LENGTH_SHORT,
+      //         gravity: ToastGravity.BOTTOM,
+      //         backgroundColor: Colors.grey[600],
+      //         textColor: Colors.white,
+      //         fontSize: 16.0);
+      //   },
+      // );
+
+      QueryOptions options = QueryOptions(documentNode: gql("""
+          query GetAllLeads {
             v_lead($params) {
               lead
               updated_at
@@ -175,12 +301,13 @@ class _LeadsScreenState extends State<LeadsScreen> {
               leadlastname
             }
           }
-            """));
+      """), fetchPolicy: FetchPolicy.networkOnly);
 
-      var result = wsClient.subscribe(options);
-      result.listen(
-        (data) async {
-          var leadsArrDecoded = data.data["v_lead"];
+      final QueryResult result = await client.query(options);
+
+      if (result != null) {
+        if (result.hasException == false) {
+          var leadsArrDecoded = result.data["v_lead"];
           if (leadsArrDecoded != null) {
             var leadsArr = List.from(leadsArrDecoded);
             if (leadsArr.length > 0) {
@@ -188,65 +315,20 @@ class _LeadsScreenState extends State<LeadsScreen> {
                 isEmpty = false;
                 isLoading = false;
                 leads += leadsArr;
-                leadsFull += leadsArr;
                 pageNum++;
               });
+            } else {
+              setState(() {
+                if (pageNum == 1) {
+                  isEmpty = true;
+                  leadsArr = [];
+                }
+                isLoading = false;
+              });
             }
-            isLoading = false;
-          } else {
-            setState(() {
-              if (pageNum == 0) {
-                isEmpty = true;
-                // leadsArr = [];
-                leadsFull = [];
-              }
-              isLoading = false;
-            });
           }
-        },
-        onError: (error) {
-          print("STREAM LISTEN ERROR: " + error);
-          setState(() {
-            isLoading = false;
-          });
-
-          Fluttertoast.showToast(
-              msg: "Failed to load leads for employee!",
-              toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.grey[600],
-              textColor: Colors.white,
-              fontSize: 16.0);
-        },
-      );
-
-      // if (result != null) {
-      //   if (!result.hasException) {
-      //     var leadsArrDecoded = result.data["v_lead"]
-
-      //     if (leadsArrDecoded != null) {
-      //       var leadsArr = List.from(leadsArrDecoded);
-      //       if (leadsArr.length > 0) {
-      //         setState(() {
-      //           isEmpty = false;
-      //           isLoading = false;
-      //           leads += leadsArr;
-      //           leadsFull += leadsArr;
-      //           pageNum++;
-      //         });
-      //       } else {
-      //         setState(() {
-      //           if (pageNum == 0) {
-      //             isEmpty = true;
-      //             leadsArr = [];
-      //             leadsFull = [];
-      //           }
-      //           isLoading = false;
-      //         });
-      //       }
-      //     }
-      //   }
-      // }
+        }
+      }
 
       setState(() {
         isLoading = false;
@@ -262,7 +344,6 @@ class _LeadsScreenState extends State<LeadsScreen> {
       pageNum = 0;
       isSearching = true;
       leads = [];
-      leadsFull = [];
       onScroll();
     });
   }
@@ -273,7 +354,6 @@ class _LeadsScreenState extends State<LeadsScreen> {
       pageNum = 0;
       isFiltering = true;
       leads = [];
-      leadsFull = [];
       onScroll();
     });
   }
@@ -285,7 +365,6 @@ class _LeadsScreenState extends State<LeadsScreen> {
         pageNum = 0;
         isFiltering = false;
         leads = [];
-        leadsFull = [];
       });
       onScroll();
     }
@@ -299,7 +378,6 @@ class _LeadsScreenState extends State<LeadsScreen> {
         isSearching = false;
         _searchController.clear();
         leads = [];
-        leadsFull = [];
       });
       onScroll();
     }
@@ -396,7 +474,6 @@ class _LeadsScreenState extends State<LeadsScreen> {
                             clearSearch();
                             pageNum = 0;
                             leads = [];
-                            leadsFull = [];
                             onScroll();
                           });
                         })),
@@ -537,7 +614,9 @@ class _LeadsScreenState extends State<LeadsScreen> {
                       } else if (lead["leadfirstname"] != null) {
                         fullName = lead["leadfirstname"];
                       }
-                      businessName = lead["leadbusinessname"];
+                      if (lead["leadbusinessname"] != null) {
+                        businessName = lead["leadbusinessname"];
+                      }
 
                       return GestureDetector(
                         onTap: () {

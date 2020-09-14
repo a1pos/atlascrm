@@ -7,15 +7,12 @@ import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CustomDrawer.dart';
 import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
-import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 
 class MerchantsScreen extends StatefulWidget {
-  final ApiService apiService = new ApiService();
-
   @override
   _MerchantsScreenState createState() => _MerchantsScreenState();
 }
@@ -136,49 +133,49 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
   }
 
   Future<void> onScroll() async {
-    try {
-      var endpoint;
-      if (isSearching) {
-        endpoint =
-            "/merchant?searchString=$currentSearch&page=$pageNum&size=10";
-      } else {
-        endpoint = "/merchant?page=$pageNum&size=10";
-      }
+    // try {
+    //   var endpoint;
+    //   if (isSearching) {
+    //     endpoint =
+    //         "/merchant?searchString=$currentSearch&page=$pageNum&size=10";
+    //   } else {
+    //     endpoint = "/merchant?page=$pageNum&size=10";
+    //   }
 
-      var resp = await this.widget.apiService.authGet(context, endpoint);
-      if (resp != null) {
-        if (resp.statusCode == 200) {
-          var merchantsArrDecoded = resp.data["data"];
-          if (merchantsArrDecoded != null) {
-            var merchantsArr = List.from(merchantsArrDecoded);
-            if (merchantsArr.length > 0) {
-              setState(() {
-                isEmpty = false;
-                isLoading = false;
-                merchants += merchantsArr;
-                merchantsFull += merchantsArr;
-                pageNum++;
-              });
-            } else {
-              setState(() {
-                if (pageNum == 1) {
-                  isEmpty = true;
-                  merchantsArr = [];
-                  merchantsFull = [];
-                }
-                isLoading = false;
-              });
-            }
-          }
-        }
-      }
+    //   var resp = await this.widget.apiService.authGet(context, endpoint);
+    //   if (resp != null) {
+    //     if (resp.statusCode == 200) {
+    //       var merchantsArrDecoded = resp.data["data"];
+    //       if (merchantsArrDecoded != null) {
+    //         var merchantsArr = List.from(merchantsArrDecoded);
+    //         if (merchantsArr.length > 0) {
+    //           setState(() {
+    //             isEmpty = false;
+    //             isLoading = false;
+    //             merchants += merchantsArr;
+    //             merchantsFull += merchantsArr;
+    //             pageNum++;
+    //           });
+    //         } else {
+    //           setState(() {
+    //             if (pageNum == 1) {
+    //               isEmpty = true;
+    //               merchantsArr = [];
+    //               merchantsFull = [];
+    //             }
+    //             isLoading = false;
+    //           });
+    //         }
+    //       }
+    //     }
+    //   }
 
-      setState(() {
-        isLoading = false;
-      });
-    } catch (err) {
-      log(err);
-    }
+    //   setState(() {
+    //     isLoading = false;
+    //   });
+    // } catch (err) {
+    //   log(err);
+    // }
   }
 
   Future<void> searchMerchants(searchString) async {
@@ -216,35 +213,35 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
   }
 
   Future<void> initEmployeeData() async {
-    try {
-      var endpoint = "/employee";
-      var resp = await this.widget.apiService.authGet(context, endpoint);
-      if (resp != null) {
-        if (resp.statusCode == 200) {
-          var employeesArrDecoded = resp.data;
-          if (employeesArrDecoded != null) {
-            var employeesArr = List.from(employeesArrDecoded);
-            if (employeesArr.length > 0) {
-              setState(() {
-                employees = employeesArr;
-                employeesFull = employeesArr;
-              });
-            } else {
-              setState(() {
-                employeesArr = [];
-                employeesFull = [];
-              });
-            }
-          }
-        }
-      }
+    // try {
+    //   var endpoint = "/employee";
+    //   var resp = await this.widget.apiService.authGet(context, endpoint);
+    //   if (resp != null) {
+    //     if (resp.statusCode == 200) {
+    //       var employeesArrDecoded = resp.data;
+    //       if (employeesArrDecoded != null) {
+    //         var employeesArr = List.from(employeesArrDecoded);
+    //         if (employeesArr.length > 0) {
+    //           setState(() {
+    //             employees = employeesArr;
+    //             employeesFull = employeesArr;
+    //           });
+    //         } else {
+    //           setState(() {
+    //             employeesArr = [];
+    //             employeesFull = [];
+    //           });
+    //         }
+    //       }
+    //     }
+    //   }
 
-      setState(() {
-        isLoading = false;
-      });
-    } catch (err) {
-      log(err);
-    }
+    //   setState(() {
+    //     isLoading = false;
+    //   });
+    // } catch (err) {
+    //   log(err);
+    // }
   }
 
   void openMerchant(merchant) {

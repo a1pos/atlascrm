@@ -1,5 +1,8 @@
+import 'package:atlascrm/services/UserService.dart';
+import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
 import 'package:atlascrm/services/ApiService.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
 import 'dart:async';
 import 'package:intl/intl.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
@@ -31,6 +34,7 @@ class _NotesState extends State<Notes> {
   @override
   void initState() {
     super.initState();
+    notesController.clear();
     loadNotes(this.widget.object, this.widget.type);
     _focus.addListener(_onFocusChange);
   }
@@ -44,39 +48,94 @@ class _NotesState extends State<Notes> {
 
   Future<void> loadNotes(objectId, type) async {
     notesController.clear();
-    var resp = await this
-        .widget
-        .apiService
-        .authGet(context, "/" + type + "/" + objectId + "/note");
 
-    if (resp.statusCode == 200) {
-      var body = resp.data;
-      if (body != null) {
-        var bodyDecoded = body;
-        if (this.mounted) {
-          setState(() {
-            notes = bodyDecoded.toList();
-            notesEmpty = false;
-          });
+    Operation options =
+        Operation(operationName: "LeadNotes", documentNode: gql("""
+          subscription LeadNotes(\$lead: uuid) {
+            lead_note(where: {lead: {_eq: \$lead}}){
+              lead_note
+              note_text
+              created_at
+            }
+          }
+    """), variables: {"lead": "$objectId"});
+    var result = client.subscribe(options);
+    result.listen(
+      (data) async {
+        var notesArrDecoded = data.data["lead_note"];
+        if (notesArrDecoded != null) {
+          if (this.mounted) {
+            setState(() {
+              notes = notesArrDecoded.toList();
+              notesEmpty = false;
+            });
+          }
         }
-      }
-    }
+      },
+      onError: (error) {
+        print(error);
+
+        Fluttertoast.showToast(
+            msg: "Failed to load Notes!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0);
+      },
+    );
+
+    // var resp = await this
+    //     .widget
+    //     .apiService
+    //     .authGet(context, "/" + type + "/" + objectId + "/note");
+
+    // if (resp.statusCode == 200) {
+    //   var body = resp.data;
+    //   if (body != null) {
+    //     var bodyDecoded = body;
+    //     if (this.mounted) {
+    //       setState(() {
+    //         notes = bodyDecoded.toList();
+    //         notesEmpty = false;
+    //       });
+    //     }
+    //   }
+    // }
   }
 
   Future<void> saveNote({type, object, newNote}) async {
-    var sendNote = {"text": newNote};
-    var resp = await this
-        .widget
-        .apiService
-        .authPost(context, "/" + type + "/" + object + "/note", sendNote);
+    var created = DateFormat('yyyy-MM-dd HH:mm:ss.mmm').format(DateTime.now());
 
-    if (resp.statusCode == 200) {
-      var body = resp.data;
-      if (body != null) {
-        setState(() {
-          loadNotes(object, type);
-        });
+    var sendNote = {
+      "lead": this.widget.object,
+      "note_text": newNote,
+      "created_by": UserService.employee.employee,
+      "created_at": created,
+      "updated_by": UserService.employee.employee,
+      "updated_at": created,
+    };
+    // var resp = await this
+    //     .widget
+    //     .apiService
+    //     .authPost(context, "/" + type + "/" + object + "/note", sendNote);
+    MutationOptions mutateOptions = MutationOptions(documentNode: gql("""
+      mutation InsertLeadNote (\$objects: [lead_note_insert_input!]!){
+        insert_lead_note(objects: \$objects) {
+          returning {
+            lead_note
+          }
+        }
       }
+      """), variables: {"objects": sendNote});
+    final QueryResult result = await client.mutate(mutateOptions);
+    if (result.hasException == false) {
+      var body = result.data;
+      // if (body != null) {
+      //   setState(() {
+      //     loadNotes(object, type);
+      //   });
+      // }
     }
   }
 
@@ -155,7 +214,9 @@ class _NotesState extends State<Notes> {
                     child: Card(
                         child: Container(
                             child: ListTile(
-                                title: Text(note["note_text"]),
+                                title: note["note_text"] != null
+                                    ? Text(note["note_text"])
+                                    : Text(""),
                                 subtitle: Text(viewDate,
                                     style: TextStyle(
                                         color: Colors.grey, fontSize: 10))))),

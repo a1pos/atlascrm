@@ -1,6 +1,5 @@
 import 'dart:developer';
 import 'dart:convert';
-import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
@@ -15,7 +14,6 @@ import 'package:intl/intl.dart';
 
 class LeadStepper extends StatefulWidget {
   final Function successCallback;
-  final ApiService apiService = new ApiService();
   LeadStepper({this.successCallback});
 
   @override
@@ -33,11 +31,10 @@ class LeadStepperState extends State<LeadStepper> {
   final _stepperKey = GlobalKey<FormState>();
   bool isSaveDisabled;
   bool isAddress = false;
-  bool isLoading = true;
+  bool isLoading = false;
   // var leads;
 
   final UserService userService = new UserService();
-  final ApiService apiService = new ApiService();
 
   var firstNameController = new TextEditingController();
   var lastNameController = new TextEditingController();
@@ -65,21 +62,29 @@ class LeadStepperState extends State<LeadStepper> {
   }
 
   Future<void> addressCheck(addressObj) async {
-    var address = Uri.encodeComponent(addressObj["address"]["address"]);
-    var zip = Uri.encodeComponent(addressObj["address"]["zipcode"]);
-    var shortAddress =
-        Uri.encodeComponent(addressObj["shortaddress"]["address"]);
-
+    // var address = Uri.encodeComponent(addressObj["address"]["address"]);
+    var address = addressObj["address"]["address"];
+    // var zip = Uri.encodeComponent(addressObj["address"]["zipcode"]);
+    // var shortAddress =
+    // Uri.encodeComponent(addressObj["shortaddress"]["address"]);
+    var businessName = addressObj["place"].name;
+    print(businessName);
     try {
-      var endpoint = "/lead/address?address=$address&zipCode=$zip";
-      var resp = await this.widget.apiService.authGet(context, endpoint);
+      QueryOptions options = QueryOptions(documentNode: gql("""
+query CheckLeadAddress {
+  lead(where: {document: {_contains: {address: "$address"}}, _and: {document: {_contains: {businessName: "$businessName"}}}}) {
+    lead
+    document
+  }
+}
 
-      var endpoint2 = "/lead/address?address=$shortAddress&zipCode=$zip";
-      var resp2 = await this.widget.apiService.authGet(context, endpoint2);
+      """), fetchPolicy: FetchPolicy.networkOnly);
 
-      if (resp != null || resp2 != null) {
-        if (resp.statusCode == 200 || resp2.statusCode == 200) {
-          if (resp.data["data"].length > 0 || resp2.data["data"].length > 0) {
+      final QueryResult result = await client.query(options);
+
+      if (result != null) {
+        if (result.hasException == false) {
+          if (result.data["lead"].length > 0) {
             setState(() {
               isAddress = false;
               businessNameController.clear();
@@ -145,7 +150,7 @@ class LeadStepperState extends State<LeadStepper> {
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text('A lead already exists at this address!'),
+                Text('A lead with this name already exists at this address!'),
               ],
             ),
           ),
@@ -192,7 +197,7 @@ class LeadStepperState extends State<LeadStepper> {
       String rawNumber = phoneNumberController.text;
       var filteredNumber = rawNumber.replaceAll(RegExp("[^0-9]"), "");
       var created =
-          DateFormat('yyyy-MM-dd HH:mm:ss.mmmuu').format(DateTime.now());
+          DateFormat('yyyy-MM-dd HH:mm:ss.mmm').format(DateTime.now());
       var lead = {
         "employee": UserService.employee.employee,
         "is_active": true,
