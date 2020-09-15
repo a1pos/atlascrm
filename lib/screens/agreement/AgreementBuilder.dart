@@ -1077,7 +1077,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
               },
               "Pricing": {
                 "BundledPricingType": "1",
-                "DiscountMethod": "3",
+                "DiscountMethod": "2",
                 "StatementInterchangePrintOption": "1",
                 "BundleOption": "0",
                 "EnablePinDebitCard": "true",
