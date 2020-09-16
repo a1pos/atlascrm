@@ -9,10 +9,15 @@ class Pricing extends StatefulWidget {
   final bool finalValidation;
   final Map rateReview;
   final bool pricingDone;
+  final bool submitActive;
   final Function callback;
 
   Pricing(
-      {this.finalValidation, this.rateReview, this.pricingDone, this.callback});
+      {this.finalValidation,
+      this.rateReview,
+      this.pricingDone,
+      this.callback,
+      this.submitActive});
 
   @override
   PricingState createState() => PricingState();
@@ -623,11 +628,13 @@ class PricingState extends State<Pricing> {
               padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
               child: FlatButton(
                 color: this.widget.finalValidation == true &&
-                        this.widget.pricingDone == true
+                        this.widget.pricingDone == true &&
+                        this.widget.submitActive == true
                     ? Color.fromARGB(500, 1, 224, 143)
                     : Colors.grey,
                 onPressed: this.widget.finalValidation == true &&
-                        this.widget.pricingDone == true
+                        this.widget.pricingDone == true &&
+                        this.widget.submitActive == true
                     ? this.widget.callback
                     : () {
                         return null;

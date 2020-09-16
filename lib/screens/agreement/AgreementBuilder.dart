@@ -26,6 +26,7 @@ class AgreementBuilder extends StatefulWidget {
   AgreementBuilderState createState() => AgreementBuilderState();
 }
 
+var mpaID;
 Map isDirtyStatus = {};
 Map docsAttached = {};
 // Map validatorPayload = {
@@ -326,6 +327,8 @@ class AgreementBuilderState extends State<AgreementBuilder>
   var agreementBuilderStatus;
   bool allStepsComplete = false;
   bool pricingDone = false;
+  bool submitActive = true;
+
   Map seasonalMerchant = {"seasonalMerchant": false};
   var loadText;
 
@@ -378,6 +381,10 @@ class AgreementBuilderState extends State<AgreementBuilder>
       errorArr = resultObj["Errors"]["MerchantError"];
     } else {
       _controllerTopCenter.play();
+      setState(() {
+        mpaID = resultObj["ASRefId"];
+      });
+      updateAgreement(agreementBuilderObj["agreement_builder"]);
     }
     showDialog(
       context: context,
@@ -1185,6 +1192,9 @@ class AgreementBuilderState extends State<AgreementBuilder>
   }
 
   Future<void> updateAgreement(agreementBuilderId, {isSubmit}) async {
+    if (mpaID != null) {
+      agreementBuilderObj["document"]["mpaID"] = mpaID;
+    }
     if (agreementBuilderObj["document"]["agreement_builder"] == null) {
       agreementBuilderObj["document"]["agreement_builder"] = agreementBuilderId;
     }
@@ -1215,7 +1225,9 @@ class AgreementBuilderState extends State<AgreementBuilder>
 
     if (resp.statusCode == 200) {
       await loadAgreementData(this.widget.leadId);
-
+      setState(() {
+        mpaID = null;
+      });
       Fluttertoast.showToast(
           msg: "Agreement Builder Saved!",
           toastLength: Toast.LENGTH_SHORT,
@@ -1645,7 +1657,11 @@ class AgreementBuilderState extends State<AgreementBuilder>
                         finalValidation: allStepsComplete,
                         rateReview: rateReview,
                         pricingDone: pricingDone,
+                        submitActive: submitActive,
                         callback: () async {
+                          setState(() {
+                            submitActive = false;
+                          });
                           isDirtyStatus["ownersIsDirty"] = true;
                           await updateAgreement(
                               agreementBuilderObj["agreement_builder"],
