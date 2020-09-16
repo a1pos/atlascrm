@@ -22,7 +22,8 @@ class _CustomDrawerState extends State<CustomDrawer> {
 
   @override
   Widget build(BuildContext context) {
-    var employeeImage = Image.network(UserService.employee.document["picture"]);
+    var employeeImage =
+        Image.network(UserService.employee.document["photoURL"]);
 
     return Drawer(
       child: Container(

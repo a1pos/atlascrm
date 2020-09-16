@@ -4,12 +4,12 @@ class ConfigSettings {
   static String API_URL =
       // kReleaseMode
       //     ?
-      // "https://butlerbizsys.com/api/v1/"
+      // "https://atlascrm.us/api/v1/"
       // :
       "http://192.168.1.45:3002/api/v1/";
   // static String WS_URL =
   //     // kReleaseMode ?
-  //     //"wss://butlerbizsys.com"
+  //     //"wss://atlascrm.us"
   //     // :
   //     "ws://192.168.1.45:3002";
 

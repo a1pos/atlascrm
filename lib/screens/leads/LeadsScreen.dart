@@ -319,7 +319,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
               });
             } else {
               setState(() {
-                if (pageNum == 1) {
+                if (pageNum == 0) {
                   isEmpty = true;
                   leadsArr = [];
                 }
