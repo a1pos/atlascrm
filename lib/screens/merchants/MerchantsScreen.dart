@@ -72,7 +72,6 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
         initParams =
             'offset: 0, limit: 10, order_by: {merchantbusinessname: asc}';
       }
-      print(initParams);
 // Maybe add subs in eventually? --------
       // Operation options =
       //     Operation(operationName: "GetAllMerchants", documentNode: gql("""

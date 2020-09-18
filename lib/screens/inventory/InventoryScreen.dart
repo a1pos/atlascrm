@@ -148,7 +148,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
       if (isSearching) {
         params =
-            'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {serial: {_eq: "%$currentSearch%"}}';
+            'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {serial: {_eq: "$currentSearch"}}';
       }
       if (isFiltering) {
         params =
@@ -156,16 +156,13 @@ class _InventoryScreenState extends State<InventoryScreen> {
       }
       if (isLocFiltering) {
         params =
-            'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {inventory_location: {_eq: "$filterLocation"}, _and:{_eq: ""}}';
+            'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {inventory_location: {_eq: "$filterLocation"}}';
       }
 
-      // if (isSearching && isFiltering) {
-      //   params =
-      //       'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "$filterEmployee"}, $searchParams}';
-      // }
-      // if (isSearching && isLocFiltering) {}
-      if (isFiltering && isLocFiltering) {}
-      // if (isSearching && isFiltering && isLocFiltering) {}
+      if (isLocFiltering && isFiltering) {
+        params =
+            'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "$filterEmployee"}, _and: {inventory_location: {_eq: "$filterLocation"}}}';
+      }
 
       QueryOptions options = QueryOptions(documentNode: gql("""
         query Inventory {
@@ -332,7 +329,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
   Future<void> searchInventory(searchString) async {
     setState(() {
       currentSearch = searchString;
-      pageNum = 1;
+      pageNum = 0;
       isSearching = true;
       inventory = [];
       inventoryFull = [];
@@ -343,7 +340,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
   Future<void> filterByEmployee(employeeId) async {
     setState(() {
       filterEmployee = employeeId;
-      pageNum = 1;
+      pageNum = 0;
       isFiltering = true;
       inventory = [];
       inventoryFull = [];
@@ -355,7 +352,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
     setState(() {
       locationSearch = locItem["name"];
       filterLocation = locItem["location"];
-      pageNum = 1;
+      pageNum = 0;
       isLocFiltering = true;
       inventory = [];
       inventoryFull = [];
@@ -367,7 +364,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
   Future<void> clearLocFilter() async {
     if (isLocFiltering) {
       setState(() {
-        pageNum = 1;
+        pageNum = 0;
         locationSearch = "All Inventory";
         filterLocation = "";
         isLocFiltering = false;
@@ -382,7 +379,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
     if (isFiltering) {
       setState(() {
         filterEmployee = "";
-        pageNum = 1;
+        pageNum = 0;
         isFiltering = false;
         inventory = [];
         inventoryFull = [];
@@ -393,7 +390,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
   Future<void> clearSearch() async {
     setState(() {
-      pageNum = 1;
+      pageNum = 0;
       currentSearch = "";
       isSearching = false;
       _searchController.clear();

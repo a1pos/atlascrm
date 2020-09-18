@@ -41,6 +41,8 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
     loadInventoryData();
   }
 
+  var employee;
+
   var childButtons = List<UnicornButton>();
   Future<void> initStatus() async {
     if (inventory["is_installed"] == true) {
@@ -144,6 +146,16 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
                 ["Outlet"]["BusinessInfo"]["IrsName"];
           } else {
             merchantController.text = null;
+          }
+
+          if (inventory["employeeByEmployee"] != null) {
+            if (inventory["employeeByEmployee"]["document"]["displayName"] !=
+                null) {
+              setState(() {
+                employee =
+                    inventory["employeeByEmployee"]["document"]["displayName"];
+              });
+            }
           }
 
           isLoading = false;
@@ -413,10 +425,7 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
                                       ["name"]),
                               showInfoRow(
                                   "Current Merchant", merchantController.text),
-                              showInfoRow(
-                                  "Current Employee",
-                                  inventory["employeeByEmployee"]["document"]
-                                      ["displayName"]),
+                              showInfoRow("Current Employee", employee),
                               Divider(),
                               Row(
                                 children: <Widget>[

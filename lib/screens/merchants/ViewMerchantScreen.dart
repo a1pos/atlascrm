@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
+import 'package:atlascrm/components/shared/Empty.dart';
+import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -44,6 +47,7 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
   var merchant;
   var merchantDocument;
   var isLoading = true;
+  var devicesLoading = false;
   var displayPhone;
   var devices = [];
 
@@ -82,9 +86,53 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
       }
     }
 
-    setState(() {
-      isLoading = false;
-    });
+    // setState(() {
+    //   isLoading = false;
+    // });
+
+    Operation deviceOptions =
+        Operation(operationName: "MerchantDevices", documentNode: gql("""
+          subscription MerchantDevices(\$merchant: uuid!) {
+            inventory(where: {merchant: {_eq: \$merchant}}){
+              serial
+              inventory
+              is_installed
+              employee
+              merchant
+              document
+              priceTier:inventoryPriceTierByInventoryPriceTier{
+                model
+              }
+            }
+          }
+            """), variables: {"merchant": "${this.widget.merchantId}"});
+
+    var result2 = wsClient.subscribe(deviceOptions);
+    result2.listen(
+      (data) async {
+        var devicesArrDecoded = data.data["inventory"];
+        if (devicesArrDecoded != null) {
+          setState(() {
+            devices = devicesArrDecoded;
+          });
+        }
+        isLoading = false;
+      },
+      onError: (error) {
+        print("STREAM LISTEN ERROR: " + error);
+        setState(() {
+          isLoading = false;
+        });
+
+        Fluttertoast.showToast(
+            msg: "Failed to load devices for employee!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0);
+      },
+    );
 
     // var resp2 = await this
     //     .widget
@@ -103,9 +151,9 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
     //   }
     // }
 
-    setState(() {
-      isLoading = false;
-    });
+    // setState(() {
+    //   isLoading = false;
+    // });
   }
 
   Future<void> updateMerchant(merchantId) async {
@@ -235,7 +283,7 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
               },
               child: Card(
                   child: ListTile(
-                      title: Text(device["model"]),
+                      title: Text(device["priceTier"]["model"]),
                       subtitle: Text(device["serial"]),
                       trailing: Icon(deviceIcon))));
         }));
@@ -390,7 +438,13 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                           icon: Icons.devices,
                           title: "Devices",
                           child: Column(
-                            children: <Widget>[buildList()],
+                            children: <Widget>[
+                              devicesLoading
+                                  ? CenteredLoadingSpinner()
+                                  : devices.length > 0
+                                      ? buildList()
+                                      : Empty("No Devices Found")
+                            ],
                           ),
                         ),
                         CustomCard(

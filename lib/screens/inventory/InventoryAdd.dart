@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'package:atlascrm/services/UserService.dart';
+import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter/foundation.dart';
@@ -8,6 +9,7 @@ import 'package:flutter_masked_text/flutter_masked_text.dart';
 import 'package:barcode_scan/barcode_scan.dart';
 import 'package:atlascrm/components/inventory/InventoryLocationDropDown.dart';
 import 'package:atlascrm/components/inventory/InventoryPriceTierDropDown.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
 
 class InventoryAdd extends StatefulWidget {
   InventoryAdd();
@@ -37,6 +39,7 @@ class InventoryAddState extends State<InventoryAdd> {
   var serialNumberController = TextEditingController();
   var priceTierController = TextEditingController();
   var locationController = TextEditingController();
+  var locationNameController = TextEditingController();
 
   var _currentStep = 0;
   var stepsLength = 2;
@@ -62,11 +65,26 @@ class InventoryAddState extends State<InventoryAdd> {
       }
     }
     if (isMac == false && isListed == false) {
+      // var currentTimestamp = DateTime.now().millisecondsSinceEpoch;
+      // print(currentTimestamp);
       setState(() {
         serialList.add({
           "inventory_price_tier": priceTierController.text,
           "inventory_location": locationController.text,
-          "serial": input
+          "serial": input,
+          "document": {
+            "history": [
+              {
+                // "date": currentTimestamp,
+                "employee": UserService.employee.employee,
+                "location": locationController.text,
+                "merchant": false,
+                "description": "add",
+                "employeeName": UserService.employee.document["displayName"],
+                "locationName": locationNameController.text
+              }
+            ]
+          }
         });
       });
     } else {
@@ -122,99 +140,70 @@ class InventoryAddState extends State<InventoryAdd> {
             fontSize: 16.0);
         return null;
       }
-      var data = serialList;
       bool cleanPost = true;
-      var resp1;
-      //REPLACE WITH GRAPHQL
-      // var resp1 = await this.widget.apiService.authPost(
-      //     context, "/inventory/${UserService.employee.employee}", data);
-      if (resp1 != null) {
-        if (resp1.statusCode == 200) {
-          if (resp1.data.length > 0) {
-            print(resp1.data);
+      for (var device in serialList) {
+        var data = device;
+        var currentTimestamp = DateTime.now().millisecondsSinceEpoch;
+        device["document"]["history"][0]["date"] = currentTimestamp;
 
-            for (var device in serialList) {
-              bool contains = resp1.data.contains(device["serial"]);
-              if (contains) {
-                setState(() {
-                  device["added"] = "false";
-                  cleanPost = false;
-                });
-              } else {
-                setState(() {
-                  device["added"] = "true";
-                });
-              }
-            }
-            print(serialList);
-          } else {
-            for (var device in serialList) {
-              setState(() {
-                device["added"] = "true";
-              });
-              print(serialList);
-            }
+        MutationOptions options = MutationOptions(documentNode: gql("""
+        mutation InsertDevices (\$objects: [inventory_insert_input!]!) {
+          insert_inventory(objects: \$objects){
+            affected_rows
           }
-          cleanPost
-              ? Fluttertoast.showToast(
-                  msg: "Devices Added!",
-                  toastLength: Toast.LENGTH_SHORT,
-                  gravity: ToastGravity.BOTTOM,
-                  backgroundColor: Colors.grey[600],
-                  textColor: Colors.white,
-                  fontSize: 16.0)
-              : Fluttertoast.showToast(
-                  msg: "Some of these devices already exist!",
-                  toastLength: Toast.LENGTH_SHORT,
-                  gravity: ToastGravity.BOTTOM,
-                  backgroundColor: Colors.grey[600],
-                  textColor: Colors.white,
-                  fontSize: 16.0);
+        }
+      """), variables: {"objects": data});
+        final QueryResult result = await client.mutate(options);
+
+        if (result != null) {
+          if (result.hasException == false) {
+            setState(() {
+              device["added"] = "true";
+            });
+            setState(() {
+              added = true;
+            });
+            print(added);
+          } else {
+            setState(() {
+              device["added"] = "false";
+              cleanPost = false;
+            });
+            // Fluttertoast.showToast(
+            //     msg: "Failed to add device!",
+            //     toastLength: Toast.LENGTH_SHORT,
+            //     gravity: ToastGravity.BOTTOM,
+            //     backgroundColor: Colors.grey[600],
+            //     textColor: Colors.white,
+            //     fontSize: 16.0);
+          }
+        } else {
           setState(() {
+            device["added"] = "false";
+            cleanPost = false;
             added = true;
           });
-          print(added);
-        } else {
-          Fluttertoast.showToast(
-              msg: "Failed to add device!",
+          return null;
+        }
+      }
+      cleanPost
+          ? Fluttertoast.showToast(
+              msg: "Devices Added!",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.grey[600],
+              textColor: Colors.white,
+              fontSize: 16.0)
+          : Fluttertoast.showToast(
+              msg: "Some of these devices already exist!",
               toastLength: Toast.LENGTH_SHORT,
               gravity: ToastGravity.BOTTOM,
               backgroundColor: Colors.grey[600],
               textColor: Colors.white,
               fontSize: 16.0);
-        }
-      } else {
-        return null;
-      }
     } catch (err) {
       log(err);
     }
-  }
-
-  Future<void> dupeDevice() async {
-    return showDialog<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Duplicate Lead'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text('A lead already exists at this address!'),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            FlatButton(
-              child: Text('Try again', style: TextStyle(fontSize: 17)),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
   }
 
   Widget buildDLGridView() {
@@ -352,10 +341,13 @@ class InventoryAddState extends State<InventoryAdd> {
                                   setState(() {
                                     locationController.text =
                                         newValue["location"];
+                                    locationNameController.text =
+                                        newValue["name"];
                                   });
                                 } else {
                                   setState(() {
                                     locationController.clear();
+                                    locationNameController.clear();
                                   });
                                 }
                               },
@@ -403,7 +395,7 @@ class InventoryAddState extends State<InventoryAdd> {
                                     Expanded(
                                       flex: 4,
                                       child: Text(
-                                        'Devices: ',
+                                        'Devices to Add: ',
                                         style: TextStyle(fontSize: 16),
                                       ),
                                     ),

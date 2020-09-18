@@ -1,4 +1,6 @@
+import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:searchable_dropdown/searchable_dropdown.dart';
 
 class InventoryPriceTierDropDown extends StatefulWidget {
@@ -37,12 +39,22 @@ class _InventoryPriceTierDropDownState
   var startVal;
 
   Future<void> initPriceTiers() async {
-    var locationsResp;
+    QueryOptions options = QueryOptions(documentNode: gql("""
+        query GetPriceTiers {
+          inventory_price_tier{
+            inventory_price_tier
+            model    
+          }
+        }
+      """), fetchPolicy: FetchPolicy.networkOnly);
+
+    final QueryResult locationsResp = await client.query(options);
+
     //REPLACE WITH GRAPHQL
     // var locationsResp = await apiService.authGet(context, "/inventory/tier");
     if (locationsResp != null) {
-      if (locationsResp.statusCode == 200) {
-        var locationsArrDecoded = locationsResp.data;
+      if (locationsResp.hasException == false) {
+        var locationsArrDecoded = locationsResp.data["inventory_price_tier"];
         if (locationsArrDecoded != null) {
           if (this.mounted) {
             setState(() {
