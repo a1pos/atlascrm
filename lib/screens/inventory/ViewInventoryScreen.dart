@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
-import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -13,8 +12,6 @@ import 'package:unicorndial/unicorndial.dart';
 import 'package:atlascrm/components/shared/MerchantDropdown.dart';
 
 class ViewInventoryScreen extends StatefulWidget {
-  final ApiService apiService = ApiService();
-
   final Map incoming;
 
   ViewInventoryScreen(this.incoming);
@@ -61,7 +58,8 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
                 updateDevice("return");
               })));
     }
-    if (inventory["merchant"] != null && inventory["is_installed"] != true) {
+    if (inventory["merchantByMerchant"] != null &&
+        inventory["is_installed"] != true) {
       deviceStatus = "Awaiting Install";
       deviceIcon = Icons.directions_car;
       childButtons.add(UnicornButton(
@@ -88,7 +86,8 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
                 updateDevice("return");
               })));
     }
-    if (inventory["merchant"] == null && inventory["employee"] == null) {
+    if (inventory["merchantByMerchant"] == null &&
+        inventory["employeeByEmployee"] == null) {
       deviceStatus = "In Warehouse";
       deviceIcon = Icons.business;
       childButtons.add(UnicornButton(
@@ -108,18 +107,22 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
 
   Future<void> loadInventoryData() async {
     QueryOptions options = QueryOptions(documentNode: gql("""
-        query {inventory(inventory: "${this.widget.incoming["id"]}"){
+        query {inventory_by_pk(inventory: "${this.widget.incoming["id"]}"){
           inventory
+          merchantByMerchant{
+            merchant
+            document
+          }
           is_installed
-          employee{
+          employeeByEmployee{
             employee
             document
           }
           serial
-          inventory_location{
+          inventoryLocationByInventoryLocation{
             name
           }
-          inventory_price_tier{
+          inventoryPriceTierByInventoryPriceTier{
             model
           }
           document
@@ -129,13 +132,20 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
     final QueryResult result = await client.query(options);
 
     if (result.hasException == false) {
-      var body = result.data;
+      var body = result.data["inventory_by_pk"];
       if (body != null) {
         var bodyDecoded = body;
 
         setState(() {
           inventory = bodyDecoded;
-          merchantController.text = inventory["merchantname"];
+          if (inventory["merchantByMerchant"] != null) {
+            merchantController.text = inventory["merchantByMerchant"]
+                    ["document"]["ApplicationInformation"]["MpaOutletInfo"]
+                ["Outlet"]["BusinessInfo"]["IrsName"];
+          } else {
+            merchantController.text = null;
+          }
+
           isLoading = false;
         });
       }
@@ -161,10 +171,12 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
       data = {"is_installed": true};
       alert = "Device installed!";
     }
-    var resp = await this
-        .widget
-        .apiService
-        .authPut(context, "/inventory/" + this.widget.incoming["id"], data);
+    var resp;
+    //REPLACE WITH GRAPHQL
+    // var resp = await this
+    //     .widget
+    //     .apiService
+    //     .authPut(context, "/inventory/" + this.widget.incoming["id"], data);
 
     if (resp.statusCode == 200) {
       await loadInventoryData();
@@ -275,10 +287,12 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
   }
 
   Future<void> deleteDevice(leadId) async {
-    var resp = await this
-        .widget
-        .apiService
-        .authDelete(context, "/inventory/" + this.widget.incoming["id"], null);
+    var resp;
+    //REPLACE WITH GRAPHQL
+    // var resp = await this
+    //     .widget
+    //     .apiService
+    //     .authDelete(context, "/inventory/" + this.widget.incoming["id"], null);
 
     if (resp.statusCode == 200) {
       Navigator.popAndPushNamed(context, "/inventory");
@@ -386,14 +400,23 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
                           title: "Device Info.",
                           child: Column(
                             children: <Widget>[
-                              showInfoRow("Model", inventory["model"]),
+                              showInfoRow(
+                                  "Model",
+                                  inventory[
+                                          "inventoryPriceTierByInventoryPriceTier"]
+                                      ["model"]),
                               showInfoRow("Serial Number", inventory["serial"]),
                               showInfoRow(
-                                  "Location", inventory["locationname"]),
+                                  "Location",
+                                  inventory[
+                                          "inventoryLocationByInventoryLocation"]
+                                      ["name"]),
                               showInfoRow(
                                   "Current Merchant", merchantController.text),
                               showInfoRow(
-                                  "Current Employee", inventory["owner"]),
+                                  "Current Employee",
+                                  inventory["employeeByEmployee"]["document"]
+                                      ["displayName"]),
                               Divider(),
                               Row(
                                 children: <Widget>[

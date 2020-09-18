@@ -7,7 +7,6 @@ import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/components/agreement/Documents.dart';
 import 'package:atlascrm/components/agreement/OwnerInfo.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
-import 'package:atlascrm/services/ApiService.dart';
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -16,7 +15,7 @@ import 'package:atlascrm/components/agreement/SettlementTransact.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
 
 class AgreementBuilder extends StatefulWidget {
-  final ApiService apiService = new ApiService();
+  // final ApiService apiService = new ApiService();
 
   final String leadId;
 
@@ -545,10 +544,12 @@ class AgreementBuilderState extends State<AgreementBuilder>
               MaskedTextController(mask: "******************************"));
 
   Future<void> loadLeadData(leadId) async {
-    var resp = await this
-        .widget
-        .apiService
-        .authGet(context, "/lead/" + this.widget.leadId);
+    var resp;
+    //REPLACE WITH GRAPHQL
+    // var resp = await this
+    //     .widget
+    //     .apiService
+    //     .authGet(context, "/lead/" + this.widget.leadId);
 
     if (resp.statusCode == 200) {
       var body = resp.data;
@@ -564,21 +565,25 @@ class AgreementBuilderState extends State<AgreementBuilder>
   }
 
   Future<void> loadAgreementStatus(leadId) async {
-    var resp = await this
-        .widget
-        .apiService
-        .authGet(context, "/agreementstatus/lead/" + this.widget.leadId);
+    var resp;
+    //REPLACE WITH GRAPHQL
+    // var resp = await this
+    //     .widget
+    //     .apiService
+    //     .authGet(context, "/agreementstatus/lead/" + this.widget.leadId);
 
     if (resp.statusCode == 200) {
       if (resp.data['agreement_status'] == null) {
-        var resp3 = await this.widget.apiService.authPost(
-            context,
-            "/agreementstatus/" +
-                "/lead/" +
-                this.widget.leadId +
-                "/employee/" +
-                UserService.employee.employee,
-            null);
+        var resp3;
+        //REPLACE WITH GRAPHQL
+        // var resp3 = await this.widget.apiService.authPost(
+        //     context,
+        //     "/agreementstatus/" +
+        //         "/lead/" +
+        //         this.widget.leadId +
+        //         "/employee/" +
+        //         UserService.employee.employee,
+        //     null);
         if (resp3 != null) {
           if (resp3.statusCode == 200) {
             Fluttertoast.showToast(
@@ -633,10 +638,12 @@ class AgreementBuilderState extends State<AgreementBuilder>
   }
 
   Future<void> loadRateReview(leadId) async {
-    var resp = await this
-        .widget
-        .apiService
-        .authGet(context, "/ratereview/lead/" + this.widget.leadId);
+    var resp;
+    //REPLACE WITH GRAPHQL
+    // var resp = await this
+    //     .widget
+    //     .apiService
+    //     .authGet(context, "/ratereview/lead/" + this.widget.leadId);
 
     if (resp.statusCode == 200) {
       var body = resp.data;
@@ -772,10 +779,12 @@ class AgreementBuilderState extends State<AgreementBuilder>
 
   Future<void> loadOwnersData(leadId) async {
     try {
-      var resp = await this
-          .widget
-          .apiService
-          .authGet(context, "/lead/" + this.widget.leadId + "/businessowner");
+      var resp;
+      //REPLACE WITH GRAPHQL
+      // var resp = await this
+      //     .widget
+      //     .apiService
+      //     .authGet(context, "/lead/" + this.widget.leadId + "/businessowner");
       if (resp != null) {
         if (resp.statusCode == 200) {
           var ownersArrDecoded = resp.data;
@@ -802,11 +811,12 @@ class AgreementBuilderState extends State<AgreementBuilder>
   Future<void> loadAgreementData(leadId) async {
     initStatusObjects();
     await loadAgreementStatus(this.widget.leadId);
-
-    var resp = await this
-        .widget
-        .apiService
-        .authGet(context, "/lead/" + this.widget.leadId + "/agreementbuilder");
+    var resp;
+    //REPLACE WITH GRAPHQL
+    // var resp = await this
+    //     .widget
+    //     .apiService
+    //     .authGet(context, "/lead/" + this.widget.leadId + "/agreementbuilder");
 
     if (resp.statusCode == 200) {
       var body = resp.data;
@@ -830,8 +840,10 @@ class AgreementBuilderState extends State<AgreementBuilder>
 
   Future<void> submitPayload() async {
     var data = agreementBuilderObj;
-    var resp =
-        await this.widget.apiService.authPost(context, "/merchant/app", data);
+    var resp;
+    //REPLACE WITH GRAPHQL
+    // var resp =
+    //     await this.widget.apiService.authPost(context, "/merchant/app", data);
 
     if (resp.statusCode == 200) {
       Fluttertoast.showToast(
@@ -854,10 +866,12 @@ class AgreementBuilderState extends State<AgreementBuilder>
 
   Future<void> validatePayload(payload) async {
     var data = payload;
-    var resp = await this
-        .widget
-        .apiService
-        .authPost(context, "/merchant/validate", data);
+    var resp;
+    //REPLACE WITH GRAPHQL
+    // var resp = await this
+    //     .widget
+    //     .apiService
+    //     .authPost(context, "/merchant/validate", data);
 
     if (resp.statusCode == 200) {
       setState(() {
@@ -992,12 +1006,14 @@ class AgreementBuilderState extends State<AgreementBuilder>
         isValidated["Ownership"] == true &&
         isValidated["SettlementTransact"] == true &&
         isValidated["Documents"] == true) {
-      var resp = await this.widget.apiService.authPut(
-          context,
-          "/agreementstatus/lead/${this.widget.leadId}/employee/${UserService.employee.employee}",
-          [
-            {"valid_application": true}
-          ]);
+      var resp;
+      //REPLACE WITH GRAPHQL
+      // var resp = await this.widget.apiService.authPut(
+      // context,
+      // "/agreementstatus/lead/${this.widget.leadId}/employee/${UserService.employee.employee}",
+      // [
+      //   {"valid_application": true}
+      // ]);
 
       if (resp.statusCode == 200) {
         // Fluttertoast.showToast(
@@ -1017,12 +1033,14 @@ class AgreementBuilderState extends State<AgreementBuilder>
             fontSize: 16.0);
       }
     } else {
-      var resp = await this.widget.apiService.authPut(
-          context,
-          "/agreementstatus/lead/${this.widget.leadId}/employee/${UserService.employee.employee}",
-          [
-            {"valid_application": false}
-          ]);
+      var resp;
+      //REPLACE WITH GRAPHQL
+      // var resp = await this.widget.apiService.authPut(
+      //     context,
+      //     "/agreementstatus/lead/${this.widget.leadId}/employee/${UserService.employee.employee}",
+      //     [
+      //       {"valid_application": false}
+      //     ]);
 
       if (resp.statusCode == 200) {
         Fluttertoast.showToast(
@@ -1117,10 +1135,12 @@ class AgreementBuilderState extends State<AgreementBuilder>
       }
     };
     var agreementId;
-    var resp1 = await this
-        .widget
-        .apiService
-        .authPost(context, "/agreementbuilder", agreementBuilderObj);
+    var resp1;
+    //REPLACE WITH GRAPHQL
+    // var resp1 = await this
+    //     .widget
+    //     .apiService
+    //     .authPost(context, "/agreementbuilder", agreementBuilderObj);
     if (resp1 != null) {
       if (resp1.statusCode == 200) {
         var body = resp1.data;
@@ -1136,15 +1156,16 @@ class AgreementBuilderState extends State<AgreementBuilder>
     } else {
       throw new Error();
     }
-
-    var resp2 = await this.widget.apiService.authPost(
-        context,
-        "/agreementbuilder/" +
-            agreementId +
-            "/employee/" +
-            UserService.employee.employee +
-            "/document",
-        {"null": null});
+    var resp2;
+    //REPLACE WITH GRAPHQL
+    // var resp2 = await this.widget.apiService.authPost(
+    //     context,
+    //     "/agreementbuilder/" +
+    //         agreementId +
+    //         "/employee/" +
+    //         UserService.employee.employee +
+    //         "/document",
+    //     {"null": null});
     if (resp2 != null) {
       if (resp2.statusCode == 200) {
         Fluttertoast.showToast(
@@ -1208,10 +1229,12 @@ class AgreementBuilderState extends State<AgreementBuilder>
             ["NumberOfAdditionalOwner"] = (owners.length - 1).toString();
       });
     }
-    var resp = await this.widget.apiService.authPut(
-        context,
-        "/agreementbuilder/" + agreementBuilderId,
-        agreementBuilderObj["document"]);
+    var resp;
+    //REPLACE WITH GRAPHQL
+    // var resp = await this.widget.apiService.authPut(
+    //     context,
+    //     "/agreementbuilder/" + agreementBuilderId,
+    //     agreementBuilderObj["document"]);
 
     if (resp.statusCode == 200) {
       await loadAgreementData(this.widget.leadId);
@@ -1384,11 +1407,12 @@ class AgreementBuilderState extends State<AgreementBuilder>
         ownershipItems;
 
     isDirtyStatus["ownersIsDirty"] = false;
-
-    var resp = await this
-        .widget
-        .apiService
-        .authPost(context, "/businessowner", unorderedOwners);
+    var resp;
+    //REPLACE WITH GRAPHQL
+    // var resp = await this
+    //     .widget
+    //     .apiService
+    //     .authPost(context, "/businessowner", unorderedOwners);
 
     if (resp.statusCode == 200) {
       loadOwnersData(this.widget.leadId);
@@ -1404,8 +1428,10 @@ class AgreementBuilderState extends State<AgreementBuilder>
   }
 
   Future<void> loadDocuments(agreementBuilderId) async {
-    var resp = await this.widget.apiService.authGet(
-        context, "/agreementbuilder/" + agreementBuilderId + "/document");
+    var resp;
+    //REPLACE WITH GRAPHQL
+    // var resp = await this.widget.apiService.authGet(
+    //     context, "/agreementbuilder/" + agreementBuilderId + "/document");
 
     if (resp.statusCode == 200) {
       initDocumentObjects();
@@ -1475,14 +1501,16 @@ class AgreementBuilderState extends State<AgreementBuilder>
 
   Future<void> updateDocuments(agreementBuilderId) async {
     var data = [files["file1"], files["file2"]];
-    var resp = await this.widget.apiService.authFilesPut(
-        context,
-        "/agreementbuilder/" +
-            agreementBuilderId +
-            "/employee/" +
-            UserService.employee.employee +
-            "/document",
-        data);
+    var resp;
+    //REPLACE WITH GRAPHQL
+    // var resp = await this.widget.apiService.authFilesPut(
+    //     context,
+    //     "/agreementbuilder/" +
+    //         agreementBuilderId +
+    //         "/employee/" +
+    //         UserService.employee.employee +
+    //         "/document",
+    //     data);
     if (resp.statusCode != 200) {
       Fluttertoast.showToast(
           msg: "Failed to Save Documents!",
@@ -1655,10 +1683,12 @@ class AgreementBuilderState extends State<AgreementBuilder>
                             isLoading = true;
                           });
                           var data = agreementBuilderObj["document"];
-                          var resp = await this
-                              .widget
-                              .apiService
-                              .authPost(context, "/merchant/app", data);
+                          var resp;
+                          //REPLACE WITH GRAPHQL
+                          // var resp = await this
+                          //     .widget
+                          //     .apiService
+                          //     .authPost(context, "/merchant/app", data);
                           if (resp.statusCode == 200) {
                             setState(() {
                               loadText = null;

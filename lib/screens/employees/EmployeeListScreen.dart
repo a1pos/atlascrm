@@ -1,6 +1,5 @@
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
-import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:flutter/material.dart';
 
@@ -15,7 +14,6 @@ class EmployeeListScreen extends StatefulWidget {
 
 class _EmployeeListScreenState extends State<EmployeeListScreen> {
   final UserService userService = new UserService();
-  final ApiService apiService = new ApiService();
 
   var employees = [];
   var employeesFull = [];
@@ -30,7 +28,9 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
   }
 
   Future<void> getEmployees() async {
-    var resp = await apiService.authGet(context, "/employee");
+    var resp;
+    //REPLACE WITH GRAPHQL
+    // var resp = await apiService.authGet(context, "/employee");
     if (resp != null) {
       if (resp.statusCode == 200) {
         var employeeArrDecoded = resp.data;

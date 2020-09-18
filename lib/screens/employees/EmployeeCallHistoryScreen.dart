@@ -1,13 +1,10 @@
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
-import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class EmployeeCallHistoryScreen extends StatefulWidget {
-  final ApiService apiService = new ApiService();
-
   final String employeeId;
 
   EmployeeCallHistoryScreen(this.employeeId);
@@ -29,8 +26,10 @@ class _EmployeeCallHistoryScreenState extends State<EmployeeCallHistoryScreen> {
   }
 
   Future<void> initCallHistory() async {
-    var callHistoryResponse = await this.widget.apiService.authGet(
-        context, "/employee/calllog/history/" + this.widget.employeeId);
+    var callHistoryResponse;
+    //REPLACE WITH GRAPHQL
+    // var callHistoryResponse = await this.widget.apiService.authGet(
+    //     context, "/employee/calllog/history/" + this.widget.employeeId);
     if (callHistoryResponse.statusCode == 200) {
       setState(() {
         calls = callHistoryResponse.data;

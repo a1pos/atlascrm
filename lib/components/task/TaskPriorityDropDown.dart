@@ -1,4 +1,3 @@
-import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
 
 class TaskPriorityDropDown extends StatefulWidget {
@@ -13,8 +12,6 @@ class TaskPriorityDropDown extends StatefulWidget {
 }
 
 class _TaskPriorityDropDownState extends State<TaskPriorityDropDown> {
-  final ApiService apiService = ApiService();
-
   var taskPriorites = [
     {"value": "0", "text": "High"},
     {"value": "1", "text": "Medium"},

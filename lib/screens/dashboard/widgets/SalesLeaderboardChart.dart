@@ -2,7 +2,6 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/UserService.dart';
 
 class SalesLeaderboardChart extends StatefulWidget {
@@ -13,7 +12,6 @@ class SalesLeaderboardChart extends StatefulWidget {
 }
 
 class _SalesLeaderboardChartState extends State<SalesLeaderboardChart> {
-  final ApiService apiService = ApiService();
   final UserService userService = UserService();
 
   var isLoading = true;

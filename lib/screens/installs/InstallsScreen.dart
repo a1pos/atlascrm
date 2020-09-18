@@ -4,12 +4,9 @@ import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CustomDrawer.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
-import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
 
 class InstallsScreen extends StatefulWidget {
-  final ApiService apiService = new ApiService();
-
   @override
   _InstallsScreenState createState() => _InstallsScreenState();
 }
@@ -66,7 +63,9 @@ class _InstallsScreenState extends State<InstallsScreen> {
     try {
       var endpoint =
           "/ticket?page=$pageNum&size=10&searchString=&installView=true&closedTickets=false";
-      var resp = await this.widget.apiService.authGet(context, endpoint);
+      var resp;
+      //REPLACE WITH GRAPHQL
+      // var resp = await this.widget.apiService.authGet(context, endpoint);
       if (resp != null) {
         if (resp.statusCode == 200) {
           var installsArrDecoded = resp.data["data"];
@@ -144,8 +143,9 @@ class _InstallsScreenState extends State<InstallsScreen> {
       //   endpoint =
       //       "/ticket?searchLocation=$filterLocation&searchEmployee=$filterEmployee&searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
       // }
-
-      var resp = await this.widget.apiService.authGet(context, endpoint);
+      var resp;
+      //REPLACE WITH GRAPHQL
+      // var resp = await this.widget.apiService.authGet(context, endpoint);
       if (resp != null) {
         if (resp.statusCode == 200) {
           var installsArrDecoded = resp.data["data"];
@@ -280,7 +280,9 @@ class _InstallsScreenState extends State<InstallsScreen> {
   Future<void> initEmployeeData() async {
     try {
       var endpoint = "/employee";
-      var resp = await this.widget.apiService.authGet(context, endpoint);
+      var resp;
+      //REPLACE WITH GRAPHQL
+      // var resp = await this.widget.apiService.authGet(context, endpoint);
       if (resp != null) {
         if (resp.statusCode == 200) {
           var employeesArrDecoded = resp.data;

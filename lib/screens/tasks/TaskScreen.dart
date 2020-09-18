@@ -12,7 +12,6 @@ import 'package:atlascrm/components/shared/LoadingScreen.dart';
 import 'package:atlascrm/components/task/TaskPriorityDropDown.dart';
 import 'package:atlascrm/components/task/TaskItem.dart';
 import 'package:atlascrm/components/task/TaskTypeDropDown.dart';
-import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/StorageService.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/services/api.dart';
@@ -26,7 +25,6 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 
 class TaskScreen extends StatefulWidget {
-  final ApiService apiService = ApiService();
   final StorageService storageService = new StorageService();
   @override
   _TaskScreenState createState() => _TaskScreenState();
@@ -82,6 +80,21 @@ class _TaskScreenState extends State<TaskScreen> {
       }
       if (_calendarController.selectedDay != null) {
         DateTime currentDay = _calendarController.selectedDay;
+        setState(() {
+          isEmpty = true;
+        });
+        _calendarEvents.forEach((k, v) {
+          if (k.day == currentDay.day &&
+              k.month == currentDay.month &&
+              k.year == currentDay.year) {
+            activeTasks = v;
+            setState(() {
+              isEmpty = false;
+            });
+          }
+        });
+      } else {
+        DateTime currentDay = DateTime.now();
         setState(() {
           isEmpty = true;
         });
@@ -233,8 +246,10 @@ class _TaskScreenState extends State<TaskScreen> {
     var taskEmployee = UserService.isAdmin
         ? employeeDropdownValue
         : UserService.employee.employee;
-    var resp1 = await this.widget.apiService.authPost(
-        context, "/googlecalendar/" + token + "/" + taskEmployee, data);
+    var resp1;
+    //REPLACE WITH GRAPHQL
+    // var resp1 = await this.widget.apiService.authPost(
+    //     context, "/googlecalendar/" + token + "/" + taskEmployee, data);
     if (resp1 != null) {
       if (resp1.statusCode == 200) {
         var event = await resp1.data["eventid"];
@@ -298,11 +313,7 @@ class _TaskScreenState extends State<TaskScreen> {
         "active": true,
         "eventid": null
       },
-      "date": taskDateController.text,
-      "created_by": "16a9424f-4c7d-44d7-87cd-029b3d13ad6d",
-      "created_at": timeNow,
-      "updated_by": "16a9424f-4c7d-44d7-87cd-029b3d13ad6d",
-      "updated_at": timeNow
+      "date": taskDateController.text
     };
 
     //GOOGLECALENDAR LOGIC

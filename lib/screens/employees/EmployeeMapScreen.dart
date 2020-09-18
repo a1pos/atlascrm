@@ -4,8 +4,6 @@ import 'dart:typed_data';
 
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 
-import 'package:atlascrm/services/ApiService.dart';
-import 'package:atlascrm/services/SocketService.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_pusher/pusher.dart';
@@ -14,9 +12,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 
 class EmployeeMapScreen extends StatefulWidget {
-  final ApiService apiService = new ApiService();
-  final SocketService socketService = new SocketService();
-
   @override
   _EmployeeMapScreenState createState() => _EmployeeMapScreenState();
 }
@@ -131,16 +126,20 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
     var time = DateTime(now.year, now.month, now.day, 7, now.minute, now.second,
         now.millisecond, now.microsecond);
     var today = DateFormat('yyyy-MM-dd HH:mm:ss.SSS').format(time);
-    var lastLocationResponse = await this
-        .widget
-        .apiService
-        .authGet(context, "/employee/lastknownlocation");
+    var lastLocationResponse;
+    //REPLACE WITH GRAPHQL
+    // var lastLocationResponse = await this
+    //     .widget
+    //     .apiService
+    //     .authGet(context, "/employee/lastknownlocation");
     if (lastLocationResponse != null) {
       if (lastLocationResponse.statusCode == 200) {
         var lastLocationArr = lastLocationResponse.data;
         for (var item in lastLocationArr) {
-          var stopCount = await this.widget.apiService.authGet(
-              context, "/employee/stopcount/${item["employee"]}/" + today);
+          var stopCount;
+          //REPLACE WITH GRAPHQL
+          // var stopCount = await this.widget.apiService.authGet(
+          //     context, "/employee/stopcount/${item["employee"]}/" + today);
 
           var count = await stopCount.data;
 

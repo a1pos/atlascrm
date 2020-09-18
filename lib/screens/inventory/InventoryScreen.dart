@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'package:atlascrm/components/inventory/InventoryLocationDropDown.dart';
+import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/services/api.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:intl/intl.dart';
@@ -9,15 +10,12 @@ import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CustomDrawer.dart';
 import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
-import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
 import 'package:barcode_scan/barcode_scan.dart';
 
 import 'InventoryAdd.dart';
 
 class InventoryScreen extends StatefulWidget {
-  final ApiService apiService = new ApiService();
-
   @override
   _InventoryScreenState createState() => _InventoryScreenState();
 }
@@ -41,9 +39,13 @@ class _InventoryScreenState extends State<InventoryScreen> {
   var filterEmployee = "";
   var filterLocation = "";
   var locationSearch = "All Inventory";
+  var sortQueries = [
+    "updated_at: desc",
+    "updated_at: asc",
+  ];
+  var initParams = "offset: 0, limit: 10, order_by: {updated_at: asc}";
+  var sortQuery = "updated_at: asc";
 
-  var sortQuery =
-      "sorters%5B0%5D%5Bfield%5D=employee&sorters%5B0%5D%5Bdir%5D=asc";
   ScrollController _scrollController = ScrollController();
   TextEditingController _searchController = TextEditingController();
 
@@ -73,7 +75,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
     try {
       QueryOptions options = QueryOptions(documentNode: gql("""
         query Inventory {
-          inventory {
+          inventory($initParams) {
             inventory
             merchantByMerchant {
               merchant
@@ -116,7 +118,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
               });
             } else {
               setState(() {
-                if (pageNum == 1) {
+                if (pageNum == 0) {
                   isEmpty = true;
                   inventoryArr = [];
                   inventoryFull = [];
@@ -138,42 +140,64 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
   Future<void> onScroll() async {
     try {
-      var endpoint;
+      var offsetAmount = pageNum * 10;
+      var limitAmount = 10;
+      var params =
+          'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}';
+      // var searchParams = '	_or: [{serial: {_eq: "%$currentSearch%"}},]';
 
-      endpoint = "/inventory?page=$pageNum&size=10&$sortQuery";
       if (isSearching) {
-        endpoint =
-            "/inventory?searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
+        params =
+            'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {serial: {_eq: "%$currentSearch%"}}';
       }
       if (isFiltering) {
-        endpoint =
-            "/inventory?searchEmployee=$filterEmployee&page=$pageNum&size=10&$sortQuery";
+        params =
+            'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "$filterEmployee"}}';
       }
       if (isLocFiltering) {
-        endpoint =
-            "/inventory?searchLocation=$filterLocation&page=$pageNum&size=10&$sortQuery";
-      }
-      if (isSearching && isFiltering) {
-        endpoint =
-            "/inventory?searchEmployee=$filterEmployee&searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
-      }
-      if (isSearching && isLocFiltering) {
-        endpoint =
-            "/inventory?searchLocatation=$filterLocation&searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
-      }
-      if (isFiltering && isLocFiltering) {
-        endpoint =
-            "/inventory?searchLocation=$filterLocation&searchEmployee=$filterEmployee&page=$pageNum&size=10&$sortQuery";
-      }
-      if (isSearching && isFiltering && isLocFiltering) {
-        endpoint =
-            "/inventory?searchLocation=$filterLocation&searchEmployee=$filterEmployee&searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
+        params =
+            'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {inventory_location: {_eq: "$filterLocation"}, _and:{_eq: ""}}';
       }
 
-      var resp = await this.widget.apiService.authGet(context, endpoint);
-      if (resp != null) {
-        if (resp.statusCode == 200) {
-          var inventoryArrDecoded = resp.data["data"];
+      // if (isSearching && isFiltering) {
+      //   params =
+      //       'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "$filterEmployee"}, $searchParams}';
+      // }
+      // if (isSearching && isLocFiltering) {}
+      if (isFiltering && isLocFiltering) {}
+      // if (isSearching && isFiltering && isLocFiltering) {}
+
+      QueryOptions options = QueryOptions(documentNode: gql("""
+        query Inventory {
+          inventory($params) {
+            inventory
+            merchantByMerchant {
+              merchant
+              document
+            }
+            is_installed
+            employee: employeeByEmployee {
+              employee
+              document
+            }
+            serial
+            locationName: inventoryLocationByInventoryLocation {
+              name
+            }
+            model: inventoryPriceTierByInventoryPriceTier {
+              model
+            }
+            document
+            created_at
+          }
+        }
+      """), fetchPolicy: FetchPolicy.networkOnly);
+
+      final QueryResult result = await client.query(options);
+
+      if (result != null) {
+        if (result.hasException == false) {
+          var inventoryArrDecoded = result.data["inventory"];
           if (inventoryArrDecoded != null) {
             var inventoryArr = List.from(inventoryArrDecoded);
             if (inventoryArr.length > 0) {
@@ -191,7 +215,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
               });
             } else {
               setState(() {
-                if (pageNum == 1) {
+                if (pageNum == 0) {
                   isEmpty = true;
                   inventoryArr = [];
                   inventoryFull = [];
@@ -210,6 +234,80 @@ class _InventoryScreenState extends State<InventoryScreen> {
       log(err);
     }
   }
+
+  // Future<void> onScrollOld() async {
+  //   try {
+  //     var endpoint;
+  //     endpoint = "/inventory?page=$pageNum&size=10&$sortQuery";
+  //     if (isSearching) {
+  //       endpoint =
+  //           "/inventory?searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
+  //     }
+  //     if (isFiltering) {
+  //       endpoint =
+  //           "/inventory?searchEmployee=$filterEmployee&page=$pageNum&size=10&$sortQuery";
+  //     }
+  //     if (isLocFiltering) {
+  //       endpoint =
+  //           "/inventory?searchLocation=$filterLocation&page=$pageNum&size=10&$sortQuery";
+  //     }
+  //     if (isSearching && isFiltering) {
+  //       endpoint =
+  //           "/inventory?searchEmployee=$filterEmployee&searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
+  //     }
+  //     if (isSearching && isLocFiltering) {
+  //       endpoint =
+  //           "/inventory?searchLocatation=$filterLocation&searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
+  //     }
+  //     if (isFiltering && isLocFiltering) {
+  //       endpoint =
+  //           "/inventory?searchLocation=$filterLocation&searchEmployee=$filterEmployee&page=$pageNum&size=10&$sortQuery";
+  //     }
+  //     if (isSearching && isFiltering && isLocFiltering) {
+  //       endpoint =
+  //           "/inventory?searchLocation=$filterLocation&searchEmployee=$filterEmployee&searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
+  //     }
+
+  //     var resp = await this.widget.apiService.authGet(context, endpoint);
+  //     if (resp != null) {
+  //       if (resp.statusCode == 200) {
+  //         var inventoryArrDecoded = resp.data["data"];
+  //         if (inventoryArrDecoded != null) {
+  //           var inventoryArr = List.from(inventoryArrDecoded);
+  //           if (inventoryArr.length > 0) {
+  //             if (isSearching) {
+  //               var sendable = {"id": inventoryArr[0]["inventory"]};
+  //               Navigator.pushNamed(context, "/viewinventory",
+  //                   arguments: sendable);
+  //             }
+  //             setState(() {
+  //               isEmpty = false;
+  //               isLoading = false;
+  //               inventory += inventoryArr;
+  //               inventoryFull += inventoryArr;
+  //               pageNum++;
+  //             });
+  //           } else {
+  //             setState(() {
+  //               if (pageNum == 1) {
+  //                 isEmpty = true;
+  //                 inventoryArr = [];
+  //                 inventoryFull = [];
+  //               }
+  //               isLoading = false;
+  //             });
+  //           }
+  //         }
+  //       }
+  //     }
+
+  //     setState(() {
+  //       isLoading = false;
+  //     });
+  //   } catch (err) {
+  //     log(err);
+  //   }
+  // }
 
   Future<void> scanBarcode() async {
     try {
@@ -308,7 +406,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
   Future<void> initEmployeeData() async {
     try {
       var endpoint = "/employee";
-      var resp = await this.widget.apiService.authGet(context, endpoint);
+      var resp;
+      //REPLACE WITH GRAPHQL
+      // var resp = await this.widget.apiService.authGet(context, endpoint);
       if (resp != null) {
         if (resp.statusCode == 200) {
           var employeesArrDecoded = resp.data;
@@ -492,11 +592,11 @@ class _InventoryScreenState extends State<InventoryScreen> {
                   child: ListView(
                     controller: _scrollController,
                     children: inventory.map((item) {
-                      var employeeName = item["employee"]["employee"] == null
-                          ? null
-                          : item["employee"]["document"]["fullName"];
+                      var employeeName = item["employee"] == null
+                          ? ""
+                          : item["employee"]["document"]["displayName"];
                       // var nameIndex;
-                      var merchantName;
+                      var merchantName = "";
                       var itemName;
                       var location;
                       var setIcon;
@@ -508,38 +608,49 @@ class _InventoryScreenState extends State<InventoryScreen> {
                       // } else {
                       //   employeeName = null;
                       // }
-
-                      var invDate = DateFormat("EEE, MMM d, ''yy")
-                          .add_jm()
-                          .format(DateTime.parse(item['created_at']));
-                      if (item["inventory_price_tier"]["model"]?.isEmpty ??
-                          true) {
+                      var invDate;
+                      if (item['created_at'] != null) {
+                        invDate = DateFormat("EEE, MMM d, ''yy")
+                            .add_jm()
+                            .format(DateTime.parse(item['created_at']));
+                      } else {
+                        invDate = "";
+                      }
+                      if (item["model"]?.isEmpty ?? true) {
                         itemName = "";
                       } else {
-                        itemName = item["inventory_price_tier"]["model"];
+                        itemName = item["model"]["model"];
                       }
-                      if (item["locationname"]?.isEmpty ?? true) {
+                      if (item["locationName"] == null ?? true) {
                         location = "";
                       } else {
-                        location = item["locationname"];
+                        location = item["locationName"]["name"];
                       }
-                      if (item["merchant"]["merchant"] == null) {
+                      if (item["merchantByMerchant"] == null) {
                         merchantName = "Not yet assigned";
                       } else {
-                        merchantName = item["merchant"]["document"]
-                                ["ApplicationInfo"]["MpaOutletInfo"]["Outlet"]
-                            ["BusinessInfo"]["IrsName"];
+                        merchantName = item["merchantByMerchant"]["document"]
+                                ["ApplicationInformation"]["MpaOutletInfo"]
+                            ["Outlet"]["BusinessInfo"]["IrsName"];
+                        if (merchantName == null) {
+                          merchantName = item["merchantByMerchant"]["document"]
+                                  ["ApplicationInformation"]["CorporateInfo"]
+                              ["LegalName"];
+                          if (merchantName == null) {
+                            merchantName = "null";
+                          }
+                        }
                       }
 
                       if (item["is_installed"] == true) {
                         setIcon = Icons.done;
                       }
-                      if (item["merchant"]["merchant"] != null &&
+                      if (item["merchantByMerchant"] != null &&
                           item["is_installed"] != true) {
                         setIcon = Icons.directions_car;
                       }
-                      if (item["merchant"]["merchant"] == null &&
-                          item["employee"]["employee"] == null) {
+                      if (item["merchantByMerchant"] == null &&
+                          item["employee"] == null) {
                         setIcon = Icons.business;
                       }
 
@@ -645,10 +756,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                   ),
                                 ],
                               ),
-                              employeeName != null
+                              employeeName != null && employeeName != ""
                                   ? Divider(thickness: 2)
                                   : Container(),
-                              employeeName != null
+                              employeeName != null && employeeName != ""
                                   ? Text("Employee: " + employeeName,
                                       style: TextStyle(),
                                       textAlign: TextAlign.right)

@@ -6,7 +6,6 @@ import 'package:atlascrm/screens/dashboard/widgets/SalesLeaderboardChart.dart';
 import 'package:atlascrm/screens/dashboard/widgets/StatementsChart.dart';
 import 'package:atlascrm/screens/dashboard/widgets/Tasks.dart';
 import 'package:atlascrm/screens/dashboard/widgets/WeeklyCallsChart.dart';
-import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
@@ -17,8 +16,6 @@ class AdminDashboardScreen extends StatefulWidget {
 }
 
 class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
-  final ApiService apiService = ApiService();
-
   var dropdownValue = "leadcounttoday";
   var filterItems = [
     {"text": "Today", "value": "leadcounttoday"},
@@ -43,7 +40,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   Future<void> initStatistics() async {
     try {
-      var resp = await apiService.authGet(context, "/employee/statistics");
+      var resp;
+      //REPLACE WITH GRAPHQL
+      // var resp = await apiService.authGet(context, "/employee/statistics");
       if (resp != null) {
         if (resp.statusCode == 200) {
           var statsArrDecoded = resp.data;

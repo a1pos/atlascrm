@@ -3,7 +3,6 @@ import 'dart:developer';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
-import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/StorageService.dart';
 import 'package:barcode_scan/barcode_scan.dart';
 import 'package:barcode_scan/model/scan_options.dart';
@@ -14,7 +13,6 @@ import 'package:intl/intl.dart';
 import 'package:maps_launcher/maps_launcher.dart';
 
 class ViewInstallScreen extends StatefulWidget {
-  final ApiService apiService = ApiService();
   final StorageService storageService = StorageService();
 
   final Map incoming;
@@ -56,8 +54,10 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
 
   Future<void> loadMerchantData() async {
     if (this.widget.incoming["ticket"]["merchant"] != null) {
-      var resp = await this.widget.apiService.authGet(
-          context, "/merchant/${this.widget.incoming["ticket"]["merchant"]}");
+      var resp;
+      //REPLACE WITH GRAPHQL
+      // var resp = await this.widget.apiService.authGet(
+      //     context, "/merchant/${this.widget.incoming["ticket"]["merchant"]}");
 
       if (resp.statusCode == 200) {
         var body = resp.data;
@@ -116,8 +116,10 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
   }
 
   Future<void> loadInventory() async {
-    var resp2 = await this.widget.apiService.authGet(context,
-        "/inventory/merchant/" + this.widget.incoming["ticket"]["merchant"]);
+    var resp2;
+    //REPLACE WITH GRAPHQL
+    // var resp2 = await this.widget.apiService.authGet(context,
+    //     "/inventory/merchant/" + this.widget.incoming["ticket"]["merchant"]);
 
     if (resp2.statusCode == 200) {
       var body = resp2.data;
@@ -160,8 +162,10 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
       var status = !isRunning;
 
       if (status) {
-        var resp = await this.widget.apiService.authPost(context,
-            "/employee/${UserService.employee.employee}/trip", destination);
+        var resp;
+        //REPLACE WITH GRAPHQL
+        // var resp = await this.widget.apiService.authPost(context,
+        //     "/employee/${UserService.employee.employee}/trip", destination);
         if (resp.statusCode == 200) {
           await this
               .widget
@@ -183,10 +187,12 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
       } else {
         var trip = await this.widget.storageService.read("techTripId");
         if (trip != "") {
-          var resp = await this
-              .widget
-              .apiService
-              .authPost(context, "/employee/trip/$trip", {});
+          var resp;
+          //REPLACE WITH GRAPHQL
+          // var resp = await this
+          //     .widget
+          //     .apiService
+          //     .authPost(context, "/employee/trip/$trip", {});
           if (resp.statusCode == 200) {
             setState(() {
               isRunning = status;
@@ -296,10 +302,12 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
   }
 
   Future<void> completeInstall() async {
-    var resp = await this
-        .widget
-        .apiService
-        .authPost(context, "/merchant/install/" + merchant["merchant"], null);
+    var resp;
+    //REPLACE WITH GRAPHQL
+    // var resp = await this
+    //     .widget
+    //     .apiService
+    //     .authPost(context, "/merchant/install/" + merchant["merchant"], null);
 
     if (resp.statusCode == 200) {
       var body = resp.data;
@@ -307,11 +315,12 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
         // var bodyDecoded = body;
       }
     }
-
-    var resp2 = await this
-        .widget
-        .apiService
-        .authPut(context, "/status/Closed", this.widget.incoming["ticket"]);
+    var resp2;
+    //REPLACE WITH GRAPHQL
+    // var resp2 = await this
+    //     .widget
+    //     .apiService
+    //     .authPut(context, "/status/Closed", this.widget.incoming["ticket"]);
 
     if (resp2.statusCode == 200) {
       var body = resp2.data;
@@ -319,11 +328,12 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
         // var bodyDecoded = body;
       }
     }
-
-    var resp3 = await this
-        .widget
-        .apiService
-        .authPut(context, "/inventory/install", devices);
+    var resp3;
+    //REPLACE WITH GRAPHQL
+    // var resp3 = await this
+    //     .widget
+    //     .apiService
+    //     .authPut(context, "/inventory/install", devices);
 
     if (resp3.statusCode == 200) {
       await loadInventory();
@@ -414,11 +424,12 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
       "merchant": merchant["merchant"]
     };
     alert = "Device checked out!";
-
-    var resp2 = await this
-        .widget
-        .apiService
-        .authGet(context, "/inventory/serial/" + serial);
+    var resp2;
+    //REPLACE WITH GRAPHQL
+    // var resp2 = await this
+    //     .widget
+    //     .apiService
+    //     .authGet(context, "/inventory/serial/" + serial);
     if (resp2.statusCode == 200) {
       var body = resp2.data;
       if (body != null) {
@@ -445,10 +456,12 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
             setState(() {
               deviceId = bodyDecoded["inventory"];
             });
-            var resp = await this
-                .widget
-                .apiService
-                .authPut(context, "/inventory/" + deviceId, data);
+            var resp;
+            //REPLACE WITH GRAPHQL
+            // var resp = await this
+            //     .widget
+            //     .apiService
+            //     .authPut(context, "/inventory/" + deviceId, data);
 
             if (resp.statusCode == 200) {
               await loadInventory();

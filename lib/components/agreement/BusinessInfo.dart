@@ -4,15 +4,12 @@ import 'dart:developer';
 import 'package:atlascrm/components/agreement/SicDropdown.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
-import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/components/shared/AddressSearch.dart';
 import 'package:searchable_dropdown/searchable_dropdown.dart';
 
 class BusinessInfo extends StatefulWidget {
-  final ApiService apiService = new ApiService();
-
   final Map isDirtyStatus;
   final Map controllers;
   final agreementDoc;

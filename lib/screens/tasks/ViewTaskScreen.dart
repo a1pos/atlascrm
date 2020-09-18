@@ -4,7 +4,6 @@ import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
 import 'package:atlascrm/components/task/TaskPriorityDropDown.dart';
 import 'package:atlascrm/components/task/TaskTypeDropDown.dart';
-import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/StorageService.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/services/api.dart';
@@ -15,7 +14,6 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:intl/intl.dart';
 
 class ViewTaskScreen extends StatefulWidget {
-  final ApiService apiService = new ApiService();
   final StorageService storageService = new StorageService();
 
   final String taskId;
@@ -27,7 +25,6 @@ class ViewTaskScreen extends StatefulWidget {
 }
 
 class ViewTaskScreenState extends State<ViewTaskScreen> {
-  final ApiService apiService = ApiService();
   var isLoading = true;
 
   var taskTitleController = TextEditingController();

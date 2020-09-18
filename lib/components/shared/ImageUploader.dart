@@ -3,7 +3,6 @@ import 'package:atlascrm/config/ConfigSettings.dart';
 import 'package:atlascrm/screens/leads/ViewLeadScreen.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
 import 'dart:io';
@@ -24,8 +23,6 @@ import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'CustomAppBar.dart';
 
 class ImageUploader extends StatefulWidget {
-  final ApiService apiService = new ApiService();
-
   final String objectId;
   final String type;
   final Map loading;
@@ -76,10 +73,12 @@ class _ImageUploaderState extends State<ImageUploader> {
 
   Future<void> loadStatement() async {
     try {
-      var resp = await this
-          .widget
-          .apiService
-          .authGet(context, "/statement/${this.widget.objectId}/lead");
+      var resp;
+//REPLACE WITH GRAPHQL
+      // var resp = await this
+      //     .widget
+      //     .apiService
+      //     .authGet(context, "/statement/${this.widget.objectId}/lead");
 
       if (resp.statusCode == 200) {
         if (resp.data != null && resp.data != "") {
@@ -199,10 +198,12 @@ class _ImageUploaderState extends State<ImageUploader> {
 
   Future<void> imageResult(image) async {
     try {
-      var resp = await this.widget.apiService.authFilePost(
-          context,
-          "/employee/${UserService.employee.employee}/${this.widget.objectId}/${this.widget.type}",
-          _image);
+      var resp;
+//REPLACE WITH GRAPHQL
+      // var resp = await this.widget.apiService.authFilePost(
+      //     context,
+      //     "/employee/${UserService.employee.employee}/${this.widget.objectId}/${this.widget.type}",
+      //     _image);
 
       if (resp.statusCode == 200) {
         Fluttertoast.showToast(
@@ -587,8 +588,10 @@ class _ImageUploaderState extends State<ImageUploader> {
     Navigator.pop(context);
     Navigator.pop(context);
     try {
-      var resp = await this.widget.apiService.authDelete(
-          context, "/lead/${this.widget.objectId}/statement/$name", null);
+      var resp;
+      //REPLACE WITH GRAPHQL
+      // var resp = await this.widget.apiService.authDelete(
+      //     context, "/lead/${this.widget.objectId}/statement/$name", null);
 
       if (resp.statusCode == 200) {
         if (imageDLList.length == 1) {
@@ -657,10 +660,12 @@ class _ImageUploaderState extends State<ImageUploader> {
 
   Future<void> loadImages() async {
     try {
-      var resp = await this
-          .widget
-          .apiService
-          .authGet(context, "/lead/${this.widget.objectId}/statement");
+      var resp;
+      //REPLACE WITH GRAPHQL
+      // var resp = await this
+      //     .widget
+      //     .apiService
+      //     .authGet(context, "/lead/${this.widget.objectId}/statement");
 
       if (resp.statusCode == 200) {
         if (resp.data != null && resp.data != "") {
@@ -691,10 +696,12 @@ class _ImageUploaderState extends State<ImageUploader> {
       setState(() {
         isLoading = true;
       });
-      var resp = await this
-          .widget
-          .apiService
-          .authPut(context, "/lead/${this.widget.objectId}/statement", null);
+      var resp;
+      //REPLACE WITH GRAPHQL
+      // var resp = await this
+      //     .widget
+      //     .apiService
+      //     .authPut(context, "/lead/${this.widget.objectId}/statement", null);
 
       if (resp.statusCode == 200) {
         if (resp.data != null && resp.data != "") {
@@ -732,10 +739,12 @@ class _ImageUploaderState extends State<ImageUploader> {
     print("FILE URI: $path");
 
     try {
-      var resp = await this.widget.apiService.authFilePost(
-          context,
-          "/employee/${UserService.employee.employee}/${this.widget.objectId}/${this.widget.type}",
-          path);
+      var resp;
+      //REPLACE WITH GRAPHQL
+      // var resp = await this.widget.apiService.authFilePost(
+      //     context,
+      //     "/employee/${UserService.employee.employee}/${this.widget.objectId}/${this.widget.type}",
+      //     path);
       if (resp.statusCode == 200) {
         setState(() {
           this.widget.dirtyFlag["flag"].text = "true";

@@ -1,4 +1,3 @@
-import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
 import 'package:searchable_dropdown/searchable_dropdown.dart';
 
@@ -18,7 +17,6 @@ class UserDefinedPricingDropDown extends StatefulWidget {
 
 class _UserDefinedPricingDropDownState
     extends State<UserDefinedPricingDropDown> {
-  final ApiService apiService = ApiService();
   var sicCodes = [];
   var disabled;
 
@@ -39,8 +37,10 @@ class _UserDefinedPricingDropDownState
   var startVal;
 
   Future<void> initCodes() async {
-    var sicResp = await apiService.authGet(
-        context, "/agreementbuilder/userdefinedpricing");
+    var sicResp;
+    //REPLACE WITH GRAPHQL
+    // var sicResp = await apiService.authGet(
+    //     context, "/agreementbuilder/userdefinedpricing");
     if (sicResp != null) {
       if (sicResp.statusCode == 200) {
         var sicArrDecoded = sicResp.data;

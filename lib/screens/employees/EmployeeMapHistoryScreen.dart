@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
-import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -22,7 +21,6 @@ class EmployeeMapHistoryScreen extends StatefulWidget {
 
 class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
   var isLoading = true;
-  final ApiService apiService = new ApiService();
 
   Completer<GoogleMapController> _fullScreenMapController = Completer();
 
@@ -75,15 +73,18 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
       url += "?startDate=" + startDate.toString();
       url += "&endDate=" + endDate.toString();
     }
-
-    var resp = await apiService.authGet(context, url);
+    var resp;
+    //REPLACE WITH GRAPHQL
+    // var resp = await apiService.authGet(context, url);
     if (resp.statusCode == 200) {
       var locationDataDecoded = resp.data;
       var locationDataArray = List.from(locationDataDecoded);
-      var stopCount = await apiService.authGet(
-          context,
-          "/employee/stopcount/${this.widget.employeeId}/" +
-              startDate.toString());
+      var stopCount;
+      //REPLACE WITH GRAPHQL
+      // var stopCount = await apiService.authGet(
+      //     context,
+      //     "/employee/stopcount/${this.widget.employeeId}/" +
+      //         startDate.toString());
 
       var count = await stopCount.data;
       setState(() {

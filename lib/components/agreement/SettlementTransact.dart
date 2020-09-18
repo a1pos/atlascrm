@@ -1,12 +1,9 @@
 import 'package:atlascrm/components/shared/CustomCard.dart';
-import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
 import 'package:searchable_dropdown/searchable_dropdown.dart';
 import 'package:atlascrm/components/agreement/UserDefinedPricingDropdown.dart';
 
 class SettlementTransact extends StatefulWidget {
-  final ApiService apiService = new ApiService();
-
   final Map isDirtyStatus;
   final Map controllers;
   final agreementDoc;

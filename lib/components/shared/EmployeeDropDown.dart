@@ -1,4 +1,3 @@
-import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
@@ -19,7 +18,6 @@ class EmployeeDropDown extends StatefulWidget {
 }
 
 class _EmployeeDropDownState extends State<EmployeeDropDown> {
-  final ApiService apiService = ApiService();
   var employees = [];
   var disabled;
 

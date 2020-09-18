@@ -180,8 +180,6 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
     var updated = DateFormat('yyyy-MM-dd HH:mm:ss.mmm').format(DateTime.now());
 
     Map data = {
-      "updated_at": updated,
-      "updated_by": UserService.employee.employee,
       "document": {
         "dbaName": "${dbaController.text}",
         "city": "${businessAddress["city"]}",
@@ -334,7 +332,8 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        Navigator.pop(context);
+        // Navigator.pop(context);
+        Navigator.popAndPushNamed(context, "/leads");
 
         return Future.value(false);
       },

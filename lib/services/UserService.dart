@@ -1,7 +1,5 @@
 import 'dart:developer';
 import 'package:atlascrm/models/Employee.dart';
-import 'package:atlascrm/services/ApiService.dart';
-import 'package:atlascrm/services/SocketService.dart';
 import 'package:atlascrm/services/api.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -14,9 +12,6 @@ class UserService {
   static bool isAdmin = false;
   static bool isTech = false;
   static bool isAuthenticated = false;
-
-  final ApiService apiService = new ApiService();
-  final SocketService socketService = new SocketService();
 
   final GoogleSignIn googleSignIn =
       GoogleSignIn(scopes: ['https://www.googleapis.com/auth/calendar']);
@@ -92,11 +87,11 @@ class UserService {
     setPublicGraphQLClient();
 
     var user = await firebaseAuth.currentUser();
-
+    print(user);
     MutationOptions mutateOptions = MutationOptions(documentNode: gql("""
         mutation actionLink(\$uid: String!, \$email: String!) {
           linkGoogleAccount(uid: \$uid, email: \$email) {
-            employee
+              employee
           }
         }
     """), variables: {
@@ -112,19 +107,15 @@ class UserService {
       print(idTokenResult);
       var empDecoded = result.data["linkGoogleAccount"]["employee"];
       employee = Employee.fromJson(empDecoded);
-      var role;
-      if (employee.document["role"] != null) {
-        role = employee.document["role"];
-      }
-      if (role == "admin") {
+      if (employee.role == "admin" || employee.role == "sa") {
         isAdmin = true;
-        socketService.initWebSocketConnection();
+        // socketService.initWebSocketConnection();
       } else {
         isAdmin = false;
       }
-      if (role == "tech") {
+      if (employee.role == "tech") {
         isTech = true;
-        socketService.initWebSocketConnection();
+        // socketService.initWebSocketConnection();
       } else {
         isTech = false;
       }

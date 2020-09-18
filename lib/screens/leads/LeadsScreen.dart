@@ -6,7 +6,6 @@ import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CustomDrawer.dart';
 import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
-import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
@@ -16,8 +15,6 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'LeadStepper.dart';
 
 class LeadsScreen extends StatefulWidget {
-  final ApiService apiService = new ApiService();
-
   @override
   _LeadsScreenState createState() => _LeadsScreenState();
 }
@@ -386,7 +383,9 @@ class _LeadsScreenState extends State<LeadsScreen> {
   Future<void> initEmployeeData() async {
     try {
       var endpoint = "/employee";
-      var resp = await this.widget.apiService.authGet(context, endpoint);
+      var resp;
+      //REPLACE WITH GRAPHQL
+      // var resp = await this.widget.apiService.authGet(context, endpoint);
       if (resp != null) {
         if (resp.statusCode == 200) {
           var employeesArrDecoded = resp.data;

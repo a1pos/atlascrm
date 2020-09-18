@@ -71,13 +71,12 @@ class LeadStepperState extends State<LeadStepper> {
     print(businessName);
     try {
       QueryOptions options = QueryOptions(documentNode: gql("""
-query CheckLeadAddress {
-  lead(where: {document: {_contains: {address: "$address"}}, _and: {document: {_contains: {businessName: "$businessName"}}}}) {
-    lead
-    document
-  }
-}
-
+        query CheckLeadAddress {
+          lead(where: {document: {_contains: {address: "$address"}}, _and: {document: {_contains: {businessName: "$businessName"}}}}) {
+            lead
+            document
+          }
+        }
       """), fetchPolicy: FetchPolicy.networkOnly);
 
       final QueryResult result = await client.query(options);
@@ -213,10 +212,6 @@ query CheckLeadAddress {
           "state": businessAddress["state"],
           "zipCode": businessAddress["zipcode"]
         },
-        "created_by": UserService.employee.employee,
-        "created_at": created,
-        "updated_by": UserService.employee.employee,
-        "updated_at": created,
       };
 
       MutationOptions mutateOptions = MutationOptions(documentNode: gql("""
@@ -230,11 +225,9 @@ query CheckLeadAddress {
       """), variables: {"objects": lead});
       final QueryResult result = await client.mutate(mutateOptions);
 
-      // var resp = await apiService.authPost(
-      //     context, "/lead/${UserService.employee.employee}", lead);
-      // if (resp != null) {
       if (result.hasException == false) {
-        Navigator.pop(context);
+        // Navigator.pop(context);
+        Navigator.popAndPushNamed(context, "/leads");
 
         Fluttertoast.showToast(
             msg: "Successfully added lead!",

@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'package:atlascrm/components/shared/AddressSearch.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
-import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,8 +9,6 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:searchable_dropdown/searchable_dropdown.dart';
 
 class Documents extends StatefulWidget {
-  final ApiService apiService = new ApiService();
-
   final Map isDirtyStatus;
   final Map files;
   final Map fileStatus;

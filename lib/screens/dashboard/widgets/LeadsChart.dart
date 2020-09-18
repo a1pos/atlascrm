@@ -1,5 +1,4 @@
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
-import 'package:atlascrm/services/ApiService.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 
@@ -13,7 +12,6 @@ class LeadsChart extends StatefulWidget {
 
 class _LeadsChartState extends State<LeadsChart> {
   var isLoading = true;
-  final ApiService apiService = ApiService();
 
   var seriesList;
   var statsData = List<SalesPerson>();

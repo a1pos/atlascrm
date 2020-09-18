@@ -1,5 +1,4 @@
 import 'dart:developer';
-import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -11,7 +10,6 @@ import 'package:atlascrm/components/inventory/InventoryLocationDropDown.dart';
 import 'package:atlascrm/components/inventory/InventoryPriceTierDropDown.dart';
 
 class InventoryAdd extends StatefulWidget {
-  final ApiService apiService = new ApiService();
   InventoryAdd();
 
   @override
@@ -33,7 +31,6 @@ class InventoryAddState extends State<InventoryAdd> {
   var leads;
 
   final UserService userService = UserService();
-  final ApiService apiService = ApiService();
 
   var phoneNumberController = MaskedTextController(mask: '000-000-0000');
 
@@ -127,8 +124,10 @@ class InventoryAddState extends State<InventoryAdd> {
       }
       var data = serialList;
       bool cleanPost = true;
-      var resp1 = await this.widget.apiService.authPost(
-          context, "/inventory/${UserService.employee.employee}", data);
+      var resp1;
+      //REPLACE WITH GRAPHQL
+      // var resp1 = await this.widget.apiService.authPost(
+      //     context, "/inventory/${UserService.employee.employee}", data);
       if (resp1 != null) {
         if (resp1.statusCode == 200) {
           if (resp1.data.length > 0) {

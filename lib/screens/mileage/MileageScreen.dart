@@ -3,14 +3,12 @@ import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomDrawer.dart';
 import 'package:atlascrm/components/shared/LoadingScreen.dart';
 import 'package:atlascrm/components/shared/MerchantDropdown.dart';
-import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/StorageService.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 class MileageScreen extends StatefulWidget {
-  final ApiService apiService = new ApiService();
   final StorageService storageService = new StorageService();
 
   @override
@@ -233,8 +231,10 @@ class _MileageScreenState extends State<MileageScreen> {
       var status = !isRunning;
 
       if (status) {
-        var resp = await this.widget.apiService.authPost(context,
-            "/employee/${UserService.employee.employee}/trip", destination);
+        var resp;
+        //REPLACE WITH GRAPHQL
+        // var resp = await this.widget.apiService.authPost(context,
+        //     "/employee/${UserService.employee.employee}/trip", destination);
         if (resp.statusCode == 200) {
           await this
               .widget
@@ -256,10 +256,12 @@ class _MileageScreenState extends State<MileageScreen> {
       } else {
         var trip = await this.widget.storageService.read("techTripId");
         if (trip != "") {
-          var resp = await this
-              .widget
-              .apiService
-              .authPost(context, "/employee/trip/$trip", {});
+          var resp;
+          //REPLACE WITH GRAPHQL
+          // var resp = await this
+          //     .widget
+          //     .apiService
+          //     .authPost(context, "/employee/trip/$trip", {});
           if (resp.statusCode == 200) {
             setState(() {
               isRunning = status;

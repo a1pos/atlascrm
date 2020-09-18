@@ -1,4 +1,3 @@
-import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
 import 'package:searchable_dropdown/searchable_dropdown.dart';
 
@@ -15,7 +14,6 @@ class MerchantDropDown extends StatefulWidget {
 }
 
 class _MerchantDropDownState extends State<MerchantDropDown> {
-  final ApiService apiService = ApiService();
   var merchants = [];
   var disabled;
 
@@ -36,7 +34,9 @@ class _MerchantDropDownState extends State<MerchantDropDown> {
   var startVal;
 
   Future<void> initMerchants(e) async {
-    var merchantsResp = await apiService.authGet(context, "/merchant");
+    var merchantsResp;
+    //REPLACE WITH GRAPHQL
+    // var merchantsResp = await apiService.authGet(context, "/merchant");
     if (merchantsResp != null) {
       if (merchantsResp.statusCode == 200) {
         var merchantsArrDecoded = merchantsResp.data["data"];

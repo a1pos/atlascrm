@@ -1,7 +1,6 @@
 import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
-import 'package:atlascrm/services/ApiService.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'dart:async';
 import 'package:intl/intl.dart';
@@ -9,8 +8,6 @@ import 'package:atlascrm/components/shared/Empty.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 class Notes extends StatefulWidget {
-  final ApiService apiService = new ApiService();
-
   final String object;
   final String type;
 

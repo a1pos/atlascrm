@@ -1,5 +1,6 @@
-import 'package:atlascrm/services/ApiService.dart';
+import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:searchable_dropdown/searchable_dropdown.dart';
 
 class InventoryLocationDropDown extends StatefulWidget {
@@ -17,7 +18,6 @@ class InventoryLocationDropDown extends StatefulWidget {
 }
 
 class _InventoryLocationDropDownState extends State<InventoryLocationDropDown> {
-  final ApiService apiService = ApiService();
   var locations = [];
   var disabled;
 
@@ -38,11 +38,22 @@ class _InventoryLocationDropDownState extends State<InventoryLocationDropDown> {
   var startVal;
 
   Future<void> initLocations() async {
-    var locationsResp =
-        await apiService.authGet(context, "/inventory/location");
-    if (locationsResp != null) {
-      if (locationsResp.statusCode == 200) {
-        var locationsArrDecoded = locationsResp.data;
+    QueryOptions options = QueryOptions(documentNode: gql("""
+        query GetInventoryLocations {
+          inventory_location{
+            inventory_location
+            name
+          }
+        }
+      """), fetchPolicy: FetchPolicy.networkOnly);
+
+    final QueryResult result = await client.query(options);
+
+    // var locationsResp =
+    //     await apiService.authGet(context, "/inventory/location");
+    if (result != null) {
+      if (result.hasException == false) {
+        var locationsArrDecoded = result.data["inventory_location"];
         if (locationsArrDecoded != null) {
           if (this.mounted) {
             setState(() {

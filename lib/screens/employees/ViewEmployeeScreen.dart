@@ -4,7 +4,6 @@ import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/models/Employee.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
-import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/screens/employees/widgets/Tasks.dart';
@@ -19,8 +18,6 @@ class ViewEmployeeScreen extends StatefulWidget {
 }
 
 class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
-  final ApiService apiService = new ApiService();
-
   final deviceNameController = new TextEditingController();
   final deviceSerialNumberController = new TextEditingController();
 
@@ -53,8 +50,10 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
   }
 
   Future<void> loadEmployeeData() async {
-    var resp = await apiService.authGet(
-        context, "/employee/" + this.widget.employeeId);
+    var resp;
+    //REPLACE WITH GRAPHQL
+    // var resp = await apiService.authGet(
+    //     context, "/employee/" + this.widget.employeeId);
 
     if (resp.statusCode == 200) {
       var body = resp.data;
@@ -69,7 +68,9 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
   }
 
   Future<void> loadDefaultRoles() async {
-    var resp = await apiService.authGet(context, "/role");
+    var resp;
+    //REPLACE WITH GRAPHQL
+    // var resp = await apiService.authGet(context, "/role");
 
     if (resp.statusCode == 200) {
       var body = resp.data;
@@ -92,8 +93,10 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
 
   Future<void> updateEmployee() async {
     try {
-      var resp = await apiService.authPut(
-          context, "/employee/" + employee.employee, employee);
+      var resp;
+      //REPLACE WITH GRAPHQL
+      // var resp = await apiService.authPut(
+      //     context, "/employee/" + employee.employee, employee);
       if (resp.statusCode == 200) {
         Fluttertoast.showToast(
             msg: "Update Successful!",

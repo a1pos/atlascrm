@@ -1,13 +1,10 @@
 import 'dart:async';
 import 'package:atlascrm/components/shared/AddressSearch.dart';
-import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:searchable_dropdown/searchable_dropdown.dart';
 
 class OwnerInfo extends StatefulWidget {
-  final ApiService apiService = new ApiService();
-
   final Map isDirtyStatus;
   final List owners;
   final Map controllers;
@@ -237,10 +234,12 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
       this.widget.owners.removeAt(index);
     });
     if (ownerId != null) {
-      var resp = await this
-          .widget
-          .apiService
-          .authDelete(context, "/businessowner/$ownerId", null);
+      var resp;
+      //REPLACE WITH GRAPHQL
+      // var resp = await this
+      //     .widget
+      //     .apiService
+      //     .authDelete(context, "/businessowner/$ownerId", null);
 
       if (resp.statusCode == 200) {
         Fluttertoast.showToast(

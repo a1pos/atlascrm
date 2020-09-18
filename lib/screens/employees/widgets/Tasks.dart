@@ -1,7 +1,6 @@
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
 import 'package:atlascrm/components/task/TaskItem.dart';
-import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -16,8 +15,6 @@ class Tasks extends StatefulWidget {
 }
 
 class _TasksState extends State<Tasks> {
-  final ApiService apiService = ApiService();
-
   var isEmpty = true;
   var isLoading = true;
   var tasks = [];
@@ -31,8 +28,10 @@ class _TasksState extends State<Tasks> {
 
   Future<void> initTasks() async {
     try {
-      var resp = await apiService.authGet(
-          context, "/employee/" + this.widget.employeeId + "/task");
+      var resp;
+      //REPLACE WITH GRAPHQL
+      // var resp = await apiService.authGet(
+      //     context, "/employee/" + this.widget.employeeId + "/task");
       if (resp != null) {
         if (resp.statusCode == 200) {
           var tasksArrDecoded = resp.data;

@@ -1,7 +1,6 @@
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
 import 'package:atlascrm/components/task/TaskItem.dart';
-import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
@@ -15,8 +14,6 @@ class Tasks extends StatefulWidget {
 }
 
 class _TasksState extends State<Tasks> {
-  final ApiService apiService = ApiService();
-
   var isEmpty = true;
   var isLoading = true;
   var tasks = [];

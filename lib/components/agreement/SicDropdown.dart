@@ -1,4 +1,3 @@
-import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
 import 'package:searchable_dropdown/searchable_dropdown.dart';
 
@@ -15,7 +14,6 @@ class SicDropDown extends StatefulWidget {
 }
 
 class _SicDropDownState extends State<SicDropDown> {
-  final ApiService apiService = ApiService();
   var sicCodes = [];
   var disabled;
 
@@ -36,7 +34,9 @@ class _SicDropDownState extends State<SicDropDown> {
   var startVal;
 
   Future<void> initCodes() async {
-    var sicResp = await apiService.authGet(context, "/agreementbuilder/sic");
+    var sicResp;
+    //REPLACE WITH GRAPHQL
+    // var sicResp = await apiService.authGet(context, "/agreementbuilder/sic");
     if (sicResp != null) {
       if (sicResp.statusCode == 200) {
         var sicArrDecoded = sicResp.data;

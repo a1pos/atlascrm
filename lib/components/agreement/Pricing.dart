@@ -1,11 +1,8 @@
 import 'dart:async';
 import 'package:atlascrm/components/shared/CustomCard.dart';
-import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
 
 class Pricing extends StatefulWidget {
-  final ApiService apiService = new ApiService();
-
   final bool finalValidation;
   final Map rateReview;
   final bool pricingDone;

@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
-import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -17,8 +16,6 @@ class MerchantInfoEntry {
 }
 
 class ViewMerchantScreen extends StatefulWidget {
-  final ApiService apiService = new ApiService();
-
   final String merchantId;
   ViewMerchantScreen(this.merchantId);
 
@@ -64,16 +61,16 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
           document
           employee: employeeByEmployee{
             employee
-            document
+            displayName:document(path:"displayName")
           }
 		    }
       }
-    """), variables: {"merchant": merchant});
+    """), variables: {"merchant": merchantId});
 
     final QueryResult result = await client.query(options);
 
     if (result.hasException == false) {
-      var body = result.data["merchant"];
+      var body = result.data["merchant_by_pk"];
       if (body != null) {
         var bodyDecoded = body;
 
@@ -89,22 +86,22 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
       isLoading = false;
     });
 
-    var resp2 = await this
-        .widget
-        .apiService
-        .authGet(context, "/inventory/merchant/" + this.widget.merchantId);
+    // var resp2 = await this
+    //     .widget
+    //     .apiService
+    //     .authGet(context, "/inventory/merchant/" + this.widget.merchantId);
 
-    if (resp2.statusCode == 200) {
-      var body = resp2.data;
-      if (body != null) {
-        var bodyDecoded = body;
-        if (bodyDecoded[0]["inventory"] != null) {
-          setState(() {
-            devices = bodyDecoded;
-          });
-        }
-      }
-    }
+    // if (resp2.statusCode == 200) {
+    //   var body = resp2.data;
+    //   if (body != null) {
+    //     var bodyDecoded = body;
+    //     if (bodyDecoded[0]["inventory"] != null) {
+    //       setState(() {
+    //         devices = bodyDecoded;
+    //       });
+    //     }
+    //   }
+    // }
 
     setState(() {
       isLoading = false;
@@ -127,92 +124,92 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
       "zipCode": businessAddress["zipcode"],
     };
 
-    var resp = await this.widget.apiService.authPut(
-        context, "/merchant/" + this.widget.merchantId, merchantToUpdate);
+    // var resp = await this.widget.apiService.authPut(
+    //     context, "/merchant/" + this.widget.merchantId, merchantToUpdate);
 
-    if (resp.statusCode == 200) {
-      await loadMerchantData(this.widget.merchantId);
+    // if (resp.statusCode == 200) {
+    //   await loadMerchantData(this.widget.merchantId);
 
-      Fluttertoast.showToast(
-          msg: "Merchant Updated!",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.grey[600],
-          textColor: Colors.white,
-          fontSize: 16.0);
-      Navigator.pushNamed(context, '/merchants');
-    } else {
-      Fluttertoast.showToast(
-          msg: "Failed to udpate merchant!",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.grey[600],
-          textColor: Colors.white,
-          fontSize: 16.0);
-    }
+    //   Fluttertoast.showToast(
+    //       msg: "Merchant Updated!",
+    //       toastLength: Toast.LENGTH_SHORT,
+    //       gravity: ToastGravity.BOTTOM,
+    //       backgroundColor: Colors.grey[600],
+    //       textColor: Colors.white,
+    //       fontSize: 16.0);
+    //   Navigator.pushNamed(context, '/merchants');
+    // } else {
+    //   Fluttertoast.showToast(
+    //       msg: "Failed to udpate merchant!",
+    //       toastLength: Toast.LENGTH_SHORT,
+    //       gravity: ToastGravity.BOTTOM,
+    //       backgroundColor: Colors.grey[600],
+    //       textColor: Colors.white,
+    //       fontSize: 16.0);
+    // }
   }
 
-  Future<void> deleteCheck(merchantId) async {
-    return showDialog<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Delete this merchant?'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text('Are you sure you want to delete this merchant?'),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            FlatButton(
-              child: Text('Delete',
-                  style: TextStyle(fontSize: 17, color: Colors.red)),
-              onPressed: () {
-                deleteMerchant(merchantId);
+  // Future<void> deleteCheck(merchantId) async {
+  //   return showDialog<void>(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return AlertDialog(
+  //         title: Text('Delete this merchant?'),
+  //         content: SingleChildScrollView(
+  //           child: ListBody(
+  //             children: <Widget>[
+  //               Text('Are you sure you want to delete this merchant?'),
+  //             ],
+  //           ),
+  //         ),
+  //         actions: <Widget>[
+  //           FlatButton(
+  //             child: Text('Delete',
+  //                 style: TextStyle(fontSize: 17, color: Colors.red)),
+  //             onPressed: () {
+  //               deleteMerchant(merchantId);
 
-                Navigator.of(context).pop();
-              },
-            ),
-            FlatButton(
-              child: Text('Cancel', style: TextStyle(fontSize: 17)),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
+  //               Navigator.of(context).pop();
+  //             },
+  //           ),
+  //           FlatButton(
+  //             child: Text('Cancel', style: TextStyle(fontSize: 17)),
+  //             onPressed: () {
+  //               Navigator.of(context).pop();
+  //             },
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
 
-  Future<void> deleteMerchant(merchantId) async {
-    var resp = await this
-        .widget
-        .apiService
-        .authDelete(context, "/merchant/" + this.widget.merchantId, null);
+  // Future<void> deleteMerchant(merchantId) async {
+  //   var resp = await this
+  //       .widget
+  //       .apiService
+  //       .authDelete(context, "/merchant/" + this.widget.merchantId, null);
 
-    if (resp.statusCode == 200) {
-      Navigator.popAndPushNamed(context, "/merchants");
+  //   if (resp.statusCode == 200) {
+  //     Navigator.popAndPushNamed(context, "/merchants");
 
-      Fluttertoast.showToast(
-          msg: "Successful delete!",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.grey[600],
-          textColor: Colors.white,
-          fontSize: 16.0);
-    } else {
-      Fluttertoast.showToast(
-          msg: "Failed to delete merchant!",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.grey[600],
-          textColor: Colors.white,
-          fontSize: 16.0);
-    }
-  }
+  //     Fluttertoast.showToast(
+  //         msg: "Successful delete!",
+  //         toastLength: Toast.LENGTH_SHORT,
+  //         gravity: ToastGravity.BOTTOM,
+  //         backgroundColor: Colors.grey[600],
+  //         textColor: Colors.white,
+  //         fontSize: 16.0);
+  //   } else {
+  //     Fluttertoast.showToast(
+  //         msg: "Failed to delete merchant!",
+  //         toastLength: Toast.LENGTH_SHORT,
+  //         gravity: ToastGravity.BOTTOM,
+  //         backgroundColor: Colors.grey[600],
+  //         textColor: Colors.white,
+  //         fontSize: 16.0);
+  //   }
+  // }
 
   Widget buildList() {
     return ListView(
@@ -432,15 +429,16 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                   ),
                 ),
               ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () async {
-            if (_merchantFormKey.currentState.validate()) {
-              updateMerchant(this.widget.merchantId);
-            }
-          },
-          backgroundColor: Color.fromARGB(500, 1, 224, 143),
-          child: Icon(Icons.save),
-        ),
+        //do we need a save for this?
+        // floatingActionButton: FloatingActionButton(
+        //   onPressed: () async {
+        //     if (_merchantFormKey.currentState.validate()) {
+        //       updateMerchant(this.widget.merchantId);
+        //     }
+        //   },
+        //   backgroundColor: Color.fromARGB(500, 1, 224, 143),
+        //   child: Icon(Icons.save),
+        // ),
       ),
     );
   }

@@ -1,5 +1,6 @@
 class Employee {
   String employee;
+  String role;
   bool isActive;
   int employeeAccountType;
   String company;
@@ -11,6 +12,7 @@ class Employee {
 
   Employee(
       this.employee,
+      this.role,
       this.isActive,
       this.employeeAccountType,
       this.company,
@@ -21,12 +23,14 @@ class Employee {
       this.updated_by);
 
   static Employee getEmpty() {
-    return Employee(null, false, null, null, null, null, null, null, null);
+    return Employee(
+        null, null, false, null, null, null, null, null, null, null);
   }
 
   static Employee fromJson(Map<String, dynamic> data) {
     return Employee(
         data["employee"],
+        data["role"],
         data["is_active"],
         data["employee_account_type"],
         data["company"],
@@ -39,6 +43,7 @@ class Employee {
 
   Map<String, dynamic> toJson() => {
         'employee': employee,
+        'role': employee,
         'is_active': isActive,
         'employee_account_type': employeeAccountType,
         'company': company,

@@ -1,4 +1,3 @@
-import 'package:atlascrm/services/ApiService.dart';
 import 'package:flutter/material.dart';
 import 'package:searchable_dropdown/searchable_dropdown.dart';
 
@@ -18,7 +17,6 @@ class InventoryPriceTierDropDown extends StatefulWidget {
 
 class _InventoryPriceTierDropDownState
     extends State<InventoryPriceTierDropDown> {
-  final ApiService apiService = ApiService();
   var locations = [];
   var disabled;
 
@@ -39,7 +37,9 @@ class _InventoryPriceTierDropDownState
   var startVal;
 
   Future<void> initPriceTiers() async {
-    var locationsResp = await apiService.authGet(context, "/inventory/tier");
+    var locationsResp;
+    //REPLACE WITH GRAPHQL
+    // var locationsResp = await apiService.authGet(context, "/inventory/tier");
     if (locationsResp != null) {
       if (locationsResp.statusCode == 200) {
         var locationsArrDecoded = locationsResp.data;

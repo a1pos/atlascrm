@@ -1,12 +1,12 @@
 import 'package:flutter/foundation.dart';
 
 class ConfigSettings {
-  static String API_URL =
-      // kReleaseMode
-      //     ?
-      // "https://atlascrm.us/api/v1/"
-      // :
-      "http://192.168.1.45:3002/api/v1/";
+  // static String API_URL =
+  // kReleaseMode
+  //     ?
+  // "https://atlascrm.us/api/v1/"
+  // :
+  // "http://192.168.1.45:3002/api/v1/";
   // static String WS_URL =
   //     // kReleaseMode ?
   //     //"wss://atlascrm.us"
@@ -19,9 +19,9 @@ class ConfigSettings {
 
   static String ACCESS_TOKEN = "";
 
-  getApiUrl() {
-    return API_URL;
-  }
+  // getApiUrl() {
+  //   return API_URL;
+  // }
 
   getGoogleToken() {
     return GOOGLE_TOKEN;
