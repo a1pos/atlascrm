@@ -43,13 +43,15 @@ class _RoleDropDownState extends State<RoleDropDown> {
           document
         }
       }
-      """), pollInterval: 5);
+      """), fetchPolicy: FetchPolicy.networkOnly);
 
-    final QueryResult result = await client.query(options);
+    final QueryResult rolesResp = await client.query(options);
 
-    if (result != null) {
-      if (result.hasException == false) {
-        var rolesArrDecoded = result.data["role"];
+    //REPLACE WITH GRAPHQL
+    // var locationsResp = await apiService.authGet(context, "/inventory/tier");
+    if (rolesResp != null) {
+      if (rolesResp.hasException == false) {
+        var rolesArrDecoded = rolesResp.data["role"];
         if (rolesArrDecoded != null) {
           if (this.mounted) {
             setState(() {
@@ -68,7 +70,6 @@ class _RoleDropDownState extends State<RoleDropDown> {
 
   @override
   Widget build(BuildContext context) {
-    initRoles();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -84,7 +85,7 @@ class _RoleDropDownState extends State<RoleDropDown> {
           value: startVal,
           onClear: () {
             setState(() {
-              this.widget.callback(null);
+              this.widget.callback("");
             });
           },
           hint: "Please choose one",
@@ -92,16 +93,16 @@ class _RoleDropDownState extends State<RoleDropDown> {
           isExpanded: true,
           // menuConstraints: BoxConstraints.tight(Size.fromHeight(350)),
           items: roles.map<DropdownMenuItem<String>>((dynamic item) {
-            var roleName;
+            var businessName;
             if (item["title"]?.isEmpty ?? true) {
-              roleName = "";
+              businessName = "";
             } else {
-              roleName = item["title"];
+              businessName = item["title"];
             }
             return DropdownMenuItem<String>(
-              value: roleName,
+              value: businessName,
               child: Text(
-                roleName,
+                businessName,
               ),
             );
           }).toList(),
@@ -116,7 +117,7 @@ class _RoleDropDownState extends State<RoleDropDown> {
                         setVal = role["role"];
                       }
                     }
-                    startVal = newValue;
+                    startVal = setVal;
                     this.widget.callback(setVal);
                   });
                 },
@@ -126,17 +127,17 @@ class _RoleDropDownState extends State<RoleDropDown> {
         //   isExpanded: true,
         //   value: this.widget.value,
         //   hint: Text("Please choose one"),
-        //   items: roles.map((dynamic item) {
-        //     var rolename;
+        //   items: leads.map((dynamic item) {
+        //     var businessName;
         //     if (item["document"]?.isEmpty ?? true) {
-        //       rolename = "";
+        //       businessName = "";
         //     } else {
-        //       rolename = item["document"]["dbaname"];
+        //       businessName = item["document"]["businessName"];
         //     }
         //     return DropdownMenuItem<String>(
-        //       value: item["role"],
+        //       value: item["lead"],
         //       child: Text(
-        //         rolename,
+        //         businessName,
         //       ),
         //     );
         //   }).toList(),

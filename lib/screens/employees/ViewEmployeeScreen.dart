@@ -22,7 +22,7 @@ class ViewEmployeeScreen extends StatefulWidget {
 
 class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
   final deviceNameController = new TextEditingController();
-  final deviceSerialNumberController = new TextEditingController();
+  final deviceIdController = new TextEditingController();
 
   final _formKey = new GlobalKey<FormState>();
 
@@ -32,6 +32,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
   var employee;
 
   var defaultRoles = [];
+  var devices = [];
 
   @override
   void initState() {
@@ -43,6 +44,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
   Future<void> initData() async {
     try {
       await loadEmployeeData();
+      await loadDevices();
       // await loadDefaultRoles();
     } catch (err) {
       log(err);
@@ -53,25 +55,55 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
     });
   }
 
+  Future<void> loadDevices() async {
+    Operation options =
+        Operation(operationName: "SUB_EMPLOYEE_DEVICES", documentNode: gql("""
+        subscription SUB_EMPLOYEE_DEVICES(\$employee: uuid!) {
+          employee_device(where: {employee: {_eq: \$employee}}) {
+            employee_device
+            deviceName: document(path: "deviceName")
+            device_id
+          }
+        }
+    """), variables: {"employee": "${this.widget.employeeId}"});
+    var result = client.subscribe(options);
+    result.listen(
+      (data) async {
+        var deviceArrDecoded = data.data["employee_device"];
+        if (deviceArrDecoded != null) {
+          if (this.mounted) {
+            setState(() {
+              devices = deviceArrDecoded.toList();
+            });
+          }
+        }
+      },
+      onError: (error) {
+        print(error);
+
+        Fluttertoast.showToast(
+            msg: "Failed to load Devices!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0);
+      },
+    );
+  }
+
   Future<void> loadEmployeeData() async {
     QueryOptions options = QueryOptions(documentNode: gql("""
       query GET_EMPLOYEE{
         employee_by_pk(employee: "${this.widget.employeeId}"){
           employee
           document
-          employee_devices{
-            device_id
-            document
-          }
           role
         }
       }
     """));
 
     final QueryResult result = await client.query(options);
-    //REPLACE WITH GRAPHQL
-    // var resp = await apiService.authGet(
-    //     context, "/employee/" + this.widget.employeeId);
 
     if (result.hasException == false) {
       var body = result.data["employee_by_pk"];
@@ -79,68 +111,74 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
         var bodyDecoded = body;
 
         setState(() {
-          // employee = Employee.fromJson(bodyDecoded);
           employee = bodyDecoded;
         });
       }
     }
   }
 
-  Future<void> loadDefaultRoles() async {
-    var resp;
-    //REPLACE WITH GRAPHQL
-    // var resp = await apiService.authGet(context, "/role");
-
-    if (resp.statusCode == 200) {
-      var body = resp.data;
-      if (body != null) {
-        var rolesArr = body;
-
-        var rolesFull = [];
-
-        for (var i = 0; i < List.from(rolesArr).length; i++) {
-          rolesFull.add(
-              {"display": rolesArr[i]["title"], "value": rolesArr[i]["role"]});
+  Future<void> updateRole(role) async {
+    MutationOptions mutateOptions = MutationOptions(documentNode: gql("""
+      mutation UPDATE_ROLE (\$employee: uuid!, \$role: uuid!){
+        update_employee_by_pk(pk_columns: {employee: \$employee}, _set: {role: \$role}){
+          roleByRole{
+            role
+            title
+          }
         }
-
-        setState(() {
-          defaultRoles = rolesFull;
-        });
       }
-    }
-  }
-
-  Future<void> updateEmployee() async {
-    try {
-      var resp;
-      //REPLACE WITH GRAPHQL
-      // var resp = await apiService.authPut(
-      //     context, "/employee/" + employee.employee, employee);
-      if (resp.statusCode == 200) {
-        Fluttertoast.showToast(
-            msg: "Update Successful!",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.grey[600],
-            textColor: Colors.white,
-            fontSize: 16.0);
-
-        await loadEmployeeData();
-      } else {
-        throw ('ERROR');
-      }
-    } catch (err) {
+          """), variables: {"employee": this.widget.employeeId, "role": role});
+    final QueryResult result = await client.mutate(mutateOptions);
+    if (result.hasException == true) {
       Fluttertoast.showToast(
-          msg: "Failed to udpate employee!",
-          toastLength: Toast.LENGTH_SHORT,
+          msg: result.exception.toString(),
+          toastLength: Toast.LENGTH_LONG,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.grey[600],
           textColor: Colors.white,
           fontSize: 16.0);
-
-      await loadEmployeeData();
     }
+    Fluttertoast.showToast(
+        msg: "Role set to " +
+            result.data["update_employee_by_pk"]["roleByRole"]["title"] +
+            "!",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.grey[600],
+        textColor: Colors.white,
+        fontSize: 16.0);
   }
+  // Future<void> updateEmployee() async {
+  //   try {
+  //     var resp;
+  //     //REPLACE WITH GRAPHQL
+  //     // var resp = await apiService.authPut(
+  //     //     context, "/employee/" + employee.employee, employee);
+  //     if (resp.statusCode == 200) {
+  //       Fluttertoast.showToast(
+  //           msg: "Update Successful!",
+  //           toastLength: Toast.LENGTH_SHORT,
+  //           gravity: ToastGravity.BOTTOM,
+  //           backgroundColor: Colors.grey[600],
+  //           textColor: Colors.white,
+  //           fontSize: 16.0);
+
+  //       await loadEmployeeData();
+  //     } else {
+  //       throw ('ERROR');
+  //     }
+  //   } catch (err) {
+  //     Fluttertoast.showToast(
+  //         msg: "Failed to udpate employee!",
+  //         toastLength: Toast.LENGTH_SHORT,
+  //         gravity: ToastGravity.BOTTOM,
+  //         backgroundColor: Colors.grey[600],
+  //         textColor: Colors.white,
+  //         fontSize: 16.0);
+
+  //     await loadEmployeeData();
+  //   }
+  // }
 
   void addDeviceDialog() {
     showDialog(
@@ -179,9 +217,8 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                     children: <Widget>[
                       Expanded(
                         child: TextFormField(
-                          controller: deviceSerialNumberController,
-                          decoration: InputDecoration(
-                              labelText: "Device Serial Number"),
+                          controller: deviceIdController,
+                          decoration: InputDecoration(labelText: "Device ID"),
                           validator: (value) =>
                               value.isEmpty ? 'Cannot be blank' : null,
                         ),
@@ -208,18 +245,42 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
               onPressed: () async {
                 final form = _formKey.currentState;
                 if (form.validate()) {
-                  var devicesList = List.from(employee["employee_devices"]);
+                  Map newDevice = {
+                    "employee": this.widget.employeeId,
+                    "device_id": deviceIdController.text,
+                    "document": {"deviceName": deviceNameController.text}
+                  };
+                  //LOGIC TO MUTATE ADD DEVICE
+                  MutationOptions mutateOptions =
+                      MutationOptions(documentNode: gql("""
+                        mutation INSERT_ONE_EMPLOYEE_DEVICE (\$object: employee_device_insert_input!){
+                          insert_employee_device_one(object: \$object){
+                          employee_device
+                        }
+                      }
+                  """), variables: {"object": newDevice});
+                  final QueryResult result = await client.mutate(mutateOptions);
+                  if (result.hasException == true) {
+                    Fluttertoast.showToast(
+                        msg: result.exception.toString(),
+                        toastLength: Toast.LENGTH_LONG,
+                        gravity: ToastGravity.BOTTOM,
+                        backgroundColor: Colors.grey[600],
+                        textColor: Colors.white,
+                        fontSize: 16.0);
+                  }
 
-                  devicesList.add({
-                    "deviceId": deviceSerialNumberController.text,
-                    "deviceName": deviceNameController.text
-                  });
-
-                  employee["document"]["devices"] = devicesList;
-
-                  await updateEmployee();
+                  deviceIdController.text = "";
+                  deviceNameController.text = "";
 
                   Navigator.pop(context);
+                  Fluttertoast.showToast(
+                      msg: "Device Added!",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      backgroundColor: Colors.grey[600],
+                      textColor: Colors.white,
+                      fontSize: 16.0);
                 }
               },
               child: Text(
@@ -244,20 +305,49 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
           content: Text("Are you sure you want to delete this device?"),
           actions: <Widget>[
             MaterialButton(
-              child: Text("Confirm"),
+              child: Text("Confirm",
+                  style: TextStyle(fontSize: 17, color: Colors.green)),
               onPressed: () async {
-                var employeeDeviceArr =
-                    List.from(employee["document"]["devices"]);
-                employeeDeviceArr.removeWhere(
-                    (deviceToRemove) => deviceToRemove["deviceId"] == deviceId);
+                //LOGIC TO MUTATE DELETE A DEVICE
+                MutationOptions mutateOptions =
+                    MutationOptions(documentNode: gql("""
+                      mutation INSERT_ONE_EMPLOYEE_DEVICE(\$employee_device: uuid!) {
+                        delete_employee_device_by_pk(employee_device: \$employee_device){
+                          employee_device
+                        }
+                      }
+                  """), variables: {"employee_device": deviceId});
+                final QueryResult result = await client.mutate(mutateOptions);
+                if (result.hasException == true) {
+                  Fluttertoast.showToast(
+                      msg: result.exception.toString(),
+                      toastLength: Toast.LENGTH_LONG,
+                      gravity: ToastGravity.BOTTOM,
+                      backgroundColor: Colors.grey[600],
+                      textColor: Colors.white,
+                      fontSize: 16.0);
+                }
+                Navigator.pop(context);
+                Fluttertoast.showToast(
+                    msg: "Device Deleted!",
+                    toastLength: Toast.LENGTH_SHORT,
+                    gravity: ToastGravity.BOTTOM,
+                    backgroundColor: Colors.grey[600],
+                    textColor: Colors.white,
+                    fontSize: 16.0);
+                // var employeeDeviceArr =
+                //     List.from(employee["document"]["devices"]);
+                // employeeDeviceArr.removeWhere(
+                //     (deviceToRemove) => deviceToRemove["deviceId"] == deviceId);
 
-                employee["document"]["devices"] = employeeDeviceArr;
+                // employee["document"]["devices"] = employeeDeviceArr;
 
-                await updateEmployee();
+                // await updateEmployee();
               },
             ),
             MaterialButton(
-              child: Text("Cancel"),
+              child: Text("Cancel",
+                  style: TextStyle(fontSize: 17, color: Colors.red)),
               onPressed: () {
                 Navigator.pop(context);
               },
@@ -314,6 +404,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                                     setState(() {
                                       employee["role"] = newValue;
                                     });
+                                    updateRole(newValue);
                                   }),
                             )
                           ]),
@@ -330,14 +421,12 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                               Expanded(
                                 child: ListView(
                                   shrinkWrap: true,
-                                  children:
-                                      List.from(employee["employee_devices"])
-                                          .map((device) {
+                                  children: List.from(devices).map((device) {
                                     return Card(
                                       child: ListTile(
                                         title: Text(
                                           // "Name: " +
-                                          device["document"]["deviceName"],
+                                          device["deviceName"],
                                         ),
                                         subtitle: Text(
                                           "ID: " + device["device_id"],
@@ -345,7 +434,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                                         trailing: GestureDetector(
                                           onTap: () {
                                             deleteEmployeeDevice(
-                                                device["device_id"]);
+                                                device["employee_device"]);
                                           },
                                           child: Icon(
                                             Icons.delete,
@@ -433,13 +522,13 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                 ),
               ),
             ),
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.save),
-        backgroundColor: Color.fromARGB(500, 1, 224, 143),
-        onPressed: () async {
-          await updateEmployee();
-        },
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   child: Icon(Icons.save),
+      //   backgroundColor: Color.fromARGB(500, 1, 224, 143),
+      //   onPressed: () async {
+      //     await updateEmployee();
+      //   },
+      // ),
     );
   }
 

@@ -43,7 +43,7 @@ class _MerchantDropDownState extends State<MerchantDropDown> {
             document
           }
         }
-      """), pollInterval: 5);
+      """));
 
     final QueryResult result = await client.query(options);
 
