@@ -610,12 +610,13 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                             ],
                           ),
                         ),
-                        // ImageUploader(
-                        //     type: "statement",
-                        //     objectId: lead["lead"],
-                        //     loading: {"loading": isLoading},
-                        //     controller: leadSaveController,
-                        //     dirtyFlag: {"flag": statementDirty}),
+                        ImageUploader(
+                            type: "statement",
+                            objectId: lead["lead"],
+                            loading: {"loading": isLoading},
+                            controller: leadSaveController,
+                            dirtyFlag: {"flag": statementDirty},
+                            infoDoc: leadDocument),
                       ],
                     ),
                   ),
@@ -623,7 +624,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
               ),
         floatingActionButton: FloatingActionButton(
           onPressed: () async {
-            // leadSaveController.methodA();
+            leadSaveController.methodA();
             if (_leadFormKey.currentState.validate()) {
               updateLead(this.widget.leadId);
             }

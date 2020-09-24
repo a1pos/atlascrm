@@ -1,7 +1,9 @@
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
 import 'package:atlascrm/services/UserService.dart';
+import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
 
 class EmployeeListScreen extends StatefulWidget {
   final bool isFullScreen;
@@ -28,12 +30,19 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
   }
 
   Future<void> getEmployees() async {
-    var resp;
-    //REPLACE WITH GRAPHQL
-    // var resp = await apiService.authGet(context, "/employee");
-    if (resp != null) {
-      if (resp.statusCode == 200) {
-        var employeeArrDecoded = resp.data;
+    QueryOptions options = QueryOptions(documentNode: gql("""
+        query GET_EMPLOYEES{
+          employee{
+            employee
+            document
+          }
+        }
+      """));
+
+    final QueryResult result = await client.query(options);
+    if (result != null) {
+      if (result.hasException == false) {
+        var employeeArrDecoded = result.data["employee"];
         if (employeeArrDecoded != null) {
           var employeeArr = List.from(employeeArrDecoded);
           if (employeeArr.length > 0) {
@@ -119,8 +128,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
         (emp) {
           var empPicture;
           try {
-            empPicture =
-                Image.network(emp["document"]["googleClaims"]["picture"]);
+            empPicture = Image.network(emp["document"]["photoURL"]);
           } catch (err) {
             empPicture = Image.asset("assets/google_logo.png");
           }
@@ -151,7 +159,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
                     child: Padding(
                       padding: EdgeInsets.all(5),
                       child: Text(
-                        emp["document"]["fullName"] ?? "N/A",
+                        emp["document"]["displayName"] ?? "N/A",
                         style: TextStyle(
                           fontSize: 14,
                         ),

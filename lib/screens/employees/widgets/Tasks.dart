@@ -2,14 +2,15 @@ import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
 import 'package:atlascrm/components/task/TaskItem.dart';
 import 'package:atlascrm/services/UserService.dart';
+import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
 
 class Tasks extends StatefulWidget {
-  final String employeeId;
-
-  Tasks({this.employeeId});
-
+  var employee;
+  Tasks({this.employee});
   @override
   _TasksState createState() => _TasksState();
 }
@@ -24,82 +25,167 @@ class _TasksState extends State<Tasks> {
     super.initState();
 
     initTasks();
+    print(UserService.employee);
   }
 
   Future<void> initTasks() async {
-    try {
-      var resp;
-      //REPLACE WITH GRAPHQL
-      // var resp = await apiService.authGet(
-      //     context, "/employee/" + this.widget.employeeId + "/task");
-      if (resp != null) {
-        if (resp.statusCode == 200) {
-          var tasksArrDecoded = resp.data;
-          if (tasksArrDecoded != null && tasksArrDecoded.length > 0) {
-            setState(() {
-              tasks = tasksArrDecoded;
-              activeTasks =
-                  tasks.where((e) => e["document"]["active"]).toList();
-              isLoading = false;
-              if (activeTasks.length > 0) {
-                isEmpty = false;
+    Operation options =
+        Operation(operationName: "EmployeeTasks", documentNode: gql("""
+          subscription EmployeeTasks(\$employee: uuid!) {
+            employee_by_pk(employee: \$employee) {
+              tasks {
+                task
+                taskTypeByTaskType {
+                  task_type
+                  title
+                }
+                employee
+                date
+                priority
+                task_status
+                document
+                merchant
+                lead
+                created_by
+                updated_by
+                created_at
               }
-            });
-          } else {
-            setState(() {
-              isLoading = false;
-              isEmpty = true;
-            });
+            }
           }
-        } else {
-          throw new Error();
+            """), variables: {"employee": "${this.widget.employee}"});
+
+    var result = wsClient.subscribe(options);
+    result.listen(
+      (data) async {
+        var tasksArrDecoded = data.data["employee_by_pk"]["tasks"];
+        if (tasksArrDecoded != null) {
+          setState(() {
+            tasks = tasksArrDecoded;
+            // activeTasks = tasks.where((e) => e["document"]["active"]).toList();
+            activeTasks = tasks;
+            if (tasks.length > 0) {
+              isEmpty = false;
+            }
+            isLoading = false;
+          });
+          // await fillEvents();
         }
-      } else {
-        throw new Error();
-      }
-    } catch (err) {
-      print(err);
-    }
+        isLoading = false;
+      },
+      onError: (error) {
+        print("STREAM LISTEN ERROR: " + error);
+        setState(() {
+          isLoading = false;
+        });
+
+        Fluttertoast.showToast(
+            msg: "Failed to load tasks for employee!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0);
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: isLoading
-          ? Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                CenteredLoadingSpinner(),
-              ],
-            )
-          : isEmpty
-              ? Empty("No Active Tasks found")
-              : SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      Column(
-                        children: activeTasks.map((t) {
-                          var tDate = DateFormat("EEE, MMM d, ''yy")
-                              .add_jm()
-                              .format(DateTime.parse(t['date']));
-                          return GestureDetector(
-                            onTap: () {
-                              Navigator.pushNamed(context, "/viewtask",
-                                  arguments: t["task"]);
-                            },
-                            child: TaskItem(
-                                title: t["document"]["title"],
-                                description: t["document"]["notes"],
-                                dateTime: tDate,
-                                type: t["typetitle"],
-                                priority: t["priority"]),
-                          );
-                        }).toList(),
-                      ),
-                    ],
-                  ),
-                ),
-    );
+        child: isLoading
+            ? Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  CenteredLoadingSpinner(),
+                ],
+              )
+            : activeTasks == null
+                ? Empty("No Active Tasks found")
+                : buildDLGridView(context, activeTasks));
+
+    // return Query(
+    //     options: QueryOptions(
+    //         documentNode: gql("""
+    // subscription EmployeeTasks(\$employee: uuid!) {
+    //   employee_by_pk(employee: \$employee) {
+    //     tasks {
+    //       task
+    //       taskTypeByTaskType {
+    //         task_type
+    //         title
+    //       }
+    //       employee
+    //       date
+    //       priority
+    //       task_status
+    //       document
+    //       merchant
+    //       lead
+    //       created_by
+    //       updated_by
+    //       created_at
+    //     }
+    //   }
+    // }
+    //         """),
+    //         pollInterval: 1,
+    //         variables: {"employee": "${UserService.employee.employee}"}),
+    //     builder: (QueryResult result,
+    //         {VoidCallback refetch, FetchMore fetchMore}) {
+    //       return Container(
+    //           child: result.loading
+    //               ? Row(
+    //                   crossAxisAlignment: CrossAxisAlignment.stretch,
+    //                   mainAxisAlignment: MainAxisAlignment.center,
+    //                   children: <Widget>[
+    //                     CenteredLoadingSpinner(),
+    //                   ],
+    //                 )
+    //               : result.data == null
+    //                   ? Empty("No Active Tasks found")
+    //                   : buildDLGridView(
+    //                       context, result.data["employee"]["tasks"]));
+    //     });
   }
+}
+
+Widget buildDLGridView(BuildContext context, list) {
+  return list.length == 0
+      ? Empty("No Active Tasks found")
+      : ListView(
+          shrinkWrap: true,
+          children: List.generate(list.length, (index) {
+            var task = list[index];
+
+            var tDate;
+            var tType = "none";
+            var tPriority = -1;
+
+            if (task['date'] != null) {
+              tDate = DateFormat("EEE, MMM d, ''yy")
+                  .add_jm()
+                  .format(DateTime.parse(task['date']));
+            } else {
+              tDate = "";
+            }
+            if (task["taskTypeByTaskType"] != null) {
+              tType = task["taskTypeByTaskType"]["title"];
+            }
+            if (task["priority"] != null) {
+              tPriority = task["priority"];
+            }
+            return GestureDetector(
+              onTap: () {
+                Navigator.pushNamed(context, "/viewtask",
+                    arguments: task["task"]);
+              },
+              child: TaskItem(
+                  title: task["document"]["title"],
+                  description: task["document"]["notes"],
+                  dateTime: tDate,
+                  type: tType,
+                  priority: tPriority),
+            );
+          }));
 }

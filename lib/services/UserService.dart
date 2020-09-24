@@ -89,8 +89,8 @@ class UserService {
     var user = await firebaseAuth.currentUser();
     print(user);
     MutationOptions mutateOptions = MutationOptions(documentNode: gql("""
-        mutation actionLink(\$uid: String!, \$email: String!) {
-          linkGoogleAccount(uid: \$uid, email: \$email) {
+        mutation ACTION_LINK(\$uid: String!, \$email: String!) {
+          link_google_account(uid: \$uid, email: \$email) {
               employee
           }
         }
@@ -105,7 +105,8 @@ class UserService {
     } else {
       var idTokenResult = await user.getIdToken(refresh: true);
       print(idTokenResult);
-      var empDecoded = result.data["linkGoogleAccount"]["employee"];
+      var empDecoded = result.data["link_google_account"]["employee"];
+
       employee = Employee.fromJson(empDecoded);
       if (employee.role == "admin" || employee.role == "sa") {
         isAdmin = true;
@@ -120,6 +121,22 @@ class UserService {
         isTech = false;
       }
       setPrivateGraphQLClient(idTokenResult.token);
+      String companyId = empDecoded["company"];
+      QueryOptions companyQueryOptions = QueryOptions(documentNode: gql("""
+        query GET_COMPANY {
+          company_by_pk(company: "$companyId") {
+            company
+            title
+          }
+        }
+      """));
+
+      final QueryResult result2 = await client.query(companyQueryOptions);
+
+      if (result2.hasException == false) {
+        employee.companyName = result2.data["company_by_pk"]["title"];
+      }
+      print(employee.companyName);
       return result;
     }
   }

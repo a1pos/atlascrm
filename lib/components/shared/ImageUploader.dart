@@ -1,6 +1,7 @@
 import 'package:atlascrm/components/shared/PlacesSuggestions.dart';
 import 'package:atlascrm/config/ConfigSettings.dart';
 import 'package:atlascrm/screens/leads/ViewLeadScreen.dart';
+import 'package:atlascrm/services/api.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,6 +10,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:multi_image_picker/multi_image_picker.dart';
 import 'package:atlascrm/services/UserService.dart';
@@ -19,31 +21,31 @@ import 'package:photo_view/photo_view_gallery.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:http/http.dart' as http;
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
+import 'package:http_parser/http_parser.dart';
+import 'package:atlascrm/services/ApiService.dart';
 
 import 'CustomAppBar.dart';
 
 class ImageUploader extends StatefulWidget {
+  final ApiService apiService = new ApiService();
+
   final String objectId;
   final String type;
   final Map loading;
   final LeadSaveController controller;
   final Map dirtyFlag;
+  final Map infoDoc;
   ImageUploader(
       {this.type,
       this.objectId,
       this.loading,
       this.controller,
-      this.dirtyFlag});
+      this.dirtyFlag,
+      this.infoDoc});
 
   @override
   _ImageUploaderState createState() => _ImageUploaderState(controller);
 }
-
-bool isFocused = false;
-var notesController = TextEditingController();
-List notes;
-List notesDisplay;
-var notesEmpty = true;
 
 class _ImageUploaderState extends State<ImageUploader> {
   _ImageUploaderState(LeadSaveController controller) {
@@ -67,23 +69,38 @@ class _ImageUploaderState extends State<ImageUploader> {
 
   var uploadsComplete = false;
   var dio = Dio();
-
-  var _image;
+  var widgetType;
+  var objectId;
+  var leadDocument;
   final picker = ImagePicker();
+  var statementId;
 
   Future<void> loadStatement() async {
-    try {
-      var resp;
-//REPLACE WITH GRAPHQL
-      // var resp = await this
-      //     .widget
-      //     .apiService
-      //     .authGet(context, "/statement/${this.widget.objectId}/lead");
+    widgetType = this.widget.type;
+    objectId = this.widget.objectId;
 
-      if (resp.statusCode == 200) {
-        if (resp.data != null && resp.data != "") {
-          if (resp.data["document"] != null) {
-            if (resp.data["document"]["emailSent"] != null) {
+    try {
+      QueryOptions options = QueryOptions(documentNode: gql("""
+        query GetStatement {
+          statement(where: {lead: {_eq: "$objectId"}}) {
+            statement
+            document
+            leadByLead{
+              document
+            }
+          }
+        }
+      """), fetchPolicy: FetchPolicy.networkOnly);
+
+      final QueryResult result = await client.query(options);
+
+      if (result.hasException == false) {
+        if (result.data != null && result.data != "") {
+          setState(() {
+            statementId = result.data["statement"][0]["statement"];
+          });
+          if (result.data["statement"][0]["document"] != null) {
+            if (result.data["statement"][0]["document"]["emailSent"] != null) {
               setState(() {
                 uploadsComplete = true;
               });
@@ -194,37 +211,6 @@ class _ImageUploaderState extends State<ImageUploader> {
         );
       },
     );
-  }
-
-  Future<void> imageResult(image) async {
-    try {
-      var resp;
-//REPLACE WITH GRAPHQL
-      // var resp = await this.widget.apiService.authFilePost(
-      //     context,
-      //     "/employee/${UserService.employee.employee}/${this.widget.objectId}/${this.widget.type}",
-      //     _image);
-
-      if (resp.statusCode == 200) {
-        Fluttertoast.showToast(
-            msg: "Image Uploaded!",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.grey[600],
-            textColor: Colors.white,
-            fontSize: 16.0);
-      } else {
-        Fluttertoast.showToast(
-            msg: "Failed to upload statement!",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.grey[600],
-            textColor: Colors.white,
-            fontSize: 16.0);
-      }
-    } catch (err) {
-      print(err);
-    }
   }
 
   Future<void> submitCheck() async {
@@ -588,10 +574,10 @@ class _ImageUploaderState extends State<ImageUploader> {
     Navigator.pop(context);
     Navigator.pop(context);
     try {
-      var resp;
-      //REPLACE WITH GRAPHQL
-      // var resp = await this.widget.apiService.authDelete(
-      //     context, "/lead/${this.widget.objectId}/statement/$name", null);
+      var resp = await this.widget.apiService.authDelete(
+          context,
+          "/api/upload/statement?lead=${this.widget.objectId}&statement=$name",
+          null);
 
       if (resp.statusCode == 200) {
         if (imageDLList.length == 1) {
@@ -660,18 +646,31 @@ class _ImageUploaderState extends State<ImageUploader> {
 
   Future<void> loadImages() async {
     try {
-      var resp;
-      //REPLACE WITH GRAPHQL
+      //ORIGINAL REQUEST
       // var resp = await this
       //     .widget
       //     .apiService
-      //     .authGet(context, "/lead/${this.widget.objectId}/statement");
+      //     .authGet(context, "/api/upload/statement?lead=$objectId");
+      QueryOptions options = QueryOptions(
+          documentNode: gql("""
+      query LEAD_PHOTOS(\$lead: uuid!) {
+        lead_photos(lead: \$lead){
+          photos
+        }
+      }
+      """),
+          variables: {"lead": objectId},
+          fetchPolicy: FetchPolicy.networkOnly);
 
-      if (resp.statusCode == 200) {
-        if (resp.data != null && resp.data != "") {
-          for (var imgUrl in resp.data) {
-            var url = "a1/uploads/statement_photos/$imgUrl";
-            // var url = "${ConfigSettings.API_URL}_a1/uploads/statement_photos/$imgUrl";
+      final QueryResult result = await client.query(options);
+
+      if (result.hasException == false) {
+        if (result.data != null && result.data != "") {
+          for (var imgUrl in result.data["lead_photos"]["photos"]) {
+            print(imgUrl);
+            // var url = "a1/uploads/statement_photos/$imgUrl";
+            var url =
+                "${ConfigSettings.HOOK_API_URL}/uploads/statement/$imgUrl";
             setState(() {
               imageDLList.add({"name": imgUrl, "url": url});
             });
@@ -696,15 +695,27 @@ class _ImageUploaderState extends State<ImageUploader> {
       setState(() {
         isLoading = true;
       });
-      var resp;
-      //REPLACE WITH GRAPHQL
-      // var resp = await this
-      //     .widget
-      //     .apiService
-      //     .authPut(context, "/lead/${this.widget.objectId}/statement", null);
 
-      if (resp.statusCode == 200) {
-        if (resp.data != null && resp.data != "") {
+      MutationOptions mutateOptions = MutationOptions(documentNode: gql("""
+        mutation SEND_EMAIL(\$to:[String]!, \$subject:String!, \$html:String!, \$type:String!, \$statement:String!){
+          email_statement(to:\$to, subject:\$subject, html:\$html, type:\$type, statement:\$statement){
+            email_status
+          }
+        }
+        """), variables: {
+        "to": ["joe.pounds@a1pos.com"],
+        // "to": ["jerrod.lumley@a1pos.com", "john.deluga@butlerbizsys.com", "andrew.hrindo@butlerbizsys.com"],
+        "subject":
+            "New Statement For Review: ${this.widget.infoDoc["businessName"]} - ${this.widget.infoDoc["address"]}",
+        "html":
+            'Lead: ${this.widget.infoDoc["businessName"]} <br /> <a href="">Click Here for Rate Review Tool</a>',
+        "type": "STATEMENT",
+        "statement": statementId
+      });
+      final QueryResult result = await client.mutate(mutateOptions);
+
+      if (result.hasException == false) {
+        if (result.data != null && result.data != "") {
           setState(() {
             uploadsComplete = true;
             isLoading = false;
@@ -739,12 +750,10 @@ class _ImageUploaderState extends State<ImageUploader> {
     print("FILE URI: $path");
 
     try {
-      var resp;
-      //REPLACE WITH GRAPHQL
-      // var resp = await this.widget.apiService.authFilePost(
-      //     context,
-      //     "/employee/${UserService.employee.employee}/${this.widget.objectId}/${this.widget.type}",
-      //     path);
+      var resp = await this.widget.apiService.authFilePost(
+          context,
+          "/api/upload/statement?lead=$objectId&employee=${UserService.employee.employee}",
+          path);
       if (resp.statusCode == 200) {
         setState(() {
           this.widget.dirtyFlag["flag"].text = "true";
@@ -773,7 +782,6 @@ class _ImageUploaderState extends State<ImageUploader> {
     } catch (err) {
       print(err);
     }
-    // newFile.delete();
   }
 
   @override

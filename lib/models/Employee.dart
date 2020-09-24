@@ -4,6 +4,7 @@ class Employee {
   bool isActive;
   int employeeAccountType;
   String company;
+  String companyName;
   dynamic document;
   String created_at;
   String created_by;
@@ -16,6 +17,7 @@ class Employee {
       this.isActive,
       this.employeeAccountType,
       this.company,
+      this.companyName,
       this.document,
       this.created_at,
       this.created_by,
@@ -24,7 +26,7 @@ class Employee {
 
   static Employee getEmpty() {
     return Employee(
-        null, null, false, null, null, null, null, null, null, null);
+        null, null, false, null, null, null, null, null, null, null, null);
   }
 
   static Employee fromJson(Map<String, dynamic> data) {
@@ -34,6 +36,7 @@ class Employee {
         data["is_active"],
         data["employee_account_type"],
         data["company"],
+        data["companyName"],
         data["document"],
         data["created_at"],
         data["created_by"],
@@ -47,6 +50,7 @@ class Employee {
         'is_active': isActive,
         'employee_account_type': employeeAccountType,
         'company': company,
+        'companyName': companyName,
         'document': document,
         'created_at': created_at,
         'created_by': created_at,

@@ -2,11 +2,14 @@ import 'dart:developer';
 
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
+import 'package:atlascrm/components/shared/RoleDropdown.dart';
 import 'package:atlascrm/models/Employee.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
+import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/screens/employees/widgets/Tasks.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
 
 class ViewEmployeeScreen extends StatefulWidget {
   final String employeeId;
@@ -25,7 +28,8 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
 
   var isLoading = true;
 
-  Employee employee;
+  // Employee employee;
+  var employee;
 
   var defaultRoles = [];
 
@@ -39,7 +43,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
   Future<void> initData() async {
     try {
       await loadEmployeeData();
-      await loadDefaultRoles();
+      // await loadDefaultRoles();
     } catch (err) {
       log(err);
     }
@@ -50,18 +54,33 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
   }
 
   Future<void> loadEmployeeData() async {
-    var resp;
+    QueryOptions options = QueryOptions(documentNode: gql("""
+      query GET_EMPLOYEE{
+        employee_by_pk(employee: "${this.widget.employeeId}"){
+          employee
+          document
+          employee_devices{
+            device_id
+            document
+          }
+          role
+        }
+      }
+    """));
+
+    final QueryResult result = await client.query(options);
     //REPLACE WITH GRAPHQL
     // var resp = await apiService.authGet(
     //     context, "/employee/" + this.widget.employeeId);
 
-    if (resp.statusCode == 200) {
-      var body = resp.data;
+    if (result.hasException == false) {
+      var body = result.data["employee_by_pk"];
       if (body != null) {
         var bodyDecoded = body;
 
         setState(() {
-          employee = Employee.fromJson(bodyDecoded);
+          // employee = Employee.fromJson(bodyDecoded);
+          employee = bodyDecoded;
         });
       }
     }
@@ -189,14 +208,14 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
               onPressed: () async {
                 final form = _formKey.currentState;
                 if (form.validate()) {
-                  var devicesList = List.from(employee.document["devices"]);
+                  var devicesList = List.from(employee["employee_devices"]);
 
                   devicesList.add({
                     "deviceId": deviceSerialNumberController.text,
                     "deviceName": deviceNameController.text
                   });
 
-                  employee.document["devices"] = devicesList;
+                  employee["document"]["devices"] = devicesList;
 
                   await updateEmployee();
 
@@ -227,11 +246,12 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
             MaterialButton(
               child: Text("Confirm"),
               onPressed: () async {
-                var employeeDeviceArr = List.from(employee.document["devices"]);
+                var employeeDeviceArr =
+                    List.from(employee["document"]["devices"]);
                 employeeDeviceArr.removeWhere(
                     (deviceToRemove) => deviceToRemove["deviceId"] == deviceId);
 
-                employee.document["devices"] = employeeDeviceArr;
+                employee["document"]["devices"] = employeeDeviceArr;
 
                 await updateEmployee();
               },
@@ -252,7 +272,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
     if (value == null) return;
 
     setState(() {
-      employee.document["roles"] = value;
+      employee["document"]["roles"] = value;
     });
   }
 
@@ -262,7 +282,8 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
       backgroundColor: Color.fromARGB(255, 242, 242, 242),
       appBar: CustomAppBar(
         key: Key("viewEmployeeScreenAppBar"),
-        title: Text(isLoading ? "Loading..." : employee.document["fullName"]),
+        title: Text(
+            isLoading ? "Loading..." : employee["document"]["displayName"]),
       ),
       body: isLoading
           ? CenteredClearLoadingScreen()
@@ -278,58 +299,24 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                       icon: Icons.account_box,
                       child: Column(
                         children: <Widget>[
-                          Row(
-                            children: <Widget>[
-                              Expanded(
-                                child: getLabel("Roles"),
-                              ),
-                            ],
-                          ),
-                          Row(
-                            children: <Widget>[
-                              Expanded(
-                                child: ListView(
-                                    shrinkWrap: true,
-                                    children: defaultRoles.map((e) {
-                                      var employeeRoles =
-                                          employee.document["roles"];
-
-                                      return Row(
-                                        children: <Widget>[
-                                          Checkbox(
-                                            activeColor: Color.fromARGB(
-                                                500, 1, 224, 143),
-                                            key: Key(e["display"]),
-                                            value: employeeRoles
-                                                .contains(e["value"]),
-                                            onChanged: (bool enabled) {
-                                              var roles =
-                                                  employee.document["roles"]
-                                                      as List<dynamic>;
-                                              if (enabled) {
-                                                roles.add(e["value"]);
-                                              } else {
-                                                roles.remove(e["value"]);
-                                              }
-
-                                              setState(() {
-                                                employee.document["roles"] =
-                                                    roles;
-                                              });
-                                            },
-                                          ),
-                                          Text(' '),
-                                          Text(
-                                            e["display"]
-                                                .toString()
-                                                .toUpperCase(),
-                                          ),
-                                        ],
-                                      );
-                                    }).toList()),
-                              ),
-                            ],
-                          ),
+                          // Row(
+                          //   children: <Widget>[
+                          //     Expanded(
+                          //       child: getLabel("Role"),
+                          //     ),
+                          //   ],
+                          // ),
+                          Row(children: <Widget>[
+                            Expanded(
+                              child: RoleDropDown(
+                                  value: employee["role"],
+                                  callback: (newValue) {
+                                    setState(() {
+                                      employee["role"] = newValue;
+                                    });
+                                  }),
+                            )
+                          ]),
                           rowDivider(),
                           Row(
                             children: <Widget>[
@@ -344,37 +331,26 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                                 child: ListView(
                                   shrinkWrap: true,
                                   children:
-                                      List.from(employee.document["devices"])
+                                      List.from(employee["employee_devices"])
                                           .map((device) {
-                                    return Container(
-                                      padding: EdgeInsets.all(15),
-                                      child: Row(
-                                        children: <Widget>[
-                                          Expanded(
-                                            flex: 8,
-                                            child: Text(
-                                              "Name: " + device["deviceName"],
-                                            ),
+                                    return Card(
+                                      child: ListTile(
+                                        title: Text(
+                                          // "Name: " +
+                                          device["document"]["deviceName"],
+                                        ),
+                                        subtitle: Text(
+                                          "ID: " + device["device_id"],
+                                        ),
+                                        trailing: GestureDetector(
+                                          onTap: () {
+                                            deleteEmployeeDevice(
+                                                device["device_id"]);
+                                          },
+                                          child: Icon(
+                                            Icons.delete,
                                           ),
-                                          Expanded(
-                                            flex: 10,
-                                            child: Text(
-                                              "Id: " + device["deviceId"],
-                                            ),
-                                          ),
-                                          Expanded(
-                                            flex: 2,
-                                            child: GestureDetector(
-                                              onTap: () {
-                                                deleteEmployeeDevice(
-                                                    device["deviceId"]);
-                                              },
-                                              child: Icon(
-                                                Icons.delete,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
+                                        ),
                                       ),
                                     );
                                   }).toList(),
@@ -450,7 +426,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                       icon: Icons.track_changes,
                       child: Container(
                         height: 200,
-                        child: Tasks(employeeId: this.widget.employeeId),
+                        child: Tasks(employee: this.widget.employeeId),
                       ),
                     )
                   ],

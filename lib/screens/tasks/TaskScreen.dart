@@ -299,7 +299,7 @@ class _TaskScreenState extends State<TaskScreen> {
       throw new Error();
     }
 
-    var timeNow = DateFormat("yyyy-MM-dd HH:mm").format(DateTime.now());
+    // var timeNow = DateFormat("yyyy-MM-dd HH:mm").format(DateTime.now());
 
     Map data = {
       "task_status": openStatus,
@@ -309,7 +309,7 @@ class _TaskScreenState extends State<TaskScreen> {
       "employee": taskEmployee,
       "document": {
         "notes": taskDescController.text,
-        "title": taskDescController.text,
+        "title": taskTitleController.text,
         "active": true,
         "eventid": null
       },

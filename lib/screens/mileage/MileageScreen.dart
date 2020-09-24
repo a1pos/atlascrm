@@ -44,7 +44,7 @@ class _MileageScreenState extends State<MileageScreen> {
                   ),
                   MerchantDropDown(callback: (newValue) {
                     setState(() {
-                      destinationMerchant = newValue;
+                      destinationMerchant = newValue["id"];
                     });
                   }),
                   Padding(

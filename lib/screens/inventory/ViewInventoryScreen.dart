@@ -26,6 +26,7 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
   var serialNumberController = TextEditingController();
   var priceTierController = TextEditingController();
   var merchantController = TextEditingController();
+  var merchantNameController = TextEditingController();
 
   var deviceIcon;
 
@@ -129,7 +130,7 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
           }
           document
         }}
-            """));
+            """), fetchPolicy: FetchPolicy.networkOnly);
 
     final QueryResult result = await client.query(options);
 
@@ -141,11 +142,14 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
         setState(() {
           inventory = bodyDecoded;
           if (inventory["merchantByMerchant"] != null) {
-            merchantController.text = inventory["merchantByMerchant"]
-                    ["document"]["ApplicationInformation"]["MpaOutletInfo"]
-                ["Outlet"]["BusinessInfo"]["IrsName"];
+            merchantController.text =
+                inventory["merchantByMerchant"]["merchant"];
+            merchantNameController.text = inventory["merchantByMerchant"]
+                    ["document"]["ApplicationInformation"]["MpaInfo"]
+                ["ClientDbaName"];
           } else {
             merchantController.text = null;
+            merchantNameController.text = null;
           }
 
           if (inventory["employeeByEmployee"] != null) {
@@ -166,31 +170,55 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
   }
 
   Future<void> updateDevice(type) async {
-    var data;
+    Map data;
     var alert;
+    var locationName;
     if (type == "checkout") {
       data = {
         "employee": UserService.employee.employee,
         "merchant": merchantController.text
       };
       alert = "Device checked out!";
+      locationName = merchantNameController.text;
     }
     if (type == "return") {
-      data = {"merchant": null, "employee": null};
+      data = {"merchant": null, "employee": null, "is_installed": false};
       alert = "Device returned!";
+      locationName = UserService.employee.companyName;
     }
     if (type == "install") {
       data = {"is_installed": true};
       alert = "Device installed!";
+      locationName = merchantNameController.text;
     }
-    var resp;
-    //REPLACE WITH GRAPHQL
-    // var resp = await this
-    //     .widget
-    //     .apiService
-    //     .authPut(context, "/inventory/" + this.widget.incoming["id"], data);
+    var newDocument = inventory["document"];
 
-    if (resp.statusCode == 200) {
+    var currentTimestamp = DateTime.now().millisecondsSinceEpoch;
+    print(currentTimestamp);
+    var newEvent = {
+      "date": currentTimestamp,
+      "employee": UserService.employee.employee,
+      "location": merchantController.text,
+      "merchant": type == "return" ? false : true,
+      "description": type,
+      "employeeName": UserService.employee.document["displayName"],
+      "locationName": locationName
+    };
+    newDocument["history"].add(newEvent);
+
+    data["document"] = newDocument;
+
+    MutationOptions mutateOptions = MutationOptions(documentNode: gql("""
+      mutation UPDATE_INVENTORY (\$data: inventory_set_input){
+        update_inventory_by_pk(pk_columns: {inventory: "${this.widget.incoming["id"]}"}, _set:\$data){
+          inventory
+          document
+        }
+      }
+      """), variables: {"data": data});
+    final QueryResult result = await client.mutate(mutateOptions);
+
+    if (result.hasException == false) {
       await loadInventoryData();
 
       Fluttertoast.showToast(
@@ -231,7 +259,8 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
                 ),
                 MerchantDropDown(callback: (newValue) {
                   setState(() {
-                    merchantController.text = newValue;
+                    merchantController.text = newValue["id"];
+                    merchantNameController.text = newValue["name"];
                   });
                 })
               ],
@@ -423,8 +452,8 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
                                   inventory[
                                           "inventoryLocationByInventoryLocation"]
                                       ["name"]),
-                              showInfoRow(
-                                  "Current Merchant", merchantController.text),
+                              showInfoRow("Current Merchant",
+                                  merchantNameController.text),
                               showInfoRow("Current Employee", employee),
                               Divider(),
                               Row(
