@@ -45,11 +45,9 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
     try {
       await loadEmployeeData();
       await loadDevices();
-      // await loadDefaultRoles();
     } catch (err) {
       log(err);
     }
-
     setState(() {
       isLoading = false;
     });
@@ -472,7 +470,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                                 onTap: () {
                                   Navigator.pushNamed(
                                       context, "/employeemaphistory",
-                                      arguments: this.widget.employeeId);
+                                      arguments: employee);
                                 },
                                 child: Container(
                                   color: Colors.white,
