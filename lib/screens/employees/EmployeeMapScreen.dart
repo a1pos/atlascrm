@@ -31,7 +31,7 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
     target: LatLng(40.907569, -79.923725),
     zoom: 13.0,
   );
-
+  var today = DateFormat('yyyy-MM-dd').format(DateTime.now());
   @override
   void initState() {
     super.initState();
@@ -86,9 +86,42 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
     result.listen(
       (data) async {
         for (var currentLocation in data.data["employee_device"]) {
+          var stopCount;
           if (currentLocation["employee_locations"].length == 0) {
             return;
           }
+
+          QueryOptions options = QueryOptions(documentNode: gql("""
+          query GET_STOP_COUNT(\$device_id: String, \$date: timestamptz) {
+                      v_stop_count_aggregate(
+                        where: {
+                          _and: [
+                            { device_id: { _eq: \$device_id } }
+                            { created_at: { _gte: \$date } }
+                          ]
+                        }
+                      ) {
+                        aggregate {
+                          count
+                        }
+                      }
+                    }
+              """), variables: {
+            "device_id": currentLocation["device_id"],
+            "date": today
+          });
+
+          final QueryResult result2 = await client.query(options);
+          if (result2 != null) {
+            if (result2.hasException == false) {
+              var stopsArrDecoded =
+                  result2.data["v_stop_count_aggregate"]["aggregate"]["count"];
+              if (stopsArrDecoded != null) {
+                stopCount = stopsArrDecoded.toString();
+              }
+            }
+          }
+
           var location = currentLocation["employee_locations"][0];
           var epoch = location["document"]["time"];
           var lastCheckinTime =
@@ -123,10 +156,9 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
                       snippet: currentLocation["employeeByEmployee"]["document"]
                               ["displayName"] +
                           ", " +
-                          datetimeFmt,
-                      //  +
-                      // " Stops:" +
-                      // location["stop_count"],
+                          datetimeFmt +
+                          " Stops:" +
+                          stopCount,
                       title: currentLocation["employeeByEmployee"]["document"]
                           ["email"],
                     ),
@@ -152,10 +184,9 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
                     snippet: currentLocation["employeeByEmployee"]["document"]
                             ["displayName"] +
                         ", " +
-                        datetimeFmt,
-                    //     +
-                    // " Stops:" +
-                    // location["stop_count"],
+                        datetimeFmt +
+                        " Stops:" +
+                        stopCount,
                     title: currentLocation["employeeByEmployee"]["document"]
                         ["email"],
                   ),
@@ -168,13 +199,13 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
               ));
             });
           }
-          if (runOnce == true) {
-            LatLngBounds camBounds = boundsFromLatLngList(markerLatLngs);
-            final GoogleMapController controller =
-                await _fullScreenMapController.future;
-            controller
-                .animateCamera(CameraUpdate.newLatLngBounds(camBounds, 100));
-          }
+          // if (runOnce == true) {
+          //   LatLngBounds camBounds = boundsFromLatLngList(markerLatLngs);
+          //   final GoogleMapController controller =
+          //       await _fullScreenMapController.future;
+          //   controller
+          //       .animateCamera(CameraUpdate.newLatLngBounds(camBounds, 100));
+          // }
         }
       },
       onError: (error) {
@@ -189,74 +220,17 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
             fontSize: 16.0);
       },
     );
-    setState(() {
-      runOnce = false;
+    Future.delayed(const Duration(milliseconds: 3000), () async {
+      if (runOnce == true) {
+        LatLngBounds camBounds = boundsFromLatLngList(markerLatLngs);
+        final GoogleMapController controller =
+            await _fullScreenMapController.future;
+        controller.animateCamera(CameraUpdate.newLatLngBounds(camBounds, 100));
+      }
+      setState(() {
+        runOnce = false;
+      });
     });
-    // var channel = await Pusher.subscribe("location");
-
-    // await channel.bind('new-location', (event) async {
-    //   var location = jsonDecode(event.data);
-    //   print(location);
-    //   var epoch = location["location_document"]["time"];
-    //   var lastCheckinTime =
-    //       new DateTime.fromMicrosecondsSinceEpoch(epoch * 1000);
-
-    //   var dateTime = lastCheckinTime;
-
-    //   var formatter = DateFormat.yMd().add_jm();
-    //   String datetimeFmt = formatter.format(dateTime.toLocal());
-
-    //   var markerId = MarkerId(location["employee_id"]);
-    //   var currentEmployeeMarker =
-    //       markers.where((marker) => marker.markerId.value == markerId.value);
-
-    //   var pictureUrl = location["employee_document"]["googleClaims"]["picture"];
-    //   var icon = await getMarkerImageFromCache(pictureUrl);
-
-    //   if (currentEmployeeMarker.length > 0) {
-    //     setState(() {
-    //       markers.removeAll(currentEmployeeMarker.toList());
-
-    //       markers.add(
-    //         Marker(
-    //           position: LatLng(
-    //             location["location_document"]["latitude"],
-    //             location["location_document"]["longitude"],
-    //           ),
-    //           markerId: markerId,
-    //           infoWindow: InfoWindow(
-    //             snippet: location["employee_document"]["fullName"] +
-    //                 " " +
-    //                 datetimeFmt +
-    //                 " Stops:" +
-    //                 location["stop_count"],
-    //             title: location["employee_document"]["email"],
-    //           ),
-    //           icon: icon,
-    //         ),
-    //       );
-    //     });
-    //   } else {
-    //     setState(() {
-    //       markers.add(
-    //         Marker(
-    //           position: LatLng(
-    //             location["location_document"]["latitude"],
-    //             location["location_document"]["longitude"],
-    //           ),
-    //           markerId: markerId,
-    //           infoWindow: InfoWindow(
-    //             snippet: location["employee_document"]["fullName"] +
-    //                 " Stops:" +
-    //                 location["stop_count"],
-    //             title: location["employee_document"]["email"],
-    //           ),
-    //           icon: icon,
-    //         ),
-    //       );
-    //     });
-    //   }
-    // });
   }
 
   Future<void> initBaseMap() async {
@@ -275,72 +249,6 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
         ),
       );
     });
-
-    // DateTime now = DateTime.now();
-    // var time = DateTime(now.year, now.month, now.day, 7, now.minute, now.second,
-    //     now.millisecond, now.microsecond);
-    // var today = DateFormat('yyyy-MM-dd HH:mm:ss.SSS').format(time);
-    // var lastLocationResponse;
-    // //REPLACE WITH GRAPHQL
-    // // var lastLocationResponse = await this
-    // //     .widget
-    // //     .apiService
-    // //     .authGet(context, "/employee/lastknownlocation");
-    // if (lastLocationResponse != null) {
-    //   if (lastLocationResponse.statusCode == 200) {
-    //     var lastLocationArr = lastLocationResponse.data;
-    //     for (var item in lastLocationArr) {
-    //       var stopCount;
-    //       //REPLACE WITH GRAPHQL
-    //       // var stopCount = await this.widget.apiService.authGet(
-    //       //     context, "/employee/stopcount/${item["employee"]}/" + today);
-
-    //       var count = await stopCount.data;
-
-    //       var employeeDocument = item["employee_document"];
-
-    //       var isActive = item["is_employee_active"];
-    //       if (isActive != null) {
-    //         if (!isActive) {
-    //           continue;
-    //         }
-    //       }
-
-    //       var markerId = MarkerId(item["employee"]);
-
-    //       var pictureUrl = employeeDocument["googleClaims"]["picture"];
-    //       var icon = await getMarkerImageFromCache(pictureUrl);
-
-    //       var epoch = item["location_document"]["time"];
-    //       var lastCheckinTime =
-    //           new DateTime.fromMicrosecondsSinceEpoch(epoch * 1000);
-
-    //       var dateTime = lastCheckinTime;
-    //       var formatter = DateFormat.yMd().add_jm();
-    //       String datetimeFmt = formatter.format(dateTime.toLocal());
-
-    //       setState(() {
-    //         markers.add(
-    //           Marker(
-    //               position: LatLng(
-    //                 item["location_document"]["latitude"],
-    //                 item["location_document"]["longitude"],
-    //               ),
-    //               markerId: markerId,
-    //               infoWindow: InfoWindow(
-    //                 title: employeeDocument["email"],
-    //                 snippet: employeeDocument["fullName"] +
-    //                     " " +
-    //                     datetimeFmt +
-    //                     " Stops:" +
-    //                     count.length.toString(),
-    //               ),
-    //               icon: icon),
-    //         );
-    //       });
-    //     }
-    //   }
-    // }
   }
 
   Future<BitmapDescriptor> getMarkerImageFromCache(pictureUrl) async {
@@ -390,6 +298,7 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
         title: Text("Employee Map"),
       ),
       body: GoogleMap(
+        key: Key("liveMap"),
         myLocationEnabled: true,
         mapType: MapType.normal,
         cameraTargetBounds: CameraTargetBounds.unbounded,

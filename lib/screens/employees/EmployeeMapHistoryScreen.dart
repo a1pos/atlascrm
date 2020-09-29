@@ -1,14 +1,15 @@
 import 'dart:async';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/DeviceDropdown.dart';
 import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-
-import 'package:date_range_picker/date_range_picker.dart' as DateRangePicker;
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:intl/intl.dart';
 
@@ -25,7 +26,7 @@ class EmployeeMapHistoryScreen extends StatefulWidget {
 class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
   var isLoading = true;
 
-  Completer<GoogleMapController> _fullScreenMapController = Completer();
+  Completer<GoogleMapController> _fullScreenMapController2 = Completer();
 
   final Set<Marker> _markers = new Set<Marker>();
   final Set<Polyline> _polyline = new Set<Polyline>();
@@ -36,22 +37,36 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
   DateTime _endDate = DateTime.now().toUtc();
   var numberStops = 0;
   var currentDate = DateTime.now();
-  CameraPosition _kGooglePlex;
+  CameraPosition _kGooglePlex = CameraPosition(
+    target: LatLng(40.907569, -79.923725),
+    zoom: 13.0,
+  );
   TextEditingController deviceIdController = TextEditingController();
+  final List<LatLng> markerLatLngs = [];
 
   @override
   void initState() {
     super.initState();
     setState(() {
       isLoading = false;
-      if (_kGooglePlex == null) {
-        _kGooglePlex = CameraPosition(
-          target: LatLng(40.907569, -79.923725),
-          zoom: 13.0,
-        );
-      }
     });
-    // loadMarkerHistory(null);
+  }
+
+  LatLngBounds boundsFromLatLngList(List<LatLng> list) {
+    assert(list.isNotEmpty);
+    double x0, x1, y0, y1;
+    for (LatLng latLng in list) {
+      if (x0 == null) {
+        x0 = x1 = latLng.latitude;
+        y0 = y1 = latLng.longitude;
+      } else {
+        if (latLng.latitude > x1) x1 = latLng.latitude;
+        if (latLng.latitude < x0) x0 = latLng.latitude;
+        if (latLng.longitude > y1) y1 = latLng.longitude;
+        if (latLng.longitude < y0) y0 = latLng.longitude;
+      }
+    }
+    return LatLngBounds(northeast: LatLng(x1, y1), southwest: LatLng(x0, y0));
   }
 
   Future<void> loadMarkerHistory(DateTime startDate) async {
@@ -115,6 +130,45 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
       if (result.hasException == false) {
         var locationDataDecoded = result.data["v_employee_route"];
         var locationDataArray = List.from(locationDataDecoded);
+        var markers = List<Marker>();
+        var latLngs = List<LatLng>();
+
+        if (locationDataArray.length > 0) {
+          // var previousLocation;
+          for (var location in locationDataArray) {
+            var employeeDocument = location["employee_document"];
+
+            if (employeeName == "") {
+              employeeName = employeeDocument["displayName"];
+            }
+            var latLng = LatLng(
+              location["location_document"]["latitude"],
+              location["location_document"]["longitude"],
+            );
+            latLngs.add(latLng);
+
+            setState(() {
+              if (_kGooglePlex == null) {
+                _kGooglePlex = CameraPosition(
+                  target: latLng,
+                  zoom: 13.0,
+                );
+              }
+            });
+          }
+
+          setState(() {
+            _polyline.add(
+              Polyline(
+                polylineId: PolylineId("polyLineId"),
+                visible: true,
+                points: latLngs,
+                color: Colors.blue,
+                width: 2,
+              ),
+            );
+          });
+        }
 
         QueryOptions options = QueryOptions(documentNode: gql("""
           query GET_STOP_COUNT(
@@ -148,90 +202,54 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
 
         final QueryResult countResult = await client.query(options);
         if (countResult != null) {
-          if (countResult.hasException == false) {}
-        }
+          if (countResult.hasException == false) {
+            var count = await countResult.data["v_stop_count"];
+            for (var i = 0; i < count.length; i++) {
+              var stop = count[i];
+              var today = DateTime.now();
+              var localStop = DateTime.parse(stop["created_at"]).toLocal();
+              var stopTime = DateFormat.yMd().add_jm().format(localStop);
 
-        var count = await countResult.data["v_stop_count"];
-        setState(() {
-          numberStops = count.length;
-        });
-
-        if (locationDataArray.length > 0) {
-          var markers = List<Marker>();
-          var latLngs = List<LatLng>();
-
-          var previousLocation;
-          for (var location in locationDataArray) {
-            var employeeDocument = location["employee_document"];
-
-            if (employeeName == "") {
-              employeeName = employeeDocument["displayName"];
-            }
-
-            var latLng = LatLng(
-              location["location_document"]["latitude"],
-              location["location_document"]["longitude"],
-            );
-
-            latLngs.add(latLng);
-
-            if (previousLocation != null) {
-              var epoch = location["location_document"]["time"];
-              var locationDateTime =
-                  new DateTime.fromMicrosecondsSinceEpoch(epoch * 1000);
-
-              var previousEpoch = previousLocation["location_document"]["time"];
-              var previousLocationDateTime =
-                  new DateTime.fromMicrosecondsSinceEpoch(previousEpoch * 1000);
-
-              var timeDiff =
-                  previousLocationDateTime.difference(locationDateTime);
-
-              if (timeDiff < Duration(minutes: -3)) {
-                setState(() {
-                  if (_kGooglePlex == null) {
-                    _kGooglePlex = CameraPosition(
-                      target: latLng,
-                      zoom: 13.0,
-                    );
-                  }
-                });
-
+              if (i == count.length - 1 &&
+                  localStop.day == today.day &&
+                  localStop.month == today.month &&
+                  localStop.year == today.year) {
+                var pictureUrl = stop["employee_document"]["photoURL"];
+                var icon = await getMarkerImageFromCache(pictureUrl);
                 markers.add(
                   Marker(
-                    position: latLng,
+                    icon: icon,
+                    position: LatLng(stop["location_document"]["latitude"],
+                        stop["location_document"]["longitude"]),
                     markerId: MarkerId(UniqueKey().toString()),
                     // markerId: MarkerId(location["location_id"]),
                     infoWindow: InfoWindow(
-                      title: locationDateTime.toString(),
-                    ),
+                        title: stopTime, snippet: "Duration: " + stop["delta"]),
+                  ),
+                );
+              } else {
+                markers.add(
+                  Marker(
+                    position: LatLng(stop["location_document"]["latitude"],
+                        stop["location_document"]["longitude"]),
+                    markerId: MarkerId(UniqueKey().toString()),
+                    // markerId: MarkerId(location["location_id"]),
+                    infoWindow: InfoWindow(
+                        title: stopTime, snippet: "Duration: " + stop["delta"]),
                   ),
                 );
               }
-            }
-
-            previousLocation = location;
-          }
-
-          setState(() {
-            _markers.addAll(markers);
-
-            if (_kGooglePlex == null) {
-              _kGooglePlex = CameraPosition(
-                target: LatLng(40.907569, -79.923725),
-                zoom: 13.0,
+              var markerLatLng = LatLng(
+                stop["location_document"]["latitude"],
+                stop["location_document"]["longitude"],
               );
+              markerLatLngs.add(markerLatLng);
             }
-            _polyline.add(
-              Polyline(
-                polylineId: PolylineId("polyLineId"),
-                visible: true,
-                points: latLngs,
-                color: Colors.blue,
-                width: 2,
-              ),
-            );
-          });
+            setState(() {
+              numberStops = count.length;
+              _markers.addAll(markers);
+            });
+          }
         }
       } else {
         Fluttertoast.showToast(
@@ -243,28 +261,19 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
             fontSize: 16.0);
       }
     }
-
+    _markers.add(
+      Marker(
+        position: LatLng(40.907569, -79.923725),
+        markerId: MarkerId("home"),
+        icon: homeIcon,
+        infoWindow: InfoWindow(title: "Home Base"),
+      ),
+    );
     setState(() {
-      _markers.add(
-        Marker(
-          position: LatLng(40.907569, -79.923725),
-          markerId: MarkerId("home"),
-          icon: homeIcon,
-          infoWindow: InfoWindow(title: "Home Base"),
-        ),
-      );
-
-      if (_kGooglePlex == null) {
-        _kGooglePlex = CameraPosition(
-          target: LatLng(40.907569, -79.923725),
-          zoom: 13.0,
-        );
-      }
-
       _startDate = startDate;
       _endDate = endDate;
+      isLoading = false;
     });
-    isLoading = false;
   }
 
   @override
@@ -290,11 +299,11 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
                   child: DeviceDropDown(
                       value: deviceIdController.text,
                       employee: this.widget.employee["employee"],
-                      callback: (newValue) {
+                      callback: (newValue) async {
                         setState(() {
                           deviceIdController.text = newValue;
-                          loadMarkerHistory(currentDate);
                         });
+                        await loadMarkerHistory(currentDate);
                       }),
                 ),
                 Expanded(
@@ -336,14 +345,15 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
                 Expanded(
                   flex: 12,
                   child: GoogleMap(
+                    key: Key("historyMap"),
                     myLocationEnabled: true,
                     mapType: MapType.normal,
                     markers: _markers,
                     polylines: _polyline,
                     initialCameraPosition: _kGooglePlex,
                     onMapCreated: (GoogleMapController controller) async {
-                      if (!_fullScreenMapController.isCompleted) {
-                        _fullScreenMapController.complete(controller);
+                      if (!_fullScreenMapController2.isCompleted) {
+                        _fullScreenMapController2.complete(controller);
                       }
                     },
                   ),
@@ -352,4 +362,43 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
             ),
     );
   }
+}
+
+Future<BitmapDescriptor> getMarkerImageFromCache(pictureUrl) async {
+  try {
+    Uint8List markerImageBytes;
+
+    var markerImageFileInfo =
+        await DefaultCacheManager().getFileFromCache(pictureUrl);
+    if (markerImageFileInfo == null) {
+      var markerImageFile =
+          await DefaultCacheManager().getSingleFile(pictureUrl);
+      markerImageBytes = await markerImageFile.readAsBytes();
+
+      ui.Codec codec = await ui.instantiateImageCodec(markerImageBytes,
+          targetWidth: 100, targetHeight: 100);
+      ui.FrameInfo fi = await codec.getNextFrame();
+      ByteData byteData =
+          await fi.image.toByteData(format: ui.ImageByteFormat.png);
+
+      final Uint8List resizedMarkerImageBytes = byteData.buffer.asUint8List();
+      return BitmapDescriptor.fromBytes(resizedMarkerImageBytes);
+    } else {
+      markerImageBytes = await markerImageFileInfo.file.readAsBytes();
+
+      ui.Codec codec = await ui.instantiateImageCodec(markerImageBytes,
+          targetWidth: 100, targetHeight: 100);
+      ui.FrameInfo fi = await codec.getNextFrame();
+      ByteData byteData =
+          await fi.image.toByteData(format: ui.ImageByteFormat.png);
+
+      final Uint8List resizedMarkerImageBytes = byteData.buffer.asUint8List();
+      return BitmapDescriptor.fromBytes(resizedMarkerImageBytes);
+    }
+  } catch (e) {
+    var blah = e;
+  }
+
+  return await BitmapDescriptor.fromAssetImage(
+      ImageConfiguration(size: Size(5, 5)), 'assets/car.png');
 }
