@@ -51,7 +51,8 @@ dependencies:
   multi_image_picker: ^4.6.7
   path_provider: ^1.6.10
   barcode_scan: ^3.0.1
-  firebase_auth: ^0.16.1
+  firebase_auth: ^0.18.0+1
+  firebase_core: ^0.5.0
   xml:
   confetti: ^0.5.2
   file_picker: ^1.13.0+1

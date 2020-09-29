@@ -60,7 +60,7 @@ class ApiService {
           responseType: ResponseType.json,
           headers: {
             "Content-Type": "application/json",
-            "Authorization": "Bearer ${token.token}",
+            "Authorization": "Bearer $token",
           },
           sendTimeout: TIMEOUT,
           validateStatus: (status) {
@@ -96,7 +96,7 @@ class ApiService {
           responseType: ResponseType.json,
           headers: {
             "Content-Type": "application/json",
-            "Authorization": "Bearer ${token.token}",
+            "Authorization": "Bearer $token",
           },
           sendTimeout: TIMEOUT,
         ),
@@ -149,7 +149,7 @@ class ApiService {
           baseUrl: URLBASE,
           headers: {
             "Content-Type": "multipart/form-data",
-            "Authorization": "Bearer ${token.token}",
+            "Authorization": "Bearer $token",
           },
           sendTimeout: 10000,
         ),
@@ -209,7 +209,7 @@ class ApiService {
           baseUrl: URLBASE,
           headers: {
             "Content-Type": "multipart/form-data",
-            "Authorization": "Bearer ${token.token}",
+            "Authorization": "Bearer $token",
           },
           sendTimeout: TIMEOUT,
         ),
@@ -241,7 +241,7 @@ class ApiService {
           responseType: ResponseType.json,
           headers: {
             "Content-Type": "application/json",
-            "Authorization": "Bearer ${token.token}",
+            "Authorization": "Bearer $token",
           },
           sendTimeout: TIMEOUT,
         ),
@@ -273,7 +273,7 @@ class ApiService {
           responseType: ResponseType.json,
           headers: {
             "Content-Type": "application/json",
-            "Authorization": "Bearer ${token.token}",
+            "Authorization": "Bearer $token",
           },
           sendTimeout: TIMEOUT,
         ),

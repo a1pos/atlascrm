@@ -1,8 +1,8 @@
 import 'dart:developer';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:atlascrm/models/Employee.dart';
 import 'package:atlascrm/services/api.dart';
-import 'package:dio/dio.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 
@@ -18,17 +18,31 @@ class UserService {
 
   static GoogleSignInAuthentication googleSignInAuthentication;
 
-  static final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+  static final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
   void initState() {
-    firebaseAuth.onAuthStateChanged.listen((firebaseUser) async {
+    _firebaseAuth.authStateChanges().listen((firebaseUser) async {
       print(firebaseUser);
       if (firebaseUser != null) {
         var linkResponse = await linkGoogleAccount();
-        var user = await firebaseAuth.currentUser();
+        var user = _firebaseAuth.currentUser;
         var idTokenResult = await user.getIdToken();
-        print(idTokenResult.claims);
-        setPrivateGraphQLClient(idTokenResult.token);
+        setPrivateGraphQLClient(idTokenResult);
+        isAuthenticated = true;
+        employee = linkResponse.data["linkGoogleAccount"]["employee"];
+      } else {
+        isAuthenticated = false;
+        employee = Employee.getEmpty();
+      }
+    });
+
+    _firebaseAuth.idTokenChanges().listen((firebaseUser) async {
+      print(firebaseUser);
+      if (firebaseUser != null) {
+        var linkResponse = await linkGoogleAccount();
+        var user = _firebaseAuth.currentUser;
+        var idTokenResult = await user.getIdToken();
+        setPrivateGraphQLClient(idTokenResult);
         isAuthenticated = true;
         employee = linkResponse.data["linkGoogleAccount"]["employee"];
       } else {
@@ -38,35 +52,13 @@ class UserService {
     });
   }
 
-  // Future<bool> isAuthenticated(context) async {
-  //   try {
-  //     print("about to check google sign in");
-  //     var isGoogleSignedIn = await googleSignIn.isSignedIn();
-  //     print("isGoogleSignedIn $isGoogleSignedIn");
-  //     if (isGoogleSignedIn) {
-  //       var googleSignInAccount =
-  //           await googleSignIn.signInSilently(suppressErrors: false);
-  //       googleSignInAuthentication = await googleSignInAccount.authentication;
-  //       var firebaseUser = await firebaseAuth.currentUser();
-  //       if (firebaseUser != null) {
-  //         var isAuthed = await authorizeEmployee(context);
-  //         if (isAuthed) {
-  //           return true;
-  //         }
-  //       }
-  //     }
-  //   } catch (err) {
-  //     print(err);
-  //   }
-  //   return false;
-  // }
-
   Future<bool> signInWithGoogle(context) async {
+    await Firebase.initializeApp();
     try {
       var googleSignInAccount = await googleSignIn.signIn();
       googleSignInAuthentication = await googleSignInAccount.authentication;
 
-      await firebaseAuth.signInWithCredential(GoogleAuthProvider.getCredential(
+      await _firebaseAuth.signInWithCredential(GoogleAuthProvider.credential(
         accessToken: googleSignInAuthentication.accessToken,
         idToken: googleSignInAuthentication.idToken,
       ));
@@ -80,13 +72,13 @@ class UserService {
 
   Future<void> signOutGoogle() async {
     await googleSignIn.signOut();
-    await firebaseAuth.signOut();
+    await _firebaseAuth.signOut();
   }
 
   Future linkGoogleAccount() async {
     setPublicGraphQLClient();
 
-    var user = await firebaseAuth.currentUser();
+    var user = _firebaseAuth.currentUser;
     print(user);
     MutationOptions mutateOptions = MutationOptions(documentNode: gql("""
         mutation ACTION_LINK(\$uid: String!, \$email: String!) {
@@ -98,14 +90,14 @@ class UserService {
       "email": user.email,
       "uid": user.uid,
     });
-    final QueryResult result = await client.mutate(mutateOptions);
+    final QueryResult linkResult = await client.mutate(mutateOptions);
 
-    if (result.hasException) {
+    if (linkResult.hasException) {
       return null;
     } else {
-      var idTokenResult = await user.getIdToken(refresh: true);
+      var idTokenResult = await user.getIdToken(true);
       print(idTokenResult);
-      var empDecoded = result.data["link_google_account"]["employee"];
+      var empDecoded = linkResult.data["link_google_account"]["employee"];
 
       employee = Employee.fromJson(empDecoded);
       if (employee.role == "admin" || employee.role == "sa") {
@@ -120,7 +112,7 @@ class UserService {
       } else {
         isTech = false;
       }
-      setPrivateGraphQLClient(idTokenResult.token);
+      setPrivateGraphQLClient(idTokenResult);
       String companyId = empDecoded["company"];
       QueryOptions companyQueryOptions = QueryOptions(documentNode: gql("""
         query GET_COMPANY {
@@ -131,13 +123,13 @@ class UserService {
         }
       """));
 
-      final QueryResult result2 = await client.query(companyQueryOptions);
+      final QueryResult companyResult = await client.query(companyQueryOptions);
 
-      if (result2.hasException == false) {
-        employee.companyName = result2.data["company_by_pk"]["title"];
+      if (companyResult.hasException == false) {
+        employee.companyName = companyResult.data["company_by_pk"]["title"];
       }
       print(employee.companyName);
-      return result;
+      return linkResult;
     }
   }
 
@@ -145,61 +137,9 @@ class UserService {
     return employee;
   }
 
-  // Future<bool> authorizeEmployee(context) async {
-  //   setPublicGraphQLClient();
-  //   var user = await firebaseAuth.currentUser();
-  //   try {
-  //     QueryOptions queryOptions = QueryOptions(
-  //       documentNode: gql("""
-  //               query{
-  //                 authorize(input:"${googleSignIn.currentUser.id}"){
-  //                   employee
-  //                   document
-  //                   employee_account_type
-  //                   company{company}
-  //                   is_active
-  //                 }}
-  //           """),
-  //     );
-  //     final QueryResult result = await client.query(queryOptions);
-
-  //     if (result.hasException == false && result.data["authorize"] != null) {
-  //       var empDecoded = result.data["authorize"];
-  //       employee = Employee.fromJson({
-  //         "employee": empDecoded["employee"],
-  //         "is_active": empDecoded["is_active"],
-  //         "document": empDecoded["document"],
-  //         "employee_account_type": empDecoded["employee_account_type"],
-  //         "company": empDecoded["company"]["company"],
-  //       });
-  //       var roles = [];
-  //       if (employee.document["roles"] != null) {
-  //         roles = List.from(employee.document["roles"]);
-  //       }
-  //       if (roles.contains("admin")) {
-  //         isAdmin = true;
-  //         socketService.initWebSocketConnection();
-  //       } else {
-  //         isAdmin = false;
-  //       }
-  //       if (roles.contains("tech")) {
-  //         isTech = true;
-  //         socketService.initWebSocketConnection();
-  //       } else {
-  //         isTech = false;
-  //       }
-  //       return true;
-  //     }
-  //     return false;
-  //   } catch (err) {
-  //     print(err);
-  //   }
-  //   return false;
-  // }
-
-  static Future<FirebaseUser> getCurrentUser() async {
+  static Future<User> getCurrentUser() async {
     try {
-      return await firebaseAuth.currentUser();
+      return _firebaseAuth.currentUser;
     } catch (err) {
       log(err);
     }
