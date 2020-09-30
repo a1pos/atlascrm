@@ -8,8 +8,7 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:intl/intl.dart';
 
 class SalesLeaderboardChart extends StatefulWidget {
-  SalesLeaderboardChart({this.data});
-  final List data;
+  SalesLeaderboardChart();
   @override
   _SalesLeaderboardChartState createState() => _SalesLeaderboardChartState();
 }
@@ -18,23 +17,34 @@ class _SalesLeaderboardChartState extends State<SalesLeaderboardChart> {
   final UserService userService = UserService();
 
   var isLoading = true;
-
   var seriesList;
   var statementData = List<LeaderboardData>();
   var agreementData = List<LeaderboardData>();
   var statements;
-  var agreements;
+  var label = "items";
 
+  var timeDropdownValue = "week";
+  var timeFilterItems = [
+    {"text": "Today", "value": "today"},
+    {"text": "Week to Date", "value": "week"},
+    {"text": "Month to Date", "value": "month"},
+    {"text": "Year to Date", "value": "year"}
+  ];
+
+  var typeDropdownValue = "statement";
+  var typeFilterItems = [
+    {"text": "Statements", "value": "statement"},
+    {"text": "Agreements", "value": "agreement"}
+  ];
   @override
   void initState() {
     super.initState();
-    initSub(null, yearStart, null);
-
-    isLoading = false;
+    // this.widget.controller.addListener(
+    //     refreshSubscription("statement", this.widget.controller.text, null));
+    initSub(typeDropdownValue, weekStart, null);
   }
 
-  int agreementTotal = 0;
-  int statementTotal = 0;
+  int itemTotal = 0;
 
   var graphList;
 
@@ -87,7 +97,7 @@ class _SalesLeaderboardChartState extends State<SalesLeaderboardChart> {
     }
     """), variables: {"from": from, "to": to});
     Operation agreementOptions =
-        Operation(operationName: "GET_STATEMENT_COUNT", documentNode: gql("""
+        Operation(operationName: "GET_AGREEMENT_COUNT", documentNode: gql("""
        subscription GET_AGREEMENT_COUNT(\$from: timestamptz, \$to: timestamptz) {
       employee(
         where: {
@@ -128,6 +138,7 @@ class _SalesLeaderboardChartState extends State<SalesLeaderboardChart> {
           if (this.mounted) {
             setState(() {
               graphList = incomingData;
+              isLoading = false;
             });
           }
         }
@@ -146,49 +157,79 @@ class _SalesLeaderboardChartState extends State<SalesLeaderboardChart> {
     );
   }
 
-  refreshSubscription(type, from, to) {
-    subscription.cancel();
-    initSub(type, from, to);
+  refreshSubscription() async {
+    var from = timeDropdownValue;
+    var type = typeDropdownValue;
+    var fromVal = today;
+    var toVal = today;
+    switch (from) {
+      case "today":
+        {
+          fromVal = today;
+        }
+        break;
+
+      case "week":
+        {
+          fromVal = weekStart;
+        }
+        break;
+      case "month":
+        {
+          fromVal = monthStart;
+        }
+        break;
+      case "year":
+        {
+          fromVal = yearStart;
+        }
+        break;
+    }
+    if (subscription != null) {
+      await subscription.cancel();
+      subscription = null;
+      initSub(type, fromVal, toVal);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    agreementTotal = 0;
-    statementTotal = 0;
-    if (graphList.length > 0) {
-      var temp1 = List<LeaderboardData>();
-      // var temp2 = List<LeaderboardData>();
+    itemTotal = 0;
+    if (graphList != null) {
+      if (graphList.length > 0) {
+        var temp1 = List<LeaderboardData>();
+        if (typeDropdownValue == "statement") {
+          label = "Statements";
+        } else if (typeDropdownValue == "agreement") {
+          label = "Agreements";
+        }
+        for (var item in graphList) {
+          var count = 0;
+          if (typeDropdownValue == "statement") {
+            if (item["statements_aggregate"] != null) {
+              count = item["statements_aggregate"]["aggregate"]["count"];
+            }
+          } else if (typeDropdownValue == "agreement") {
+            if (item["agreements_aggregate"] != null) {
+              count = item["agreements_aggregate"]["aggregate"]["count"];
+            }
+          }
+          temp1.add(LeaderboardData(item["displayName"], count));
+          itemTotal += count;
+        }
 
-      for (var item in graphList) {
-        var count = item["statements_aggregate"]["aggregate"]["count"];
-        temp1.add(LeaderboardData(item["displayName"], count));
-        // temp2.add(LeaderboardData(
-        //     item["fullname"], int.parse(item["agreementcount"])));
-        // agreementTotal += int.parse(item["agreementcount"]);
-        statementTotal += count;
+        setState(() {
+          statementData = temp1;
+          isLoading = false;
+        });
       }
-
-      setState(() {
-        statementData = temp1;
-        // agreementData = temp2;
-        isLoading = false;
-      });
     }
 
     List<charts.Series<LeaderboardData, String>> _displayData() {
       statements = statementData;
-      agreements = agreementData;
       return [
-        // new charts.Series<LeaderboardData, String>(
-        //   id: 'Agreements: $agreementTotal',
-        //   domainFn: (LeaderboardData sales, _) => sales.person,
-        //   measureFn: (LeaderboardData sales, _) => sales.count,
-        //   data: agreements,
-        //   labelAccessorFn: (LeaderboardData path, _) =>
-        //       path.count > 0 ? '${path.count.toString()}' : '',
-        // ),
         new charts.Series<LeaderboardData, String>(
-          id: 'Statements: $statementTotal',
+          id: '$label: $itemTotal',
           domainFn: (LeaderboardData sales, _) => sales.person,
           measureFn: (LeaderboardData sales, _) => sales.count,
           data: statements,
@@ -199,6 +240,49 @@ class _SalesLeaderboardChartState extends State<SalesLeaderboardChart> {
     }
 
     return Column(children: <Widget>[
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
+            child: DropdownButton<String>(
+              value: timeDropdownValue,
+              items: timeFilterItems.map((dynamic item) {
+                return DropdownMenuItem<String>(
+                  value: item["value"],
+                  child: Text(item["text"]),
+                );
+              }).toList(),
+              onChanged: (String newValue) {
+                setState(() {
+                  isLoading = true;
+                  timeDropdownValue = newValue;
+                  refreshSubscription();
+                });
+              },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(5, 0, 0, 0),
+            child: DropdownButton<String>(
+              value: typeDropdownValue,
+              items: typeFilterItems.map((dynamic item) {
+                return DropdownMenuItem<String>(
+                  value: item["value"],
+                  child: Text(item["text"]),
+                );
+              }).toList(),
+              onChanged: (String newValue) {
+                setState(() {
+                  isLoading = true;
+                  typeDropdownValue = newValue;
+                  refreshSubscription();
+                });
+              },
+            ),
+          ),
+        ],
+      ),
       isLoading
           ? Expanded(
               child: CenteredLoadingSpinner(),
@@ -232,14 +316,19 @@ class BarChart extends StatelessWidget {
 
     queryData = MediaQuery.of(context);
     var deviceWidth = queryData.size.width;
-    return new charts.BarChart(
-      seriesList,
-      animate: animate,
-      vertical: false,
-      behaviors: [
-        charts.SeriesLegend(horizontalFirst: deviceWidth < 370 ? false : true)
-      ],
-      barRendererDecorator: new charts.BarLabelDecorator<String>(),
+    return SizedBox(
+      height: 250,
+      child: charts.BarChart(
+        seriesList,
+        animate: animate,
+        vertical: false,
+        behaviors: [
+          charts.SeriesLegend(
+              position: charts.BehaviorPosition.bottom,
+              horizontalFirst: deviceWidth < 370 ? false : true)
+        ],
+        barRendererDecorator: new charts.BarLabelDecorator<String>(),
+      ),
     );
   }
 }
