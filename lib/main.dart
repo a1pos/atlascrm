@@ -3,8 +3,7 @@ import 'package:atlascrm/components/shared/CustomWebView.dart';
 import 'package:atlascrm/components/shared/LoadingScreen.dart';
 import 'package:atlascrm/components/shared/SlideRightRoute.dart';
 import 'package:atlascrm/screens/auth/AuthScreen.dart';
-import 'package:atlascrm/screens/dashboard/AdminDashboardScreen.dart';
-import 'package:atlascrm/screens/dashboard/SalesDashboardScreen.dart';
+import 'package:atlascrm/screens/dashboard/DashboardScreen.dart';
 import 'package:atlascrm/screens/employees/EmployeeCallHistoryScreen.dart';
 import 'package:atlascrm/screens/employees/EmployeeListScreen.dart';
 import 'package:atlascrm/screens/employees/EmployeeMapHistoryScreen.dart';
@@ -123,19 +122,13 @@ class _AtlasCRMState extends State<AtlasCRM> {
             brightness: Brightness.light,
             fontFamily: "LatoRegular",
           ),
-          home: isAuthenticated
-              ? UserService.isAdmin
-                  ? AdminDashboardScreen()
-                  : SalesDashboardScreen()
-              : AuthScreen(),
+          home: isAuthenticated ? DashboardScreen() : AuthScreen(),
           initialRoute: "/",
           onGenerateRoute: (RouteSettings settings) {
             switch (settings.name) {
               case '/dashboard':
                 return MaterialPageRoute(
-                    builder: (context) => UserService.isAdmin
-                        ? AdminDashboardScreen()
-                        : SalesDashboardScreen());
+                    builder: (context) => DashboardScreen());
                 break;
               case "/leads":
                 return MaterialPageRoute(builder: (context) => LeadsScreen());
