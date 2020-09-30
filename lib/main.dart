@@ -22,6 +22,7 @@ import 'package:atlascrm/screens/mileage/MileageScreen.dart';
 import 'package:atlascrm/screens/tasks/TaskScreen.dart';
 import 'package:atlascrm/screens/tasks/ViewTaskScreen.dart';
 import 'package:atlascrm/screens/agreement/AgreementBuilder.dart';
+import 'package:atlascrm/services/NotificationService.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
@@ -34,6 +35,8 @@ List<CameraDescription> cameras;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await NotificationService().init();
 
   Map<PermissionGroup, PermissionStatus> permissions = await PermissionHandler()
       .requestPermissions([PermissionGroup.camera, PermissionGroup.storage]);
