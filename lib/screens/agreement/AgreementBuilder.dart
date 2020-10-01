@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:atlascrm/components/agreement/Pricing.dart';
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
+import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/components/agreement/Documents.dart';
 import 'package:atlascrm/components/agreement/OwnerInfo.dart';
@@ -1587,7 +1588,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
         child: DefaultTabController(
           length: 5,
           child: Scaffold(
-            backgroundColor: Color.fromARGB(255, 242, 242, 242),
+            backgroundColor: UniversalStyles.backgroundColor,
             appBar: AppBar(
                 key: Key("agreementBuilderAppBar"),
                 title: Text(isLoading ? "Loading..." : "Agreement Builder"),
@@ -1724,7 +1725,7 @@ class AgreementBuilderState extends State<AgreementBuilder>
                     onPressed: () async {
                       updateAgreement(agreementBuilderObj["agreement_builder"]);
                     },
-                    backgroundColor: Color.fromARGB(500, 1, 224, 143),
+                    backgroundColor: UniversalStyles.actionColor,
                     child: Icon(Icons.save),
                   ),
           ),

@@ -4,6 +4,7 @@ import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
+import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
@@ -298,7 +299,7 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
         return Future.value(false);
       },
       child: Scaffold(
-        backgroundColor: Color.fromARGB(255, 242, 242, 242),
+        backgroundColor: UniversalStyles.backgroundColor,
         appBar: CustomAppBar(
           key: Key("viewTasksAppBar"),
           title: Text(isLoading
@@ -345,7 +346,7 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                   Padding(
                                     padding: const EdgeInsets.all(8.0),
                                     child: RaisedButton(
-                                      color: Color.fromARGB(500, 1, 224, 143),
+                                      color: UniversalStyles.actionColor,
                                       child: Row(
                                         children: <Widget>[
                                           Icon(Icons.mail, color: Colors.white),
@@ -388,7 +389,7 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                   Padding(
                                     padding: const EdgeInsets.all(8.0),
                                     child: RaisedButton(
-                                      color: Color.fromARGB(500, 1, 224, 143),
+                                      color: UniversalStyles.actionColor,
                                       child: Row(
                                         children: <Widget>[
                                           Icon(Icons.call, color: Colors.white),
@@ -454,7 +455,7 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                             child: Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: RaisedButton(
-                                color: Color.fromARGB(500, 1, 224, 143),
+                                color: UniversalStyles.actionColor,
                                 child: Row(
                                   children: <Widget>[
                                     Icon(Icons.extension, color: Colors.white),
@@ -490,7 +491,7 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
         //       updateMerchant(this.widget.merchantId);
         //     }
         //   },
-        //   backgroundColor: Color.fromARGB(500, 1, 224, 143),
+        //   backgroundColor: UniversalStyles.actionColor,
         //   child: Icon(Icons.save),
         // ),
       ),

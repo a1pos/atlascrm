@@ -142,7 +142,7 @@ class _ImageUploaderState extends State<ImageUploader> {
           actions: <Widget>[
             MaterialButton(
               padding: EdgeInsets.all(5),
-              color: UniversalStyles.themeColor,
+              color: UniversalStyles.actionColor,
               onPressed: () async {
                 Navigator.pop(context);
                 var result = await platform.invokeMethod("openCamera");
@@ -165,7 +165,7 @@ class _ImageUploaderState extends State<ImageUploader> {
             ),
             MaterialButton(
               padding: EdgeInsets.all(5),
-              color: UniversalStyles.themeColor,
+              color: UniversalStyles.actionColor,
               onPressed: () async {
                 var result = await platform.invokeMethod("openMedia");
                 addImage(result);
@@ -187,7 +187,7 @@ class _ImageUploaderState extends State<ImageUploader> {
             ),
             MaterialButton(
               padding: EdgeInsets.all(5),
-              color: UniversalStyles.themeColor,
+              color: UniversalStyles.actionColor,
               onPressed: () async {
                 var result = await FilePicker.getFilePath(
                     type: FileType.custom, allowedExtensions: ['pdf']);
@@ -803,7 +803,7 @@ class _ImageUploaderState extends State<ImageUploader> {
                         // padding: EdgeInsets.all(5),
                         color: uploadsComplete
                             ? Colors.grey
-                            : UniversalStyles.themeColor,
+                            : UniversalStyles.actionColor,
                         onPressed: uploadsComplete ? () {} : openImageUpload,
                         child: Row(
                           children: <Widget>[
@@ -826,7 +826,7 @@ class _ImageUploaderState extends State<ImageUploader> {
                       //     padding: EdgeInsets.all(5),
                       //     color: uploadsComplete || imageDLList.length == 0
                       //         ? Colors.grey
-                      //         : Color.fromARGB(500, 1, 224, 143),
+                      //         : UniversalStyles.actionColor,
                       //     onPressed: uploadsComplete || imageDLList.length == 0
                       //         ? () {}
                       //         : submitCheck,

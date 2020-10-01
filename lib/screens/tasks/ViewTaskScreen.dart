@@ -2,6 +2,7 @@ import 'package:atlascrm/components/lead/LeadDropDown.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
+import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/components/task/TaskPriorityDropDown.dart';
 import 'package:atlascrm/components/task/TaskTypeDropDown.dart';
 import 'package:atlascrm/services/StorageService.dart';
@@ -273,7 +274,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 242, 242, 242),
+      backgroundColor: UniversalStyles.backgroundColor,
       appBar: CustomAppBar(
         key: Key("viewTasksAppBar"),
         title: Text(isLoading ? "Loading..." : task['document']['title']),
@@ -418,7 +419,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
             await updateTask(true);
           }
         },
-        backgroundColor: Color.fromARGB(500, 1, 224, 143),
+        backgroundColor: UniversalStyles.actionColor,
         child: isChanged ? Icon(Icons.save) : Icon(Icons.done),
       ),
     );

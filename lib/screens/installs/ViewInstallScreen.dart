@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
+import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/services/StorageService.dart';
 import 'package:barcode_scan/barcode_scan.dart';
 import 'package:barcode_scan/model/scan_options.dart';
@@ -511,7 +512,7 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
         return Future.value(false);
       },
       child: Scaffold(
-        backgroundColor: Color.fromARGB(255, 242, 242, 242),
+        backgroundColor: UniversalStyles.backgroundColor,
         appBar: CustomAppBar(
           key: Key("viewInstallAppBar"),
           title: Text(isLoading
@@ -590,7 +591,7 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
                                         CircleAvatar(
                                           radius: 25,
                                           backgroundColor:
-                                              Color.fromARGB(500, 1, 224, 143),
+                                              UniversalStyles.actionColor,
                                           child: IconButton(
                                             icon: Icon(Icons.center_focus_weak,
                                                 color: Colors.white),
@@ -657,7 +658,7 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
         floatingActionButton: merchant != null || isRunning
             ? FloatingActionButton(
                 onPressed: installCheck,
-                backgroundColor: Color.fromARGB(500, 1, 224, 143),
+                backgroundColor: UniversalStyles.actionColor,
                 foregroundColor: Colors.white,
                 child: Icon(Icons.done),
                 splashColor: Colors.white,

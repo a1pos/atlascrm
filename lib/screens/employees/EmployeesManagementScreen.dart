@@ -1,6 +1,7 @@
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CustomDrawer.dart';
+import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/screens/employees/EmployeeListScreen.dart';
 import 'package:atlascrm/screens/employees/widgets/MgmtTile.dart';
 
@@ -26,7 +27,7 @@ class _EmployeesManagementScreenState extends State<EmployeesManagementScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 242, 242, 242),
+      backgroundColor: UniversalStyles.backgroundColor,
       drawer: CustomDrawer(),
       appBar: CustomAppBar(
         key: Key("employeeMgmtAppBar"),

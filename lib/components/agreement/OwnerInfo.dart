@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:atlascrm/components/shared/AddressSearch.dart';
+import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:searchable_dropdown/searchable_dropdown.dart';
@@ -480,7 +481,7 @@ class OwnerInfoState extends State<OwnerInfo> with TickerProviderStateMixin {
               ? Padding(
                   padding: const EdgeInsets.all(15.0),
                   child: FlatButton(
-                      color: Color.fromARGB(500, 1, 224, 143),
+                      color: UniversalStyles.actionColor,
                       onPressed: () => addOwner(),
                       child: Text("Add Owner",
                           style: TextStyle(color: Colors.white))),

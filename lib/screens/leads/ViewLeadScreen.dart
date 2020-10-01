@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
-import 'package:atlascrm/services/UserService.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
@@ -339,7 +338,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
         return Future.value(false);
       },
       child: Scaffold(
-        backgroundColor: Color.fromARGB(255, 242, 242, 242),
+        backgroundColor: UniversalStyles.backgroundColor,
         appBar: CustomAppBar(
           key: Key("viewTasksAppBar"),
           title: Text(isLoading ? "Loading..." : leadDocument["businessName"]),
@@ -521,7 +520,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                   Padding(
                                     padding: const EdgeInsets.all(8.0),
                                     child: RaisedButton(
-                                      color: UniversalStyles.themeColor,
+                                      color: UniversalStyles.actionColor,
                                       child: Row(
                                         children: <Widget>[
                                           Icon(Icons.call, color: Colors.white),
@@ -584,7 +583,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                 padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
                                 child: MaterialButton(
                                   padding: EdgeInsets.all(5),
-                                  color: UniversalStyles.themeColor,
+                                  color: UniversalStyles.actionColor,
                                   // color: Colors.grey[300],
                                   onPressed: () {
                                     // return null;
@@ -630,7 +629,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
               updateLead(this.widget.leadId);
             }
           },
-          backgroundColor: UniversalStyles.themeColor,
+          backgroundColor: UniversalStyles.actionColor,
           child: Icon(Icons.save),
         ),
       ),

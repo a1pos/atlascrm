@@ -3,6 +3,7 @@ import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomDrawer.dart';
 import 'package:atlascrm/components/shared/LoadingScreen.dart';
 import 'package:atlascrm/components/shared/MerchantDropdown.dart';
+import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/services/StorageService.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:flutter/material.dart';
@@ -51,7 +52,7 @@ class _MileageScreenState extends State<MileageScreen> {
                     padding: const EdgeInsets.fromLTRB(15, 50, 15, 30),
                     child: MaterialButton(
                       padding: EdgeInsets.all(5),
-                      color: Color.fromARGB(500, 1, 224, 143),
+                      color: UniversalStyles.actionColor,
                       onPressed: () {
                         var destination = {
                           "destination": destinationMerchant,
@@ -144,7 +145,7 @@ class _MileageScreenState extends State<MileageScreen> {
                     padding: const EdgeInsets.fromLTRB(15, 50, 15, 30),
                     child: MaterialButton(
                       padding: EdgeInsets.all(5),
-                      color: Color.fromARGB(500, 1, 224, 143),
+                      color: UniversalStyles.actionColor,
                       onPressed: () {
                         if (destinationController.text != null &&
                             destinationController.text != "") {

@@ -4,6 +4,7 @@ import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CustomDrawer.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
+import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:flutter/material.dart';
 
 class InstallsScreen extends StatefulWidget {
@@ -319,7 +320,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 242, 242, 242),
+      backgroundColor: UniversalStyles.backgroundColor,
       drawer: CustomDrawer(),
       appBar: CustomAppBar(
         key: Key("installsscreenappbar"),
@@ -389,7 +390,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
                     )
                   : CircleAvatar(
                       radius: 25,
-                      backgroundColor: Color.fromARGB(500, 1, 224, 143),
+                      backgroundColor: UniversalStyles.actionColor,
                       child: IconButton(
                         icon: Icon(Icons.search, color: Colors.white),
                         onPressed: () {

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:atlascrm/components/shared/CustomCard.dart';
+import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:flutter/material.dart';
 
 class Pricing extends StatefulWidget {
@@ -621,7 +622,7 @@ class PricingState extends State<Pricing> {
               child: FlatButton(
                 color: this.widget.finalValidation == true &&
                         this.widget.pricingDone == true
-                    ? Color.fromARGB(500, 1, 224, 143)
+                    ? UniversalStyles.actionColor
                     : Colors.grey,
                 onPressed: this.widget.finalValidation == true &&
                         this.widget.pricingDone == true

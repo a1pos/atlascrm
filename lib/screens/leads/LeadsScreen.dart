@@ -441,7 +441,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 242, 242, 242),
+      backgroundColor: UniversalStyles.backgroundColor,
       drawer: CustomDrawer(),
       appBar: CustomAppBar(
           key: Key("leadsScreenAppBar"),
@@ -498,7 +498,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: openAddLeadForm,
-        backgroundColor: UniversalStyles.themeColor,
+        backgroundColor: UniversalStyles.actionColor,
         foregroundColor: Colors.white,
         child: Icon(Icons.add),
         splashColor: Colors.white,
@@ -562,7 +562,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
                     )
                   : CircleAvatar(
                       radius: 25,
-                      backgroundColor: UniversalStyles.themeColor,
+                      backgroundColor: UniversalStyles.actionColor,
                       child: IconButton(
                         icon: Icon(Icons.search, color: Colors.white),
                         onPressed: () {

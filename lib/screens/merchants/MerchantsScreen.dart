@@ -5,6 +5,7 @@ import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CustomDrawer.dart';
 import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
+import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
@@ -422,7 +423,7 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 242, 242, 242),
+      backgroundColor: UniversalStyles.backgroundColor,
       drawer: CustomDrawer(),
       appBar: CustomAppBar(
           key: Key("merchantsScreenAppBar"),
@@ -508,7 +509,7 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
                     )
                   : CircleAvatar(
                       radius: 25,
-                      backgroundColor: Color.fromARGB(500, 1, 224, 143),
+                      backgroundColor: UniversalStyles.actionColor,
                       child: IconButton(
                         icon: Icon(Icons.search, color: Colors.white),
                         onPressed: () {

@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/RoleDropdown.dart';
+import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/models/Employee.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
 import 'package:atlascrm/services/api.dart';
@@ -367,7 +368,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 242, 242, 242),
+      backgroundColor: UniversalStyles.backgroundColor,
       appBar: CustomAppBar(
         key: Key("viewEmployeeScreenAppBar"),
         title: Text(
@@ -522,7 +523,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
             ),
       // floatingActionButton: FloatingActionButton(
       //   child: Icon(Icons.save),
-      //   backgroundColor: Color.fromARGB(500, 1, 224, 143),
+      //   backgroundColor: UniversalStyles.actionColor,
       //   onPressed: () async {
       //     await updateEmployee();
       //   },

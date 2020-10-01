@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'dart:developer';
 import 'dart:convert';
 
+import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/config/ConfigSettings.dart';
 import 'package:atlascrm/components/lead/LeadDropDown.dart';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
@@ -409,7 +410,7 @@ class _TaskScreenState extends State<TaskScreen> {
                             color: Colors.white,
                           ),
                         ),
-                        color: Color.fromARGB(500, 1, 224, 143),
+                        color: UniversalStyles.actionColor,
                         onPressed: () async {
                           if (_formKey.currentState.validate()) {
                             setState(() {
@@ -614,7 +615,7 @@ class _TaskScreenState extends State<TaskScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 242, 242, 242),
+      backgroundColor: UniversalStyles.backgroundColor,
       drawer: CustomDrawer(),
       appBar: CustomAppBar(key: Key("taskAppBar"), title: Text("Tasks")),
       body: isLoading
@@ -625,7 +626,7 @@ class _TaskScreenState extends State<TaskScreen> {
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: openAddTaskForm,
-        backgroundColor: Color.fromARGB(500, 1, 224, 143),
+        backgroundColor: UniversalStyles.actionColor,
         foregroundColor: Colors.white,
         child: Icon(Icons.add),
         splashColor: Colors.white,

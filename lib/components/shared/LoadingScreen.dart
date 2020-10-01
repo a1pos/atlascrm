@@ -1,3 +1,4 @@
+import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:flutter/material.dart';
 
 class LoadingScreen extends StatefulWidget {
@@ -9,7 +10,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[200],
+      backgroundColor: UniversalStyles.backgroundColor,
       body: Container(
         child: Center(
           child: Column(
@@ -21,7 +22,8 @@ class _LoadingScreenState extends State<LoadingScreen> {
                 width: 50,
                 child: CircularProgressIndicator(
                   strokeWidth: 4,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.green[200]),
+                  valueColor:
+                      AlwaysStoppedAnimation<Color>(UniversalStyles.themeColor),
                 ),
               ),
               Padding(

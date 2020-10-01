@@ -31,15 +31,22 @@ class _TaskItemState extends State<TaskItem> {
       Type('Quota Goal', Icons.trending_up)
     ];
     List<Color> _colors = [
-      Colors.red[100], //Light Red
-      Colors.yellow[100], //Light Yellow
-      Colors.green[100], //Light Green
+      Color.fromRGBO(229, 69, 69, 1),
+      Color.fromRGBO(247, 188, 74, 1),
+      Color.fromRGBO(119, 174, 237, 1),
+
+      // Colors.red[100], //Light Red
+      // Colors.yellow[100], //Light Yellow
+      // Colors.green[100], //Light Green
     ];
     var index =
         _types.indexWhere((typeObj) => typeObj.name == this.widget.type);
     var taskIcon;
     if (index > 0) {
-      taskIcon = Icon(_types[index].icon);
+      taskIcon = Icon(
+        _types[index].icon,
+        color: Colors.white,
+      );
     } else {
       // taskIcon = Icon(Icons.category);
       taskIcon = null;
@@ -58,19 +65,24 @@ class _TaskItemState extends State<TaskItem> {
                 title: Text(
                   this.widget.title ?? "",
                   overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold),
                 ),
                 subtitle: Text(
                   this.widget.description ?? "",
                   overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: Colors.white),
                 ),
                 // trailing: Text("" ?? "", style: TextStyle(fontSize: 11)),
               ),
             ),
-            Divider(),
+            Divider(color: Colors.white),
             Padding(
               padding: const EdgeInsets.fromLTRB(0, 0, 0, 8),
               child: Text(
                 this.widget.dateTime,
+                style:
+                    TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               ),
             )
           ],

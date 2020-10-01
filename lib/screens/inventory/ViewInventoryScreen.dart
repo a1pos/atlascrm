@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
+import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -409,7 +410,7 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
         return Future.value(false);
       },
       child: Scaffold(
-        backgroundColor: Color.fromARGB(255, 242, 242, 242),
+        backgroundColor: UniversalStyles.backgroundColor,
         appBar: CustomAppBar(
           key: Key("viewTasksAppBar"),
           title: Text(isLoading ? "Loading..." : inventory["serial"]),
@@ -500,7 +501,7 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
               ),
         floatingActionButton: UnicornDialer(
             backgroundColor: Color.fromRGBO(255, 255, 255, 0.0),
-            parentButtonBackground: Color.fromARGB(500, 1, 224, 143),
+            parentButtonBackground: UniversalStyles.actionColor,
             orientation: UnicornOrientation.VERTICAL,
             parentButton: Icon(Icons.menu),
             childButtons: childButtons),

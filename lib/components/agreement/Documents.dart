@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:atlascrm/components/shared/AddressSearch.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
+import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -45,7 +46,7 @@ class DocumentsState extends State<Documents> with TickerProviderStateMixin {
           actions: <Widget>[
             MaterialButton(
               padding: EdgeInsets.all(5),
-              color: Color.fromARGB(500, 1, 224, 143),
+              color: UniversalStyles.actionColor,
               onPressed: () async {
                 Navigator.pop(context);
                 var result = await platform.invokeMethod("openCamera");
@@ -68,7 +69,7 @@ class DocumentsState extends State<Documents> with TickerProviderStateMixin {
             ),
             MaterialButton(
               padding: EdgeInsets.all(5),
-              color: Color.fromARGB(500, 1, 224, 143),
+              color: UniversalStyles.actionColor,
               onPressed: () async {
                 var result = await platform.invokeMethod("openMedia");
                 addImage(result, title);
@@ -171,7 +172,7 @@ class DocumentsState extends State<Documents> with TickerProviderStateMixin {
                             color: this.widget.fileStatus["w9Added"]
                                 ? Colors.amber
                                 : this.widget.fileStatus["w9"]
-                                    ? Color.fromARGB(500, 1, 224, 143)
+                                    ? UniversalStyles.actionColor
                                     : Colors.grey,
                             onPressed: () {
                               openImageUpload("W-9");
@@ -204,7 +205,7 @@ class DocumentsState extends State<Documents> with TickerProviderStateMixin {
                           : this.widget.fileStatus["w9"]
                               ? Text("Uploaded!",
                                   style: TextStyle(
-                                      color: Color.fromARGB(500, 1, 224, 143)))
+                                      color: UniversalStyles.actionColor))
                               : Text("Empty",
                                   style: TextStyle(color: Colors.grey))
                     ],
@@ -217,7 +218,7 @@ class DocumentsState extends State<Documents> with TickerProviderStateMixin {
                             color: this.widget.fileStatus["voidedCheckAdded"]
                                 ? Colors.amber
                                 : this.widget.fileStatus["voidedCheck"]
-                                    ? Color.fromARGB(500, 1, 224, 143)
+                                    ? UniversalStyles.actionColor
                                     : Colors.grey,
                             onPressed: () {
                               openImageUpload("Voided Check");
@@ -246,7 +247,7 @@ class DocumentsState extends State<Documents> with TickerProviderStateMixin {
                           : this.widget.fileStatus["voidedCheck"]
                               ? Text("Uploaded!",
                                   style: TextStyle(
-                                      color: Color.fromARGB(500, 1, 224, 143)))
+                                      color: UniversalStyles.actionColor))
                               : Text("Empty",
                                   style: TextStyle(color: Colors.grey))
                     ],

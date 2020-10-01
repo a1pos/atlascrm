@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:atlascrm/components/shared/NotificationCenter.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:flutter/material.dart';
@@ -37,10 +38,16 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
-                  CircleAvatar(
-                    backgroundImage: employeeImage.image,
-                    maxRadius: 45,
+                  Row(
+                    children: <Widget>[
+                      CircleAvatar(
+                        backgroundImage: employeeImage.image,
+                        maxRadius: 35,
+                      ),
+                      NotificationCenter()
+                    ],
                   ),
+
                   RichText(
                     text: TextSpan(
                         style: TextStyle(fontSize: 22),

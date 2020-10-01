@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
@@ -382,7 +383,7 @@ class InventoryAddState extends State<InventoryAdd> {
                                     const EdgeInsets.fromLTRB(15, 13, 0, 0),
                                 child: IconButton(
                                   icon: Icon(Icons.center_focus_weak),
-                                  color: Color.fromARGB(500, 1, 224, 143),
+                                  color: UniversalStyles.actionColor,
                                   onPressed: scanBarcode,
                                 ),
                               ),

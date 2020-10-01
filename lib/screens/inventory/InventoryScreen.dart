@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'package:atlascrm/components/inventory/InventoryLocationDropDown.dart';
+import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/services/api.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
@@ -485,7 +486,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 242, 242, 242),
+      backgroundColor: UniversalStyles.backgroundColor,
       drawer: CustomDrawer(),
       appBar: CustomAppBar(
         key: Key("inventoryscreenappbar"),
@@ -520,7 +521,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: openAddInventoryForm,
-        backgroundColor: Color.fromARGB(500, 1, 224, 143),
+        backgroundColor: UniversalStyles.actionColor,
         foregroundColor: Colors.white,
         child: Icon(Icons.add),
         splashColor: Colors.white,
@@ -556,7 +557,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                     )
                   : CircleAvatar(
                       radius: 25,
-                      backgroundColor: Color.fromARGB(500, 1, 224, 143),
+                      backgroundColor: UniversalStyles.actionColor,
                       child: IconButton(
                         icon:
                             Icon(Icons.center_focus_weak, color: Colors.white),
