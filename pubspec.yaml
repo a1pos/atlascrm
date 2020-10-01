@@ -60,6 +60,7 @@ dependencies:
   flutter_pdfview: ^1.0.3+2
   maps_launcher: ^1.2.2+1
   graphql_flutter: ^3.1.0
+  firebase_messaging: ^7.0.0
 
 dev_dependencies:
   flutter_test:

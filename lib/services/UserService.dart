@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'package:atlascrm/services/NotificationService.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:atlascrm/models/Employee.dart';
@@ -128,7 +129,26 @@ class UserService {
       if (companyResult.hasException == false) {
         employee.companyName = companyResult.data["company_by_pk"]["title"];
       }
-      print(employee.companyName);
+
+      var registrationToken = NotificationService.getToken();
+
+      MutationOptions notificationRegistrationMutateOptions =
+          MutationOptions(documentNode: gql("""
+        mutation REGISTER_NOTIFICATION_TOKEN(\$uid: String!, \$registration_token: String!) {
+          register_notification_token(uid: \$uid, registration_token: \$registration_token) {
+              message
+          }
+        }
+    """), variables: {
+        "registration_token": registrationToken,
+        "uid": user.uid,
+      });
+
+      final QueryResult notificationRegistrationResult =
+          await client.mutate(notificationRegistrationMutateOptions);
+
+      print(notificationRegistrationResult);
+
       return linkResult;
     }
   }
