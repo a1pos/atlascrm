@@ -27,29 +27,28 @@ class _CustomCardState extends State<CustomCard> {
       key: this.widget.key,
       margin: EdgeInsets.fromLTRB(0, 10, 0, 10),
       child: Card(
-        elevation: 2,
+        elevation: 3,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15.0),
         ),
         child: Column(
           children: <Widget>[
             ListTile(
-              leading: Icon(
-                this.widget.icon,
-                size: 25,
-                color: Color.fromARGB(500, 1, 224, 143),
-              ),
+              leading: Icon(this.widget.icon, size: 25, color: Colors.black
+                  // color: Color.fromARGB(500, 1, 224, 143),
+                  ),
               title: Text(
                 this.widget.title,
                 style: TextStyle(
+                  fontWeight: FontWeight.bold,
                   fontSize: 22,
-                  color: Color.fromARGB(500, 1, 224, 143),
+                  // color: Color.fromARGB(500, 1, 224, 143),
                 ),
               ),
               trailing: this.widget.isClickable
                   ? Icon(
                       Icons.open_in_new,
-                      color: Color.fromARGB(500, 1, 224, 143),
+                      // color: Color.fromARGB(500, 1, 224, 143),
                     )
                   : null,
               onTap: this.widget.isClickable
@@ -62,7 +61,7 @@ class _CustomCardState extends State<CustomCard> {
               decoration: BoxDecoration(
                 border: Border.all(
                   width: 0.1,
-                  color: Color.fromARGB(500, 1, 224, 143),
+                  // color: Color.fromARGB(500, 1, 224, 143),
                 ),
               ),
             ),

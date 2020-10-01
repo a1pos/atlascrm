@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
+import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
@@ -321,7 +322,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
     } else {
       setState(() {
         button = IconButton(
-          icon: Icon(Icons.done, color: Colors.green),
+          icon: Icon(Icons.done, color: Colors.white),
           onPressed: () {},
         );
       });
@@ -376,7 +377,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                           )),
                     )
                   : IconButton(
-                      icon: Icon(Icons.done, color: Colors.green),
+                      icon: Icon(Icons.done, color: Colors.white),
                       onPressed: () {},
                     ),
             )
@@ -489,7 +490,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                   Padding(
                                     padding: const EdgeInsets.all(8.0),
                                     child: RaisedButton(
-                                      color: Color.fromARGB(500, 1, 224, 143),
+                                      color: UniversalStyles.themeColor,
                                       child: Row(
                                         children: <Widget>[
                                           Icon(Icons.mail, color: Colors.white),
@@ -520,7 +521,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                   Padding(
                                     padding: const EdgeInsets.all(8.0),
                                     child: RaisedButton(
-                                      color: Color.fromARGB(500, 1, 224, 143),
+                                      color: UniversalStyles.themeColor,
                                       child: Row(
                                         children: <Widget>[
                                           Icon(Icons.call, color: Colors.white),
@@ -583,7 +584,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                 padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
                                 child: MaterialButton(
                                   padding: EdgeInsets.all(5),
-                                  color: Color.fromARGB(500, 1, 224, 143),
+                                  color: UniversalStyles.themeColor,
                                   // color: Colors.grey[300],
                                   onPressed: () {
                                     // return null;
@@ -629,7 +630,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
               updateLead(this.widget.leadId);
             }
           },
-          backgroundColor: Color.fromARGB(500, 1, 224, 143),
+          backgroundColor: UniversalStyles.themeColor,
           child: Icon(Icons.save),
         ),
       ),

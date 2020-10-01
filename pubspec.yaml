@@ -111,6 +111,15 @@ flutter:
     - family: LatoBold
       fonts:
         - asset: assets/fonts/lato/Lato-Bold.ttf
+    - family: InterLight
+      fonts:
+        - asset: assets/fonts/inter/Inter-Light-slnt=0.ttf
+    - family: InterRegular
+      fonts:
+        - asset: assets/fonts/inter/Inter-Regular-slnt=0.ttf
+    - family: InterBold
+      fonts:
+        - asset: assets/fonts/inter/Inter-Bold-slnt=0.ttf
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages

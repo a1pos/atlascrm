@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:flutter/material.dart';
 
@@ -27,7 +28,8 @@ class _CustomDrawerState extends State<CustomDrawer> {
 
     return Drawer(
       child: Container(
-        color: Color.fromARGB(255, 21, 27, 38),
+        // color: Color.fromARGB(255, 21, 27, 38),
+        color: UniversalStyles.themeColor,
         child: Column(
           children: <Widget>[
             DrawerHeader(
@@ -39,17 +41,30 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     backgroundImage: employeeImage.image,
                     maxRadius: 45,
                   ),
-                  Text(
-                    UserService.employee.document["displayName"],
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                    ),
-                  ),
+                  RichText(
+                    text: TextSpan(
+                        style: TextStyle(fontSize: 22),
+                        children: <TextSpan>[
+                          TextSpan(
+                              text: "ATLAS",
+                              style: TextStyle(fontFamily: "InterBold")),
+                          TextSpan(
+                              text: "CRM",
+                              style: TextStyle(fontFamily: "InterLight")),
+                        ]),
+                  )
+                  // Text(
+                  //   UserService.employee.document["displayName"],
+                  //   style: TextStyle(
+                  //     color: Colors.white,
+                  //     fontSize: 18,
+                  //   ),
+                  // ),
                 ],
               ),
               decoration: BoxDecoration(
-                color: Color.fromARGB(255, 21, 27, 38),
+                // color: Color.fromARGB(255, 21, 27, 38),
+                color: Color.fromRGBO(81, 203, 194, 1),
               ),
             ),
             ListTile(

@@ -178,6 +178,7 @@ class _LeadsChartState extends State<LeadsChart> {
           domainFn: (LeaderboardData sales, _) => sales.person,
           measureFn: (LeaderboardData sales, _) => sales.count,
           data: statements,
+          seriesColor: charts.MaterialPalette.indigo.makeShades(2)[1],
           labelAccessorFn: (LeaderboardData path, _) =>
               path.count > 0 ? '${path.count.toString()}' : '',
         ),

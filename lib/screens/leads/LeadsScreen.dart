@@ -6,6 +6,7 @@ import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CustomDrawer.dart';
 import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
+import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
@@ -497,7 +498,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: openAddLeadForm,
-        backgroundColor: Color.fromARGB(500, 1, 224, 143),
+        backgroundColor: UniversalStyles.themeColor,
         foregroundColor: Colors.white,
         child: Icon(Icons.add),
         splashColor: Colors.white,
@@ -561,7 +562,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
                     )
                   : CircleAvatar(
                       radius: 25,
-                      backgroundColor: Color.fromARGB(500, 1, 224, 143),
+                      backgroundColor: UniversalStyles.themeColor,
                       child: IconButton(
                         icon: Icon(Icons.search, color: Colors.white),
                         onPressed: () {

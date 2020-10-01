@@ -1,4 +1,5 @@
 import 'package:atlascrm/components/shared/PlacesSuggestions.dart';
+import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/config/ConfigSettings.dart';
 import 'package:atlascrm/screens/leads/ViewLeadScreen.dart';
 import 'package:atlascrm/services/api.dart';
@@ -141,7 +142,7 @@ class _ImageUploaderState extends State<ImageUploader> {
           actions: <Widget>[
             MaterialButton(
               padding: EdgeInsets.all(5),
-              color: Color.fromARGB(500, 1, 224, 143),
+              color: UniversalStyles.themeColor,
               onPressed: () async {
                 Navigator.pop(context);
                 var result = await platform.invokeMethod("openCamera");
@@ -164,7 +165,7 @@ class _ImageUploaderState extends State<ImageUploader> {
             ),
             MaterialButton(
               padding: EdgeInsets.all(5),
-              color: Color.fromARGB(500, 1, 224, 143),
+              color: UniversalStyles.themeColor,
               onPressed: () async {
                 var result = await platform.invokeMethod("openMedia");
                 addImage(result);
@@ -186,7 +187,7 @@ class _ImageUploaderState extends State<ImageUploader> {
             ),
             MaterialButton(
               padding: EdgeInsets.all(5),
-              color: Color.fromARGB(500, 1, 224, 143),
+              color: UniversalStyles.themeColor,
               onPressed: () async {
                 var result = await FilePicker.getFilePath(
                     type: FileType.custom, allowedExtensions: ['pdf']);
@@ -802,7 +803,7 @@ class _ImageUploaderState extends State<ImageUploader> {
                         // padding: EdgeInsets.all(5),
                         color: uploadsComplete
                             ? Colors.grey
-                            : Color.fromARGB(500, 1, 224, 143),
+                            : UniversalStyles.themeColor,
                         onPressed: uploadsComplete ? () {} : openImageUpload,
                         child: Row(
                           children: <Widget>[
