@@ -24,6 +24,7 @@ class _NotificationCenterState extends State<NotificationCenter> {
   }
 
   var notifCount = 0;
+  var notifications = [];
 
   Future<void> initNotificationsSub() async {
     Operation options =
@@ -42,6 +43,7 @@ class _NotificationCenterState extends State<NotificationCenter> {
         if (notificationsArrDecoded != null) {
           setState(() {
             notifCount = notificationsArrDecoded.length;
+            notifications = notificationsArrDecoded;
           });
         }
       },
@@ -65,45 +67,32 @@ class _NotificationCenterState extends State<NotificationCenter> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('New Notifications: ${notifCount.toString()}'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text('Take a new picture or upload from gallery?'),
-              ],
-            ),
+          content: Column(
+            children: <Widget>[
+              Container(width: 300, height: 575, child: buildNotifList()),
+            ],
           ),
           actions: <Widget>[
             MaterialButton(
               padding: EdgeInsets.all(5),
               color: UniversalStyles.actionColor,
-              onPressed: () async {},
+              onPressed: () async {
+                Fluttertoast.showToast(
+                    msg: "oh jeez oh man ok i guess",
+                    toastLength: Toast.LENGTH_SHORT,
+                    gravity: ToastGravity.BOTTOM,
+                    backgroundColor: Colors.grey[600],
+                    textColor: Colors.white,
+                    fontSize: 16.0);
+              },
               child: Row(
                 children: <Widget>[
-                  Icon(
-                    Icons.add_a_photo,
-                    color: Colors.white,
-                  ),
+                  // Icon(
+                  //   Icons.add_a_photo,
+                  //   color: Colors.white,
+                  // ),
                   Text(
-                    'Take Picture',
-                    style: TextStyle(
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            MaterialButton(
-              padding: EdgeInsets.all(5),
-              color: UniversalStyles.actionColor,
-              onPressed: () async {},
-              child: Row(
-                children: <Widget>[
-                  Icon(
-                    Icons.collections,
-                    color: Colors.white,
-                  ),
-                  Text(
-                    'Gallery',
+                    'Mark all as read',
                     style: TextStyle(
                       color: Colors.white,
                     ),
@@ -115,6 +104,28 @@ class _NotificationCenterState extends State<NotificationCenter> {
         );
       },
     );
+  }
+
+  Widget buildNotifList() {
+    return ListView(
+        shrinkWrap: true,
+        children: List.generate(notifications.length, (index) {
+          var notification = notifications[index];
+
+          return GestureDetector(
+              onTap: () {},
+              child: Card(
+                  shape: new RoundedRectangleBorder(
+                      side: new BorderSide(color: Colors.white, width: 2.0),
+                      borderRadius: BorderRadius.circular(4.0)),
+                  child: ListTile(
+                      title: Text(notification["document"]["title"]),
+                      subtitle: Text(notification["document"]["body"]),
+                      trailing: IconButton(
+                        icon: Icon(Icons.lens, color: Colors.red, size: 15),
+                        onPressed: null,
+                      ))));
+        }));
   }
 
   @override
