@@ -1,3 +1,4 @@
+import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:flutter/material.dart';
 
 class CenteredClearLoadingScreen extends StatefulWidget {
@@ -22,7 +23,8 @@ class _CenteredClearLoadingScreenState
             children: <Widget>[
               CircularProgressIndicator(
                 strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.green[200]),
+                valueColor:
+                    AlwaysStoppedAnimation<Color>(UniversalStyles.themeColor),
               ),
               Padding(
                 padding: EdgeInsets.all(50),

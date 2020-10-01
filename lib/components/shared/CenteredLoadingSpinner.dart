@@ -1,3 +1,4 @@
+import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:flutter/material.dart';
 
 class CenteredLoadingSpinner extends StatelessWidget {
@@ -12,7 +13,7 @@ class CenteredLoadingSpinner extends StatelessWidget {
       child: Center(
         child: CircularProgressIndicator(
           strokeWidth: 2,
-          valueColor: AlwaysStoppedAnimation(Colors.green),
+          valueColor: AlwaysStoppedAnimation(UniversalStyles.themeColor),
         ),
       ),
     );
