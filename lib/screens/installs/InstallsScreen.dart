@@ -131,10 +131,10 @@ class _InstallsScreenState extends State<InstallsScreen> {
           'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}';
       // var searchParams = '	_or: [{serial: {_eq: "%$currentSearch%"}},]';
 
-      if (isSearching) {
-        params =
-            'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {serial: {_eq: "$currentSearch"}}';
-      }
+      // if (isSearching) {
+      //   params =
+      //       'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {serial: {_eq: "$currentSearch"}}';
+      // }
       if (isFiltering) {
         params =
             'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "$filterEmployee"}}';
@@ -144,10 +144,10 @@ class _InstallsScreenState extends State<InstallsScreen> {
       //       'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {inventory_location: {_eq: "$filterLocation"}}';
       // }
 
-      if (isLocFiltering && isFiltering) {
-        params =
-            'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "$filterEmployee"}, _and: {inventory_location: {_eq: "$filterLocation"}}}';
-      }
+      // if (isLocFiltering && isFiltering) {
+      //   params =
+      //       'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "$filterEmployee"}, _and: {inventory_location: {_eq: "$filterLocation"}}}';
+      // }
 
       QueryOptions options = QueryOptions(documentNode: gql("""
         query GET_INSTALL_TICKETS {
@@ -202,16 +202,16 @@ class _InstallsScreenState extends State<InstallsScreen> {
     }
   }
 
-  Future<void> searchInstalls(searchString) async {
-    setState(() {
-      currentSearch = searchString;
-      pageNum = 0;
-      isSearching = true;
-      installs = [];
-      installsFull = [];
-      onScroll();
-    });
-  }
+  // Future<void> searchInstalls(searchString) async {
+  //   setState(() {
+  //     currentSearch = searchString;
+  //     pageNum = 0;
+  //     isSearching = true;
+  //     installs = [];
+  //     installsFull = [];
+  //     onScroll();
+  //   });
+  // }
 
   Future<void> filterByEmployee(employeeId) async {
     setState(() {
@@ -224,32 +224,32 @@ class _InstallsScreenState extends State<InstallsScreen> {
     });
   }
 
-  Future<void> filterByLocation(locItem) async {
-    setState(() {
-      locationSearch = locItem["name"];
-      filterLocation = locItem["location"];
-      pageNum = 0;
-      isLocFiltering = true;
-      installs = [];
-      installsFull = [];
-      onScroll();
-      Navigator.pop(context);
-    });
-  }
+  // Future<void> filterByLocation(locItem) async {
+  //   setState(() {
+  //     locationSearch = locItem["name"];
+  //     filterLocation = locItem["location"];
+  //     pageNum = 0;
+  //     isLocFiltering = true;
+  //     installs = [];
+  //     installsFull = [];
+  //     onScroll();
+  //     Navigator.pop(context);
+  //   });
+  // }
 
-  Future<void> clearLocFilter() async {
-    if (isLocFiltering) {
-      setState(() {
-        pageNum = 0;
-        locationSearch = "Installs";
-        filterLocation = "";
-        isLocFiltering = false;
-        installs = [];
-        installsFull = [];
-      });
-      onScroll();
-    }
-  }
+  // Future<void> clearLocFilter() async {
+  //   if (isLocFiltering) {
+  //     setState(() {
+  //       pageNum = 0;
+  //       locationSearch = "Installs";
+  //       filterLocation = "";
+  //       isLocFiltering = false;
+  //       installs = [];
+  //       installsFull = [];
+  //     });
+  //     onScroll();
+  //   }
+  // }
 
   Future<void> clearFilter() async {
     if (isFiltering) {
@@ -264,19 +264,19 @@ class _InstallsScreenState extends State<InstallsScreen> {
     }
   }
 
-  Future<void> clearSearch() async {
-    setState(() {
-      pageNum = 0;
-      currentSearch = "";
-      isSearching = false;
-      _searchController.clear();
-      installs = [];
-      installsFull = [];
-    });
-    onScroll();
-  }
+  // Future<void> clearSearch() async {
+  //   setState(() {
+  //     pageNum = 0;
+  //     currentSearch = "";
+  //     isSearching = false;
+  //     _searchController.clear();
+  //     installs = [];
+  //     installsFull = [];
+  //   });
+  //   onScroll();
+  // }
 
-  void openDevice(inventory) {
+  void openInstall(inventory) {
     Map sendable = {"id": inventory["inventory"]};
     Navigator.pushNamed(context, "/viewinventory", arguments: sendable);
   }
@@ -331,41 +331,41 @@ class _InstallsScreenState extends State<InstallsScreen> {
     return Container(
       child: Column(
         children: <Widget>[
-          Row(
-            children: <Widget>[
-              Expanded(
-                flex: 1,
-                child: TextField(
-                  controller: _searchController,
-                  onEditingComplete: () {
-                    searchInstalls(_searchController.text);
-                    currentSearch = _searchController.text;
-                  },
-                  decoration: InputDecoration(
-                    labelText: "Search Installs",
-                  ),
-                ),
-              ),
-              isSearching
-                  ? IconButton(
-                      icon: Icon(Icons.clear),
-                      onPressed: () {
-                        clearSearch();
-                      },
-                    )
-                  : CircleAvatar(
-                      radius: 25,
-                      backgroundColor: UniversalStyles.actionColor,
-                      child: IconButton(
-                        icon: Icon(Icons.search, color: Colors.white),
-                        onPressed: () {
-                          currentSearch = _searchController.text;
-                          searchInstalls(_searchController.text);
-                        },
-                      ),
-                    ),
-            ],
-          ),
+          // Row(
+          //   children: <Widget>[
+          //     Expanded(
+          //       flex: 1,
+          //       child: TextField(
+          //         controller: _searchController,
+          //         onEditingComplete: () {
+          //           searchInstalls(_searchController.text);
+          //           currentSearch = _searchController.text;
+          //         },
+          //         decoration: InputDecoration(
+          //           labelText: "Search Installs",
+          //         ),
+          //       ),
+          //     ),
+          //     isSearching
+          //         ? IconButton(
+          //             icon: Icon(Icons.clear),
+          //             onPressed: () {
+          //               clearSearch();
+          //             },
+          //           )
+          //         : CircleAvatar(
+          //             radius: 25,
+          //             backgroundColor: UniversalStyles.actionColor,
+          //             child: IconButton(
+          //               icon: Icon(Icons.search, color: Colors.white),
+          //               onPressed: () {
+          //                 currentSearch = _searchController.text;
+          //                 searchInstalls(_searchController.text);
+          //               },
+          //             ),
+          //           ),
+          //   ],
+          // ),
           Padding(
               padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
               child: EmployeeDropDown(
@@ -394,7 +394,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
 
                       return GestureDetector(
                         onTap: () {
-                          openDevice(item);
+                          openInstall(item);
                         },
                         child: CustomCard(
                           title: item["document"]["title"],

@@ -31,6 +31,7 @@ class _NotificationCenterState extends State<NotificationCenter> {
         Operation(operationName: "NOTIFICATION_SUB", documentNode: gql("""
           subscription NOTIFICATION_SUB(\$employee: uuid) {
             notification(where: {employee: {_eq: \$employee}, _and: {is_read: {_eq: false}}}){
+              notification
               document
             }
           }
@@ -61,6 +62,68 @@ class _NotificationCenterState extends State<NotificationCenter> {
     );
   }
 
+  Future<void> markOneAsRead(notification) async {
+    MutationOptions mutateOptions = MutationOptions(documentNode: gql("""
+          mutation UPDATE_NOTIFICATION (\$notification: uuid){
+            update_notification(where: {notification: {_eq: \$notification}}, _set: {is_read: true}) {
+              returning {
+                notification
+              }
+            }
+          }
+      """), variables: {"notification": notification});
+    final QueryResult result = await client.mutate(mutateOptions);
+
+    if (result.hasException == false) {
+      Fluttertoast.showToast(
+          msg: "Notification Marked as Read!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0);
+    } else {
+      Fluttertoast.showToast(
+          msg: "Failed to update Notifications!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0);
+    }
+  }
+
+  Future<void> markAllAsRead() async {
+    MutationOptions mutateOptions = MutationOptions(documentNode: gql("""
+          mutation UPDATE_NOTIFICATIONS (\$employee: uuid){
+            update_notification(where: {employee: {_eq: \$employee}, _and: {is_read: {_eq: false}}}, _set: {is_read: true}) {
+              returning {
+                notification
+              }
+            }
+          }
+      """), variables: {"employee": UserService.employee.employee});
+    final QueryResult result = await client.mutate(mutateOptions);
+
+    if (result.hasException == false) {
+      Fluttertoast.showToast(
+          msg: "Notifications Marked as Read!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0);
+    } else {
+      Fluttertoast.showToast(
+          msg: "Failed to update Notifications!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0);
+    }
+  }
+
   void openNotificationPanel() {
     showDialog(
       context: context,
@@ -77,13 +140,8 @@ class _NotificationCenterState extends State<NotificationCenter> {
               padding: EdgeInsets.all(5),
               color: UniversalStyles.actionColor,
               onPressed: () async {
-                Fluttertoast.showToast(
-                    msg: "oh jeez oh man ok i guess",
-                    toastLength: Toast.LENGTH_SHORT,
-                    gravity: ToastGravity.BOTTOM,
-                    backgroundColor: Colors.grey[600],
-                    textColor: Colors.white,
-                    fontSize: 16.0);
+                markAllAsRead();
+                Navigator.pop(context);
               },
               child: Row(
                 children: <Widget>[
@@ -113,7 +171,10 @@ class _NotificationCenterState extends State<NotificationCenter> {
           var notification = notifications[index];
 
           return GestureDetector(
-              onTap: () {},
+              onTap: () {
+                markOneAsRead(notification["notification"]);
+                Navigator.pop(context);
+              },
               child: Card(
                   shape: new RoundedRectangleBorder(
                       side: new BorderSide(color: Colors.white, width: 2.0),
@@ -123,7 +184,7 @@ class _NotificationCenterState extends State<NotificationCenter> {
                       subtitle: Text(notification["document"]["body"]),
                       trailing: IconButton(
                         icon: Icon(Icons.lens, color: Colors.red, size: 15),
-                        onPressed: null,
+                        onPressed: () {},
                       ))));
         }));
   }
