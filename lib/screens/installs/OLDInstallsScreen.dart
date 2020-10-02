@@ -1,16 +1,11 @@
 import 'dart:developer';
-import 'package:atlascrm/components/inventory/InventoryLocationDropDown.dart';
-import 'package:atlascrm/components/style/UniversalStyles.dart';
-import 'package:atlascrm/services/api.dart';
-import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CustomDrawer.dart';
-import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
+import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:flutter/material.dart';
-import 'package:barcode_scan/barcode_scan.dart';
 
 class InstallsScreen extends StatefulWidget {
   @override
@@ -20,29 +15,26 @@ class InstallsScreen extends StatefulWidget {
 class _InstallsScreenState extends State<InstallsScreen> {
   var installs = [];
   var installsFull = [];
-
+  var employees = [];
+  var employeesFull = [];
   var columns = [];
 
   var isLoading = true;
   var isEmpty = true;
-  var myTickets = false;
 
   bool isSearching = false;
+  bool myTickets = false;
   bool isFiltering = false;
   bool isLocFiltering = false;
 
   var currentSearch = "";
-  var pageNum = 0;
+  var pageNum = 1;
   var filterEmployee = "";
   var filterLocation = "";
-  var locationSearch = "Installs";
-  var sortQueries = [
-    "updated_at: desc",
-    "updated_at: asc",
-  ];
-  var initParams = "offset: 0, limit: 10, order_by: {updated_at: asc}";
-  var sortQuery = "updated_at: asc";
+  var locationSearch = "All Installs";
 
+  var sortQuery =
+      "sorters%5B0%5D%5Bfield%5D=employee&sorters%5B0%5D%5Bdir%5D=asc";
   ScrollController _scrollController = ScrollController();
   TextEditingController _searchController = TextEditingController();
 
@@ -50,9 +42,9 @@ class _InstallsScreenState extends State<InstallsScreen> {
   void initState() {
     super.initState();
 
-    // initEmployeeData();
+    initEmployeeData();
 
-    initTicketData();
+    initInstallsData();
 
     _scrollController.addListener(() {
       if (_scrollController.position.pixels ==
@@ -68,29 +60,16 @@ class _InstallsScreenState extends State<InstallsScreen> {
     super.dispose();
   }
 
-  Future<void> initTicketData() async {
+  Future<void> initInstallsData() async {
     try {
-      QueryOptions options = QueryOptions(documentNode: gql("""
-        query GET_INSTALL_TICKETS {
-          ticket_category(where: {title: {_eq: "Installation"}}) {
-            tickets ($initParams){
-              ticket
-              document
-              due_date
-              employeeByEmployee{
-                employee
-                displayName:document(path:"displayName")
-              }
-            }
-          }
-        }
-      """));
-
-      final QueryResult result = await client.query(options);
-
-      if (result != null) {
-        if (result.hasException == false) {
-          var installsArrDecoded = result.data["ticket_category"][0]["tickets"];
+      var endpoint =
+          "/ticket?page=$pageNum&size=10&searchString=&installView=true&closedTickets=false";
+      var resp;
+      //REPLACE WITH GRAPHQL
+      // var resp = await this.widget.apiService.authGet(context, endpoint);
+      if (resp != null) {
+        if (resp.statusCode == 200) {
+          var installsArrDecoded = resp.data["data"];
           if (installsArrDecoded != null) {
             var installsArr = List.from(installsArrDecoded);
             if (installsArr.length > 0) {
@@ -103,7 +82,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
               });
             } else {
               setState(() {
-                if (pageNum == 0) {
+                if (pageNum == 1) {
                   isEmpty = true;
                   installsArr = [];
                   installsFull = [];
@@ -125,51 +104,52 @@ class _InstallsScreenState extends State<InstallsScreen> {
 
   Future<void> onScroll() async {
     try {
-      var offsetAmount = pageNum * 10;
-      var limitAmount = 10;
-      var params =
-          'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}';
-      // var searchParams = '	_or: [{serial: {_eq: "%$currentSearch%"}},]';
+      var endpoint;
 
+      endpoint =
+          "/ticket?page=$pageNum&size=10&searchString=&installView=true&closedTickets=false";
       if (isSearching) {
-        params =
-            'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {serial: {_eq: "$currentSearch"}}';
+        endpoint =
+            "/ticket?searchString=$currentSearch&page=$pageNum&size=10&installView=true&closedTickets=false";
       }
-      if (isFiltering) {
-        params =
-            'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "$filterEmployee"}}';
+      if (myTickets) {
+        endpoint =
+            "/ticket?page=$pageNum&size=10&searchString=&installView=true&closedTickets=false&myTickets=true";
       }
-      // if (isLocFiltering) {
-      //   params =
-      //       'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {inventory_location: {_eq: "$filterLocation"}}';
+      if (isSearching && myTickets) {
+        endpoint =
+            "/ticket?searchString=$currentSearch&page=$pageNum&size=10&installView=true&closedTickets=false&myTickets=true";
+      }
+      // if (isFiltering) {
+      //   endpoint =
+      //       "/ticket?searchEmployee=$filterEmployee&page=$pageNum&size=10&$sortQuery";
       // }
-
-      if (isLocFiltering && isFiltering) {
-        params =
-            'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "$filterEmployee"}, _and: {inventory_location: {_eq: "$filterLocation"}}}';
-      }
-
-      QueryOptions options = QueryOptions(documentNode: gql("""
-        query GET_INSTALL_TICKETS {
-          ticket_category(where: {title: {_eq: "Installation"}}) {
-            tickets ($params){
-              ticket
-              document
-              due_date
-              employeeByEmployee{
-                employee
-                displayName:document(path:"displayName")
-              }
-            }
-          }
-        }
-      """), fetchPolicy: FetchPolicy.networkOnly);
-
-      final QueryResult result = await client.query(options);
-
-      if (result != null) {
-        if (result.hasException == false) {
-          var installsArrDecoded = result.data["ticket_category"][0]["tickets"];
+      // if (isLocFiltering) {
+      //   endpoint =
+      //       "/ticket?searchLocation=$filterLocation&page=$pageNum&size=10&$sortQuery";
+      // }
+      // if (isSearching && isFiltering) {
+      //   endpoint =
+      //       "/ticket?searchEmployee=$filterEmployee&searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
+      // }
+      // if (isSearching && isLocFiltering) {
+      //   endpoint =
+      //       "/ticket?searchLocatation=$filterLocation&searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
+      // }
+      // if (isFiltering && isLocFiltering) {
+      //   endpoint =
+      //       "/ticket?searchLocation=$filterLocation&searchEmployee=$filterEmployee&page=$pageNum&size=10&$sortQuery";
+      // }
+      // if (isSearching && isFiltering && isLocFiltering) {
+      //   endpoint =
+      //       "/ticket?searchLocation=$filterLocation&searchEmployee=$filterEmployee&searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
+      // }
+      var resp;
+      //REPLACE WITH GRAPHQL
+      // var resp = await this.widget.apiService.authGet(context, endpoint);
+      if (resp != null) {
+        if (resp.statusCode == 200) {
+          var installsArrDecoded = resp.data["data"];
           if (installsArrDecoded != null) {
             var installsArr = List.from(installsArrDecoded);
             if (installsArr.length > 0) {
@@ -182,7 +162,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
               });
             } else {
               setState(() {
-                if (pageNum == 0) {
+                if (pageNum == 1) {
                   isEmpty = true;
                   installsArr = [];
                   installsFull = [];
@@ -205,8 +185,30 @@ class _InstallsScreenState extends State<InstallsScreen> {
   Future<void> searchInstalls(searchString) async {
     setState(() {
       currentSearch = searchString;
-      pageNum = 0;
+      pageNum = 1;
       isSearching = true;
+      installs = [];
+      installsFull = [];
+      onScroll();
+    });
+  }
+
+  Future<void> filterMyTickets() async {
+    setState(() {
+      locationSearch = "My installs";
+      pageNum = 1;
+      myTickets = true;
+      installs = [];
+      installsFull = [];
+      onScroll();
+    });
+  }
+
+  Future<void> filterAllTickets() async {
+    setState(() {
+      locationSearch = "All installs";
+      pageNum = 1;
+      myTickets = false;
       installs = [];
       installsFull = [];
       onScroll();
@@ -216,7 +218,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
   Future<void> filterByEmployee(employeeId) async {
     setState(() {
       filterEmployee = employeeId;
-      pageNum = 0;
+      pageNum = 1;
       isFiltering = true;
       installs = [];
       installsFull = [];
@@ -228,7 +230,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
     setState(() {
       locationSearch = locItem["name"];
       filterLocation = locItem["location"];
-      pageNum = 0;
+      pageNum = 1;
       isLocFiltering = true;
       installs = [];
       installsFull = [];
@@ -240,8 +242,8 @@ class _InstallsScreenState extends State<InstallsScreen> {
   Future<void> clearLocFilter() async {
     if (isLocFiltering) {
       setState(() {
-        pageNum = 0;
-        locationSearch = "Installs";
+        pageNum = 1;
+        locationSearch = "All installs";
         filterLocation = "";
         isLocFiltering = false;
         installs = [];
@@ -255,7 +257,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
     if (isFiltering) {
       setState(() {
         filterEmployee = "";
-        pageNum = 0;
+        pageNum = 1;
         isFiltering = false;
         installs = [];
         installsFull = [];
@@ -266,7 +268,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
 
   Future<void> clearSearch() async {
     setState(() {
-      pageNum = 0;
+      pageNum = 1;
       currentSearch = "";
       isSearching = false;
       _searchController.clear();
@@ -276,9 +278,43 @@ class _InstallsScreenState extends State<InstallsScreen> {
     onScroll();
   }
 
-  void openDevice(inventory) {
-    Map sendable = {"id": inventory["inventory"]};
-    Navigator.pushNamed(context, "/viewinventory", arguments: sendable);
+  Future<void> initEmployeeData() async {
+    try {
+      var endpoint = "/employee";
+      var resp;
+      //REPLACE WITH GRAPHQL
+      // var resp = await this.widget.apiService.authGet(context, endpoint);
+      if (resp != null) {
+        if (resp.statusCode == 200) {
+          var employeesArrDecoded = resp.data;
+          if (employeesArrDecoded != null) {
+            var employeesArr = List.from(employeesArrDecoded);
+            if (employeesArr.length > 0) {
+              setState(() {
+                employees = employeesArr;
+                employeesFull = employeesArr;
+              });
+            } else {
+              setState(() {
+                employeesArr = [];
+                employeesFull = [];
+              });
+            }
+          }
+        }
+      }
+
+      setState(() {
+        isLoading = false;
+      });
+    } catch (err) {
+      log(err);
+    }
+  }
+
+  void openInstall(ticket) {
+    Map sendable = {"id": ticket["number"], "ticket": ticket};
+    Navigator.pushNamed(context, "/viewinstall", arguments: sendable);
   }
 
   @override
@@ -287,18 +323,13 @@ class _InstallsScreenState extends State<InstallsScreen> {
       backgroundColor: UniversalStyles.backgroundColor,
       drawer: CustomDrawer(),
       appBar: CustomAppBar(
-        key: Key("inventoryscreenappbar"),
+        key: Key("installsscreenappbar"),
         title: Text(isLoading ? "Loading..." : "$locationSearch"),
-        action: <Widget>[
-          // Padding(
-          //   padding: const EdgeInsets.fromLTRB(5, 8, 10, 8),
-          //   child: IconButton(
-          //     onPressed: () {
-          //       openLocationFilter();
-          //     },
-          //     icon: Icon(Icons.business, color: Colors.white),
-          //   ),
-          // )
+        action: [
+          myTickets
+              ? IconButton(icon: Icon(Icons.list), onPressed: filterAllTickets)
+              : IconButton(
+                  icon: Icon(Icons.account_circle), onPressed: filterMyTickets)
         ],
       ),
       body: Container(
@@ -317,13 +348,6 @@ class _InstallsScreenState extends State<InstallsScreen> {
           ],
         ),
       ),
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: openAddInventoryForm,
-      //   backgroundColor: UniversalStyles.actionColor,
-      //   foregroundColor: Colors.white,
-      //   child: Icon(Icons.add),
-      //   splashColor: Colors.white,
-      // ),
     );
   }
 
@@ -331,6 +355,17 @@ class _InstallsScreenState extends State<InstallsScreen> {
     return Container(
       child: Column(
         children: <Widget>[
+          // Padding(
+          //     padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
+          //     child: EmployeeDropDown(
+          //         callback: (val) {
+          //           if (val != null) {
+          //             filterByEmployee(val);
+          //           } else {
+          //             clearFilter();
+          //           }
+          //         },
+          //         role: "tech")),
           Row(
             children: <Widget>[
               Expanded(
@@ -366,17 +401,6 @@ class _InstallsScreenState extends State<InstallsScreen> {
                     ),
             ],
           ),
-          Padding(
-              padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
-              child: EmployeeDropDown(
-                  callback: (val) {
-                    if (val != null) {
-                      filterByEmployee(val);
-                    } else {
-                      clearFilter();
-                    }
-                  },
-                  role: "tech")),
           isEmpty
               ? Padding(
                   padding: const EdgeInsets.fromLTRB(8, 200, 8, 0),
@@ -387,14 +411,11 @@ class _InstallsScreenState extends State<InstallsScreen> {
                   child: ListView(
                     controller: _scrollController,
                     children: installs.map((item) {
-                      var employeeName = item["employeeByEmployee"] == null ||
-                              item["employeeByEmployee"]["displayName"] == null
-                          ? ""
-                          : item["employeeByEmployee"]["displayName"];
+                      var employeeName;
 
                       return GestureDetector(
                         onTap: () {
-                          openDevice(item);
+                          openInstall(item);
                         },
                         child: CustomCard(
                           title: item["document"]["title"],
@@ -406,44 +427,25 @@ class _InstallsScreenState extends State<InstallsScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: <Widget>[
                                   Column(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: <Widget>[
-                                      Padding(
-                                        padding: EdgeInsets.all(5),
-                                        child: Text(
-                                          'Employee:',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
+                                      children: <Widget>[]),
                                   Expanded(
                                     child: Column(
                                       mainAxisAlignment: MainAxisAlignment.end,
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
-                                      children: <Widget>[
-                                        Padding(
-                                          padding: EdgeInsets.all(5),
-                                          child: Text(
-                                            employeeName,
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
+                                      children: <Widget>[],
                                     ),
                                   ),
                                 ],
                               ),
-                              employeeName != null && employeeName != ""
+                              employeeName != null
                                   ? Divider(thickness: 2)
                                   : Container(),
-                              employeeName != null && employeeName != ""
+                              employeeName != null
                                   ? Text("Employee: " + employeeName,
                                       style: TextStyle(),
                                       textAlign: TextAlign.right)

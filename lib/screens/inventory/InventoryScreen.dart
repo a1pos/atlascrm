@@ -36,7 +36,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
   bool isLocFiltering = false;
 
   var currentSearch = "";
-  var pageNum = 1;
+  var pageNum = 0;
   var filterEmployee = "";
   var filterLocation = "";
   var locationSearch = "All Inventory";
