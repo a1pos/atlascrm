@@ -134,27 +134,6 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
             fontSize: 16.0);
       },
     );
-
-    // var resp2 = await this
-    //     .widget
-    //     .apiService
-    //     .authGet(context, "/inventory/merchant/" + this.widget.merchantId);
-
-    // if (resp2.statusCode == 200) {
-    //   var body = resp2.data;
-    //   if (body != null) {
-    //     var bodyDecoded = body;
-    //     if (bodyDecoded[0]["inventory"] != null) {
-    //       setState(() {
-    //         devices = bodyDecoded;
-    //       });
-    //     }
-    //   }
-    // }
-
-    // setState(() {
-    //   isLoading = false;
-    // });
   }
 
   Future<void> updateMerchant(merchantId) async {
@@ -172,93 +151,7 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
       "state": businessAddress["state"],
       "zipCode": businessAddress["zipcode"],
     };
-
-    // var resp = await this.widget.apiService.authPut(
-    //     context, "/merchant/" + this.widget.merchantId, merchantToUpdate);
-
-    // if (resp.statusCode == 200) {
-    //   await loadMerchantData(this.widget.merchantId);
-
-    //   Fluttertoast.showToast(
-    //       msg: "Merchant Updated!",
-    //       toastLength: Toast.LENGTH_SHORT,
-    //       gravity: ToastGravity.BOTTOM,
-    //       backgroundColor: Colors.grey[600],
-    //       textColor: Colors.white,
-    //       fontSize: 16.0);
-    //   Navigator.pushNamed(context, '/merchants');
-    // } else {
-    //   Fluttertoast.showToast(
-    //       msg: "Failed to udpate merchant!",
-    //       toastLength: Toast.LENGTH_SHORT,
-    //       gravity: ToastGravity.BOTTOM,
-    //       backgroundColor: Colors.grey[600],
-    //       textColor: Colors.white,
-    //       fontSize: 16.0);
-    // }
   }
-
-  // Future<void> deleteCheck(merchantId) async {
-  //   return showDialog<void>(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       return AlertDialog(
-  //         title: Text('Delete this merchant?'),
-  //         content: SingleChildScrollView(
-  //           child: ListBody(
-  //             children: <Widget>[
-  //               Text('Are you sure you want to delete this merchant?'),
-  //             ],
-  //           ),
-  //         ),
-  //         actions: <Widget>[
-  //           FlatButton(
-  //             child: Text('Delete',
-  //                 style: TextStyle(fontSize: 17, color: Colors.red)),
-  //             onPressed: () {
-  //               deleteMerchant(merchantId);
-
-  //               Navigator.of(context).pop();
-  //             },
-  //           ),
-  //           FlatButton(
-  //             child: Text('Cancel', style: TextStyle(fontSize: 17)),
-  //             onPressed: () {
-  //               Navigator.of(context).pop();
-  //             },
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   );
-  // }
-
-  // Future<void> deleteMerchant(merchantId) async {
-  //   var resp = await this
-  //       .widget
-  //       .apiService
-  //       .authDelete(context, "/merchant/" + this.widget.merchantId, null);
-
-  //   if (resp.statusCode == 200) {
-  //     Navigator.popAndPushNamed(context, "/merchants");
-
-  //     Fluttertoast.showToast(
-  //         msg: "Successful delete!",
-  //         toastLength: Toast.LENGTH_SHORT,
-  //         gravity: ToastGravity.BOTTOM,
-  //         backgroundColor: Colors.grey[600],
-  //         textColor: Colors.white,
-  //         fontSize: 16.0);
-  //   } else {
-  //     Fluttertoast.showToast(
-  //         msg: "Failed to delete merchant!",
-  //         toastLength: Toast.LENGTH_SHORT,
-  //         gravity: ToastGravity.BOTTOM,
-  //         backgroundColor: Colors.grey[600],
-  //         textColor: Colors.white,
-  //         fontSize: 16.0);
-  //   }
-  // }
 
   Widget buildList() {
     return ListView(
@@ -328,7 +221,7 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                   merchantDocument["ApplicationInformation"]
                                       ["CorporateInfo"]["Address1"]),
                               showInfoRow("City, State ZIP",
-                                  "${merchantDocument["ApplicationInformation"]["CorporateInfo"]["Address1"]}, ${merchantDocument["ApplicationInformation"]["CorporateInfo"]["State"]}, ${merchantDocument["ApplicationInformation"]["CorporateInfo"]["First5Zip"]}"),
+                                  "${merchantDocument["ApplicationInformation"]["CorporateInfo"]["City"]}, ${merchantDocument["ApplicationInformation"]["CorporateInfo"]["State"]}, ${merchantDocument["ApplicationInformation"]["CorporateInfo"]["First5Zip"]}"),
                               showInfoRow(
                                   "Email",
                                   merchantDocument["ApplicationInformation"]
@@ -448,30 +341,30 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                             ],
                           ),
                         ),
-                        CustomCard(
-                            key: Key("merchants4"),
-                            title: "Tools",
-                            icon: Icons.build,
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: RaisedButton(
-                                color: UniversalStyles.actionColor,
-                                child: Row(
-                                  children: <Widget>[
-                                    Icon(Icons.extension, color: Colors.white),
-                                    Text("Agreement Builder",
-                                        style: TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold))
-                                  ],
-                                ),
-                                onPressed: () {
-                                  Navigator.pushNamed(
-                                      context, "/agreementbuilder",
-                                      arguments: merchant["lead"]);
-                                },
-                              ),
-                            )),
+                        // CustomCard(
+                        //     key: Key("merchants4"),
+                        //     title: "Tools",
+                        //     icon: Icons.build,
+                        //     child: Padding(
+                        //       padding: const EdgeInsets.all(8.0),
+                        //       child: RaisedButton(
+                        //         color: UniversalStyles.actionColor,
+                        //         child: Row(
+                        //           children: <Widget>[
+                        //             Icon(Icons.extension, color: Colors.white),
+                        //             Text("Agreement Builder",
+                        //                 style: TextStyle(
+                        //                     color: Colors.white,
+                        //                     fontWeight: FontWeight.bold))
+                        //           ],
+                        //         ),
+                        //         onPressed: () {
+                        //           Navigator.pushNamed(
+                        //               context, "/agreementbuilder",
+                        //               arguments: merchant["lead"]);
+                        //         },
+                        //       ),
+                        //     )),
                         // // CustomCard(
                         // //     key: Key("merchants4"),
                         // //     title: "Notes",
@@ -484,16 +377,6 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                   ),
                 ),
               ),
-        //do we need a save for this?
-        // floatingActionButton: FloatingActionButton(
-        //   onPressed: () async {
-        //     if (_merchantFormKey.currentState.validate()) {
-        //       updateMerchant(this.widget.merchantId);
-        //     }
-        //   },
-        //   backgroundColor: UniversalStyles.actionColor,
-        //   child: Icon(Icons.save),
-        // ),
       ),
     );
   }

@@ -97,7 +97,7 @@ class _AtlasCRMState extends State<AtlasCRM> {
     );
 
     setState(() {
-      isLoading = true;
+      // isLoading = true;
       isAuthenticated = false;
     });
   }
@@ -125,7 +125,14 @@ class _AtlasCRMState extends State<AtlasCRM> {
             brightness: Brightness.light,
             fontFamily: "LatoRegular",
           ),
-          home: isAuthenticated ? DashboardScreen() : AuthScreen(),
+          home: isAuthenticated
+              ? DashboardScreen()
+              : WillPopScope(
+                  onWillPop: () {
+                    print("main trying to pop");
+                    return Future(() => false);
+                  },
+                  child: AuthScreen()),
           initialRoute: "/",
           onGenerateRoute: (RouteSettings settings) {
             switch (settings.name) {

@@ -153,23 +153,23 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     },
                   )
                 : Text(""),
-            UserService.isTech || UserService.isAdmin
-                ? ListTile(
-                    leading: Icon(
-                      Icons.build,
-                      color: Colors.white,
-                    ),
-                    title: Text(
-                      'Installs',
-                      style: TextStyle(
-                        color: Colors.white,
-                      ),
-                    ),
-                    onTap: () {
-                      Navigator.popAndPushNamed(context, "/installs");
-                    },
-                  )
-                : Text(""),
+            // UserService.isTech || UserService.isAdmin
+            //     ? ListTile(
+            //         leading: Icon(
+            //           Icons.build,
+            //           color: Colors.white,
+            //         ),
+            //         title: Text(
+            //           'Installs',
+            //           style: TextStyle(
+            //             color: Colors.white,
+            //           ),
+            //         ),
+            //         onTap: () {
+            //           Navigator.popAndPushNamed(context, "/installs");
+            //         },
+            //       )
+            //     : Text(""),
             UserService.isTech || UserService.isAdmin
                 ? ListTile(
                     leading: Icon(

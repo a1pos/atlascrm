@@ -62,67 +62,73 @@ class _AuthScreenState extends State<AuthScreen> {
   Widget build(BuildContext context) {
     return isLoading
         ? LoadingScreen()
-        : Scaffold(
-            body: Container(
-              color: Colors.grey[200],
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Image(
-                      image: AssetImage("assets/a1logo_blk.png"), height: 80.0),
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(0, 25, 0, 25),
-                  ),
-                  Center(
-                    child: Card(
-                      child: Padding(
-                        padding: EdgeInsets.fromLTRB(50, 25, 50, 25),
-                        child: Column(
-                          children: <Widget>[
-                            Padding(
-                              padding: EdgeInsets.fromLTRB(0, 25, 0, 50),
-                              child: Text(
-                                'Atlas CRM',
-                                style: TextStyle(
-                                    fontSize: 22, fontFamily: 'LatoLight'),
-                              ),
-                            ),
-                            OutlineButton(
-                              splashColor: Colors.green,
-                              onPressed: handleLogin,
-                              highlightElevation: 0,
-                              child: Padding(
-                                padding: EdgeInsets.fromLTRB(0, 10, 0, 10),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: <Widget>[
-                                    Image(
-                                        image: AssetImage(
-                                            "assets/google_logo.png"),
-                                        height: 30.0),
-                                    Padding(
-                                      padding: EdgeInsets.all(5),
-                                      child: Text(
-                                        'Sign in with Google',
-                                        style: TextStyle(
-                                          fontSize: 20,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
-                                    )
-                                  ],
+        : WillPopScope(
+            onWillPop: () {
+              print("trying to pop");
+              return Future(() => false);
+            },
+            child: Scaffold(
+              body: Container(
+                color: Colors.grey[200],
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Image(
+                        image: AssetImage("assets/a1logo_blk.png"),
+                        height: 80.0),
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(0, 25, 0, 25),
+                    ),
+                    Center(
+                      child: Card(
+                        child: Padding(
+                          padding: EdgeInsets.fromLTRB(50, 25, 50, 25),
+                          child: Column(
+                            children: <Widget>[
+                              Padding(
+                                padding: EdgeInsets.fromLTRB(0, 25, 0, 50),
+                                child: Text(
+                                  'Atlas CRM',
+                                  style: TextStyle(
+                                      fontSize: 22, fontFamily: 'LatoLight'),
                                 ),
                               ),
-                            ),
-                          ],
+                              OutlineButton(
+                                splashColor: Colors.green,
+                                onPressed: handleLogin,
+                                highlightElevation: 0,
+                                child: Padding(
+                                  padding: EdgeInsets.fromLTRB(0, 10, 0, 10),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: <Widget>[
+                                      Image(
+                                          image: AssetImage(
+                                              "assets/google_logo.png"),
+                                          height: 30.0),
+                                      Padding(
+                                        padding: EdgeInsets.all(5),
+                                        child: Text(
+                                          'Sign in with Google',
+                                          style: TextStyle(
+                                            fontSize: 20,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          );
+            ));
   }
 }

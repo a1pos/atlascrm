@@ -76,63 +76,9 @@ class _LeadsScreenState extends State<LeadsScreen> {
             'offset: 0, limit: 10, order_by: {leadbusinessname: asc}, where: {employee: {_eq: "${UserService.employee.employee}"}}';
       }
       print(initParams);
-// Maybe add subs in eventually? --------
-      // Operation options =
-      //     Operation(operationName: "GetAllLeads", documentNode: gql("""
-      //     subscription GetAllLeads {
-      //       v_lead($initParams) {
-      //         lead
-      //         updated_at
-      //         employee
-      //         employeefullname
-      //         leadbusinessname
-      //         leadfirstname
-      //         leadlastname
-      //       }
-      //     }
-      //       """));
-
-      // var result = wsClient.subscribe(options);
-      // result.listen(
-      //   (data) async {
-      //     var leadsArrDecoded = data.data["v_lead"];
-      //     if (leadsArrDecoded != null) {
-      //       var leadsArr = List.from(leadsArrDecoded);
-      //       if (leadsArr.length > 0) {
-      //         setState(() {
-      //           isEmpty = false;
-      //           isLoading = false;
-      //           leads += leadsArr;
-      //           pageNum++;
-      //         });
-      //       }
-      //     } else {
-      //       setState(() {
-      //         if (pageNum == 1) {
-      //           isEmpty = true;
-      //           // leadsArr = [];
-      //         }
-      //       });
-      //     }
-      //   },
-      //   onError: (error) {
-      //     print("STREAM LISTEN ERROR: " + error);
-      //     setState(() {
-      //       isLoading = false;
-      //     });
-
-      //     Fluttertoast.showToast(
-      //         msg: "Failed to load leads for employee!",
-      //         toastLength: Toast.LENGTH_SHORT,
-      //         gravity: ToastGravity.BOTTOM,
-      //         backgroundColor: Colors.grey[600],
-      //         textColor: Colors.white,
-      //         fontSize: 16.0);
-      //   },
-      // );
 
       QueryOptions options = QueryOptions(documentNode: gql("""
-          query GetAllLeads {
+          query GET_LEADS {
             v_lead($initParams) {
               lead
               updated_at
@@ -217,78 +163,11 @@ class _LeadsScreenState extends State<LeadsScreen> {
             'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "${UserService.employee.employee}"}, $searchParams}';
       } else {
         params =
-            'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "${UserService.employee.employee}"}';
+            'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "${UserService.employee.employee}"}}';
       }
 
-      // Operation options =
-      //     Operation(operationName: "GetAllLeads", documentNode: gql("""
-      //     subscription GetAllLeads {
-      //       v_lead($params) {
-      //         lead
-      //         updated_at
-      //         employee
-      //         employeefullname
-      //         leadbusinessname
-      //         leadfirstname
-      //         leadlastname
-      //       }
-      //     }
-      //       """));
-
-      // var result = wsClient.subscribe(options);
-
-      // result.listen(
-      //   (data) async {
-      //     var leadsArrDecoded = data.data["v_lead"];
-      //     if (leadsArrDecoded != null) {
-      //       var leadsArr = List.from(leadsArrDecoded);
-      //       if (leadsArr.length > 0) {
-      //         setState(() {
-      //           for (var incLead in leadsArr) {
-      //             for (var currentLead in leads) {
-      //               if (incLead["lead"] == currentLead["lead"]) {
-      //                 var oldIndex = leads.indexOf(currentLead);
-      //                 leads[oldIndex] = incLead;
-      //                 var newIndex = leadsArr.indexOf(incLead);
-      //                 leadsArr.removeAt(newIndex);
-      //               }
-      //             }
-      //           }
-      //           isEmpty = false;
-      //           isLoading = false;
-      //           leads += leadsArr;
-      //           pageNum++;
-      //         });
-      //       }
-      //       isLoading = false;
-      //     } else {
-      //       setState(() {
-      //         if (pageNum == 1) {
-      //           isEmpty = true;
-      //           // leadsArr = [];
-      //         }
-      //         isLoading = false;
-      //       });
-      //     }
-      //   },
-      //   onError: (error) {
-      //     print("STREAM LISTEN ERROR: " + error);
-      //     setState(() {
-      //       isLoading = false;
-      //     });
-
-      //     Fluttertoast.showToast(
-      //         msg: "Failed to load leads for employee!",
-      //         toastLength: Toast.LENGTH_SHORT,
-      //         gravity: ToastGravity.BOTTOM,
-      //         backgroundColor: Colors.grey[600],
-      //         textColor: Colors.white,
-      //         fontSize: 16.0);
-      //   },
-      // );
-
       QueryOptions options = QueryOptions(documentNode: gql("""
-          query GetAllLeads {
+          query GET_LEADS {
             v_lead($params) {
               lead
               updated_at
@@ -378,40 +257,6 @@ class _LeadsScreenState extends State<LeadsScreen> {
         leads = [];
       });
       onScroll();
-    }
-  }
-
-  Future<void> initEmployeeData() async {
-    try {
-      var endpoint = "/employee";
-      var resp;
-      //REPLACE WITH GRAPHQL
-      // var resp = await this.widget.apiService.authGet(context, endpoint);
-      if (resp != null) {
-        if (resp.statusCode == 200) {
-          var employeesArrDecoded = resp.data;
-          if (employeesArrDecoded != null) {
-            var employeesArr = List.from(employeesArrDecoded);
-            if (employeesArr.length > 0) {
-              setState(() {
-                employees = employeesArr;
-                employeesFull = employeesArr;
-              });
-            } else {
-              setState(() {
-                employeesArr = [];
-                employeesFull = [];
-              });
-            }
-          }
-        }
-      }
-
-      setState(() {
-        isLoading = false;
-      });
-    } catch (err) {
-      log(err);
     }
   }
 
@@ -510,34 +355,6 @@ class _LeadsScreenState extends State<LeadsScreen> {
     return Container(
       child: Column(
         children: <Widget>[
-          // Expanded(
-          //   flex: 1,
-          //   child: TextField(
-          //     decoration: InputDecoration(
-          //       labelText: "Search Leads",
-          //     ),
-          //     onChanged: (value) {
-          //       var filtered = leadsFull.where((e) {
-          //         String firstName = e["document"]["firstName"];
-          //         String lastName = e["document"]["lastName"];
-          //         String businessName = e["document"]["businessName"];
-          //         return firstName
-          //                 .toLowerCase()
-          //                 .contains(value.toLowerCase()) ||
-          //             lastName
-          //                 .toLowerCase()
-          //                 .contains(value.toLowerCase()) ||
-          //             businessName
-          //                 .toLowerCase()
-          //                 .contains(value.toLowerCase());
-          //       }).toList();
-
-          //       setState(() {
-          //         leads = filtered.toList();
-          //       });
-          //     },
-          //   ),
-          // ),
           Row(
             children: <Widget>[
               Expanded(

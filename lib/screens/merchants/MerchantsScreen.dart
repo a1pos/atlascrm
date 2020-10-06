@@ -46,9 +46,6 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
   @override
   void initState() {
     super.initState();
-    if (UserService.isAdmin) {
-      // initEmployeeData();
-    }
     initMerchantssData();
 
     _scrollController.addListener(() {
@@ -66,70 +63,16 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
   }
 
   var initParams =
-      "offset: 0, limit: 10, order_by: {merchantbusinessname: asc}";
+      'offset: 0, limit: 10, order_by: {merchantbusinessname: asc}';
   Future<void> initMerchantssData() async {
     try {
       if (!UserService.isAdmin) {
         initParams =
-            'offset: 0, limit: 10, order_by: {merchantbusinessname: asc}';
+            'offset: 0, limit: 10, order_by: {merchantbusinessname: asc}, where: {employee: {_eq: "${UserService.employee.employee}"}}';
       }
-// Maybe add subs in eventually? --------
-      // Operation options =
-      //     Operation(operationName: "GetAllMerchants", documentNode: gql("""
-      //     subscription GetAllMerchants {
-      //       v_merchant($initParams) {
-      //         merchant
-      //         updated_at
-      //         employee
-      //         employeefullname
-      //         merchantbusinessname
-      //         merchantfirstname
-      //         merchantlastname
-      //       }
-      //     }
-      //       """));
-
-      // var result = wsClient.subscribe(options);
-      // result.listen(
-      //   (data) async {
-      //     var merchantsArrDecoded = data.data["v_merchant"];
-      //     if (merchantsArrDecoded != null) {
-      //       var merchantsArr = List.from(merchantsArrDecoded);
-      //       if (merchantsArr.length > 0) {
-      //         setState(() {
-      //           isEmpty = false;
-      //           isLoading = false;
-      //           merchants += merchantsArr;
-      //           pageNum++;
-      //         });
-      //       }
-      //     } else {
-      //       setState(() {
-      //         if (pageNum == 1) {
-      //           isEmpty = true;
-      //           // merchantsArr = [];
-      //         }
-      //       });
-      //     }
-      //   },
-      //   onError: (error) {
-      //     print("STREAM LISTEN ERROR: " + error);
-      //     setState(() {
-      //       isLoading = false;
-      //     });
-
-      //     Fluttertoast.showToast(
-      //         msg: "Failed to load merchants for employee!",
-      //         toastLength: Toast.LENGTH_SHORT,
-      //         gravity: ToastGravity.BOTTOM,
-      //         backgroundColor: Colors.grey[600],
-      //         textColor: Colors.white,
-      //         fontSize: 16.0);
-      //   },
-      // );
 
       QueryOptions options = QueryOptions(documentNode: gql("""
-          query GetAllMerchants {
+          query GET_MERCHANTS {
             v_merchant($initParams) {
               updated_at
               merchant
@@ -170,7 +113,7 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
         } else {
           Fluttertoast.showToast(
               msg: result.exception.toString(),
-              toastLength: Toast.LENGTH_SHORT,
+              toastLength: Toast.LENGTH_LONG,
               gravity: ToastGravity.BOTTOM,
               backgroundColor: Colors.grey[600],
               textColor: Colors.white,
@@ -216,75 +159,8 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
             'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "${UserService.employee.employee}"}, $searchParams}';
       } else {
         params =
-            'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "${UserService.employee.employee}"}';
+            'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "${UserService.employee.employee}"}}';
       }
-      // Maybe add subs in eventually?----------
-      // Operation options =
-      //     Operation(operationName: "GetAllMerchants", documentNode: gql("""
-      //     subscription GetAllMerchants {
-      //       v_merchant($params) {
-      //         merchant
-      //         updated_at
-      //         employee
-      //         employeefullname
-      //         merchantbusinessname
-      //         merchantfirstname
-      //         merchantlastname
-      //       }
-      //     }
-      //       """));
-
-      // var result = wsClient.subscribe(options);
-
-      // result.listen(
-      //   (data) async {
-      //     var merchantsArrDecoded = data.data["v_merchant"];
-      //     if (merchantsArrDecoded != null) {
-      //       var merchantsArr = List.from(merchantsArrDecoded);
-      //       if (merchantsArr.length > 0) {
-      //         setState(() {
-      //           for (var incLead in merchantsArr) {
-      //             for (var currentLead in merchants) {
-      //               if (incLead["merchant"] == currentLead["merchant"]) {
-      //                 var oldIndex = merchants.indexOf(currentLead);
-      //                 merchants[oldIndex] = incLead;
-      //                 var newIndex = merchantsArr.indexOf(incLead);
-      //                 merchantsArr.removeAt(newIndex);
-      //               }
-      //             }
-      //           }
-      //           isEmpty = false;
-      //           isLoading = false;
-      //           merchants += merchantsArr;
-      //           pageNum++;
-      //         });
-      //       }
-      //       isLoading = false;
-      //     } else {
-      //       setState(() {
-      //         if (pageNum == 1) {
-      //           isEmpty = true;
-      //           // merchantsArr = [];
-      //         }
-      //         isLoading = false;
-      //       });
-      //     }
-      //   },
-      //   onError: (error) {
-      //     print("STREAM LISTEN ERROR: " + error);
-      //     setState(() {
-      //       isLoading = false;
-      //     });
-
-      //     Fluttertoast.showToast(
-      //         msg: "Failed to load merchants for employee!",
-      //         toastLength: Toast.LENGTH_SHORT,
-      //         gravity: ToastGravity.BOTTOM,
-      //         backgroundColor: Colors.grey[600],
-      //         textColor: Colors.white,
-      //         fontSize: 16.0);
-      //   },
-      // );
 
       QueryOptions options = QueryOptions(documentNode: gql("""
           query GetAllMerchant {
@@ -381,40 +257,6 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
     }
   }
 
-  Future<void> initEmployeeData() async {
-    try {
-      var endpoint = "/employee";
-      var resp;
-      //REPLACE WITH GRAPHQL
-      // var resp = await this.widget.apiService.authGet(context, endpoint);
-      if (resp != null) {
-        if (resp.statusCode == 200) {
-          var employeesArrDecoded = resp.data;
-          if (employeesArrDecoded != null) {
-            var employeesArr = List.from(employeesArrDecoded);
-            if (employeesArr.length > 0) {
-              setState(() {
-                employees = employeesArr;
-                employeesFull = employeesArr;
-              });
-            } else {
-              setState(() {
-                employeesArr = [];
-                employeesFull = [];
-              });
-            }
-          }
-        }
-      }
-
-      setState(() {
-        isLoading = false;
-      });
-    } catch (err) {
-      log(err);
-    }
-  }
-
   void openMerchant(merchant) {
     Navigator.pushNamed(context, "/viewmerchant",
         arguments: merchant["merchant"]);
@@ -431,7 +273,6 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
           action: <Widget>[
             Row(
               children: <Widget>[
-                // Icon(Icons.sort),
                 Theme(
                     data: Theme.of(context).copyWith(
                       canvasColor: Colors.grey.shade900,
@@ -543,7 +384,7 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
                   child: ListView(
                     controller: _scrollController,
                     children: merchants.map((merchant) {
-                      var employeeName;
+                      var employeeName = "";
 
                       if (UserService.isAdmin) {
                         if (merchant["employeefullname"] != null) {

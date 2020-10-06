@@ -28,8 +28,8 @@ class _TasksState extends State<Tasks> {
 
   Future<void> initTasks() async {
     Operation options =
-        Operation(operationName: "EmployeeTasks", documentNode: gql("""
-          subscription EmployeeTasks(\$employee: uuid!) {
+        Operation(operationName: "EMPLOYEE_TASKS", documentNode: gql("""
+          subscription EMPLOYEE_TASKS(\$employee: uuid!) {
             employee_by_pk(employee: \$employee) {
               tasks {
                 task
@@ -71,7 +71,7 @@ class _TasksState extends State<Tasks> {
         isLoading = false;
       },
       onError: (error) {
-        print("STREAM LISTEN ERROR: " + error);
+        print("STREAM LISTEN ERROR");
         setState(() {
           isLoading = false;
         });

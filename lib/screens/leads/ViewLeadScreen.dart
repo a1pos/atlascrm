@@ -109,7 +109,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
   Future<void> loadLeadData(leadId) async {
     QueryOptions options =
         QueryOptions(fetchPolicy: FetchPolicy.networkOnly, documentNode: gql("""
-        query Lead(\$lead: uuid!) {
+        query GET_LEAD(\$lead: uuid!) {
           lead_by_pk(lead: \$lead) {
             lead
             document
@@ -177,7 +177,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
   Future<void> updateLead(leadId) async {
     String rawNumber = phoneNumberController.text;
     var filteredNumber = rawNumber.replaceAll(RegExp("[^0-9]"), "");
-    var updated = DateFormat('yyyy-MM-dd HH:mm:ss.mmm').format(DateTime.now());
+    // var updated = DateFormat('yyyy-MM-dd HH:mm:ss.mmm').format(DateTime.now());
 
     Map data = {
       "document": {
@@ -196,7 +196,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
     };
 
     MutationOptions mutateOptions = MutationOptions(documentNode: gql("""
-        mutation UpdateLead (\$data: lead_set_input){
+        mutation UPDATE_LEAD (\$data: lead_set_input){
           update_lead_by_pk(pk_columns: {lead: "$leadId"}, _set: \$data){
             lead
           }
@@ -572,44 +572,44 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                             title: "Notes",
                             icon: Icons.note,
                             child: Notes(type: "lead", object: lead["lead"])),
-                        CustomCard(
-                          key: Key("leads5"),
-                          title: "Tools",
-                          icon: Icons.build,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: <Widget>[
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                                child: MaterialButton(
-                                  padding: EdgeInsets.all(5),
-                                  color: UniversalStyles.actionColor,
-                                  // color: Colors.grey[300],
-                                  onPressed: () {
-                                    // return null;
-                                    Navigator.pushNamed(
-                                        context, "/agreementbuilder",
-                                        arguments: lead["lead"]);
-                                  },
-                                  child: Row(
-                                    children: <Widget>[
-                                      Icon(
-                                        Icons.extension,
-                                        color: Colors.white,
-                                      ),
-                                      Text(
-                                        'Agreement Builder',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                        // CustomCard(
+                        //   key: Key("leads5"),
+                        //   title: "Tools",
+                        //   icon: Icons.build,
+                        //   child: Row(
+                        //     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        //     children: <Widget>[
+                        //       Padding(
+                        //         padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                        //         child: MaterialButton(
+                        //           padding: EdgeInsets.all(5),
+                        //           color: UniversalStyles.actionColor,
+                        //           // color: Colors.grey[300],
+                        //           onPressed: () {
+                        //             // return null;
+                        //             Navigator.pushNamed(
+                        //                 context, "/agreementbuilder",
+                        //                 arguments: lead["lead"]);
+                        //           },
+                        //           child: Row(
+                        //             children: <Widget>[
+                        //               Icon(
+                        //                 Icons.extension,
+                        //                 color: Colors.white,
+                        //               ),
+                        //               Text(
+                        //                 'Agreement Builder',
+                        //                 style: TextStyle(
+                        //                   color: Colors.white,
+                        //                 ),
+                        //               ),
+                        //             ],
+                        //           ),
+                        //         ),
+                        //       ),
+                        //     ],
+                        //   ),
+                        // ),
                         ImageUploader(
                             type: "statement",
                             objectId: lead["lead"],

@@ -1,4 +1,3 @@
-import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
@@ -25,12 +24,14 @@ var notesController = TextEditingController();
 List notes;
 List notesDisplay;
 var notesEmpty = true;
+var typeUpper;
 
 class _NotesState extends State<Notes> {
   FocusNode _focus = new FocusNode();
   @override
   void initState() {
     super.initState();
+    typeUpper = this.widget.type.toUpperCase();
     notesController.clear();
     loadNotes(this.widget.object, this.widget.type);
     _focus.addListener(_onFocusChange);
@@ -47,19 +48,19 @@ class _NotesState extends State<Notes> {
     notesController.clear();
 
     Operation options =
-        Operation(operationName: "LeadNotes", documentNode: gql("""
-          subscription LeadNotes(\$lead: uuid) {
-            lead_note(where: {lead: {_eq: \$lead}}){
-              lead_note
+        Operation(operationName: "${typeUpper}_NOTE", documentNode: gql("""
+          subscription ${typeUpper}_NOTE(\$id: uuid) {
+            ${type}_note(where: {$type: {_eq: \$id}}){
+              ${type}_note
               note_text
               created_at
             }
           }
-    """), variables: {"lead": "$objectId"});
+    """), variables: {"id": "$objectId"});
     var result = client.subscribe(options);
     result.listen(
       (data) async {
-        var notesArrDecoded = data.data["lead_note"];
+        var notesArrDecoded = data.data["${type}_note"];
         if (notesArrDecoded != null) {
           if (this.mounted) {
             setState(() {
@@ -81,58 +82,30 @@ class _NotesState extends State<Notes> {
             fontSize: 16.0);
       },
     );
-
-    // var resp = await this
-    //     .widget
-    //     .apiService
-    //     .authGet(context, "/" + type + "/" + objectId + "/note");
-
-    // if (resp.statusCode == 200) {
-    //   var body = resp.data;
-    //   if (body != null) {
-    //     var bodyDecoded = body;
-    //     if (this.mounted) {
-    //       setState(() {
-    //         notes = bodyDecoded.toList();
-    //         notesEmpty = false;
-    //       });
-    //     }
-    //   }
-    // }
   }
 
   Future<void> saveNote({type, object, newNote}) async {
-    var created = DateFormat('yyyy-MM-dd HH:mm:ss.mmm').format(DateTime.now());
-
     var sendNote = {
-      "lead": this.widget.object,
+      "$type": this.widget.object,
       "note_text": newNote,
-      "created_by": UserService.employee.employee,
-      "created_at": created,
-      "updated_by": UserService.employee.employee,
-      "updated_at": created,
     };
-    // var resp = await this
-    //     .widget
-    //     .apiService
-    //     .authPost(context, "/" + type + "/" + object + "/note", sendNote);
+
     MutationOptions mutateOptions = MutationOptions(documentNode: gql("""
-      mutation InsertLeadNote (\$objects: [lead_note_insert_input!]!){
-        insert_lead_note(objects: \$objects) {
-          returning {
-            lead_note
-          }
-        }
+     mutation INSERT_${typeUpper}_NOTE (\$object: ${type}_note_insert_input!){
+      insert_${type}_note_one(object: \$object){
+		    ${type}_note
       }
-      """), variables: {"objects": sendNote});
+    }
+      """), variables: {"object": sendNote});
     final QueryResult result = await client.mutate(mutateOptions);
-    if (result.hasException == false) {
-      var body = result.data;
-      // if (body != null) {
-      //   setState(() {
-      //     loadNotes(object, type);
-      //   });
-      // }
+    if (result.hasException == true) {
+      Fluttertoast.showToast(
+          msg: result.exception.toString(),
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0);
     }
   }
 

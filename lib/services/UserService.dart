@@ -166,4 +166,8 @@ class UserService {
 
     return null;
   }
+
+  String getAccessToken() {
+    return googleSignInAuthentication.accessToken;
+  }
 }

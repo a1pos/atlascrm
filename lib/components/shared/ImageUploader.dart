@@ -82,7 +82,7 @@ class _ImageUploaderState extends State<ImageUploader> {
 
     try {
       QueryOptions options = QueryOptions(documentNode: gql("""
-        query GetStatement {
+        query GET_STATEMENT {
           statement(where: {lead: {_eq: "$objectId"}}) {
             statement
             document
