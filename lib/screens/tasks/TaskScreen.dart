@@ -264,12 +264,11 @@ class _TaskScreenState extends State<TaskScreen> {
   }
 
   Future<void> createTask() async {
-    var successMsg = "Task created, but couldn't add Calendar Event!";
+    var successMsg = "Task created!";
     var msgLength = Toast.LENGTH_SHORT;
     var taskEmployee = UserService.isAdmin
         ? employeeDropdownValue
         : UserService.employee.employee;
-    var token = UserService.googleSignInAuthentication.accessToken;
 
     var openStatus;
 
@@ -312,18 +311,9 @@ class _TaskScreenState extends State<TaskScreen> {
         "notes": taskDescController.text,
         "title": taskTitleController.text,
         "active": true,
-        "eventid": null
       },
       "date": taskDateController.text
     };
-
-    //GOOGLECALENDAR LOGIC
-    // var event = await newCalendarEvent(token, data);
-    // if (event != null) {
-    //   data["document"]["eventid"] = event;
-    //   successMsg = "Successfully created task!";
-    //   msgLength = Toast.LENGTH_LONG;
-    // }
 
     try {
       MutationOptions options = MutationOptions(documentNode: gql("""

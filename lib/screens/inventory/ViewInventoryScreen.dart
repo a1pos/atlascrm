@@ -194,6 +194,10 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
     }
     var newDocument = inventory["document"];
 
+    if (newDocument["history"] == null) {
+      newDocument["history"] = [];
+    }
+
     var currentTimestamp = DateTime.now().millisecondsSinceEpoch;
     print(currentTimestamp);
     var newEvent = {
