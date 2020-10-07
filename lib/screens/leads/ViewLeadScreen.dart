@@ -375,10 +375,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                             ),
                           )),
                     )
-                  : IconButton(
-                      icon: Icon(Icons.done, color: Colors.white),
-                      onPressed: () {},
-                    ),
+                  : Container(),
             )
           ],
         ),

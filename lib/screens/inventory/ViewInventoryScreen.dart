@@ -174,6 +174,8 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
     Map data;
     var alert;
     var locationName;
+    var newDocument = {};
+
     if (type == "checkout") {
       data = {
         "employee": UserService.employee.employee,
@@ -192,11 +194,8 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
       alert = "Device installed!";
       locationName = merchantNameController.text;
     }
-    var newDocument = inventory["document"];
-
-    if (newDocument["history"] == null) {
-      newDocument["history"] = [];
-    }
+    if (inventory["document"] != null) newDocument = inventory["document"];
+    if (newDocument["history"] == null) newDocument["history"] = [];
 
     var currentTimestamp = DateTime.now().millisecondsSinceEpoch;
     print(currentTimestamp);
@@ -297,7 +296,7 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
     );
   }
 
-  Future<void> deleteCheck(leadId) async {
+  Future<void> deleteCheck() async {
     return showDialog<void>(
       context: context,
       builder: (BuildContext context) {
@@ -321,7 +320,7 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
               child: Text('Delete',
                   style: TextStyle(fontSize: 17, color: Colors.red)),
               onPressed: () {
-                deleteDevice(leadId);
+                deleteDevice();
 
                 Navigator.of(context).pop();
               },
@@ -332,27 +331,27 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
     );
   }
 
-  Future<void> deleteDevice(leadId) async {
-    var resp;
-    //REPLACE WITH GRAPHQL
-    // var resp = await this
-    //     .widget
-    //     .apiService
-    //     .authDelete(context, "/inventory/" + this.widget.incoming["id"], null);
-
-    if (resp.statusCode == 200) {
-      Navigator.popAndPushNamed(context, "/inventory");
-
+  Future<void> deleteDevice() async {
+    MutationOptions mutateOptions = MutationOptions(documentNode: gql("""
+     mutation DELETE_INVENTORY (\$inventory: uuid!){
+      delete_inventory_by_pk(inventory: \$inventory){
+        serial
+      }
+    }
+          """), variables: {"inventory": inventory["inventory"]});
+    final QueryResult result = await client.mutate(mutateOptions);
+    if (result.hasException == true) {
       Fluttertoast.showToast(
-          msg: "Successful delete!",
-          toastLength: Toast.LENGTH_SHORT,
+          msg: result.exception.toString(),
+          toastLength: Toast.LENGTH_LONG,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.grey[600],
           textColor: Colors.white,
           fontSize: 16.0);
     } else {
+      Navigator.popAndPushNamed(context, "/inventory");
       Fluttertoast.showToast(
-          msg: "Failed to delete lead!",
+          msg: "Device deleted!",
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.grey[600],
@@ -419,15 +418,17 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
           key: Key("viewTasksAppBar"),
           title: Text(isLoading ? "Loading..." : inventory["serial"]),
           action: <Widget>[
-            // Padding(
-            //   padding: const EdgeInsets.fromLTRB(5, 8, 10, 8),
-            //   child: IconButton(
-            //     onPressed: () {
-            //       deleteCheck(this.widget.deviceId);
-            //     },
-            //     icon: Icon(Icons.delete, color: Colors.white),
-            //   ),
-            // )
+            UserService.isAdmin
+                ? Padding(
+                    padding: const EdgeInsets.fromLTRB(5, 8, 10, 8),
+                    child: IconButton(
+                      onPressed: () {
+                        deleteCheck();
+                      },
+                      icon: Icon(Icons.delete, color: Colors.white),
+                    ),
+                  )
+                : Container()
           ],
         ),
         body: isLoading
