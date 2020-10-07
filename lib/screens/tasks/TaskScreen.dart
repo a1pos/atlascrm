@@ -667,7 +667,7 @@ class _TaskScreenState extends State<TaskScreen> {
                           title: t["document"]["title"],
                           description: t["document"]["notes"],
                           dateTime: tDate,
-                          type: t["typetitle"],
+                          type: t["taskTypeByTaskType"]["title"],
                           priority: t["priority"]),
                     );
                   }).toList(),
@@ -723,7 +723,7 @@ class _TaskScreenState extends State<TaskScreen> {
                           title: t["document"]["title"],
                           description: t["document"]["notes"],
                           dateTime: tDate,
-                          type: t["typetitle"],
+                          type: t["taskTypeByTaskType"]["title"],
                           priority: t["priority"]),
                     );
                   }).toList(),
