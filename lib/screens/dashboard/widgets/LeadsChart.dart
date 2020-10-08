@@ -162,6 +162,7 @@ class _LeadsChartState extends State<LeadsChart> {
           temp1.add(LeaderboardData(item["displayName"], count));
           itemTotal += count;
         }
+        temp1.sort((a, b) => b.count.compareTo(a.count));
 
         setState(() {
           statementData = temp1;

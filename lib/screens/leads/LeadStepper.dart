@@ -350,24 +350,24 @@ class LeadStepperState extends State<LeadStepper> {
                                     // validator: validate,
                                   ),
                                   Text(""),
-                                  DropdownButton<String>(
-                                    items: businessTypes.map((value) {
-                                      var dpValue = value["document"]["code"];
-                                      var text = value["document"]["typeName"];
-                                      return new DropdownMenuItem<String>(
-                                        value: dpValue,
-                                        child: new Text(text),
-                                      );
-                                    }).toList(),
-                                    hint: Text('Business Type'),
-                                    onChanged: (val) {
-                                      setState(() {
-                                        _selectedBusinessType = val;
-                                      });
-                                    },
-                                    isExpanded: true,
-                                    value: _selectedBusinessType,
-                                  ),
+                                  // DropdownButton<String>(
+                                  //   items: businessTypes.map((value) {
+                                  //     var dpValue = value["document"]["code"];
+                                  //     var text = value["document"]["typeName"];
+                                  //     return new DropdownMenuItem<String>(
+                                  //       value: dpValue,
+                                  //       child: new Text(text),
+                                  //     );
+                                  //   }).toList(),
+                                  //   hint: Text('Business Type'),
+                                  //   onChanged: (val) {
+                                  //     setState(() {
+                                  //       _selectedBusinessType = val;
+                                  //     });
+                                  //   },
+                                  //   isExpanded: true,
+                                  //   value: _selectedBusinessType,
+                                  // ),
                                 ],
                               ),
                       ),

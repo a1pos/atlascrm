@@ -27,19 +27,24 @@ var locationTextController = TextEditingController();
 final homeScaffoldKey = GlobalKey<ScaffoldState>();
 final searchScaffoldKey = GlobalKey<ScaffoldState>();
 
-String locationText = "Enter an address";
+String locationText;
 
 class _AddressSearchState extends State<AddressSearch> {
   @override
   void initState() {
     super.initState();
+    setState(() {
+      locationText = null;
+    });
   }
 
   initLocationText() {
-    if (this.widget.locationValue != null) {
-      locationText = this.widget.locationValue;
-    } else {
-      locationText = "Enter an address";
+    if (locationText == null) {
+      if (this.widget.locationValue != null) {
+        locationText = this.widget.locationValue;
+      } else {
+        locationText = "Enter an address";
+      }
     }
   }
 
@@ -51,14 +56,18 @@ class _AddressSearchState extends State<AddressSearch> {
               context: context, apiKey: kGoogleApiKey, mode: Mode.overlay);
           displayPrediction(p);
         },
-        child: Column(children: <Widget>[
-          Align(alignment: Alignment.bottomLeft, child: Text(locationText)),
-          Divider(
-              thickness: .5,
-              color: this.widget.lineColor != null
-                  ? this.widget.lineColor
-                  : Colors.black)
-        ]));
+        child: Container(
+          color: Color.fromRGBO(0, 0, 0, 0),
+          width: MediaQuery.of(context).size.width,
+          child: Column(children: <Widget>[
+            Align(alignment: Alignment.bottomLeft, child: Text(locationText)),
+            Divider(
+                thickness: .5,
+                color: this.widget.lineColor != null
+                    ? this.widget.lineColor
+                    : Colors.black)
+          ]),
+        ));
   }
 
   Future<Null> displayPrediction(Prediction p) async {

@@ -42,7 +42,7 @@ class _TaskItemState extends State<TaskItem> {
     var index =
         _types.indexWhere((typeObj) => typeObj.name == this.widget.type);
     var taskIcon;
-    if (index > 0) {
+    if (index > -1) {
       taskIcon = Icon(
         _types[index].icon,
         color: Colors.white,

@@ -46,7 +46,6 @@ class DocumentsState extends State<Documents> with TickerProviderStateMixin {
           actions: <Widget>[
             MaterialButton(
               padding: EdgeInsets.all(5),
-              color: UniversalStyles.actionColor,
               onPressed: () async {
                 Navigator.pop(context);
                 var result = await platform.invokeMethod("openCamera");
@@ -69,7 +68,6 @@ class DocumentsState extends State<Documents> with TickerProviderStateMixin {
             ),
             MaterialButton(
               padding: EdgeInsets.all(5),
-              color: UniversalStyles.actionColor,
               onPressed: () async {
                 var result = await platform.invokeMethod("openMedia");
                 addImage(result, title);

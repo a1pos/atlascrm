@@ -286,7 +286,6 @@ class _LeadsScreenState extends State<LeadsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: UniversalStyles.backgroundColor,
       drawer: CustomDrawer(),
       appBar: CustomAppBar(
           key: Key("leadsScreenAppBar"),
@@ -343,7 +342,6 @@ class _LeadsScreenState extends State<LeadsScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: openAddLeadForm,
-        backgroundColor: UniversalStyles.actionColor,
         foregroundColor: Colors.white,
         child: Icon(Icons.add),
         splashColor: Colors.white,

@@ -120,7 +120,7 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
         isLoading = false;
       },
       onError: (error) {
-        print("STREAM LISTEN ERROR: " + error);
+        print("STREAM LISTEN ERROR MERCHANT INVENTORY: " + error);
         setState(() {
           isLoading = false;
         });

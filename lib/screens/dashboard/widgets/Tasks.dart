@@ -71,7 +71,8 @@ class _TasksState extends State<Tasks> {
         isLoading = false;
       },
       onError: (error) {
-        print("STREAM LISTEN ERROR");
+        print("STREAM LISTEN ERROR DASHBOARD TASKS");
+        print(error);
         setState(() {
           isLoading = false;
         });

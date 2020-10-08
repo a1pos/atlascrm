@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
-import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
@@ -338,7 +337,6 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
         return Future.value(false);
       },
       child: Scaffold(
-        backgroundColor: UniversalStyles.backgroundColor,
         appBar: CustomAppBar(
           key: Key("viewTasksAppBar"),
           title: Text(isLoading ? "Loading..." : leadDocument["businessName"]),
@@ -424,8 +422,11 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                               flex: 8,
                                               child: AddressSearch(
                                                   locationValue: addressText,
-                                                  onAddressChange: (val) =>
-                                                      businessAddress = val)),
+                                                  onAddressChange: (val) {
+                                                    setState(() {
+                                                      businessAddress = val;
+                                                    });
+                                                  })),
                                         ],
                                       ))),
                             ],
@@ -486,7 +487,6 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                   Padding(
                                     padding: const EdgeInsets.all(8.0),
                                     child: RaisedButton(
-                                      color: UniversalStyles.themeColor,
                                       child: Row(
                                         children: <Widget>[
                                           Icon(Icons.mail, color: Colors.white),
@@ -517,7 +517,6 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                   Padding(
                                     padding: const EdgeInsets.all(8.0),
                                     child: RaisedButton(
-                                      color: UniversalStyles.actionColor,
                                       child: Row(
                                         children: <Widget>[
                                           Icon(Icons.call, color: Colors.white),
@@ -626,7 +625,6 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
               updateLead(this.widget.leadId);
             }
           },
-          backgroundColor: UniversalStyles.actionColor,
           child: Icon(Icons.save),
         ),
       ),

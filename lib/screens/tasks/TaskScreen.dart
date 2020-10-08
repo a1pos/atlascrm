@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'dart:developer';
 import 'dart:convert';
 
+import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/config/ConfigSettings.dart';
 import 'package:atlascrm/components/lead/LeadDropDown.dart';
@@ -9,7 +10,6 @@ import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomDrawer.dart';
 import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
-import 'package:atlascrm/components/shared/LoadingScreen.dart';
 import 'package:atlascrm/components/task/TaskPriorityDropDown.dart';
 import 'package:atlascrm/components/task/TaskItem.dart';
 import 'package:atlascrm/components/task/TaskTypeDropDown.dart';
@@ -609,7 +609,7 @@ class _TaskScreenState extends State<TaskScreen> {
       drawer: CustomDrawer(),
       appBar: CustomAppBar(key: Key("taskAppBar"), title: Text("Tasks")),
       body: isLoading
-          ? LoadingScreen()
+          ? CenteredLoadingSpinner()
           : Container(
               padding: EdgeInsets.all(10),
               child: getTasks(),

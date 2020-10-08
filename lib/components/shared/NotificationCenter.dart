@@ -132,7 +132,7 @@ class _NotificationCenterState extends State<NotificationCenter> {
           title: Text('New Notifications: ${notifCount.toString()}'),
           content: Column(
             children: <Widget>[
-              Container(width: 300, height: 575, child: buildNotifList()),
+              Container(width: 300, height: 400, child: buildNotifList()),
             ],
           ),
           actions: <Widget>[
@@ -169,7 +169,6 @@ class _NotificationCenterState extends State<NotificationCenter> {
         shrinkWrap: true,
         children: List.generate(notifications.length, (index) {
           var notification = notifications[index];
-
           return GestureDetector(
               onTap: () {
                 markOneAsRead(notification["notification"]);
@@ -193,9 +192,9 @@ class _NotificationCenterState extends State<NotificationCenter> {
   Widget build(BuildContext context) {
     return GestureDetector(
         child: Stack(children: <Widget>[
-          Icon(Icons.notifications, color: Colors.white, size: 40),
+          Icon(Icons.notifications, color: Colors.white, size: 35),
           Positioned(
-            right: 2,
+            right: 0,
             top: 2,
             child: notifCount > 0
                 ? Container(
@@ -205,8 +204,8 @@ class _NotificationCenterState extends State<NotificationCenter> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     constraints: BoxConstraints(
-                      minWidth: 20,
-                      minHeight: 20,
+                      minWidth: 18,
+                      minHeight: 18,
                     ),
                     child: Text(
                       '${notifCount.toString()}',

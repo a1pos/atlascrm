@@ -170,23 +170,23 @@ class _CustomDrawerState extends State<CustomDrawer> {
             //         },
             //       )
             //     : Text(""),
-            UserService.isTech || UserService.isAdmin
-                ? ListTile(
-                    leading: Icon(
-                      Icons.drive_eta,
-                      color: Colors.white,
-                    ),
-                    title: Text(
-                      'Mileage',
-                      style: TextStyle(
-                        color: Colors.white,
-                      ),
-                    ),
-                    onTap: () {
-                      Navigator.popAndPushNamed(context, "/mileage");
-                    },
-                  )
-                : Text(""),
+            // UserService.isTech || UserService.isAdmin
+            //     ? ListTile(
+            //         leading: Icon(
+            //           Icons.drive_eta,
+            //           color: Colors.white,
+            //         ),
+            //         title: Text(
+            //           'Mileage',
+            //           style: TextStyle(
+            //             color: Colors.white,
+            //           ),
+            //         ),
+            //         onTap: () {
+            //           Navigator.popAndPushNamed(context, "/mileage");
+            //         },
+            //       )
+            //     : Text(""),
             UserService.isAdmin
                 ? ListTile(
                     leading: Icon(

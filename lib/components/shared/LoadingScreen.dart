@@ -1,5 +1,6 @@
 import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:flutter/material.dart';
+import 'package:loading_animations/loading_animations.dart';
 
 class LoadingScreen extends StatefulWidget {
   @override
@@ -10,7 +11,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: UniversalStyles.backgroundColor,
+      backgroundColor: UniversalStyles.themeColor,
       body: Container(
         child: Center(
           child: Column(
@@ -18,23 +19,28 @@ class _LoadingScreenState extends State<LoadingScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Container(
-                height: 50,
-                width: 50,
-                child: CircularProgressIndicator(
-                  strokeWidth: 4,
-                  valueColor:
-                      AlwaysStoppedAnimation<Color>(UniversalStyles.themeColor),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.all(50),
-                child: Text(
-                  'Loading...',
-                  style: TextStyle(
-                    fontSize: 18,
+                  height: 100,
+                  width: 100,
+                  child: LoadingDoubleFlipping.square(
+                    size: 100,
+                    duration: Duration(milliseconds: 1150),
+                    backgroundColor: Colors.white70,
+                  )
+                  // CircularProgressIndicator(
+                  //   strokeWidth: 4,
+                  //   valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  // ),
                   ),
-                ),
-              )
+              // Padding(
+              //   padding: EdgeInsets.all(50),
+              //   child: Text(
+              //     'Loading...',
+              //     style: TextStyle(
+              //       color: Colors.white,
+              //       fontSize: 18,
+              //     ),
+              //   ),
+              // )
             ],
           ),
         ),

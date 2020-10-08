@@ -18,9 +18,8 @@ class _SalesLeaderboardChartState extends State<SalesLeaderboardChart> {
 
   var isLoading = true;
   var seriesList;
-  var statementData = List<LeaderboardData>();
-  var agreementData = List<LeaderboardData>();
-  var statements;
+  var leaderboardData = List<LeaderboardData>();
+  var items;
   var label = "items";
 
   var timeDropdownValue = "week";
@@ -217,22 +216,23 @@ class _SalesLeaderboardChartState extends State<SalesLeaderboardChart> {
           temp1.add(LeaderboardData(item["displayName"], count));
           itemTotal += count;
         }
+        temp1.sort((a, b) => b.count.compareTo(a.count));
 
         setState(() {
-          statementData = temp1;
+          leaderboardData = temp1;
           isLoading = false;
         });
       }
     }
 
     List<charts.Series<LeaderboardData, String>> _displayData() {
-      statements = statementData;
+      items = leaderboardData;
       return [
         new charts.Series<LeaderboardData, String>(
           id: '$label: $itemTotal',
           domainFn: (LeaderboardData sales, _) => sales.person,
           measureFn: (LeaderboardData sales, _) => sales.count,
-          data: statements,
+          data: items,
           seriesColor: charts.MaterialPalette.indigo.makeShades(2)[1],
           labelAccessorFn: (LeaderboardData path, _) =>
               path.count > 0 ? '${path.count.toString()}' : '',

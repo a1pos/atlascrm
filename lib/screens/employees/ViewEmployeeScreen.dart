@@ -2,10 +2,10 @@ import 'dart:developer';
 
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
+import 'package:atlascrm/components/shared/LoadingScreen.dart';
 import 'package:atlascrm/components/shared/RoleDropdown.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/models/Employee.dart';
-import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
 import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -375,7 +375,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
             isLoading ? "Loading..." : employee["document"]["displayName"]),
       ),
       body: isLoading
-          ? CenteredClearLoadingScreen()
+          ? LoadingScreen()
           : Container(
               padding: EdgeInsets.all(15),
               child: SingleChildScrollView(

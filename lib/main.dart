@@ -2,6 +2,7 @@ import 'package:atlascrm/components/shared/CameraPage.dart';
 import 'package:atlascrm/components/shared/CustomWebView.dart';
 import 'package:atlascrm/components/shared/LoadingScreen.dart';
 import 'package:atlascrm/components/shared/SlideRightRoute.dart';
+import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/screens/auth/AuthScreen.dart';
 import 'package:atlascrm/screens/dashboard/DashboardScreen.dart';
 import 'package:atlascrm/screens/employees/EmployeeCallHistoryScreen.dart';
@@ -119,12 +120,14 @@ class _AtlasCRMState extends State<AtlasCRM> {
       child: CacheProvider(
         child: MaterialApp(
           title: 'ATLAS CRM',
-          theme: ThemeData(
-            primarySwatch: Colors.green,
-            backgroundColor: Colors.orange,
-            brightness: Brightness.light,
-            fontFamily: "LatoRegular",
-          ),
+          theme: defaultTheme,
+          // ThemeData(
+          //   appBarTheme: AppBarTheme(color: Colors.red),
+          //   primarySwatch: Colors.red,
+          //   backgroundColor: Colors.orange,
+          //   brightness: Brightness.light,
+          //   fontFamily: "LatoRegular",
+          // ),
           home: isAuthenticated
               ? DashboardScreen()
               : WillPopScope(

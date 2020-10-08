@@ -34,7 +34,11 @@ class _CustomCardState extends State<CustomCard> {
         child: Column(
           children: <Widget>[
             ListTile(
-              leading: Icon(this.widget.icon, size: 25, color: Colors.black),
+              leading: Icon(
+                this.widget.icon,
+                size: 25,
+                color: Colors.black,
+              ),
               title: Text(
                 this.widget.title,
                 style: TextStyle(
