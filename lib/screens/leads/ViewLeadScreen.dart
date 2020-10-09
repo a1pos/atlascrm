@@ -9,6 +9,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/components/shared/AddressSearch.dart';
 import 'package:atlascrm/components/shared/Notes.dart';
 import 'package:intl/intl.dart';
+import 'package:maps_launcher/maps_launcher.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
 import 'package:atlascrm/components/shared/ImageUploader.dart';
@@ -545,37 +546,43 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                       },
                                     ),
                                   ),
-                                  // Padding(
-                                  //   padding: const EdgeInsets.all(8.0),
-                                  //   child: RaisedButton(
-                                  //     child: Row(
-                                  //       children: <Widget>[
-                                  //         Icon(Icons.map, color: Colors.white),
-                                  //         Text("Map",
-                                  //             style: TextStyle(
-                                  //                 color: Colors.white,
-                                  //                 fontWeight: FontWeight.bold))
-                                  //       ],
-                                  //     ),
-                                  //     onPressed: () {
-                                  //       if (phoneNumberController.text !=
-                                  //               null &&
-                                  //           phoneNumberController.text != "") {
-                                  //         var launchURL2 =
-                                  //             'tel:${phoneNumberController.text}';
-                                  //         launch(launchURL2);
-                                  //       } else {
-                                  //         Fluttertoast.showToast(
-                                  //             msg: "No phone number specified!",
-                                  //             toastLength: Toast.LENGTH_SHORT,
-                                  //             gravity: ToastGravity.BOTTOM,
-                                  //             backgroundColor: Colors.grey[600],
-                                  //             textColor: Colors.white,
-                                  //             fontSize: 16.0);
-                                  //       }
-                                  //     },
-                                  //   ),
-                                  // )
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: RaisedButton(
+                                      child: Row(
+                                        children: <Widget>[
+                                          Icon(Icons.map, color: Colors.white),
+                                          Text("Map",
+                                              style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold))
+                                        ],
+                                      ),
+                                      onPressed: () {
+                                        if (businessAddress["address"] !=
+                                            null) {
+                                          addressText =
+                                              businessAddress["address"] +
+                                                  ", " +
+                                                  businessAddress["city"] +
+                                                  ", " +
+                                                  businessAddress["state"] +
+                                                  ", " +
+                                                  businessAddress["zipcode"];
+                                          print(addressText);
+                                          MapsLauncher.launchQuery(addressText);
+                                        } else {
+                                          Fluttertoast.showToast(
+                                              msg: "No address specified!",
+                                              toastLength: Toast.LENGTH_SHORT,
+                                              gravity: ToastGravity.BOTTOM,
+                                              backgroundColor: Colors.grey[600],
+                                              textColor: Colors.white,
+                                              fontSize: 16.0);
+                                        }
+                                      },
+                                    ),
+                                  )
                                 ],
                               ),
                             ],
