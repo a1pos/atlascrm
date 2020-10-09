@@ -10,6 +10,7 @@ import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:maps_launcher/maps_launcher.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
 
@@ -51,7 +52,7 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
   var devicesLoading = false;
   var displayPhone;
   var devices = [];
-
+  var merchantLocation = "";
   void initState() {
     super.initState();
     loadMerchantData(this.widget.merchantId);
@@ -84,6 +85,39 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
           merchantDocument = bodyDecoded["document"];
           firstNameController.text = merchantDocument["firstName"];
         });
+        if (merchant['document']['ApplicationInformation']['MpaOutletInfo']
+                    ['Outlet']['BusinessInfo']['LocationAddress1'] !=
+                null &&
+            merchant['document']['ApplicationInformation']['MpaOutletInfo']
+                    ['Outlet']['BusinessInfo']['LocationAddress1'] !=
+                "") {
+          merchantLocation = merchant['document']['ApplicationInformation']
+                      ['MpaOutletInfo']['Outlet']['BusinessInfo']
+                  ['LocationAddress1'] +
+              ", " +
+              merchant['document']['ApplicationInformation']['MpaOutletInfo']
+                  ['Outlet']['BusinessInfo']['City'] +
+              ", " +
+              merchant['document']['ApplicationInformation']['MpaOutletInfo']
+                  ['Outlet']['BusinessInfo']['State'] +
+              ", " +
+              merchant['document']['ApplicationInformation']['MpaOutletInfo']
+                  ['Outlet']['BusinessInfo']['First5Zip'];
+        } else if (merchant['document']['ApplicationInformation']
+                ["CorporateInfo"]['Address1'] !=
+            null) {
+          merchantLocation = merchant['document']['ApplicationInformation']
+                  ["CorporateInfo"]['Address1'] +
+              ", " +
+              merchant['document']['ApplicationInformation']["CorporateInfo"]
+                  ['City'] +
+              ", " +
+              merchant['document']['ApplicationInformation']["CorporateInfo"]
+                  ['State'] +
+              ", " +
+              merchant['document']['ApplicationInformation']["CorporateInfo"]
+                  ['First5Zip'];
+        }
       }
     }
 
@@ -217,11 +251,11 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                           child: Column(
                             children: <Widget>[
                               showInfoRow(
-                                  "Address",
-                                  merchantDocument["ApplicationInformation"]
-                                      ["CorporateInfo"]["Address1"]),
-                              showInfoRow("City, State ZIP",
-                                  "${merchantDocument["ApplicationInformation"]["CorporateInfo"]["City"]}, ${merchantDocument["ApplicationInformation"]["CorporateInfo"]["State"]}, ${merchantDocument["ApplicationInformation"]["CorporateInfo"]["First5Zip"]}"),
+                                "Address",
+                                merchantDocument["ApplicationInformation"]
+                                        ["CorporateInfo"]["Address1"] +
+                                    ", ${merchantDocument["ApplicationInformation"]["CorporateInfo"]["City"]}, ${merchantDocument["ApplicationInformation"]["CorporateInfo"]["State"]}, ${merchantDocument["ApplicationInformation"]["CorporateInfo"]["First5Zip"]}",
+                              ),
                               showInfoRow(
                                   "Email",
                                   merchantDocument["ApplicationInformation"]
@@ -233,11 +267,13 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                           ["MpaOutletInfo"]["Outlet"]
                                       ["BusinessInfo"]["LocationPhone"]),
                               Divider(),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
+                              Wrap(
+                                alignment: WrapAlignment.center,
+                                spacing: 20.0,
+                                runSpacing: 1.0,
                                 children: <Widget>[
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
+                                  SizedBox(
+                                    width: 95,
                                     child: RaisedButton(
                                       color: UniversalStyles.actionColor,
                                       child: Row(
@@ -279,8 +315,8 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                       },
                                     ),
                                   ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
+                                  SizedBox(
+                                    width: 95,
                                     child: RaisedButton(
                                       color: UniversalStyles.actionColor,
                                       child: Row(
@@ -313,6 +349,35 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                         } else {
                                           Fluttertoast.showToast(
                                               msg: "No phone number specified!",
+                                              toastLength: Toast.LENGTH_SHORT,
+                                              gravity: ToastGravity.BOTTOM,
+                                              backgroundColor: Colors.grey[600],
+                                              textColor: Colors.white,
+                                              fontSize: 16.0);
+                                        }
+                                      },
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: 95,
+                                    child: RaisedButton(
+                                      color: UniversalStyles.actionColor,
+                                      child: Row(
+                                        children: <Widget>[
+                                          Icon(Icons.map, color: Colors.white),
+                                          Text("Map",
+                                              style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold))
+                                        ],
+                                      ),
+                                      onPressed: () {
+                                        if (merchantLocation != null) {
+                                          MapsLauncher.launchQuery(
+                                              merchantLocation);
+                                        } else {
+                                          Fluttertoast.showToast(
+                                              msg: "No address specified!",
                                               toastLength: Toast.LENGTH_SHORT,
                                               gravity: ToastGravity.BOTTOM,
                                               backgroundColor: Colors.grey[600],
@@ -416,7 +481,7 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
     );
   }
 
-  Widget showInfoRow(label, value) {
+  Widget showInfoRow(label, value, {color}) {
     if (value == null) {
       value = "";
     }
@@ -430,10 +495,17 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
               flex: 4,
               child: Text(
                 '$label: ',
-                style: TextStyle(fontSize: 16),
+                style: color != null
+                    ? TextStyle(fontSize: 16, color: color)
+                    : TextStyle(fontSize: 16),
               ),
             ),
-            Expanded(flex: 8, child: Text(value)),
+            Expanded(
+                flex: 8,
+                child: Text(value,
+                    style: color != null
+                        ? TextStyle(fontSize: 14, color: color)
+                        : TextStyle(fontSize: 14))),
           ],
         ),
       ),

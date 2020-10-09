@@ -485,25 +485,25 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                                   ),
                                 ),
                               ),
-                              rowDivider(),
-                              GestureDetector(
-                                onTap: () {
-                                  Navigator.pushNamed(
-                                      context, "/employeecallhistory",
-                                      arguments: this.widget.employeeId);
-                                },
-                                child: Container(
-                                  color: Colors.white,
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: <Widget>[
-                                      Text('Call Log'),
-                                      Icon(Icons.arrow_forward_ios, size: 14),
-                                    ],
-                                  ),
-                                ),
-                              ),
+                              // rowDivider(),
+                              // GestureDetector(
+                              //   onTap: () {
+                              //     Navigator.pushNamed(
+                              //         context, "/employeecallhistory",
+                              //         arguments: this.widget.employeeId);
+                              //   },
+                              //   child: Container(
+                              //     color: Colors.white,
+                              //     child: Row(
+                              //       mainAxisAlignment:
+                              //           MainAxisAlignment.spaceBetween,
+                              //       children: <Widget>[
+                              //         Text('Call Log'),
+                              //         Icon(Icons.arrow_forward_ios, size: 14),
+                              //       ],
+                              //     ),
+                              //   ),
+                              // ),
                             ],
                           ),
                         ],

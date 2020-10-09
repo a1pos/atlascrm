@@ -191,7 +191,7 @@ class _TaskScreenState extends State<TaskScreen> {
         Operation(operationName: "EmployeeTasks", documentNode: gql("""
           subscription EmployeeTasks(\$employee: uuid!) {
             employee_by_pk(employee: \$employee) {
-              tasks {
+              tasks(where: {taskStatusByTaskStatus: {title: {_eq: "Open"}}}) {
                 task
                 taskTypeByTaskType {
                   task_type
@@ -310,7 +310,6 @@ class _TaskScreenState extends State<TaskScreen> {
       "document": {
         "notes": taskDescController.text,
         "title": taskTitleController.text,
-        "active": true,
       },
       "date": taskDateController.text
     };

@@ -125,6 +125,7 @@ class _NotificationCenterState extends State<NotificationCenter> {
   }
 
   void openNotificationPanel() {
+    // markAllAsRead();
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -171,20 +172,29 @@ class _NotificationCenterState extends State<NotificationCenter> {
           var notification = notifications[index];
           return GestureDetector(
               onTap: () {
-                markOneAsRead(notification["notification"]);
-                Navigator.pop(context);
+                // markOneAsRead(notification["notification"]);
+                // Navigator.pop(context);
               },
               child: Card(
                   shape: new RoundedRectangleBorder(
                       side: new BorderSide(color: Colors.white, width: 2.0),
                       borderRadius: BorderRadius.circular(4.0)),
                   child: ListTile(
-                      title: Text(notification["document"]["title"]),
-                      subtitle: Text(notification["document"]["body"]),
-                      trailing: IconButton(
-                        icon: Icon(Icons.lens, color: Colors.red, size: 15),
-                        onPressed: () {},
-                      ))));
+                    title: Text(notification["document"]["title"]),
+                    subtitle: Text(notification["document"]["body"]),
+                    leading: IconButton(
+                      icon: Icon(Icons.lens, color: Colors.red, size: 15),
+                      onPressed: () {},
+                    ),
+                    // trailing: IconButton(
+                    //   icon: Icon(Icons.clear, size: 15),
+                    //   onPressed: () {
+                    //     setState(() {
+                    //       notifications.removeAt(index);
+                    //     });
+                    //   },
+                    // ),
+                  )));
         }));
   }
 

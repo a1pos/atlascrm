@@ -40,11 +40,13 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
   var leadDropdownValue;
   DateTime initDate;
   TimeOfDay initTime;
+  var closedStatus;
   var viewDate;
+  bool submitted = false;
   @override
   void initState() {
     super.initState();
-
+    loadClosedStatus();
     loadTaskData();
   }
 
@@ -54,9 +56,36 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
     });
   }
 
+  Future<void> loadClosedStatus() async {
+    QueryOptions options = QueryOptions(documentNode: gql("""
+      query TaskStatus {
+        task_status {
+          task_status
+          document
+          title
+        }
+      }
+    """));
+
+    final QueryResult result0 = await client.query(options);
+
+    if (result0 != null) {
+      if (result0.hasException == false) {
+        result0.data["task_status"].forEach((item) {
+          if (item["title"] == "Closed") {
+            closedStatus = item["task_status"];
+          }
+        });
+      }
+    } else {
+      print(new Error());
+      throw new Error();
+    }
+  }
+
   Future<void> loadTaskData() async {
     QueryOptions options = QueryOptions(documentNode: gql("""
-      query Task{
+      query GET_TASK{
         task_by_pk(task: "${this.widget.taskId}"){
           task
           task_type
@@ -125,7 +154,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
       }
 
       Map data = {
-        "task_status": task["task_status"],
+        "task_status": complete ? closedStatus : task["task_status"],
         "task_type": taskTypeDropdownValue,
         "task": task["task"],
         "priority": taskPriorityDropdownValue,
@@ -134,16 +163,16 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
         "document": {
           "notes": taskDescController.text,
           "title": taskTitleController.text,
-          "active": !complete,
           "eventId": task["document"]["eventId"]
         },
         "date": taskDateController.text
       };
 
       print(data);
+      MutationOptions options;
 
-      MutationOptions options = MutationOptions(documentNode: gql("""
-        mutation UpdateTask(\$data: task_set_input = {}) {
+      options = MutationOptions(documentNode: gql("""
+        mutation UPDATE_TASK(\$data: task_set_input = {}) {
           update_task_by_pk (pk_columns: {task: "${this.widget.taskId}"}, _set: \$data) {
             priority
             updated_by
@@ -164,8 +193,6 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
 
       final QueryResult result = await client.mutate(options);
 
-      // var resp =
-      //     await apiService.authPut(context, "/task/" + task["task"], data);
       if (result != null) {
         if (result.hasException == false) {
           !complete
@@ -386,17 +413,22 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
                 ),
               ),
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          if (isChanged) {
-            await updateTask(false);
-          } else {
-            await updateTask(true);
-          }
-        },
-        backgroundColor: UniversalStyles.actionColor,
-        child: isChanged ? Icon(Icons.save) : Icon(Icons.done),
-      ),
+      floatingActionButton: submitted
+          ? Container()
+          : FloatingActionButton(
+              onPressed: () async {
+                setState(() {
+                  submitted = true;
+                });
+                if (isChanged) {
+                  await updateTask(false);
+                } else {
+                  await updateTask(true);
+                }
+              },
+              backgroundColor: UniversalStyles.actionColor,
+              child: isChanged ? Icon(Icons.save) : Icon(Icons.done),
+            ),
     );
   }
 }

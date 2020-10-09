@@ -544,6 +544,37 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                         }
                                       },
                                     ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: RaisedButton(
+                                      child: Row(
+                                        children: <Widget>[
+                                          Icon(Icons.call, color: Colors.white),
+                                          Text("Call",
+                                              style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold))
+                                        ],
+                                      ),
+                                      onPressed: () {
+                                        if (phoneNumberController.text !=
+                                                null &&
+                                            phoneNumberController.text != "") {
+                                          var launchURL2 =
+                                              'tel:${phoneNumberController.text}';
+                                          launch(launchURL2);
+                                        } else {
+                                          Fluttertoast.showToast(
+                                              msg: "No phone number specified!",
+                                              toastLength: Toast.LENGTH_SHORT,
+                                              gravity: ToastGravity.BOTTOM,
+                                              backgroundColor: Colors.grey[600],
+                                              textColor: Colors.white,
+                                              fontSize: 16.0);
+                                        }
+                                      },
+                                    ),
                                   )
                                 ],
                               ),

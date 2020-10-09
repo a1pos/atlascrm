@@ -33,6 +33,7 @@ class LeadStepperState extends State<LeadStepper> {
   bool isAddress = false;
   bool isLoading = false;
   // var leads;
+  // static final translator = {'#': RegExp(r'/[^0-9]/g')};
 
   final UserService userService = new UserService();
 
@@ -45,8 +46,15 @@ class LeadStepperState extends State<LeadStepper> {
   var dbaNameController = new TextEditingController();
   var businessAddrController = new TextEditingController();
   var businessPhoneNumber = new TextEditingController();
+  var address2Controller = new TextEditingController();
 
-  Map businessAddress = {"address": "", "city": "", "state": "", "zipcode": ""};
+  Map businessAddress = {
+    "address": "",
+    "address2": "",
+    "city": "",
+    "state": "",
+    "zipcode": ""
+  };
 
   var _selectedBusinessType;
   var _currentStep = 0;
@@ -64,13 +72,22 @@ class LeadStepperState extends State<LeadStepper> {
   Future<void> addressCheck(addressObj) async {
     // var address = Uri.encodeComponent(addressObj["address"]["address"]);
     var address = addressObj["address"]["address"];
+    var address2;
+    if (address2Controller.text != null && address2Controller.text != "") {
+      address2 = address2Controller.text;
+    }
     // var zip = Uri.encodeComponent(addressObj["address"]["zipcode"]);
     // var shortAddress =
     // Uri.encodeComponent(addressObj["shortaddress"]["address"]);
-    var businessName = addressObj["place"].name;
+    var businessName = "";
+    if (addressObj["place"] != null) {
+      businessName = addressObj["place"].name;
+    }
     print(businessName);
     try {
-      QueryOptions options = QueryOptions(documentNode: gql("""
+      QueryOptions options;
+      if (address2 == null) {
+        options = QueryOptions(documentNode: gql("""
         query CheckLeadAddress {
           lead(where: {document: {_contains: {address: "$address"}}, _and: {document: {_contains: {businessName: "$businessName"}}}}) {
             lead
@@ -78,6 +95,16 @@ class LeadStepperState extends State<LeadStepper> {
           }
         }
       """), fetchPolicy: FetchPolicy.networkOnly);
+      } else {
+        options = QueryOptions(documentNode: gql("""
+        query CheckLeadAddress {
+  lead(where: {document: {_contains: {address: "$address"}}, _and: {document: {_contains: {businessName: "$businessName"}}, _and: {document: {_contains: {address2 :"$address2"}}}}}) {
+            lead
+            document
+          }
+        }
+      """), fetchPolicy: FetchPolicy.networkOnly);
+      }
 
       final QueryResult result = await client.query(options);
 
@@ -208,6 +235,7 @@ class LeadStepperState extends State<LeadStepper> {
           "businessName": businessNameController.text,
           "dbaName": dbaNameController.text,
           "address": businessAddress["address"],
+          "address2": businessAddress["address2"],
           "city": businessAddress["city"],
           "state": businessAddress["state"],
           "zipCode": businessAddress["zipcode"]
@@ -318,6 +346,11 @@ class LeadStepperState extends State<LeadStepper> {
                                       returnNearby: true,
                                       locationValue: locationValue),
                                 ),
+                                TextFormField(
+                                  decoration: InputDecoration(
+                                      labelText: "Address 2 (optional)"),
+                                  controller: address2Controller,
+                                )
                               ])
                             : Column(
                                 children: [
@@ -331,6 +364,11 @@ class LeadStepperState extends State<LeadStepper> {
                                       returnNearby: true,
                                       locationValue: locationValue,
                                     ),
+                                  ),
+                                  TextFormField(
+                                    decoration: InputDecoration(
+                                        labelText: "Address 2 (optional)"),
+                                    controller: address2Controller,
                                   ),
                                   TextFormField(
                                     decoration: InputDecoration(
