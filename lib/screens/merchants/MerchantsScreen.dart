@@ -138,29 +138,31 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
       var params;
       var searchParams =
           '	_or: [{merchantbusinessname: {_ilike: "%$currentSearch%"}}, {merchantemailaddress: {_ilike: "%$currentSearch%"}}, {merchantfirstname: {_ilike: "%$currentSearch%"}}, {merchantlastname: {_ilike: "%$currentSearch%"}}, {merchantdbaname: {_ilike: "%$currentSearch%"}}, {merchantphonenumber: {_ilike: "%$currentSearch%"}},]';
-      if (UserService.isAdmin) {
+      // if (UserService.isAdmin) {
+      params =
+          "offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}";
+      if (isSearching) {
         params =
-            "offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}";
-        if (isSearching) {
-          params =
-              'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {$searchParams}';
-        }
-        // EMPLOYEE FILTERING
-        // if (isFiltering) {
-        //   params =
-        //       'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "$filterEmployee"}}';
-        // }
-        // if (isSearching && isFiltering) {
-        //   params =
-        //       'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "$filterEmployee"}, $searchParams}';
-        // }
-      } else if (isSearching) {
-        params =
-            'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "${UserService.employee.employee}"}, $searchParams}';
-      } else {
-        params =
-            'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "${UserService.employee.employee}"}}';
+            'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {$searchParams}';
       }
+      // EMPLOYEE FILTERING
+      // if (isFiltering) {
+      //   params =
+      //       'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "$filterEmployee"}}';
+      // }
+      // if (isSearching && isFiltering) {
+      //   params =
+      //       'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "$filterEmployee"}, $searchParams}';
+      // }
+
+      //isadmin
+      // } else if (isSearching) {
+      //   params =
+      //       'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "${UserService.employee.employee}"}, $searchParams}';
+      // } else {
+      //   params =
+      //       'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "${UserService.employee.employee}"}}';
+      // }
 
       QueryOptions options = QueryOptions(documentNode: gql("""
           query GetAllMerchant {
