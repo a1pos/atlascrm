@@ -121,9 +121,9 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
       }
     }
 
-    // setState(() {
-    //   isLoading = false;
-    // });
+    setState(() {
+      isLoading = false;
+    });
 
     Operation deviceOptions =
         Operation(operationName: "MerchantDevices", documentNode: gql("""
