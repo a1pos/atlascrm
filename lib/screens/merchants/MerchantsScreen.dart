@@ -68,7 +68,7 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
     try {
       if (!UserService.isAdmin) {
         initParams =
-            'offset: 0, limit: 10, order_by: {merchantbusinessname: asc}, where: {employee: {_eq: "${UserService.employee.employee}"}}';
+            'offset: 0, limit: 10, order_by: {merchantbusinessname: asc}';
       }
 
       QueryOptions options = QueryOptions(documentNode: gql("""
