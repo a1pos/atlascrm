@@ -3,6 +3,7 @@ import 'package:atlascrm/components/inventory/InventoryLocationDropDown.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/services/api.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
@@ -308,6 +309,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
   // }
 
   Future<void> scanBarcode() async {
+    RegExp searchPat = RegExp(r"^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$");
     try {
       var options = ScanOptions(strings: {
         "cancel": "done",
@@ -319,8 +321,19 @@ class _InventoryScreenState extends State<InventoryScreen> {
       print(result.rawContent);
 
       if (result.type != ResultType.Cancelled) {
-        searchInventory(result.rawContent.toString());
-        _searchController.text = result.rawContent.toString();
+        bool isMac = searchPat.hasMatch(result.rawContent.toString());
+        if (!isMac) {
+          searchInventory(result.rawContent.toString());
+          _searchController.text = result.rawContent.toString();
+        } else {
+          Fluttertoast.showToast(
+              msg: "That's the MAC address!",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.grey[600],
+              textColor: Colors.white,
+              fontSize: 16.0);
+        }
       }
     } catch (err) {
       log(err);

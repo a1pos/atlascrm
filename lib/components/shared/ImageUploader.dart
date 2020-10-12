@@ -704,12 +704,15 @@ class _ImageUploaderState extends State<ImageUploader> {
           }
         }
         """), variables: {
-        "to": ["joe.pounds@a1pos.com"],
-        // "to": ["jerrod.lumley@a1pos.com", "john.deluga@butlerbizsys.com", "andrew.hrindo@butlerbizsys.com"],
+        // "to": ["joe.pounds@a1pos.com"],
+        "to": [
+          "jerrod.lumley@a1pos.com",
+          "john.deluga@butlerbizsys.com",
+          "andrew.hrindo@butlerbizsys.com"
+        ],
         "subject":
             "New Statement For Review: ${this.widget.infoDoc["businessName"]} - ${this.widget.infoDoc["address"]}",
-        "html":
-            'Lead: ${this.widget.infoDoc["businessName"]} <br /> <a href="">Click Here for Rate Review Tool</a>',
+        "html": 'Lead: ${this.widget.infoDoc["businessName"]} <br />',
         "type": "STATEMENT",
         "statement": statementId
       });
