@@ -704,7 +704,6 @@ class _ImageUploaderState extends State<ImageUploader> {
           }
         }
         """), variables: {
-        // "to": ["joe.pounds@a1pos.com"],
         "to": [
           "jerrod.lumley@a1pos.com",
           "john.deluga@butlerbizsys.com",
