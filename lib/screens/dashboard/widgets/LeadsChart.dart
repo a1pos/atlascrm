@@ -64,7 +64,7 @@ class _LeadsChartState extends State<LeadsChart> {
 
     Operation leadOptions =
         Operation(operationName: "GET_LEAD_COUNT", documentNode: gql("""
-    subscription GET_LEAD_COUNT(\$from: timestamptz, \$to: timestamptz) {
+    subscription GET_LEAD_COUNT(\$from: timestamptz) {
       employee(
         where: {
           _and: [
@@ -74,7 +74,7 @@ class _LeadsChartState extends State<LeadsChart> {
         }
       ) {
         displayName: document(path: "displayName")
-        leads_aggregate (where: {_and: [{created_at: {_gte: \$from}}, {created_at: {_lte: \$to}}]}){
+        leads_aggregate (where: {_and: [{created_at: {_gte: \$from}}]}){
           aggregate {
             count
           }
@@ -82,7 +82,7 @@ class _LeadsChartState extends State<LeadsChart> {
       }
     }
 
-    """), variables: {"from": from, "to": to});
+    """), variables: {"from": from});
 
     var result = client.subscribe(leadOptions);
     subscription = result.listen(

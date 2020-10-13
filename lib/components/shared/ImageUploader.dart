@@ -708,7 +708,7 @@ class _ImageUploaderState extends State<ImageUploader> {
         "to": [
           "jerrod.lumley@a1pos.com",
           "john.deluga@butlerbizsys.com",
-          "andrew.hrindo@butlerbizsys.com"
+          "ahrindo@gmail.com"
         ],
         "subject":
             "New Statement For Review: ${this.widget.infoDoc["businessName"]} - ${this.widget.infoDoc["address"]}",

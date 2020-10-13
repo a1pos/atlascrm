@@ -523,6 +523,14 @@ class LeadStepperState extends State<LeadStepper> {
                                 if (isAddress) {
                                   Stepper stepper = _stepperKey.currentWidget;
                                   stepper.onStepContinue();
+                                } else {
+                                  Fluttertoast.showToast(
+                                      msg: "Please Enter an Address!",
+                                      toastLength: Toast.LENGTH_SHORT,
+                                      gravity: ToastGravity.BOTTOM,
+                                      backgroundColor: Colors.grey[600],
+                                      textColor: Colors.white,
+                                      fontSize: 16.0);
                                 }
                               }
                             },
