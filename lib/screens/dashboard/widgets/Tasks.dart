@@ -52,7 +52,7 @@ class _TasksState extends State<Tasks> {
           }
             """), variables: {"employee": "${UserService.employee.employee}"});
 
-    var result = wsClient.subscribe(options);
+    var result = await authGqlSubscribe(options);
     result.listen(
       (data) async {
         var tasksArrDecoded = data.data["employee_by_pk"]["tasks"];

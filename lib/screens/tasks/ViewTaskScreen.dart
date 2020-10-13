@@ -67,7 +67,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
       }
     """));
 
-    final QueryResult result0 = await client.query(options);
+    final QueryResult result0 = await authGqlQuery(options);
 
     if (result0 != null) {
       if (result0.hasException == false) {
@@ -103,7 +103,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
       }
             """), fetchPolicy: FetchPolicy.networkOnly);
 
-    final QueryResult result = await client.query(options);
+    final QueryResult result = await authGqlQuery(options);
 
     var body = result.data["task_by_pk"];
     if (body != null) {
@@ -191,7 +191,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
         }
             """), variables: {"data": data});
 
-      final QueryResult result = await client.mutate(options);
+      final QueryResult result = await authGqlMutate(options);
 
       if (result != null) {
         if (result.hasException == false) {

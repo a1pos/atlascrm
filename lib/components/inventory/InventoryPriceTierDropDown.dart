@@ -48,7 +48,7 @@ class _InventoryPriceTierDropDownState
         }
       """), fetchPolicy: FetchPolicy.networkOnly);
 
-    final QueryResult locationsResp = await client.query(options);
+    final QueryResult locationsResp = await authGqlQuery(options);
 
     //REPLACE WITH GRAPHQL
     // var locationsResp = await apiService.authGet(context, "/inventory/tier");

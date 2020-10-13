@@ -100,7 +100,9 @@ class _AtlasCRMState extends State<AtlasCRM> {
     setState(() {
       // isLoading = true;
       isAuthenticated = false;
+      UserService.isAuthenticated = false;
     });
+    getHomeScreen();
   }
 
   @override
@@ -128,7 +130,7 @@ class _AtlasCRMState extends State<AtlasCRM> {
           //   brightness: Brightness.light,
           //   fontFamily: "LatoRegular",
           // ),
-          home: isAuthenticated
+          home: UserService.isAuthenticated
               ? DashboardScreen()
               : WillPopScope(
                   onWillPop: () {

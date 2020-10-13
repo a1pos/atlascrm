@@ -37,11 +37,11 @@ class _NotificationCenterState extends State<NotificationCenter> {
           }
             """), variables: {"employee": "${UserService.employee.employee}"});
 
-    var result = client.subscribe(options);
+    var result = await authGqlSubscribe(options);
     result.listen(
       (data) async {
         var notificationsArrDecoded = data.data["notification"];
-        if (notificationsArrDecoded != null) {
+        if (notificationsArrDecoded != null && this.mounted) {
           setState(() {
             notifCount = notificationsArrDecoded.length;
             notifications = notificationsArrDecoded;
@@ -72,7 +72,7 @@ class _NotificationCenterState extends State<NotificationCenter> {
             }
           }
       """), variables: {"notification": notification});
-    final QueryResult result = await client.mutate(mutateOptions);
+    final QueryResult result = await authGqlMutate(mutateOptions);
 
     if (result.hasException == false) {
       Fluttertoast.showToast(
@@ -103,7 +103,7 @@ class _NotificationCenterState extends State<NotificationCenter> {
             }
           }
       """), variables: {"employee": UserService.employee.employee});
-    final QueryResult result = await client.mutate(mutateOptions);
+    final QueryResult result = await authGqlMutate(mutateOptions);
 
     if (result.hasException == false) {
       Fluttertoast.showToast(

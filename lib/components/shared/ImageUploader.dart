@@ -93,7 +93,7 @@ class _ImageUploaderState extends State<ImageUploader> {
         }
       """), fetchPolicy: FetchPolicy.networkOnly);
 
-      final QueryResult result = await client.query(options);
+      final QueryResult result = await authGqlQuery(options);
 
       if (result.hasException == false) {
         if (result.data != null && result.data != "") {
@@ -663,7 +663,7 @@ class _ImageUploaderState extends State<ImageUploader> {
           variables: {"lead": objectId},
           fetchPolicy: FetchPolicy.networkOnly);
 
-      final QueryResult result = await client.query(options);
+      final QueryResult result = await authGqlQuery(options);
 
       if (result.hasException == false) {
         if (result.data != null && result.data != "") {
@@ -715,7 +715,7 @@ class _ImageUploaderState extends State<ImageUploader> {
         "type": "STATEMENT",
         "statement": statementId
       });
-      final QueryResult result = await client.mutate(mutateOptions);
+      final QueryResult result = await authGqlMutate(mutateOptions);
 
       if (result.hasException == false) {
         if (result.data != null && result.data != "") {

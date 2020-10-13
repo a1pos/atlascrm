@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 import 'package:atlascrm/services/NotificationService.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -21,36 +22,44 @@ class UserService {
 
   static final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
-  void initState() {
-    _firebaseAuth.authStateChanges().listen((firebaseUser) async {
-      print(firebaseUser);
-      if (firebaseUser != null) {
-        var linkResponse = await linkGoogleAccount();
-        var user = _firebaseAuth.currentUser;
-        var idTokenResult = await user.getIdToken();
-        setPrivateGraphQLClient(idTokenResult);
-        isAuthenticated = true;
-        employee = linkResponse.data["linkGoogleAccount"]["employee"];
-      } else {
-        isAuthenticated = false;
-        employee = Employee.getEmpty();
-      }
-    });
+  // void startStreams() {
+  //   _firebaseAuth.authStateChanges().listen((firebaseUser) async {
+  //     print("AUTHSTATE CHANGES");
+  //     // if (firebaseUser != null) {
+  //     //   var user = _firebaseAuth.currentUser;
+  //     //   var idTokenResult = await user.getIdToken();
+  //     //   setPrivateGraphQLClient(idTokenResult);
+  //     //   isAuthenticated = true;
+  //     // } else {
+  //     //   isAuthenticated = false;
+  //     //   employee = Employee.getEmpty();
+  //     // }
+  //   });
 
-    _firebaseAuth.idTokenChanges().listen((firebaseUser) async {
-      print(firebaseUser);
-      if (firebaseUser != null) {
-        var linkResponse = await linkGoogleAccount();
-        var user = _firebaseAuth.currentUser;
-        var idTokenResult = await user.getIdToken();
-        setPrivateGraphQLClient(idTokenResult);
-        isAuthenticated = true;
-        employee = linkResponse.data["linkGoogleAccount"]["employee"];
-      } else {
-        isAuthenticated = false;
-        employee = Employee.getEmpty();
-      }
-    });
+  //   _firebaseAuth.idTokenChanges().listen((firebaseUser) async {
+  //     print("ID TOKEN CHANGES");
+  //     if (firebaseUser != null) {
+  //       var user = _firebaseAuth.currentUser;
+  //       var idTokenResult = await user.getIdToken();
+  //       setPrivateGraphQLClient(idTokenResult);
+  //       isAuthenticated = true;
+  //     } else {
+  //       isAuthenticated = false;
+  //       employee = Employee.getEmpty();
+  //     }
+  //   });
+  // }
+
+  getToken() async {
+    var user = _firebaseAuth.currentUser;
+    if (user == null) {
+      isAuthenticated = false;
+      employee = Employee.getEmpty();
+      return;
+    } else {
+      var idTokenResult = await user.getIdToken();
+      return idTokenResult;
+    }
   }
 
   Future<bool> signInWithGoogle(context) async {

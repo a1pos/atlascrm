@@ -47,7 +47,7 @@ class _InventoryLocationDropDownState extends State<InventoryLocationDropDown> {
         }
       """), fetchPolicy: FetchPolicy.networkOnly);
 
-    final QueryResult result = await client.query(options);
+    final QueryResult result = await authGqlQuery(options);
 
     // var locationsResp =
     //     await apiService.authGet(context, "/inventory/location");

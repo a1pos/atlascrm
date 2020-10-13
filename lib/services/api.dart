@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'UserService.dart';
 
 HttpLink _httpLink = HttpLink(
   uri: "https://busy-buzzard-29.hasura.app/v1/graphql",
@@ -17,9 +18,31 @@ InMemoryCache cache2 = InMemoryCache();
 
 GraphQLClient client;
 GraphQLClient wsClient;
+UserService userService = UserService();
 // (cache: cache, link: _defLink);
 
-setPrivateGraphQLClient(token) {
+Future<QueryResult> authGqlQuery(options) async {
+  var token = await userService.getToken();
+  setPrivateGraphQLClient(token);
+  var result = client.query(options);
+  return result;
+}
+
+Future<QueryResult> authGqlMutate(options) async {
+  var token = await userService.getToken();
+  setPrivateGraphQLClient(token);
+  var result = client.mutate(options);
+  return result;
+}
+
+Future<Stream<FetchResult>> authGqlSubscribe(options) async {
+  var token = await userService.getToken();
+  setPrivateGraphQLClient(token);
+  var result = client.subscribe(options);
+  return result;
+}
+
+void setPrivateGraphQLClient(token) async {
   Link link;
   Link authws;
 
@@ -51,7 +74,7 @@ setPrivateGraphQLClient(token) {
   wsClient = bCLient;
 }
 
-setPublicGraphQLClient() {
+void setPublicGraphQLClient() {
   // WebSocketLink _wsLink = WebSocketLink(
   //     url: "wss://busy-buzzard-29.hasura.app/v1/graphql",
   //     config: SocketClientConfig(

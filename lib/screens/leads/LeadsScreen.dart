@@ -91,7 +91,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
           }
       """), fetchPolicy: FetchPolicy.networkOnly);
 
-      final QueryResult result = await client.query(options);
+      final QueryResult result = await authGqlQuery(options);
 
       if (result != null) {
         if (result.hasException == false) {
@@ -180,7 +180,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
           }
       """), fetchPolicy: FetchPolicy.networkOnly);
 
-      final QueryResult result = await client.query(options);
+      final QueryResult result = await authGqlQuery(options);
 
       if (result != null) {
         if (result.hasException == false) {

@@ -70,7 +70,7 @@ class _SalesLeaderboardChartState extends State<SalesLeaderboardChart> {
 
     Operation statementOptions =
         Operation(operationName: "GET_STATEMENT_COUNT", documentNode: gql("""
-            subscription GET_STATEMENT_COUNT(\$from: timestamptz, \$to: timestamptz) {
+            subscription GET_STATEMENT_COUNT(\$from: timestamptz) {
       employee(
         where: {
           _and: [
@@ -84,7 +84,6 @@ class _SalesLeaderboardChartState extends State<SalesLeaderboardChart> {
           where: {
             _and: [
               { created_at: { _gte: \$from } }
-              { created_at: { _lte: \$to } }
             ]
           }
         ) {
@@ -94,10 +93,10 @@ class _SalesLeaderboardChartState extends State<SalesLeaderboardChart> {
         }
       }
     }
-    """), variables: {"from": from, "to": to});
+    """), variables: {"from": from});
     Operation agreementOptions =
         Operation(operationName: "GET_AGREEMENT_COUNT", documentNode: gql("""
-       subscription GET_AGREEMENT_COUNT(\$from: timestamptz, \$to: timestamptz) {
+       subscription GET_AGREEMENT_COUNT(\$from: timestamptz) {
       employee(
         where: {
           _and: [
@@ -111,7 +110,6 @@ class _SalesLeaderboardChartState extends State<SalesLeaderboardChart> {
           where: {
             _and: [
               { created_at: { _gte: \$from } }
-              { created_at: { _lte: \$to } }
             ]
           }
         ) {
@@ -121,7 +119,7 @@ class _SalesLeaderboardChartState extends State<SalesLeaderboardChart> {
         }
       }
     }
-    """), variables: {"from": from, "to": to});
+    """), variables: {"from": from});
 
     if (type == "statement") {
       options = statementOptions;
@@ -129,7 +127,7 @@ class _SalesLeaderboardChartState extends State<SalesLeaderboardChart> {
       options = agreementOptions;
     }
 
-    var result = client.subscribe(options);
+    var result = await authGqlSubscribe(options);
     subscription = result.listen(
       (data) async {
         var incomingData = data.data["employee"];

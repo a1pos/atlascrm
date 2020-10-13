@@ -84,7 +84,7 @@ class _LeadsChartState extends State<LeadsChart> {
 
     """), variables: {"from": from});
 
-    var result = client.subscribe(leadOptions);
+    var result = await authGqlSubscribe(leadOptions);
     subscription = result.listen(
       (data) async {
         var incomingData = data.data["employee"];

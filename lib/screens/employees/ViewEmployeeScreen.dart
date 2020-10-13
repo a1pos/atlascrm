@@ -65,7 +65,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
           }
         }
     """), variables: {"employee": "${this.widget.employeeId}"});
-    var result = client.subscribe(options);
+    var result = await authGqlSubscribe(options);
     result.listen(
       (data) async {
         var deviceArrDecoded = data.data["employee_device"];
@@ -102,7 +102,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
       }
     """));
 
-    final QueryResult result = await client.query(options);
+    final QueryResult result = await authGqlQuery(options);
 
     if (result.hasException == false) {
       var body = result.data["employee_by_pk"];
@@ -127,7 +127,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
         }
       }
           """), variables: {"employee": this.widget.employeeId, "role": role});
-    final QueryResult result = await client.mutate(mutateOptions);
+    final QueryResult result = await authGqlMutate(mutateOptions);
     if (result.hasException == true) {
       Fluttertoast.showToast(
           msg: result.exception.toString(),
@@ -258,7 +258,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                         }
                       }
                   """), variables: {"object": newDevice});
-                  final QueryResult result = await client.mutate(mutateOptions);
+                  final QueryResult result = await authGqlMutate(mutateOptions);
                   if (result.hasException == true) {
                     Fluttertoast.showToast(
                         msg: result.exception.toString(),
@@ -316,7 +316,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                         }
                       }
                   """), variables: {"employee_device": deviceId});
-                final QueryResult result = await client.mutate(mutateOptions);
+                final QueryResult result = await authGqlMutate(mutateOptions);
                 if (result.hasException == true) {
                   Fluttertoast.showToast(
                       msg: result.exception.toString(),

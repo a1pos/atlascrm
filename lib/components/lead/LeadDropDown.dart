@@ -59,7 +59,7 @@ class _LeadDropDownState extends State<LeadDropDown> {
             """));
     }
 
-    final QueryResult result = await client.query(options);
+    final QueryResult result = await authGqlQuery(options);
     var leadsArrDecoded;
     if (result != null) {
       if (result.hasException == false) {

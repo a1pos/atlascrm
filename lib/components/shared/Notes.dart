@@ -57,7 +57,7 @@ class _NotesState extends State<Notes> {
             }
           }
     """), variables: {"id": "$objectId"});
-    var result = client.subscribe(options);
+    var result = await authGqlSubscribe(options);
     result.listen(
       (data) async {
         var notesArrDecoded = data.data["${type}_note"];
@@ -97,7 +97,7 @@ class _NotesState extends State<Notes> {
       }
     }
       """), variables: {"object": sendNote});
-    final QueryResult result = await client.mutate(mutateOptions);
+    final QueryResult result = await authGqlMutate(mutateOptions);
     if (result.hasException == true) {
       Fluttertoast.showToast(
           msg: result.exception.toString(),

@@ -212,7 +212,7 @@ class _TaskScreenState extends State<TaskScreen> {
           }
             """), variables: {"employee": "${UserService.employee.employee}"});
 
-    var result = client.subscribe(options);
+    var result = await authGqlSubscribe(options);
     result.listen(
       (data) async {
         var tasksArrDecoded = data.data["employee_by_pk"]["tasks"];
@@ -282,7 +282,7 @@ class _TaskScreenState extends State<TaskScreen> {
       }
     """));
 
-    final QueryResult result0 = await client.query(options);
+    final QueryResult result0 = await authGqlQuery(options);
 
     if (result0 != null) {
       if (result0.hasException == false) {
@@ -325,7 +325,7 @@ class _TaskScreenState extends State<TaskScreen> {
         }
             """), variables: {"data": data});
 
-      final QueryResult result = await client.mutate(options);
+      final QueryResult result = await authGqlMutate(options);
 
       if (result != null) {
         if (result.hasException == false) {

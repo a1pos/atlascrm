@@ -154,7 +154,7 @@ class InventoryAddState extends State<InventoryAdd> {
           }
         }
       """), variables: {"objects": data});
-        final QueryResult result = await client.mutate(options);
+        final QueryResult result = await authGqlMutate(options);
 
         if (result != null) {
           if (result.hasException == false) {

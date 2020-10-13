@@ -39,7 +39,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
         }
       """));
 
-    final QueryResult result = await client.query(options);
+    final QueryResult result = await authGqlQuery(options);
     if (result != null) {
       if (result.hasException == false) {
         var employeeArrDecoded = result.data["employee"];

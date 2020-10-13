@@ -120,7 +120,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
         }
     """), variables: {"lead": this.widget.leadId});
 
-    final QueryResult result = await client.query(options);
+    final QueryResult result = await authGqlQuery(options);
 
     if (result.hasException == false) {
       var body = result.data["lead_by_pk"];
@@ -202,7 +202,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
           }
         }
       """), variables: {"data": data});
-    final QueryResult result = await client.mutate(mutateOptions);
+    final QueryResult result = await authGqlMutate(mutateOptions);
 
     if (result.hasException == false) {
       await loadLeadData(this.widget.leadId);

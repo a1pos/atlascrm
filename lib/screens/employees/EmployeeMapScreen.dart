@@ -82,7 +82,7 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
           }
         }
     """));
-    var result = client.subscribe(options);
+    var result = await authGqlSubscribe(options);
     result.listen(
       (data) async {
         for (var currentLocation in data.data["employee_device"]) {
@@ -111,7 +111,7 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
             "date": today
           });
 
-          final QueryResult result2 = await client.query(options);
+          final QueryResult result2 = await authGqlQuery(options);
           if (result2 != null) {
             if (result2.hasException == false) {
               var stopsArrDecoded =

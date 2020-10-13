@@ -125,7 +125,7 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
         },
         fetchPolicy: FetchPolicy.networkOnly);
 
-    final QueryResult result = await client.query(options);
+    final QueryResult result = await authGqlQuery(options);
     if (result != null) {
       if (result.hasException == false) {
         var locationDataDecoded = result.data["v_employee_route"];
@@ -200,7 +200,7 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
           "next_day": endDate.toString()
         });
 
-        final QueryResult countResult = await client.query(options);
+        final QueryResult countResult = await authGqlQuery(options);
         if (countResult != null) {
           if (countResult.hasException == false) {
             var count = await countResult.data["v_stop_count"];

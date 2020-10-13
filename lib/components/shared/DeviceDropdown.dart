@@ -49,7 +49,7 @@ class _DeviceDropDownState extends State<DeviceDropDown> {
         variables: {"employee": this.widget.employee},
         fetchPolicy: FetchPolicy.networkOnly);
 
-    final QueryResult devicesResp = await client.query(options);
+    final QueryResult devicesResp = await authGqlQuery(options);
 
     //REPLACE WITH GRAPHQL
     // var locationsResp = await apiService.authGet(context, "/inventory/tier");

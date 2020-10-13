@@ -86,7 +86,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
         }
       """));
 
-      final QueryResult result = await client.query(options);
+      final QueryResult result = await authGqlQuery(options);
 
       if (result != null) {
         if (result.hasException == false) {
@@ -165,7 +165,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
         }
       """), fetchPolicy: FetchPolicy.networkOnly);
 
-      final QueryResult result = await client.query(options);
+      final QueryResult result = await authGqlQuery(options);
 
       if (result != null) {
         if (result.hasException == false) {

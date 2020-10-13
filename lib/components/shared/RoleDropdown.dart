@@ -45,7 +45,7 @@ class _RoleDropDownState extends State<RoleDropDown> {
       }
       """), fetchPolicy: FetchPolicy.networkOnly);
 
-    final QueryResult rolesResp = await client.query(options);
+    final QueryResult rolesResp = await authGqlQuery(options);
 
     //REPLACE WITH GRAPHQL
     // var locationsResp = await apiService.authGet(context, "/inventory/tier");

@@ -73,7 +73,7 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
       }
     """), variables: {"merchant": merchantId});
 
-    final QueryResult result = await client.query(options);
+    final QueryResult result = await authGqlQuery(options);
 
     if (result.hasException == false) {
       var body = result.data["merchant_by_pk"];
@@ -142,7 +142,7 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
           }
             """), variables: {"merchant": "${this.widget.merchantId}"});
 
-    var result2 = wsClient.subscribe(deviceOptions);
+    var result2 = await authGqlSubscribe(deviceOptions);
     result2.listen(
       (data) async {
         var devicesArrDecoded = data.data["inventory"];

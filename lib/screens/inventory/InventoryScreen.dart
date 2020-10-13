@@ -101,7 +101,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
         }
       """), pollInterval: 5);
 
-      final QueryResult result = await client.query(options);
+      final QueryResult result = await authGqlQuery(options);
       // var endpoint = "/inventory?page=$pageNum&size=10&$sortQuery";
       // var resp = await this.widget.apiService.authGet(context, endpoint);
 
@@ -192,7 +192,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
         }
       """), fetchPolicy: FetchPolicy.networkOnly);
 
-      final QueryResult result = await client.query(options);
+      final QueryResult result = await authGqlQuery(options);
 
       if (result != null) {
         if (result.hasException == false) {

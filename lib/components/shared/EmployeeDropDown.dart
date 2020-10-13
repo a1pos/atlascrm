@@ -47,7 +47,7 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
       }
     """));
 
-    final QueryResult result = await client.query(options);
+    final QueryResult result = await authGqlQuery(options);
 
     if (result != null) {
       if (result.hasException == false) {

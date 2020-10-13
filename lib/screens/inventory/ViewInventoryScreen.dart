@@ -133,7 +133,7 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
         }}
             """), fetchPolicy: FetchPolicy.networkOnly);
 
-    final QueryResult result = await client.query(options);
+    final QueryResult result = await authGqlQuery(options);
 
     if (result.hasException == false) {
       var body = result.data["inventory_by_pk"];
@@ -220,7 +220,7 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
         }
       }
       """), variables: {"data": data});
-    final QueryResult result = await client.mutate(mutateOptions);
+    final QueryResult result = await authGqlMutate(mutateOptions);
 
     if (result.hasException == false) {
       await loadInventoryData();
@@ -339,7 +339,7 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
       }
     }
           """), variables: {"inventory": inventory["inventory"]});
-    final QueryResult result = await client.mutate(mutateOptions);
+    final QueryResult result = await authGqlMutate(mutateOptions);
     if (result.hasException == true) {
       Fluttertoast.showToast(
           msg: result.exception.toString(),
