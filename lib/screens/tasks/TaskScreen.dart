@@ -472,8 +472,7 @@ class _TaskScreenState extends State<TaskScreen> {
                                       Expanded(
                                         flex: 8,
                                         child: LeadDropDown(
-                                          employeeId: UserService.isAdmin ==
-                                                  true
+                                          employeeId: UserService.isAdmin
                                               ? employeeDropdownValue
                                               : UserService.employee.employee,
                                           value: leadDropdownValue,
@@ -484,21 +483,20 @@ class _TaskScreenState extends State<TaskScreen> {
                                           },
                                         ),
                                       ),
-                                      Expanded(
-                                        flex: 2,
-                                        child: Padding(
-                                          padding: const EdgeInsets.fromLTRB(
-                                              15, 13, 0, 0),
-                                          child: IconButton(
-                                            icon: Icon(Icons.add),
-                                            color: Color.fromARGB(
-                                                500, 1, 224, 143),
-                                            onPressed: (() {
-                                              openAddLeadForm();
-                                            }),
-                                          ),
-                                        ),
-                                      ),
+                                      // Expanded(
+                                      //   flex: 2,
+                                      //   child: Padding(
+                                      //     padding: const EdgeInsets.fromLTRB(
+                                      //         15, 13, 0, 0),
+                                      //     child: IconButton(
+                                      //       icon: Icon(Icons.add),
+                                      //       color: UniversalStyles.actionColor,
+                                      //       onPressed: (() {
+                                      //         openAddLeadForm();
+                                      //       }),
+                                      //     ),
+                                      //   ),
+                                      // ),
                                     ],
                                   ),
                                   TextFormField(

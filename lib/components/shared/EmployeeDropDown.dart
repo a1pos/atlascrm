@@ -110,14 +110,17 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
               ? null
               : (newValue) {
                   setState(() {
+                    startVal = null;
                     var setVal;
-                    for (var employee in employees) {
-                      if (newValue == employee["displayName"]) {
-                        setVal = employee["employee"];
-                        // {
-                        //   "name": employee["title"],
-                        //   "employee": employee["employee"]
-                        // };
+                    if (newValue != null) {
+                      for (var employee in employees) {
+                        if (newValue == employee["displayName"]) {
+                          setVal = employee["employee"];
+                          // {
+                          //   "name": employee["title"],
+                          //   "employee": employee["employee"]
+                          // };
+                        }
                       }
                     }
                     startVal = newValue;

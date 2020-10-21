@@ -1,3 +1,4 @@
+import 'package:atlascrm/screens/tasks/TaskScreen.dart';
 import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
@@ -18,12 +19,12 @@ class LeadDropDown extends StatefulWidget {
 class _LeadDropDownState extends State<LeadDropDown> {
   var leads = [];
   var disabled;
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-
-    initLeads(this.widget.employeeId);
+    initLeads();
     if (this.widget.disabled != null) {
       setState(() {
         disabled = this.widget.disabled;
@@ -35,17 +36,24 @@ class _LeadDropDownState extends State<LeadDropDown> {
 
   var startVal;
 
-  Future<void> initLeads(e) async {
+  Future<void> initLeads() async {
     QueryOptions options;
     if (this.widget.employeeId == null) {
-      options = QueryOptions(documentNode: gql("""
-            query Leads {
-              lead{
-                lead
-                document
-              }  
-            }
-            """));
+      if (this.mounted) {
+        setState(() {
+          leads = [];
+          isLoading = false;
+        });
+      }
+      return;
+      // options = QueryOptions(documentNode: gql("""
+      //       query Leads {
+      //         lead{
+      //           lead
+      //           document
+      //         }
+      //       }
+      //       """), fetchPolicy: FetchPolicy.networkOnly);
     } else {
       options = QueryOptions(documentNode: gql("""
             query EmployeeLeads {
@@ -56,7 +64,7 @@ class _LeadDropDownState extends State<LeadDropDown> {
                 }
               }
             }
-            """));
+            """), fetchPolicy: FetchPolicy.networkOnly);
     }
 
     final QueryResult result = await authGqlQuery(options);
@@ -82,11 +90,16 @@ class _LeadDropDownState extends State<LeadDropDown> {
         }
       }
     }
+    if (this.mounted) {
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    initLeads(this.widget.employeeId);
+    initLeads();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -97,7 +110,6 @@ class _LeadDropDownState extends State<LeadDropDown> {
             fontSize: 13,
           ),
         ),
-
         SearchableDropdown.single(
           value: startVal,
           onClear: () {
@@ -105,7 +117,7 @@ class _LeadDropDownState extends State<LeadDropDown> {
               this.widget.callback(null);
             });
           },
-          hint: "Please choose one",
+          hint: isLoading ? "Loading..." : "Please choose one",
           searchHint: null,
           isExpanded: true,
           // menuConstraints: BoxConstraints.tight(Size.fromHeight(350)),

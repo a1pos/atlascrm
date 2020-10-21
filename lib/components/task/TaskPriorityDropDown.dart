@@ -13,9 +13,9 @@ class TaskPriorityDropDown extends StatefulWidget {
 
 class _TaskPriorityDropDownState extends State<TaskPriorityDropDown> {
   var taskPriorites = [
-    {"value": "0", "text": "High"},
+    {"value": "2", "text": "High"},
     {"value": "1", "text": "Medium"},
-    {"value": "2", "text": "Low"},
+    {"value": "0", "text": "Low"},
   ];
 
   @override

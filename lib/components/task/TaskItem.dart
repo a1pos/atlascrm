@@ -31,9 +31,9 @@ class _TaskItemState extends State<TaskItem> {
       Type('Quota Goal', Icons.trending_up)
     ];
     List<Color> _colors = [
-      Color.fromRGBO(229, 69, 69, 1),
-      Color.fromRGBO(247, 188, 74, 1),
       Color.fromRGBO(119, 174, 237, 1),
+      Color.fromRGBO(247, 188, 74, 1),
+      Color.fromRGBO(229, 69, 69, 1),
 
       // Colors.red[100], //Light Red
       // Colors.yellow[100], //Light Yellow

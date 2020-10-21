@@ -31,7 +31,10 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
     target: LatLng(40.907569, -79.923725),
     zoom: 13.0,
   );
-  var today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+  var today =
+      DateFormat('yyyy-MM-dd').format(DateTime.now()).toString() + " 11:00";
+  var todayEnd =
+      DateFormat('yyyy-MM-dd').format(DateTime.now()).toString() + " 23:00";
   @override
   void initState() {
     super.initState();
@@ -220,17 +223,18 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
             fontSize: 16.0);
       },
     );
-    Future.delayed(const Duration(milliseconds: 3000), () async {
-      if (runOnce == true) {
-        LatLngBounds camBounds = boundsFromLatLngList(markerLatLngs);
-        final GoogleMapController controller =
-            await _fullScreenMapController.future;
-        controller.animateCamera(CameraUpdate.newLatLngBounds(camBounds, 100));
-      }
-      setState(() {
-        runOnce = false;
-      });
-    });
+    // an attempt was made at auto-zooming to include all employees in initial view
+    // Future.delayed(const Duration(milliseconds: 3000), () async {
+    //   if (runOnce == true) {
+    //     LatLngBounds camBounds = boundsFromLatLngList(markerLatLngs);
+    //     final GoogleMapController controller =
+    //         await _fullScreenMapController.future;
+    //     controller.animateCamera(CameraUpdate.newLatLngBounds(camBounds, 100));
+    //   }
+    //   setState(() {
+    //     runOnce = false;
+    //   });
+    // });
   }
 
   Future<void> initBaseMap() async {
