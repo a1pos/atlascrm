@@ -37,7 +37,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
             document
           }
         }
-      """));
+      """), fetchPolicy: FetchPolicy.networkOnly);
 
     final QueryResult result = await authGqlQuery(options);
     if (result != null) {
@@ -97,7 +97,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
                           ),
                           onChanged: (value) {
                             var filtered = employeesFull.where((e) {
-                              String name = e["document"]["fullName"];
+                              String name = e["document"]["displayName"];
                               return name
                                   .toLowerCase()
                                   .contains(value.toLowerCase());

@@ -82,14 +82,14 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
 
     if (startDate != null) {
       startDate = DateTime(startDate.toUtc().year, startDate.toUtc().month,
-          startDate.toUtc().day, 7, 0);
+          startDate.toUtc().day, 11, 0);
 
       endDate = DateTime(startDate.toUtc().year, startDate.toUtc().month,
-          startDate.toUtc().day, 7, 0);
+          startDate.toUtc().day, 23, 0);
     } else {
       startDate =
-          DateTime(_startDate.year, _startDate.month, _startDate.day, 7, 0);
-      endDate = DateTime(_endDate.year, _endDate.month, _endDate.day, 7, 0);
+          DateTime(_startDate.year, _startDate.month, _startDate.day, 11, 0);
+      endDate = DateTime(_endDate.year, _endDate.month, _endDate.day, 23, 0);
     }
 
     QueryOptions options = QueryOptions(
