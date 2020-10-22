@@ -61,7 +61,8 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
   var leadDocument;
   bool isLoading = true;
   var displayPhone;
-  var statementDirty = TextEditingController();
+  bool statementDirty = false;
+  bool statementComplete = false;
   final scrollController = ScrollController();
   var repeats = 2;
 
@@ -69,19 +70,15 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
     super.initState();
     pulseVisibility = true;
     loadLeadData(this.widget.leadId);
-    statementDirty.addListener(() {
-      setState(() {});
-      if (statementDirty.text == "true") {
-        pulseController.forward();
-      }
-    });
+    loadStatement();
+
     pulseController =
         AnimationController(vsync: this, duration: Duration(seconds: 1));
     // pulseController.repeat(reverse: true);
 
     pulse = Tween(begin: 2.0, end: 15.0).animate(pulseController)
       ..addStatusListener((status) {
-        if (repeats > 0 && statementDirty.text == "true") {
+        if (repeats > 0 && statementDirty) {
           if (status == AnimationStatus.completed) {
             pulseController.reverse();
           } else if (status == AnimationStatus.dismissed) {
@@ -104,6 +101,51 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
   void dispose() {
     pulseController.dispose();
     super.dispose();
+  }
+
+  Future<void> loadStatement() async {
+    lead = this.widget.leadId;
+
+    try {
+      QueryOptions options = QueryOptions(documentNode: gql("""
+        query GET_STATEMENT {
+          statement(where: {lead: {_eq: "${this.widget.leadId}"}}) {
+            statement
+            document
+            leadByLead{
+              document
+            }
+          }
+        }
+      """), fetchPolicy: FetchPolicy.networkOnly);
+
+      final QueryResult result = await authGqlQuery(options);
+
+      if (result.hasException == false) {
+        if (result.data != null && result.data != "") {
+          if (result.data["statement"][0]["document"] != null) {
+            if (result.data["statement"][0]["document"]["emailSent"] != null) {
+              setState(() {
+                statementComplete = true;
+              });
+            } else {
+              setState(() {
+                statementDirty = true;
+              });
+            }
+          } else {
+            setState(() {
+              statementDirty = true;
+            });
+          }
+        }
+      }
+    } catch (err) {
+      print(err);
+    }
+    if (statementDirty) {
+      pulseController.forward();
+    }
   }
 
   Future<void> loadLeadData(leadId) async {
@@ -307,7 +349,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
 
   Widget button;
   actionButton() {
-    if (statementDirty.text == "true") {
+    if (statementDirty) {
       setState(() {
         button = CircleAvatar(
           radius: 25,
@@ -344,7 +386,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
           action: <Widget>[
             Padding(
               padding: const EdgeInsets.fromLTRB(5, 8, 10, 8),
-              child: statementDirty.text == "true"
+              child: statementDirty
                   ? Container(
                       decoration: BoxDecoration(
                           shape: BoxShape.circle,
@@ -601,11 +643,11 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                             ],
                           ),
                         ),
-                        CustomCard(
-                            key: Key("leads4"),
-                            title: "Notes",
-                            icon: Icons.note,
-                            child: Notes(type: "lead", object: lead["lead"])),
+                        // CustomCard(
+                        //     key: Key("leads4"),
+                        //     title: "Notes",
+                        //     icon: Icons.note,
+                        //     child: Notes(type: "lead", object: lead["lead"])),
                         // CustomCard(
                         //   key: Key("leads5"),
                         //   title: "Tools",
@@ -644,13 +686,127 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                         //     ],
                         //   ),
                         // ),
-                        ImageUploader(
-                            type: "statement",
-                            objectId: lead["lead"],
-                            loading: {"loading": isLoading},
-                            controller: leadSaveController,
-                            dirtyFlag: {"flag": statementDirty},
-                            infoDoc: leadDocument),
+                        CustomCard(
+                          key: Key("leadNotes"),
+                          title: 'Notes',
+                          icon: Icons.note,
+                          child: Column(
+                            children: <Widget>[
+                              Column(
+                                children: <Widget>[
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.pushNamed(context, "/leadnotes",
+                                          arguments: lead);
+                                    },
+                                    child: Container(
+                                      color: Colors.white,
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: <Widget>[
+                                          Text('Notes'),
+                                          Icon(Icons.arrow_forward_ios,
+                                              size: 14),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  // rowDivider(),
+                                  // GestureDetector(
+                                  //   onTap: () {
+                                  //     Navigator.pushNamed(
+                                  //         context, "/");
+                                  //   },
+                                  //   child: Container(
+                                  //     color: Colors.white,
+                                  //     child: Row(
+                                  //       mainAxisAlignment:
+                                  //           MainAxisAlignment.spaceBetween,
+                                  //       children: <Widget>[
+                                  //         Text('Next Item'),
+                                  //         Icon(Icons.arrow_forward_ios, size: 14),
+                                  //       ],
+                                  //     ),
+                                  //   ),
+                                  // ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        CustomCard(
+                          key: Key("leadUploads"),
+                          title: 'Uploads',
+                          icon: Icons.file_upload,
+                          child: Column(
+                            children: <Widget>[
+                              Column(
+                                children: <Widget>[
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.pushNamed(
+                                          context, "/statementuploads",
+                                          arguments: lead);
+                                    },
+                                    child: Container(
+                                      color: Colors.white,
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: <Widget>[
+                                          Row(
+                                            children: <Widget>[
+                                              statementComplete
+                                                  ? Icon(Icons.done,
+                                                      color: Colors.green)
+                                                  : Text(""),
+                                              statementDirty
+                                                  ? Icon(Icons.error,
+                                                      color: Colors.red)
+                                                  : Text(""),
+                                              Text('Statements'),
+                                            ],
+                                          ),
+                                          Icon(Icons.arrow_forward_ios,
+                                              size: 14),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  // rowDivider(),
+                                  // GestureDetector(
+                                  //   onTap: () {
+                                  //     Navigator.pushNamed(
+                                  //         context, "/");
+                                  //   },
+                                  //   child: Container(
+                                  //     color: Colors.white,
+                                  //     child: Row(
+                                  //       mainAxisAlignment:
+                                  //           MainAxisAlignment.spaceBetween,
+                                  //       children: <Widget>[
+                                  //         Text('Next Item'),
+                                  //         Icon(Icons.arrow_forward_ios, size: 14),
+                                  //       ],
+                                  //     ),
+                                  //   ),
+                                  // ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        // ImageUploader(
+                        //     type: "statement",
+                        //     objectId: lead["lead"],
+                        //     loading: {"loading": isLoading},
+                        //     controller: leadSaveController,
+                        //     dirtyFlag: {"flag": statementDirty},
+                        //     infoDoc: leadDocument),
+                        Padding(
+                            child: Container(),
+                            padding: EdgeInsets.only(bottom: 80))
                       ],
                     ),
                   ),

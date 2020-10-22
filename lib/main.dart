@@ -11,6 +11,7 @@ import 'package:atlascrm/screens/employees/EmployeeMapHistoryScreen.dart';
 import 'package:atlascrm/screens/employees/EmployeeMapScreen.dart';
 import 'package:atlascrm/screens/employees/EmployeesManagementScreen.dart';
 import 'package:atlascrm/screens/employees/ViewEmployeeScreen.dart';
+import 'package:atlascrm/screens/leads/LeadNotes.dart';
 import 'package:atlascrm/screens/leads/LeadsScreen.dart';
 import 'package:atlascrm/screens/leads/ViewLeadScreen.dart';
 import 'package:atlascrm/screens/merchants/MerchantsScreen.dart';
@@ -31,6 +32,7 @@ import 'package:flutter/services.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:atlascrm/services/api.dart';
+import 'package:atlascrm/screens/leads/uploads/StatementUploader.dart';
 
 List<CameraDescription> cameras;
 
@@ -237,7 +239,13 @@ class _AtlasCRMState extends State<AtlasCRM> {
                         "https://demo.docusign.net/Member/PowerFormSigning.aspx?PowerFormId=c04d3d47-c7be-46d5-a10a-471e8c9e531b&env=demo&acct=d805e4d3-b594-4e79-9d49-243e076e75e6&v=2",
                   ),
                 );
-
+                break;
+              case '/statementuploads':
+                return SlideRightRoute(
+                    page: StatementUploader(settings.arguments));
+                break;
+              case '/leadnotes':
+                return SlideRightRoute(page: LeadNotes(settings.arguments));
                 break;
               case '/settings':
                 // return MaterialPageRoute(builder: (context) => SettingsScreen());
