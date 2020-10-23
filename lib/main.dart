@@ -12,6 +12,7 @@ import 'package:atlascrm/screens/employees/EmployeeMapScreen.dart';
 import 'package:atlascrm/screens/employees/EmployeesManagementScreen.dart';
 import 'package:atlascrm/screens/employees/ViewEmployeeScreen.dart';
 import 'package:atlascrm/screens/leads/LeadNotes.dart';
+import 'package:atlascrm/screens/leads/LeadTasks.dart';
 import 'package:atlascrm/screens/leads/LeadsScreen.dart';
 import 'package:atlascrm/screens/leads/ViewLeadScreen.dart';
 import 'package:atlascrm/screens/merchants/MerchantsScreen.dart';
@@ -246,6 +247,9 @@ class _AtlasCRMState extends State<AtlasCRM> {
                 break;
               case '/leadnotes':
                 return SlideRightRoute(page: LeadNotes(settings.arguments));
+                break;
+              case '/leadtasks':
+                return SlideRightRoute(page: LeadTasks(settings.arguments));
                 break;
               case '/settings':
                 // return MaterialPageRoute(builder: (context) => SettingsScreen());

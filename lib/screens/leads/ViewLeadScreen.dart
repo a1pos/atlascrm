@@ -156,6 +156,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
             lead
             document
             employee: employeeByEmployee {
+              employee
               fullName: document(path: "fullName")
             }
           }
@@ -644,11 +645,6 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                           ),
                         ),
                         // CustomCard(
-                        //     key: Key("leads4"),
-                        //     title: "Notes",
-                        //     icon: Icons.note,
-                        //     child: Notes(type: "lead", object: lead["lead"])),
-                        // CustomCard(
                         //   key: Key("leads5"),
                         //   title: "Tools",
                         //   icon: Icons.build,
@@ -686,6 +682,37 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                         //     ],
                         //   ),
                         // ),
+                        CustomCard(
+                          key: Key("leadTasks"),
+                          title: 'Tasks',
+                          icon: Icons.playlist_add_check,
+                          child: Column(
+                            children: <Widget>[
+                              Column(
+                                children: <Widget>[
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.pushNamed(context, "/leadtasks",
+                                          arguments: lead);
+                                    },
+                                    child: Container(
+                                      color: Colors.white,
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: <Widget>[
+                                          Text('Tasks'),
+                                          Icon(Icons.arrow_forward_ios,
+                                              size: 14),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
                         CustomCard(
                           key: Key("leadNotes"),
                           title: 'Notes',
@@ -774,36 +801,11 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                       ),
                                     ),
                                   ),
-                                  // rowDivider(),
-                                  // GestureDetector(
-                                  //   onTap: () {
-                                  //     Navigator.pushNamed(
-                                  //         context, "/");
-                                  //   },
-                                  //   child: Container(
-                                  //     color: Colors.white,
-                                  //     child: Row(
-                                  //       mainAxisAlignment:
-                                  //           MainAxisAlignment.spaceBetween,
-                                  //       children: <Widget>[
-                                  //         Text('Next Item'),
-                                  //         Icon(Icons.arrow_forward_ios, size: 14),
-                                  //       ],
-                                  //     ),
-                                  //   ),
-                                  // ),
                                 ],
                               ),
                             ],
                           ),
                         ),
-                        // ImageUploader(
-                        //     type: "statement",
-                        //     objectId: lead["lead"],
-                        //     loading: {"loading": isLoading},
-                        //     controller: leadSaveController,
-                        //     dirtyFlag: {"flag": statementDirty},
-                        //     infoDoc: leadDocument),
                         Padding(
                             child: Container(),
                             padding: EdgeInsets.only(bottom: 80))

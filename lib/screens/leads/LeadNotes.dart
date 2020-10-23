@@ -1,5 +1,6 @@
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
+import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
@@ -154,7 +155,7 @@ class _LeadNotesState extends State<LeadNotes> {
                         decoration: InputDecoration(
                           focusedBorder: OutlineInputBorder(
                             borderSide: BorderSide(
-                                color: Colors.greenAccent, width: 3.0),
+                                color: UniversalStyles.actionColor, width: 3.0),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderSide:
@@ -202,39 +203,60 @@ class _LeadNotesState extends State<LeadNotes> {
                   children: <Widget>[
                     !notesEmpty
                         ? Expanded(
-                            child: ListView(
-                              reverse: true,
-                              controller: _scrollController,
-                              shrinkWrap: true,
-                              children: notesDisplay = notes.map((note) {
-                                var utcDate =
-                                    DateTime.parse(note["created_at"]);
-                                var utcDatetime = DateTime.utc(
-                                    utcDate.year,
-                                    utcDate.month,
-                                    utcDate.day,
-                                    utcDate.hour,
-                                    utcDate.minute,
-                                    utcDate.second);
-                                var localDate = utcDatetime.toLocal();
+                            child: Padding(
+                              padding: EdgeInsets.only(
+                                  bottom: MediaQuery.of(context)
+                                              .viewInsets
+                                              .bottom ==
+                                          0
+                                      ? 0
+                                      : 70.0),
+                              child: Scrollbar(
+                                controller: _scrollController,
+                                isAlwaysShown: true,
+                                child: ListView(
+                                  reverse: true,
+                                  controller: _scrollController,
+                                  shrinkWrap: true,
+                                  children: notesDisplay = notes.map((note) {
+                                    var utcDate =
+                                        DateTime.parse(note["created_at"]);
+                                    var utcDatetime = DateTime.utc(
+                                        utcDate.year,
+                                        utcDate.month,
+                                        utcDate.day,
+                                        utcDate.hour,
+                                        utcDate.minute,
+                                        utcDate.second);
+                                    var localDate = utcDatetime.toLocal();
 
-                                var viewDate = DateFormat("MM-dd-yyyy,")
-                                    .add_jm()
-                                    .format(localDate);
-                                return Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Card(
-                                      child: Container(
-                                          child: ListTile(
-                                              title: note["note_text"] != null
-                                                  ? Text(note["note_text"])
-                                                  : Text(""),
-                                              subtitle: Text(viewDate,
-                                                  style: TextStyle(
-                                                      color: Colors.grey,
-                                                      fontSize: 10))))),
-                                );
-                              }).toList(),
+                                    var viewDate = DateFormat("MM-dd-yyyy,")
+                                        .add_jm()
+                                        .format(localDate);
+                                    return Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Card(
+                                          elevation: 2,
+                                          shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(15.0)),
+                                          child: Container(
+                                              child: ListTile(
+                                                  title: note["note_text"] !=
+                                                          null
+                                                      ? Text(note["note_text"],
+                                                          style: TextStyle(
+                                                              fontSize: 18))
+                                                      : Text(""),
+                                                  subtitle: Text(viewDate,
+                                                      style: TextStyle(
+                                                          color: UniversalStyles
+                                                              .actionColor,
+                                                          fontSize: 11))))),
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
                             ),
                           )
                         : Empty("no notes"),

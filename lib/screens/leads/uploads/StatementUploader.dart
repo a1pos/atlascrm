@@ -1,8 +1,5 @@
-import 'package:atlascrm/components/shared/PlacesSuggestions.dart';
-import 'package:atlascrm/components/shared/SlideRightRoute.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/config/ConfigSettings.dart';
-import 'package:atlascrm/screens/leads/ViewLeadScreen.dart';
 import 'package:atlascrm/services/api.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +8,6 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:multi_image_picker/multi_image_picker.dart';
@@ -23,7 +19,6 @@ import 'package:photo_view/photo_view_gallery.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:http/http.dart' as http;
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
-import 'package:http_parser/http_parser.dart';
 import 'package:atlascrm/services/ApiService.dart';
 
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
@@ -108,145 +103,6 @@ class _StatementUploaderState extends State<StatementUploader> {
     }
   }
 
-  Future<void> dirtyCheck() async {
-    if (imageDLList.length < 0) {}
-  }
-
-  void openImageUpload() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Upload a Statement'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text('Take a new picture, upload from gallery, or upload PDF?'),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            MaterialButton(
-              padding: EdgeInsets.all(5),
-              color: UniversalStyles.actionColor,
-              onPressed: () async {
-                Navigator.pop(context);
-                var result = await platform.invokeMethod("openCamera");
-                addImage(result);
-              },
-              child: Row(
-                children: <Widget>[
-                  Icon(
-                    Icons.add_a_photo,
-                    color: Colors.white,
-                  ),
-                  Text(
-                    'Take Picture',
-                    style: TextStyle(
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            MaterialButton(
-              padding: EdgeInsets.all(5),
-              color: UniversalStyles.actionColor,
-              onPressed: () async {
-                var result = await platform.invokeMethod("openMedia");
-                addImage(result);
-              },
-              child: Row(
-                children: <Widget>[
-                  Icon(
-                    Icons.collections,
-                    color: Colors.white,
-                  ),
-                  Text(
-                    'Gallery',
-                    style: TextStyle(
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            MaterialButton(
-              padding: EdgeInsets.all(5),
-              color: UniversalStyles.actionColor,
-              onPressed: () async {
-                var result = await FilePicker.getFilePath(
-                    type: FileType.custom, allowedExtensions: ['pdf']);
-                addImage(result);
-              },
-              child: Row(
-                children: <Widget>[
-                  Icon(
-                    Icons.insert_drive_file,
-                    color: Colors.white,
-                  ),
-                  Text(
-                    'PDF',
-                    style: TextStyle(
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> submitCheck() async {
-    if (uploadsComplete || imageDLList.length == 0) {
-      return;
-    } else {
-      setState(() {
-        dirtyFlag = false;
-      });
-      uploadComplete();
-
-      // return showDialog<void>(
-      //   context: context,
-      //   builder: (BuildContext context) {
-      //     return AlertDialog(
-      //       title: Text('Submit Statement?'),
-      //       content: SingleChildScrollView(
-      //         child: ListBody(
-      //           children: <Widget>[
-      //             Text('This will submit your statement to be reviewed. '),
-      //             Padding(
-      //               padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
-      //               child: Text(
-      //                   'After this statement is submitted you cannot add any more files to it.'),
-      //             ),
-      //           ],
-      //         ),
-      //       ),
-      //       actions: <Widget>[
-      //         FlatButton(
-      //           child: Text('Submit', style: TextStyle(fontSize: 17)),
-      //           onPressed: () {
-      //             uploadComplete();
-      //             Navigator.pop(context);
-      //           },
-      //         ),
-      //         FlatButton(
-      //           child: Text('Cancel', style: TextStyle(color: Colors.red)),
-      //           onPressed: () {
-      //             Navigator.of(context).pop();
-      //           },
-      //         ),
-      //       ],
-      //     );
-      //   },
-      // );
-    }
-  }
-
   Future<void> leaveCheck() async {
     if (!uploadsComplete && imageDLList.length > 0) {
       return showDialog<void>(
@@ -270,8 +126,8 @@ class _StatementUploaderState extends State<StatementUploader> {
               FlatButton(
                 child: Text('Submit', style: TextStyle(fontSize: 17)),
                 onPressed: () {
-                  uploadComplete();
                   Navigator.pop(context);
+                  uploadComplete();
                 },
               ),
               FlatButton(
@@ -287,7 +143,8 @@ class _StatementUploaderState extends State<StatementUploader> {
         },
       );
     } else {
-      Navigator.pop(context);
+      Navigator.pushNamed(context, "/viewlead", arguments: lead["lead"]);
+      // Navigator.pop(context);
       return;
     }
   }
@@ -330,48 +187,8 @@ class _StatementUploaderState extends State<StatementUploader> {
               ),
               body: Center(
                   child: Column(children: <Widget>[
-                Expanded(child: buildPhotoGallery(context, imgIndex)
-
-                    // PhotoView(imageProvider: NetworkImage(asset["url"])),
-                    )
+                Expanded(child: buildPhotoGallery(context, imgIndex))
               ])));
-          // return AlertDialog(
-          //   title: Text('View Statement'),
-          //   content: SingleChildScrollView(
-          //     child: ListBody(
-          //       children: <Widget>[
-          //         Container(
-          //             child:
-          //                 PhotoView(imageProvider: NetworkImage(asset["url"])))
-          //       ],
-          //     ),
-          //   ),
-          //   actions: <Widget>[
-          //     MaterialButton(
-          //       padding: EdgeInsets.all(5),
-          //       color: Colors.red,
-          //       // color: Colors.grey[300],
-          //       onPressed: () {
-          //         Navigator.pop(context);
-          //         deleteCheck(asset);
-          //       },
-          //       child: Row(
-          //         children: <Widget>[
-          //           Icon(
-          //             Icons.clear,
-          //             color: Colors.white,
-          //           ),
-          //           Text(
-          //             'Delete',
-          //             style: TextStyle(
-          //               color: Colors.white,
-          //             ),
-          //           ),
-          //         ],
-          //       ),
-          //     ),
-          //   ],
-          // );
         });
   }
 
@@ -680,10 +497,9 @@ class _StatementUploaderState extends State<StatementUploader> {
         }
         """), variables: {
         "to": [
-          "joe.pounds@a1pos.com"
-          // "jerrod.lumley@a1pos.com",
-          // "john.deluga@butlerbizsys.com",
-          // "ahrindo@gmail.com"
+          "jerrod.lumley@a1pos.com",
+          "john.deluga@butlerbizsys.com",
+          "ahrindo@gmail.com"
         ],
         "subject":
             "New Statement For Review: ${this.widget.lead["document"]["businessName"]} - ${this.widget.lead["document"]["address"]}",
@@ -737,6 +553,7 @@ class _StatementUploaderState extends State<StatementUploader> {
           path);
       if (resp.statusCode == 200) {
         setState(() {
+          statementId = resp.data["statement"];
           dirtyFlag = true;
         });
         // await loadLeadData(this.widget.leadId);
@@ -785,18 +602,6 @@ class _StatementUploaderState extends State<StatementUploader> {
               : Column(
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    // RawMaterialButton(
-                    //   onPressed: () {},
-                    //   elevation: 2.0,
-                    //   fillColor: UniversalStyles.actionColor,
-                    //   child: Icon(
-                    //     Icons.pause,
-                    //     color: Colors.white,
-                    //     size: 50.0,
-                    //   ),
-                    //   padding: EdgeInsets.all(15.0),
-                    //   shape: CircleBorder(),
-                    // ),
                     Padding(
                       padding: const EdgeInsets.only(top: 0),
                       child: Row(

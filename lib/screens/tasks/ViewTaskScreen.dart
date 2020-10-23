@@ -210,8 +210,8 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
                   backgroundColor: Colors.grey[600],
                   textColor: Colors.white,
                   fontSize: 16.0);
-
-          Navigator.pushNamed(context, "/tasks");
+          Navigator.pop(context);
+          // Navigator.pushNamed(context, "/tasks");
         }
       } else {
         throw new Error();
