@@ -43,7 +43,7 @@ class _MerchantDropDownState extends State<MerchantDropDown> {
             document
           }
         }
-      """));
+      """), fetchPolicy: FetchPolicy.networkOnly);
 
     final QueryResult result = await authGqlQuery(options);
 
@@ -59,8 +59,7 @@ class _MerchantDropDownState extends State<MerchantDropDown> {
         }
         for (var merchant in merchants) {
           if (this.widget.value == merchant["merchant"]) {
-            startVal = merchant["document"]["ApplicationInformation"]["MpaInfo"]
-                ["ClientDbaName"];
+            startVal = merchant["document"]["leadDocument"]["businessName"];
           }
         }
       }
@@ -94,11 +93,10 @@ class _MerchantDropDownState extends State<MerchantDropDown> {
           // menuConstraints: BoxConstraints.tight(Size.fromHeight(350)),
           items: merchants.map<DropdownMenuItem<String>>((dynamic item) {
             var merchantName;
-            if (item["document"]?.isEmpty ?? true) {
+            if (item["document"]["leadDocument"]?.isEmpty ?? true) {
               merchantName = "";
             } else {
-              merchantName = item["document"]["ApplicationInformation"]
-                  ["MpaInfo"]["ClientDbaName"];
+              merchantName = item["document"]["leadDocument"]["businessName"];
             }
             return DropdownMenuItem<String>(
               value: merchantName,
@@ -114,9 +112,17 @@ class _MerchantDropDownState extends State<MerchantDropDown> {
                   setState(() {
                     var setVal;
                     for (var merchant in merchants) {
-                      if (newValue ==
-                          merchant["document"]["ApplicationInformation"]
-                              ["MpaInfo"]["ClientDbaName"]) {
+                      var merchantBusinessName;
+                      if (merchant["document"]["leadDocument"] != null) {
+                        merchantBusinessName = merchant["document"]
+                            ["leadDocument"]["businessName"];
+                      } else if (merchant["document"]["businessName"] != null) {
+                        merchantBusinessName =
+                            merchant["document"]["businessName"];
+                      } else {
+                        merchantBusinessName = "";
+                      }
+                      if (newValue == merchantBusinessName) {
                         setVal = merchant["merchant"];
                       }
                     }

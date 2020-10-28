@@ -233,8 +233,8 @@ class _TaskScreenState extends State<TaskScreen> {
         isLoading = false;
 
         Fluttertoast.showToast(
-            msg: "Failed to load tasks for employee!",
-            toastLength: Toast.LENGTH_SHORT,
+            msg: error.toString(),
+            toastLength: Toast.LENGTH_LONG,
             gravity: ToastGravity.BOTTOM,
             backgroundColor: Colors.grey[600],
             textColor: Colors.white,
@@ -471,17 +471,21 @@ class _TaskScreenState extends State<TaskScreen> {
                                     children: <Widget>[
                                       Expanded(
                                         flex: 8,
-                                        child: LeadDropDown(
-                                          employeeId: UserService.isAdmin
-                                              ? employeeDropdownValue
-                                              : UserService.employee.employee,
-                                          value: leadDropdownValue,
-                                          callback: (val) {
-                                            setState(() {
-                                              leadDropdownValue = val;
-                                            });
-                                          },
-                                        ),
+                                        child: UserService.isAdmin &&
+                                                employeeDropdownValue == null
+                                            ? Container()
+                                            : LeadDropDown(
+                                                employeeId: UserService.isAdmin
+                                                    ? employeeDropdownValue
+                                                    : UserService
+                                                        .employee.employee,
+                                                value: leadDropdownValue,
+                                                callback: (val) {
+                                                  setState(() {
+                                                    leadDropdownValue = val;
+                                                  });
+                                                },
+                                              ),
                                       ),
                                       // Expanded(
                                       //   flex: 2,

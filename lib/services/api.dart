@@ -1,9 +1,9 @@
-import 'package:flutter/foundation.dart';
+import 'package:atlascrm/config/ConfigSettings.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'UserService.dart';
 
 HttpLink _httpLink = HttpLink(
-  uri: "https://busy-buzzard-29.hasura.app/v1/graphql",
+  uri: ConfigSettings.HASURA_URL,
 );
 
 InMemoryCache cache = InMemoryCache();
@@ -51,7 +51,7 @@ void setPrivateGraphQLClient(token) async {
   );
 
   WebSocketLink _wsLink = WebSocketLink(
-      url: "wss://busy-buzzard-29.hasura.app/v1/graphql",
+      url: ConfigSettings.HASURA_WEBSOCKET,
       config: SocketClientConfig(
         autoReconnect: true,
         inactivityTimeout: Duration(seconds: 30),

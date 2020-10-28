@@ -104,35 +104,44 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
             """), fetchPolicy: FetchPolicy.networkOnly);
 
     final QueryResult result = await authGqlQuery(options);
+    if (result.hasException == false) {
+      var body = result.data["task_by_pk"];
+      if (body != null) {
+        var bodyDecoded = body;
 
-    var body = result.data["task_by_pk"];
-    if (body != null) {
-      var bodyDecoded = body;
+        if (bodyDecoded["date"] != null) {
+          initDate = DateTime.parse(bodyDecoded["date"]);
+          initTime = TimeOfDay.fromDateTime(initDate);
+          viewDate = DateFormat("yyyy-MM-dd HH:mm").format(initDate);
+          setState(() {
+            taskDateController.text = viewDate;
+          });
+        } else {
+          initDate = DateTime.now();
+          initTime = TimeOfDay.fromDateTime(initDate);
+        }
 
-      if (bodyDecoded["date"] != null) {
-        initDate = DateTime.parse(bodyDecoded["date"]);
-        initTime = TimeOfDay.fromDateTime(initDate);
-        viewDate = DateFormat("yyyy-MM-dd HH:mm").format(initDate);
         setState(() {
-          taskDateController.text = viewDate;
+          task = bodyDecoded;
+          taskTypeDropdownValue = bodyDecoded["task_type"];
+          employeeDropdownValue = bodyDecoded["employee"];
+          taskPriorityDropdownValue = bodyDecoded["priority"].toString();
+          taskTitleController.text = bodyDecoded["document"]["title"];
+          taskTitleController.addListener(changeButton);
+          taskDateController.addListener(changeButton);
+          taskDescController.text = bodyDecoded["document"]["notes"];
+          taskDescController.addListener(changeButton);
+          leadDropdownValue = bodyDecoded["lead"];
         });
-      } else {
-        initDate = DateTime.now();
-        initTime = TimeOfDay.fromDateTime(initDate);
       }
-
-      setState(() {
-        task = bodyDecoded;
-        taskTypeDropdownValue = bodyDecoded["task_type"];
-        employeeDropdownValue = bodyDecoded["employee"];
-        taskPriorityDropdownValue = bodyDecoded["priority"].toString();
-        taskTitleController.text = bodyDecoded["document"]["title"];
-        taskTitleController.addListener(changeButton);
-        taskDateController.addListener(changeButton);
-        taskDescController.text = bodyDecoded["document"]["notes"];
-        taskDescController.addListener(changeButton);
-        leadDropdownValue = bodyDecoded["lead"];
-      });
+    } else {
+      Fluttertoast.showToast(
+          msg: result.exception.toString(),
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0);
     }
 
     setState(() {
@@ -214,17 +223,17 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
           // Navigator.pushNamed(context, "/tasks");
         }
       } else {
+        Fluttertoast.showToast(
+            msg: result.exception.toString(),
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0);
         throw new Error();
       }
     } catch (err) {
       print(err);
-      Fluttertoast.showToast(
-          msg: "Failed to update task for employee!",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.grey[600],
-          textColor: Colors.white,
-          fontSize: 16.0);
     }
   }
 

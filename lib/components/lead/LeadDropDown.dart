@@ -56,7 +56,7 @@ class _LeadDropDownState extends State<LeadDropDown> {
       //       """), fetchPolicy: FetchPolicy.networkOnly);
     } else {
       options = QueryOptions(documentNode: gql("""
-            query EmployeeLeads {
+            query EMPLOYEE_LEADS {
               employee_by_pk(employee: "${this.widget.employeeId}") {
                 leads {
                   lead
@@ -64,28 +64,29 @@ class _LeadDropDownState extends State<LeadDropDown> {
                 }
               }
             }
-            """), fetchPolicy: FetchPolicy.networkOnly);
+            """));
     }
-
-    final QueryResult result = await authGqlQuery(options);
-    var leadsArrDecoded;
-    if (result != null) {
-      if (result.hasException == false) {
-        if (this.widget.employeeId == null) {
-          leadsArrDecoded = result.data["lead"];
-        } else {
-          leadsArrDecoded = result.data["employee_by_pk"]["leads"];
-        }
-        if (leadsArrDecoded != null) {
-          if (this.mounted) {
-            setState(() {
-              leads = leadsArrDecoded;
-            });
+    if (this.widget.employeeId != null) {
+      final QueryResult result = await authGqlQuery(options);
+      var leadsArrDecoded;
+      if (result != null) {
+        if (result.hasException == false) {
+          if (this.widget.employeeId == null) {
+            leadsArrDecoded = result.data["lead"];
+          } else {
+            leadsArrDecoded = result.data["employee_by_pk"]["leads"];
           }
-        }
-        for (var lead in leads) {
-          if (this.widget.value == lead["lead"]) {
-            startVal = lead["document"]["businessName"];
+          if (leadsArrDecoded != null) {
+            if (this.mounted) {
+              setState(() {
+                leads = leadsArrDecoded;
+              });
+            }
+          }
+          for (var lead in leads) {
+            if (this.widget.value == lead["lead"]) {
+              startVal = lead["document"]["businessName"];
+            }
           }
         }
       }
@@ -99,7 +100,6 @@ class _LeadDropDownState extends State<LeadDropDown> {
 
   @override
   Widget build(BuildContext context) {
-    initLeads();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
