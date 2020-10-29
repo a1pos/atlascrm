@@ -85,38 +85,49 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
           merchantDocument = bodyDecoded["document"];
           firstNameController.text = merchantDocument["firstName"];
         });
-        if (merchant['document']['ApplicationInformation']['MpaOutletInfo']
-                    ['Outlet']['BusinessInfo']['LocationAddress1'] !=
-                null &&
-            merchant['document']['ApplicationInformation']['MpaOutletInfo']
-                    ['Outlet']['BusinessInfo']['LocationAddress1'] !=
-                "") {
-          merchantLocation = merchant['document']['ApplicationInformation']
-                      ['MpaOutletInfo']['Outlet']['BusinessInfo']
-                  ['LocationAddress1'] +
+
+        if (merchantDocument["leadDocument"]["address"] != null) {
+          merchantLocation = merchantDocument["leadDocument"]["address"] +
               ", " +
+              merchantDocument["leadDocument"]["city"] +
+              ", " +
+              merchantDocument["leadDocument"]["state"] +
+              ", " +
+              merchantDocument["leadDocument"]["zipCode"];
+        } else {
+          if (merchant['document']['ApplicationInformation']['MpaOutletInfo']
+                      ['Outlet']['BusinessInfo']['LocationAddress1'] !=
+                  null &&
               merchant['document']['ApplicationInformation']['MpaOutletInfo']
-                  ['Outlet']['BusinessInfo']['City'] +
-              ", " +
-              merchant['document']['ApplicationInformation']['MpaOutletInfo']
-                  ['Outlet']['BusinessInfo']['State'] +
-              ", " +
-              merchant['document']['ApplicationInformation']['MpaOutletInfo']
-                  ['Outlet']['BusinessInfo']['First5Zip'];
-        } else if (merchant['document']['ApplicationInformation']
-                ["CorporateInfo"]['Address1'] !=
-            null) {
-          merchantLocation = merchant['document']['ApplicationInformation']
-                  ["CorporateInfo"]['Address1'] +
-              ", " +
-              merchant['document']['ApplicationInformation']["CorporateInfo"]
-                  ['City'] +
-              ", " +
-              merchant['document']['ApplicationInformation']["CorporateInfo"]
-                  ['State'] +
-              ", " +
-              merchant['document']['ApplicationInformation']["CorporateInfo"]
-                  ['First5Zip'];
+                      ['Outlet']['BusinessInfo']['LocationAddress1'] !=
+                  "") {
+            merchantLocation = merchant['document']['ApplicationInformation']
+                        ['MpaOutletInfo']['Outlet']['BusinessInfo']
+                    ['LocationAddress1'] +
+                ", " +
+                merchant['document']['ApplicationInformation']['MpaOutletInfo']
+                    ['Outlet']['BusinessInfo']['City'] +
+                ", " +
+                merchant['document']['ApplicationInformation']['MpaOutletInfo']
+                    ['Outlet']['BusinessInfo']['State'] +
+                ", " +
+                merchant['document']['ApplicationInformation']['MpaOutletInfo']
+                    ['Outlet']['BusinessInfo']['First5Zip'];
+          } else if (merchant['document']['ApplicationInformation']
+                  ["CorporateInfo"]['Address1'] !=
+              null) {
+            merchantLocation = merchant['document']['ApplicationInformation']
+                    ["CorporateInfo"]['Address1'] +
+                ", " +
+                merchant['document']['ApplicationInformation']["CorporateInfo"]
+                    ['City'] +
+                ", " +
+                merchant['document']['ApplicationInformation']["CorporateInfo"]
+                    ['State'] +
+                ", " +
+                merchant['document']['ApplicationInformation']["CorporateInfo"]
+                    ['First5Zip'];
+          }
         }
       }
     }
@@ -170,22 +181,22 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
     );
   }
 
-  Future<void> updateMerchant(merchantId) async {
-    String rawNumber = phoneNumberController.text;
-    var filteredNumber = rawNumber.replaceAll(RegExp("[^0-9]"), "");
-    var merchantToUpdate = {
-      "dbaName": dbaController.text,
-      "businessType": "",
-      "firstName": firstNameController.text,
-      "lastName": lastNameController.text,
-      "emailAddr": emailAddrController.text,
-      "phoneNumber": filteredNumber,
-      "address": businessAddress["address"],
-      "city": businessAddress["city"],
-      "state": businessAddress["state"],
-      "zipCode": businessAddress["zipcode"],
-    };
-  }
+  // Future<void> updateMerchant(merchantId) async {
+  //   String rawNumber = phoneNumberController.text;
+  //   var filteredNumber = rawNumber.replaceAll(RegExp("[^0-9]"), "");
+  //   var merchantToUpdate = {
+  //     "dbaName": dbaController.text,
+  //     "businessType": "",
+  //     "firstName": firstNameController.text,
+  //     "lastName": lastNameController.text,
+  //     "emailAddr": emailAddrController.text,
+  //     "phoneNumber": filteredNumber,
+  //     "address": businessAddress["address"],
+  //     "city": businessAddress["city"],
+  //     "state": businessAddress["state"],
+  //     "zipCode": businessAddress["zipcode"],
+  //   };
+  // }
 
   Widget buildList() {
     return ListView(
@@ -231,8 +242,7 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
           key: Key("viewTasksAppBar"),
           title: Text(isLoading
               ? "Loading..."
-              : merchantDocument["ApplicationInformation"]["MpaInfo"]
-                  ["ClientDbaName"]),
+              : merchantDocument["leadDocument"]["businessName"]),
         ),
         body: isLoading
             ? CenteredClearLoadingScreen()
@@ -252,20 +262,16 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                             children: <Widget>[
                               showInfoRow(
                                 "Address",
-                                merchantDocument["ApplicationInformation"]
-                                        ["CorporateInfo"]["Address1"] +
-                                    ", ${merchantDocument["ApplicationInformation"]["CorporateInfo"]["City"]}, ${merchantDocument["ApplicationInformation"]["CorporateInfo"]["State"]}, ${merchantDocument["ApplicationInformation"]["CorporateInfo"]["First5Zip"]}",
+                                merchantLocation,
                               ),
                               showInfoRow(
                                   "Email",
-                                  merchantDocument["ApplicationInformation"]
-                                          ["MpaOutletInfo"]["Outlet"]
-                                      ["BusinessInfo"]["BusinessEmailAddress"]),
+                                  merchantDocument["leadDocument"]
+                                      ["emailAddr"]),
                               showInfoRow(
                                   "Phone",
-                                  merchantDocument["ApplicationInformation"]
-                                          ["MpaOutletInfo"]["Outlet"]
-                                      ["BusinessInfo"]["LocationPhone"]),
+                                  merchantDocument["leadDocument"]
+                                      ["phoneNumber"]),
                               Divider(),
                               Wrap(
                                 alignment: WrapAlignment.center,
@@ -286,22 +292,14 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                         ],
                                       ),
                                       onPressed: () {
-                                        if (merchantDocument["ApplicationInformation"]
-                                                                ["MpaOutletInfo"]
-                                                            ["Outlet"]
-                                                        ["BusinessInfo"]
-                                                    ["BusinessEmailAddress"] !=
+                                        if (merchantDocument["leadDocument"]
+                                                    ["emailAddr"] !=
                                                 null &&
-                                            merchantDocument["ApplicationInformation"]
-                                                                [
-                                                                "MpaOutletInfo"]
-                                                            [
-                                                            "Outlet"]
-                                                        ["BusinessInfo"]
-                                                    ["BusinessEmailAddress"] !=
+                                            merchantDocument["leadDocument"]
+                                                    ["emailAddr"] !=
                                                 "") {
                                           var launchURL1 =
-                                              'mailto:${merchantDocument["ApplicationInformation"]["MpaOutletInfo"]["Outlet"]["BusinessInfo"]["BusinessEmailAddress"]}?subject=Followup about ${merchantDocument["ApplicationInformation"]["MpaInfo"]["ClientDbaName"]}';
+                                              'mailto:${merchantDocument["leadDocument"]["emailAddr"]}?subject=Followup about ${merchantDocument["leadDocument"]["businessName"]}';
                                           launch(launchURL1);
                                         } else {
                                           Fluttertoast.showToast(
@@ -329,22 +327,14 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                         ],
                                       ),
                                       onPressed: () {
-                                        if (merchantDocument["ApplicationInformation"]
-                                                                ["MpaOutletInfo"]
-                                                            ["Outlet"]
-                                                        ["BusinessInfo"]
-                                                    ["LocationPhone"] !=
+                                        if (merchantDocument["leadDocument"]
+                                                    ["phoneNumber"] !=
                                                 null &&
-                                            merchantDocument["ApplicationInformation"]
-                                                                [
-                                                                "MpaOutletInfo"]
-                                                            [
-                                                            "Outlet"]
-                                                        ["BusinessInfo"]
-                                                    ["LocationPhone"] !=
+                                            merchantDocument["leadDocument"]
+                                                    ["phoneNumber"] !=
                                                 "") {
                                           var launchURL2 =
-                                              'tel:${merchantDocument["ApplicationInformation"]["MpaOutletInfo"]["Outlet"]["BusinessInfo"]["LocationPhone"]}';
+                                              'tel:${merchantDocument["leadDocument"]["phoneNumber"]}';
                                           launch(launchURL2);
                                         } else {
                                           Fluttertoast.showToast(
