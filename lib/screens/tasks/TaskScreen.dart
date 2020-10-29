@@ -191,7 +191,7 @@ class _TaskScreenState extends State<TaskScreen> {
         Operation(operationName: "EMPLOYEE_TASKS", documentNode: gql("""
           subscription EMPLOYEE_TASKS(\$employee: uuid!) {
             employee_by_pk(employee: \$employee) {
-              tasks(where: {taskStatusByTaskStatus: {title: {_eq: "Open"}}}) {
+              tasks(where: {taskStatusByTaskStatus: {title: {_eq: "Open"}}}, order_by: {date: asc}) {
                 task
                 taskTypeByTaskType {
                   task_type
@@ -210,7 +210,7 @@ class _TaskScreenState extends State<TaskScreen> {
               }
             }
           }
-            """), variables: {"employee": "${UserService.employee.employee}"});
+        """), variables: {"employee": "${UserService.employee.employee}"});
 
     var result = await authGqlSubscribe(options);
     result.listen(

@@ -3,13 +3,11 @@ import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CustomDrawer.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/screens/dashboard/widgets/LeadsChart.dart';
+import 'package:atlascrm/screens/dashboard/widgets/SalesLeaderboardCards.dart';
 import 'package:atlascrm/screens/dashboard/widgets/SalesLeaderboardChart.dart';
-import 'package:atlascrm/screens/dashboard/widgets/StatementsChart.dart';
 import 'package:atlascrm/screens/dashboard/widgets/Tasks.dart';
-import 'package:atlascrm/screens/dashboard/widgets/WeeklyCallsChart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 
 class DashboardScreen extends StatefulWidget {
   @override
@@ -23,9 +21,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     {"text": "This Week", "value": "leadcountweek"},
     {"text": "All Time", "value": "leadcount"}
   ];
-
   var statsData = [];
   bool isLoading = true;
+  bool cardView = true;
   @override
   void initState() {
     super.initState();
@@ -52,15 +50,110 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: <Widget>[
               Column(
                 children: <Widget>[
-                  CustomCard(
-                    key: Key("dashboardLeaderboard"),
-                    title: "Sales Leaderboard",
-                    icon: Icons.attach_money,
-                    child: Container(
-                      height: 300,
-                      child: SalesLeaderboardChart(),
-                    ),
-                  ),
+                  cardView
+                      ? Container(
+                          key: Key("dashboardLeaderboardCards"),
+                          margin: EdgeInsets.fromLTRB(0, 10, 0, 10),
+                          child: Card(
+                            elevation: 3,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15.0),
+                            ),
+                            child: Column(
+                              children: <Widget>[
+                                ListTile(
+                                  leading: Icon(
+                                    Icons.attach_money,
+                                    size: 25,
+                                    color: Colors.black,
+                                  ),
+                                  title: Text(
+                                    "Sales Leaderboard",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 22,
+                                    ),
+                                  ),
+                                  // trailing: IconButton(
+                                  //   icon: Icon(
+                                  //     Icons.equalizer,
+                                  //     color: UniversalStyles.actionColor,
+                                  //   ),
+                                  //   onPressed: () {
+                                  //     setState(() {
+                                  //       cardView = false;
+                                  //     });
+                                  //   },
+                                  // )
+                                ),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      width: 0.1,
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                    padding: EdgeInsets.all(15),
+                                    child: Container(
+                                      height: 370,
+                                      child: SalesLeaderboardCards(),
+                                    ))
+                              ],
+                            ),
+                          ),
+                        )
+                      : Container(
+                          key: Key("dashboardLeaderboardCards"),
+                          margin: EdgeInsets.fromLTRB(0, 10, 0, 10),
+                          child: Card(
+                            elevation: 3,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15.0),
+                            ),
+                            child: Column(
+                              children: <Widget>[
+                                ListTile(
+                                  leading: Icon(
+                                    Icons.attach_money,
+                                    size: 25,
+                                    color: Colors.black,
+                                  ),
+                                  title: Text(
+                                    "Sales Leaderboard",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 22,
+                                    ),
+                                  ),
+                                  trailing: Icon(
+                                    Icons.account_box,
+                                    color: UniversalStyles.actionColor,
+                                  ),
+                                  onTap: () {
+                                    setState(() {
+                                      cardView = true;
+                                    });
+                                  },
+                                ),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      width: 0.1,
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                    padding: EdgeInsets.all(15),
+                                    child: Container(
+                                      height: 370,
+                                      child: SalesLeaderboardChart(),
+                                    ))
+                              ],
+                            ),
+                          ),
+                        ),
+
                   CustomCard(
                     key: Key("dashboardTasks"),
                     title: "Tasks",

@@ -31,7 +31,7 @@ class _TasksState extends State<Tasks> {
         Operation(operationName: "EMPLOYEE_TASKS", documentNode: gql("""
           subscription EMPLOYEE_TASKS(\$employee: uuid!) {
             employee_by_pk(employee: \$employee) {
-              tasks (where: {taskStatusByTaskStatus: {title: {_eq: "Open"}}}){
+              tasks(where: {taskStatusByTaskStatus: {title: {_eq: "Open"}}}, order_by: {date: asc}) {
                 task
                 taskTypeByTaskType {
                   task_type

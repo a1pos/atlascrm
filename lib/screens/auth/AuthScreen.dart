@@ -149,7 +149,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                           child: Text(
                                             'Sign in with Google',
                                             style: TextStyle(
-                                              fontSize: 20,
+                                              fontSize: 16,
                                               color: Colors.black,
                                             ),
                                           ),

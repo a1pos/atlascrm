@@ -135,7 +135,7 @@ class _LeadTasksState extends State<LeadTasks> {
     Operation options =
         Operation(operationName: "LEAD_TASKS", documentNode: gql("""
           subscription LEAD_TASKS (\$lead: uuid!){
-            task(where: {lead: {_eq: \$lead}, _and: {taskStatusByTaskStatus: {title: {_eq: "Open"}}}}) {
+            task(where: {lead: {_eq: \$lead}, _and: {taskStatusByTaskStatus: {title: {_eq: "Open"}}}}, order_by: {date: asc}) {
               task
               taskTypeByTaskType {
                 task_type
