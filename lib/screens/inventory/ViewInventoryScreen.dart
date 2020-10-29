@@ -151,9 +151,9 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
           if (inventory["merchantByMerchant"] != null) {
             merchantController.text =
                 inventory["merchantByMerchant"]["merchant"];
+
             merchantNameController.text = inventory["merchantByMerchant"]
-                    ["document"]["ApplicationInformation"]["MpaInfo"]
-                ["ClientDbaName"];
+                ["document"]["leadDocument"]["businessName"];
           } else {
             merchantController.text = null;
             merchantNameController.text = null;
@@ -224,7 +224,9 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
     if (type == "return") {
       data["id"] = null;
       setState(() {
+        merchantNameController.text = "";
         idController.text = "";
+        employee = "";
       });
     } else {
       data["id"] = idController.text;
