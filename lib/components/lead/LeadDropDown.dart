@@ -64,7 +64,7 @@ class _LeadDropDownState extends State<LeadDropDown> {
                 }
               }
             }
-            """));
+            """), fetchPolicy: FetchPolicy.networkOnly);
     }
     if (this.widget.employeeId != null) {
       final QueryResult result = await authGqlQuery(options);
