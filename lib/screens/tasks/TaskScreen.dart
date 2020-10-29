@@ -67,7 +67,7 @@ class _TaskScreenState extends State<TaskScreen> {
       _calendarEvents = {};
       for (var item in tasks) {
         if (item["date"] != null) {
-          var itemDate = DateTime.parse(item["date"]);
+          var itemDate = DateTime.parse(item["date"]).toLocal();
           itemDate = DateTime(
               itemDate.year, itemDate.month, itemDate.day, 12, 0, 0, 0, 0);
           if (_calendarEvents[itemDate] == null) {
@@ -188,8 +188,8 @@ class _TaskScreenState extends State<TaskScreen> {
 
   Future<void> initTasks() async {
     Operation options =
-        Operation(operationName: "EmployeeTasks", documentNode: gql("""
-          subscription EmployeeTasks(\$employee: uuid!) {
+        Operation(operationName: "EMPLOYEE_TASKS", documentNode: gql("""
+          subscription EMPLOYEE_TASKS(\$employee: uuid!) {
             employee_by_pk(employee: \$employee) {
               tasks(where: {taskStatusByTaskStatus: {title: {_eq: "Open"}}}) {
                 task
@@ -298,6 +298,8 @@ class _TaskScreenState extends State<TaskScreen> {
       print(new Error());
       throw new Error();
     }
+    var saveDate = DateTime.parse(taskDateController.text).toUtc();
+    var saveDateFormat = DateFormat("yyyy-MM-dd HH:mm").format(saveDate);
 
     // var timeNow = DateFormat("yyyy-MM-dd HH:mm").format(DateTime.now());
 
@@ -311,7 +313,7 @@ class _TaskScreenState extends State<TaskScreen> {
         "notes": taskDescController.text,
         "title": taskTitleController.text,
       },
-      "date": taskDateController.text
+      "date": saveDateFormat
     };
 
     try {
@@ -655,7 +657,7 @@ class _TaskScreenState extends State<TaskScreen> {
                     if (t['date'] != null) {
                       tDate = DateFormat("EEE, MMM d, ''yy")
                           .add_jm()
-                          .format(DateTime.parse(t['date']));
+                          .format(DateTime.parse(t['date']).toLocal());
                     } else {
                       tDate = "";
                     }
@@ -711,7 +713,7 @@ class _TaskScreenState extends State<TaskScreen> {
                     if (t['date'] != null) {
                       tDate = DateFormat("EEE, MMM d, ''yy")
                           .add_jm()
-                          .format(DateTime.parse(t['date']));
+                          .format(DateTime.parse(t['date']).toLocal());
                     } else {
                       tDate = "";
                     }

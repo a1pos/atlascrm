@@ -164,7 +164,7 @@ Widget buildDLGridView(BuildContext context, list) {
             if (task['date'] != null) {
               tDate = DateFormat("EEE, MMM d, ''yy")
                   .add_jm()
-                  .format(DateTime.parse(task['date']));
+                  .format(DateTime.parse(task['date']).toLocal());
             } else {
               tDate = "";
             }

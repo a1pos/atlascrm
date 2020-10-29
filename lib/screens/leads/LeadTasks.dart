@@ -65,7 +65,7 @@ class _LeadTasksState extends State<LeadTasks> {
       _calendarEvents = {};
       for (var item in tasks) {
         if (item["date"] != null) {
-          var itemDate = DateTime.parse(item["date"]);
+          var itemDate = DateTime.parse(item["date"]).toLocal();
           itemDate = DateTime(
               itemDate.year, itemDate.month, itemDate.day, 12, 0, 0, 0, 0);
           if (_calendarEvents[itemDate] == null) {
@@ -194,7 +194,7 @@ class _LeadTasksState extends State<LeadTasks> {
     var openStatus;
 
     QueryOptions options = QueryOptions(documentNode: gql("""
-      query TaskStatus {
+      query GET_TASK_STATUS {
         task_status {
           task_status
           document
@@ -219,7 +219,8 @@ class _LeadTasksState extends State<LeadTasks> {
       print(new Error());
       throw new Error();
     }
-
+    var saveDate = DateTime.parse(taskDateController.text).toUtc();
+    var saveDateFormat = DateFormat("yyyy-MM-dd HH:mm").format(saveDate);
     // var timeNow = DateFormat("yyyy-MM-dd HH:mm").format(DateTime.now());
 
     Map data = {
@@ -232,12 +233,12 @@ class _LeadTasksState extends State<LeadTasks> {
         "notes": taskDescController.text,
         "title": taskTitleController.text,
       },
-      "date": taskDateController.text
+      "date": saveDateFormat
     };
 
     try {
       MutationOptions options = MutationOptions(documentNode: gql("""
-        mutation InsertTask(\$data: [task_insert_input!]! = {}) {
+        mutation INSERT_TASK(\$data: [task_insert_input!]! = {}) {
           insert_task(objects: \$data) {
             returning {
               task
@@ -531,7 +532,7 @@ class _LeadTasksState extends State<LeadTasks> {
                     if (t['date'] != null) {
                       tDate = DateFormat("EEE, MMM d, ''yy")
                           .add_jm()
-                          .format(DateTime.parse(t['date']));
+                          .format(DateTime.parse(t['date']).toLocal());
                     } else {
                       tDate = "";
                     }
@@ -587,7 +588,7 @@ class _LeadTasksState extends State<LeadTasks> {
                     if (t['date'] != null) {
                       tDate = DateFormat("EEE, MMM d, ''yy")
                           .add_jm()
-                          .format(DateTime.parse(t['date']));
+                          .format(DateTime.parse(t['date']).toLocal());
                     } else {
                       tDate = "";
                     }

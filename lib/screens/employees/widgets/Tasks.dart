@@ -30,8 +30,8 @@ class _TasksState extends State<Tasks> {
 
   Future<void> initTasks() async {
     Operation options =
-        Operation(operationName: "EmployeeTasks", documentNode: gql("""
-          subscription EmployeeTasks(\$employee: uuid!) {
+        Operation(operationName: "EMPLOYEE_TASKS", documentNode: gql("""
+          subscription EMPLOYEE_TASKS(\$employee: uuid!) {
             employee_by_pk(employee: \$employee) {
               tasks (where: {taskStatusByTaskStatus: {title: {_eq: "Open"}}}){
                 task
@@ -165,7 +165,7 @@ Widget buildDLGridView(BuildContext context, list) {
             if (task['date'] != null) {
               tDate = DateFormat("EEE, MMM d, ''yy")
                   .add_jm()
-                  .format(DateTime.parse(task['date']));
+                  .format(DateTime.parse(task['date']).toLocal());
             } else {
               tDate = "";
             }

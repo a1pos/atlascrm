@@ -110,7 +110,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
         var bodyDecoded = body;
 
         if (bodyDecoded["date"] != null) {
-          initDate = DateTime.parse(bodyDecoded["date"]);
+          initDate = DateTime.parse(bodyDecoded["date"]).toLocal();
           initTime = TimeOfDay.fromDateTime(initDate);
           viewDate = DateFormat("yyyy-MM-dd HH:mm").format(initDate);
           setState(() {
