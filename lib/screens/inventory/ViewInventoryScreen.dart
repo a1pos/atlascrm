@@ -28,11 +28,12 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
   var priceTierController = TextEditingController();
   var merchantController = TextEditingController();
   var merchantNameController = TextEditingController();
+  var idController = TextEditingController();
 
   var deviceIcon;
 
   String addressText;
-  bool isChanged = false;
+  bool idChanged = false;
   var inventory;
   var inventoryDocument;
   var isLoading = true;
@@ -47,6 +48,7 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
 
   var childButtons = List<UnicornButton>();
   Future<void> initStatus() async {
+    childButtons = List<UnicornButton>();
     if (inventory["is_installed"] == true) {
       deviceStatus = "Installed";
       deviceIcon = Icons.done;
@@ -122,6 +124,7 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
             employee
             document
           }
+          id
           serial
           inventoryLocationByInventoryLocation{
             name
@@ -142,6 +145,9 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
 
         setState(() {
           inventory = bodyDecoded;
+          if (inventory["id"] != null) {
+            idController.text = inventory["id"];
+          }
           if (inventory["merchantByMerchant"] != null) {
             merchantController.text =
                 inventory["merchantByMerchant"]["merchant"];
@@ -162,7 +168,9 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
               });
             }
           }
-
+          idController.addListener(() {
+            if (!idChanged) idChanged = true;
+          });
           isLoading = false;
         });
       }
@@ -171,46 +179,56 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
   }
 
   Future<void> updateDevice(type) async {
-    Map data;
+    Map data = {};
     var alert;
     var locationName;
     var newDocument = {};
+    alert = "ID updated!";
+    if (type != "id") {
+      if (type == "checkout") {
+        data = {
+          "employee": UserService.employee.employee,
+          "merchant": merchantController.text
+        };
+        alert = "Device checked out!";
+        locationName = merchantNameController.text;
+      }
+      if (type == "return") {
+        data = {"merchant": null, "employee": null, "is_installed": false};
+        alert = "Device returned!";
+        locationName = UserService.employee.companyName;
+      }
+      if (type == "install") {
+        data = {"is_installed": true};
+        alert = "Device installed!";
+        locationName = merchantNameController.text;
+      }
+      if (inventory["document"] != null) newDocument = inventory["document"];
+      if (newDocument["history"] == null) newDocument["history"] = [];
 
-    if (type == "checkout") {
-      data = {
+      var currentTimestamp = DateTime.now().millisecondsSinceEpoch;
+      print(currentTimestamp);
+      var newEvent = {
+        "date": currentTimestamp,
         "employee": UserService.employee.employee,
-        "merchant": merchantController.text
+        "location": merchantController.text,
+        "merchant": type == "return" ? false : true,
+        "description": type,
+        "employeeName": UserService.employee.document["displayName"],
+        "locationName": locationName
       };
-      alert = "Device checked out!";
-      locationName = merchantNameController.text;
+      newDocument["history"].add(newEvent);
+
+      data["document"] = newDocument;
     }
     if (type == "return") {
-      data = {"merchant": null, "employee": null, "is_installed": false};
-      alert = "Device returned!";
-      locationName = UserService.employee.companyName;
+      data["id"] = null;
+      setState(() {
+        idController.text = "";
+      });
+    } else {
+      data["id"] = idController.text;
     }
-    if (type == "install") {
-      data = {"is_installed": true};
-      alert = "Device installed!";
-      locationName = merchantNameController.text;
-    }
-    if (inventory["document"] != null) newDocument = inventory["document"];
-    if (newDocument["history"] == null) newDocument["history"] = [];
-
-    var currentTimestamp = DateTime.now().millisecondsSinceEpoch;
-    print(currentTimestamp);
-    var newEvent = {
-      "date": currentTimestamp,
-      "employee": UserService.employee.employee,
-      "location": merchantController.text,
-      "merchant": type == "return" ? false : true,
-      "description": type,
-      "employeeName": UserService.employee.document["displayName"],
-      "locationName": locationName
-    };
-    newDocument["history"].add(newEvent);
-
-    data["document"] = newDocument;
 
     MutationOptions mutateOptions = MutationOptions(documentNode: gql("""
       mutation UPDATE_INVENTORY (\$data: inventory_set_input){
@@ -223,8 +241,6 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
     final QueryResult result = await authGqlMutate(mutateOptions);
 
     if (result.hasException == false) {
-      await loadInventoryData();
-
       Fluttertoast.showToast(
           msg: alert,
           toastLength: Toast.LENGTH_SHORT,
@@ -233,14 +249,20 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
           textColor: Colors.white,
           fontSize: 16.0);
       if (this.widget.incoming["origin"] == null) {
-        Navigator.pushNamed(context, '/inventory');
+        await initStatus();
+        await loadInventoryData();
+
+        // Navigator.pushNamed(context, '/inventory');
       } else {
-        Navigator.pop(context);
+        await initStatus();
+        await loadInventoryData();
+
+        // Navigator.pop(context);
       }
     } else {
       Fluttertoast.showToast(
-          msg: "Failed to udpate device!",
-          toastLength: Toast.LENGTH_SHORT,
+          msg: result.exception.toString(),
+          toastLength: Toast.LENGTH_LONG,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.grey[600],
           textColor: Colors.white,
@@ -407,7 +429,10 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: () {
+      onWillPop: () async {
+        if (idChanged) {
+          await updateDevice("id");
+        }
         Navigator.pop(context);
 
         return Future.value(false);
@@ -453,6 +478,11 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
                                           "inventoryPriceTierByInventoryPriceTier"]
                                       ["model"]),
                               showInfoRow("Serial Number", inventory["serial"]),
+                              inventory["merchantByMerchant"] == null &&
+                                      inventory["employeeByEmployee"] == null
+                                  ? Container()
+                                  : getInfoRow(
+                                      "ID", idController.text, idController),
                               showInfoRow(
                                   "Location",
                                   inventory[
@@ -566,6 +596,42 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
               child: TextFormField(
                 controller: controller,
                 validator: validator,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget getInfoRow(label, value, controller) {
+    if (value != null) {
+      controller.text = value;
+    }
+
+    var valueFmt = value ?? "N/A";
+
+    if (valueFmt == "") {
+      valueFmt = "N/A";
+    }
+
+    return Container(
+      child: Padding(
+        padding: EdgeInsets.all(15),
+        child: Row(
+          children: <Widget>[
+            Expanded(
+              flex: 4,
+              child: Text(
+                '$label: ',
+                style: TextStyle(fontSize: 16),
+              ),
+            ),
+            Expanded(
+              flex: 8,
+              child: TextField(
+                onChanged: null,
+                controller: controller,
               ),
             ),
           ],
