@@ -640,16 +640,24 @@ class _InventoryScreenState extends State<InventoryScreen> {
                       if (item["merchantByMerchant"] == null) {
                         merchantName = "Not yet assigned";
                       } else {
-                        merchantName = item["merchantByMerchant"]["document"]
-                                ["ApplicationInformation"]["MpaOutletInfo"]
-                            ["Outlet"]["BusinessInfo"]["IrsName"];
-                        if (merchantName == null) {
+                        if (item["merchantByMerchant"]["document"]
+                                ["leadDocument"]["businessName"] !=
+                            null) {
                           merchantName = item["merchantByMerchant"]["document"]
-                                  ["ApplicationInformation"]["CorporateInfo"]
-                              ["LegalName"];
+                              ["leadDocument"]["businessName"];
+                        } else {
+                          merchantName = item["merchantByMerchant"]["document"]
+                                  ["ApplicationInformation"]["MpaOutletInfo"]
+                              ["Outlet"]["BusinessInfo"]["IrsName"];
                           if (merchantName == null) {
-                            merchantName = "null";
+                            merchantName = item["merchantByMerchant"]
+                                    ["document"]["ApplicationInformation"]
+                                ["CorporateInfo"]["LegalName"];
                           }
+                        }
+
+                        if (merchantName == null) {
+                          merchantName = "null";
                         }
                       }
 
