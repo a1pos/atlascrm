@@ -68,7 +68,7 @@ class _MerchantDropDownState extends State<MerchantDropDown> {
 
   @override
   Widget build(BuildContext context) {
-    initMerchants(this.widget.employeeId);
+    // initMerchants(this.widget.employeeId);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
