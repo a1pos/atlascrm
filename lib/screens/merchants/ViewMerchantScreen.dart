@@ -49,7 +49,7 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
   var merchant;
   var merchantDocument;
   var isLoading = true;
-  var devicesLoading = false;
+  bool inventoryLoading = true;
   var displayPhone;
   var devices = [];
   var merchantLocation = "";
@@ -61,9 +61,12 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
   Future<void> loadMerchantData(merchantId) async {
     QueryOptions options =
         QueryOptions(fetchPolicy: FetchPolicy.networkOnly, documentNode: gql("""
-      query Merchant(\$merchant: uuid!){
+      query GET_MERCHANT(\$merchant: uuid!){
         merchant_by_pk(merchant: \$merchant){
           merchant
+          merchant_configs {
+            document
+          }
           document
           employee: employeeByEmployee{
             employee
@@ -137,8 +140,8 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
     });
 
     Operation deviceOptions =
-        Operation(operationName: "MerchantDevices", documentNode: gql("""
-          subscription MerchantDevices(\$merchant: uuid!) {
+        Operation(operationName: "GET_MERCHANT_DEVICES", documentNode: gql("""
+          subscription GET_MERCHANT_DEVICES(\$merchant: uuid!) {
             inventory(where: {merchant: {_eq: \$merchant}}){
               serial
               inventory
@@ -163,11 +166,13 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
           });
         }
         isLoading = false;
+        inventoryLoading = false;
       },
       onError: (error) {
         print("STREAM LISTEN ERROR MERCHANT INVENTORY: " + error);
         setState(() {
           isLoading = false;
+          inventoryLoading = false;
         });
 
         Fluttertoast.showToast(
@@ -383,12 +388,129 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                           ),
                         ),
                         CustomCard(
+                            key: Key("merchantsSettings"),
+                            icon: Icons.settings,
+                            title: "Settings",
+                            child: merchant["merchant_configs"].length != 0
+                                ? Column(
+                                    children: <Widget>[
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Row(
+                                          children: <Widget>[
+                                            Text("Gift Card:",
+                                                style: TextStyle(fontSize: 16)),
+                                            Padding(
+                                                padding:
+                                                    const EdgeInsets.fromLTRB(
+                                                        8, 0, 0, 0),
+                                                child: merchant["merchant_configs"]
+                                                                        [0]
+                                                                    ["document"]
+                                                                ["giftcards"]
+                                                            .toString() ==
+                                                        "true"
+                                                    ? Icon(
+                                                        Icons.done,
+                                                        size: 26,
+                                                        color:
+                                                            Colors.green[600],
+                                                      )
+                                                    : Icon(Icons.clear,
+                                                        color: Colors.red[600],
+                                                        size: 26)),
+                                          ],
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Row(
+                                          children: <Widget>[
+                                            Text("Cash Discounting:",
+                                                style: TextStyle(fontSize: 16)),
+                                            Padding(
+                                                padding:
+                                                    const EdgeInsets.fromLTRB(
+                                                        8, 0, 0, 0),
+                                                child: merchant["merchant_configs"]
+                                                                        [0]
+                                                                    ["document"]
+                                                                [
+                                                                "cashDiscounting"]
+                                                            .toString() ==
+                                                        "true"
+                                                    ? Icon(
+                                                        Icons.done,
+                                                        size: 26,
+                                                        color:
+                                                            Colors.green[600],
+                                                      )
+                                                    : Icon(Icons.clear,
+                                                        color: Colors.red[600],
+                                                        size: 26)),
+                                          ],
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Row(
+                                          children: <Widget>[
+                                            Text("Cash Discounting Percent:",
+                                                style: TextStyle(fontSize: 16)),
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.fromLTRB(
+                                                      8, 0, 0, 0),
+                                              child: merchant["merchant_configs"]
+                                                                      [0]
+                                                                  ["document"][
+                                                              "cashDiscountingPercent"]
+                                                          .toString() !=
+                                                      "null"
+                                                  ? Text(
+                                                      merchant["merchant_configs"]
+                                                                          [0]
+                                                                      ["document"][
+                                                                  "cashDiscountingPercent"]
+                                                              .toString() +
+                                                          "%",
+                                                      style: TextStyle(
+                                                          fontSize: 16))
+                                                  : Text("", style: TextStyle(fontSize: 16)),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      // showInfoRow(
+                                      //   "Gift Card",
+                                      //   merchant["merchant_configs"][0]
+                                      //           ["document"]["giftcards"]
+                                      //       .toString(),
+                                      // ),
+                                      // showInfoRow(
+                                      //   "Cash Discounting",
+                                      //   merchant["merchant_configs"][0]
+                                      //           ["document"]["cashDiscounting"]
+                                      //       .toString(),
+                                      // ),
+                                      // showInfoRow(
+                                      //   "Cash Discounting Percent",
+                                      //   merchant["merchant_configs"][0]
+                                      //                   ["document"]
+                                      //               ["cashDiscountingPercent"]
+                                      //           .toString() +
+                                      //       "%",
+                                      // )
+                                    ],
+                                  )
+                                : Empty("No Device Settings Found")),
+                        CustomCard(
                           key: Key("merchants3"),
                           icon: Icons.devices,
                           title: "Devices",
                           child: Column(
                             children: <Widget>[
-                              devicesLoading
+                              inventoryLoading
                                   ? CenteredLoadingSpinner()
                                   : devices.length > 0
                                       ? buildList()
@@ -478,7 +600,7 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
 
     return Container(
       child: Padding(
-        padding: EdgeInsets.all(15),
+        padding: EdgeInsets.all(8),
         child: Row(
           children: <Widget>[
             Expanded(
