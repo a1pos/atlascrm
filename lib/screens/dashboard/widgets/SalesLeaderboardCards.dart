@@ -52,10 +52,6 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
     super.dispose();
   }
 
-  int itemTotal = 0;
-  int statementTotal = 0;
-  int agreementTotal = 0;
-
   var graphList;
   var graphFinal = [];
 
@@ -101,8 +97,6 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
         if (incomingData != null) {
           if (this.mounted) {
             setState(() {
-              statementTotal = 0;
-              agreementTotal = 0;
               graphList = incomingData;
               isLoading = false;
             });
@@ -125,11 +119,28 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
 
   _builder(int index) {
     var employeeImage;
-
     try {
       employeeImage = Image.network(graphFinal[index]["photoURL"]);
     } catch (err) {
       employeeImage = Image.asset("assets/google_logo.png");
+    }
+    var employee = graphFinal[index];
+    bool tied = false;
+    if (index == 0) {
+      if (employee["agreements"] == graphFinal[index + 1]["agreements"] &&
+          employee["statements"] == graphFinal[index + 1]["statements"] &&
+          employee["volume"] == graphFinal[index + 1]["volume"]) {
+        tied = true;
+      }
+    } else if (index == graphFinal.length - 1) {
+      if (employee["agreements"] == graphFinal[index - 1]["agreements"] &&
+          employee["statements"] == graphFinal[index - 1]["statements"]) {
+        tied = true;
+      }
+    } else if (employee["agreements"] == graphFinal[index - 1]["agreements"] &&
+        employee["statements"] == graphFinal[index - 1]["statements"] &&
+        employee["volume"] == graphFinal[index + 1]["volume"]) {
+      tied = true;
     }
 
     return Card(
@@ -137,7 +148,9 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
       color: Colors.grey[100],
       shape: RoundedRectangleBorder(
         side: index < 3
-            ? BorderSide(color: starColors[index], width: 3.0)
+            ? tied
+                ? BorderSide(color: UniversalStyles.themeColor, width: 3.0)
+                : BorderSide(color: starColors[index], width: 3.0)
             : BorderSide(width: 0),
         borderRadius: BorderRadius.circular(15.0),
       ),
@@ -152,11 +165,13 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
                     color: Color.fromRGBO(144, 97, 249, 1)),
               ),
               trailing: index < 3
-                  ? Icon(
-                      Icons.star,
-                      size: 25,
-                      color: starColors[index],
-                    )
+                  ? tied
+                      ? Icon(Icons.swap_vert, color: UniversalStyles.themeColor)
+                      : Icon(
+                          Icons.star,
+                          size: 25,
+                          color: starColors[index],
+                        )
                   : Text("")),
           Padding(
             padding: const EdgeInsets.all(15.0),
@@ -344,8 +359,10 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
     return showDialog<void>(
       context: context,
       builder: (BuildContext context) {
-        return Center(
-          child: Container(
+        return StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+          return Center(
+              child: Container(
             height: 550,
             child: PageView.builder(
               controller: _pageController,
@@ -353,8 +370,8 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
               itemCount: graphFinal.length,
               itemBuilder: (context, index) => _builder(index),
             ),
-          ),
-        );
+          ));
+        });
       },
     );
   }
@@ -468,8 +485,6 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
 
   @override
   Widget build(BuildContext context) {
-    itemTotal = 0;
-
     if (graphList != null) {
       if (graphList.length > 0) {
         var graphTemp = [];

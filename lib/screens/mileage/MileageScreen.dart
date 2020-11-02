@@ -6,8 +6,11 @@ import 'package:atlascrm/components/shared/MerchantDropdown.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/services/StorageService.dart';
 import 'package:atlascrm/services/UserService.dart';
+import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:intl/intl.dart';
 
 class MileageScreen extends StatefulWidget {
   final StorageService storageService = new StorageService();
@@ -229,58 +232,87 @@ class _MileageScreenState extends State<MileageScreen> {
       setState(() {
         isLoading = true;
       });
-      var status = !isRunning;
-
-      if (status) {
-        var resp;
-        //REPLACE WITH GRAPHQL
-        // var resp = await this.widget.apiService.authPost(context,
-        //     "/employee/${UserService.employee.employee}/trip", destination);
-        if (resp.statusCode == 200) {
-          await this
-              .widget
-              .storageService
-              .save("techTripId", resp.data.toString());
-          setState(() {
-            isRunning = status;
-          });
+      bool status = !isRunning;
+      String currentTime =
+          DateFormat('yyyy-MM-dd HH:mm:ss.mmm').format(DateTime.now().toUtc());
+      var sendMerchant;
+      Map sendDocument = {};
+      if (destination["merchant"] != null) {
+        if (destination["merchant"]) {
+          sendMerchant = destination["destination"];
         } else {
+          sendMerchant = null;
+        }
+
+        if (destination["merchant"]) {
+          sendDocument = {};
+        } else {
+          sendDocument["destination"] = destination["destination"];
+        }
+      }
+      if (status) {
+        //START TRIP LOGIC
+        MutationOptions mutateOptions = MutationOptions(documentNode: gql("""
+          mutation INSERT_TRIP (\$started_at: timestamptz, \$merchant: uuid, \$employee: uuid, \$document: jsonb){
+            insert_trip_one(object: {started_at: \$started_at, merchant: \$merchant, employee: \$employee, document: \$document}) {
+              trip
+            }
+          }
+        """), variables: {
+          "started_at": currentTime,
+          "merchant": sendMerchant,
+          "document": sendDocument,
+          "employee": UserService.employee.employee
+        });
+
+        final QueryResult result = await authGqlMutate(mutateOptions);
+        if (result.hasException == true) {
           Fluttertoast.showToast(
-              msg: "Failed to set status!",
-              toastLength: Toast.LENGTH_SHORT,
+              msg: result.exception.toString(),
+              toastLength: Toast.LENGTH_LONG,
               gravity: ToastGravity.BOTTOM,
               backgroundColor: Colors.grey[600],
               textColor: Colors.white,
               fontSize: 16.0);
           return;
+        } else {
+          await this.widget.storageService.save(
+              "techTripId", result.data["insert_trip_one"]["trip"].toString());
+          setState(() {
+            isRunning = status;
+          });
         }
       } else {
+        //END TRIP LOGIC
         var trip = await this.widget.storageService.read("techTripId");
-        if (trip != "") {
-          var resp;
-          //REPLACE WITH GRAPHQL
-          // var resp = await this
-          //     .widget
-          //     .apiService
-          //     .authPost(context, "/employee/trip/$trip", {});
-          if (resp.statusCode == 200) {
-            setState(() {
-              isRunning = status;
-            });
-          } else {
+        if (trip != "" && trip != "null") {
+          MutationOptions mutateOptions = MutationOptions(documentNode: gql("""
+           mutation UPDATE_TRIP_COMPLETE (\$completed_at: timestamptz, \$trip: uuid!) {
+            update_trip_by_pk(pk_columns: {trip: \$trip}, _set: {is_completed: true, completed_at: \$completed_at}) {
+              trip
+            }
+          }
+           """), variables: {"completed_at": currentTime, "trip": trip});
+
+          final QueryResult result = await authGqlMutate(mutateOptions);
+          if (result.hasException == true) {
             Fluttertoast.showToast(
-                msg: "Failed to set status!",
-                toastLength: Toast.LENGTH_SHORT,
+                msg: result.exception.toString(),
+                toastLength: Toast.LENGTH_LONG,
                 gravity: ToastGravity.BOTTOM,
                 backgroundColor: Colors.grey[600],
                 textColor: Colors.white,
                 fontSize: 16.0);
             return;
+          } else {
+            setState(() {
+              isRunning = status;
+            });
           }
         } else {
           Fluttertoast.showToast(
-              msg: "Failed to set status!",
-              toastLength: Toast.LENGTH_SHORT,
+              msg: "Failed to get status from StorageService!",
+              toastLength: Toast.LENGTH_LONG,
               gravity: ToastGravity.BOTTOM,
               backgroundColor: Colors.grey[600],
               textColor: Colors.white,
