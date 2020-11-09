@@ -29,10 +29,6 @@ class ViewLeadScreen extends StatefulWidget {
   ViewLeadScreenState createState() => ViewLeadScreenState();
 }
 
-class LeadSaveController {
-  void Function() methodA;
-}
-
 bool pulseVisibility;
 
 class ViewLeadScreenState extends State<ViewLeadScreen>
@@ -41,7 +37,6 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
   AnimationController pulseController;
   Animation pulse;
 
-  var leadSaveController = LeadSaveController();
   var firstNameController = TextEditingController();
   var lastNameController = TextEditingController();
   var emailAddrController = TextEditingController();
@@ -816,7 +811,6 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
               ),
         floatingActionButton: FloatingActionButton(
           onPressed: () async {
-            leadSaveController.methodA();
             if (_leadFormKey.currentState.validate()) {
               updateLead(this.widget.leadId);
             }

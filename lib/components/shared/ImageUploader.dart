@@ -33,25 +33,25 @@ class ImageUploader extends StatefulWidget {
   final String objectId;
   final String type;
   final Map loading;
-  final LeadSaveController controller;
+  // final LeadSaveController controller;
   final Map dirtyFlag;
   final Map infoDoc;
   ImageUploader(
       {this.type,
       this.objectId,
       this.loading,
-      this.controller,
+      // this.controller,
       this.dirtyFlag,
       this.infoDoc});
 
   @override
-  _ImageUploaderState createState() => _ImageUploaderState(controller);
+  _ImageUploaderState createState() => _ImageUploaderState();
 }
 
 class _ImageUploaderState extends State<ImageUploader> {
-  _ImageUploaderState(LeadSaveController controller) {
-    controller.methodA = submitCheck;
-  }
+  // _ImageUploaderState(LeadSaveController controller) {
+  //   controller.methodA = submitCheck;
+  // }
 
   static const platform = const MethodChannel('com.ces.atlascrm.channel');
   List<Asset> images = [];
