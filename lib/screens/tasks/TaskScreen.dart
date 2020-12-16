@@ -25,6 +25,8 @@ import 'package:table_calendar/table_calendar.dart';
 
 import 'package:intl/intl.dart';
 
+import '../../main.dart';
+
 class TaskScreen extends StatefulWidget {
   final StorageService storageService = new StorageService();
   @override
@@ -51,6 +53,7 @@ class _TaskScreenState extends State<TaskScreen> {
   var taskTypeDropdownValue;
   var taskPriorityDropdownValue;
   var employeeDropdownValue;
+  var subscription;
 
   bool isSaveDisabled;
   @override
@@ -60,6 +63,15 @@ class _TaskScreenState extends State<TaskScreen> {
     _calendarController = CalendarController();
     _calendarEvents = {};
     initTasks();
+  }
+
+  @override
+  dispose() {
+    if (subscription != null) {
+      subscription.cancel();
+      subscription = null;
+    }
+    super.dispose();
   }
 
   Future<void> fillEvents() async {
@@ -213,7 +225,7 @@ class _TaskScreenState extends State<TaskScreen> {
         """), variables: {"employee": "${UserService.employee.employee}"});
 
     var result = await authGqlSubscribe(options);
-    result.listen(
+    subscription = result.listen(
       (data) async {
         var tasksArrDecoded = data.data["employee_by_pk"]["tasks"];
         if (tasksArrDecoded != null) {
@@ -228,19 +240,30 @@ class _TaskScreenState extends State<TaskScreen> {
         }
         isLoading = false;
       },
-      onError: (error) {
-        print(error);
-        isLoading = false;
-
-        Fluttertoast.showToast(
-            msg: error.toString(),
-            toastLength: Toast.LENGTH_LONG,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.grey[600],
-            textColor: Colors.white,
-            fontSize: 16.0);
+      onError: (error) async {
+        var errMsg = error.payload["message"];
+        print(errMsg);
+        if (errMsg.contains("JWTExpired")) {
+          await refreshSub();
+        } else {
+          Fluttertoast.showToast(
+              msg: errMsg,
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.grey[600],
+              textColor: Colors.white,
+              fontSize: 16.0);
+        }
       },
     );
+  }
+
+  Future refreshSub() async {
+    if (subscription != null) {
+      await subscription.cancel();
+      subscription = null;
+      initTasks();
+    }
   }
 
   Future newCalendarEvent(token, data) async {
@@ -607,22 +630,28 @@ class _TaskScreenState extends State<TaskScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: UniversalStyles.backgroundColor,
-      drawer: CustomDrawer(),
-      appBar: CustomAppBar(key: Key("taskAppBar"), title: Text("Tasks")),
-      body: isLoading
-          ? CenteredLoadingSpinner()
-          : Container(
-              padding: EdgeInsets.all(10),
-              child: getTasks(),
-            ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: openAddTaskForm,
-        backgroundColor: UniversalStyles.actionColor,
-        foregroundColor: Colors.white,
-        child: Icon(Icons.add),
-        splashColor: Colors.white,
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.pushReplacementNamed(context, "/dashboard");
+        return false;
+      },
+      child: Scaffold(
+        backgroundColor: UniversalStyles.backgroundColor,
+        drawer: CustomDrawer(),
+        appBar: CustomAppBar(key: Key("taskAppBar"), title: Text("Tasks")),
+        body: isLoading
+            ? CenteredLoadingSpinner()
+            : Container(
+                padding: EdgeInsets.all(10),
+                child: getTasks(),
+              ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: openAddTaskForm,
+          backgroundColor: UniversalStyles.actionColor,
+          foregroundColor: Colors.white,
+          child: Icon(Icons.add),
+          splashColor: Colors.white,
+        ),
       ),
     );
   }

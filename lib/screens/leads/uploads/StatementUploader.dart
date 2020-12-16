@@ -1,6 +1,7 @@
 import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/config/ConfigSettings.dart';
 import 'package:atlascrm/services/api.dart';
+import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,6 +11,7 @@ import 'dart:typed_data';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:multi_image_picker/multi_image_picker.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:path_provider/path_provider.dart';
@@ -40,6 +42,7 @@ class _StatementUploaderState extends State<StatementUploader> {
 
   List imageFileList = [];
   List imageDLList = [];
+  TextEditingController taskDateController = TextEditingController();
 
   @override
   void initState() {
@@ -103,6 +106,111 @@ class _StatementUploaderState extends State<StatementUploader> {
     }
   }
 
+  Future<void> createTask() async {
+    var successMsg = "Task created!";
+    var msgLength = Toast.LENGTH_SHORT;
+    var taskEmployee = UserService.employee.employee;
+
+    var openStatus;
+    var rateReviewType;
+
+    QueryOptions openStatusOptions = QueryOptions(documentNode: gql("""
+      query TaskStatus {
+        task_status {
+          task_status
+          document
+          title
+        }
+      }
+    """));
+
+    QueryOptions rateReviewTypeOptions = QueryOptions(documentNode: gql("""
+      query MyQuery(\$title: String) {
+        task_type(where: {title: {_eq: \$title}}) {
+          task_type
+          title
+        }
+      }
+    """), variables: {"title": "Rate Review Presentation"});
+
+    final QueryResult result0 = await authGqlQuery(openStatusOptions);
+    final QueryResult result1 = await authGqlQuery(rateReviewTypeOptions);
+
+    if (result0 != null && result1 != null) {
+      if (result0.hasException == false && result0.hasException == false) {
+        //code to nab the task type
+
+        result0.data["task_status"].forEach((item) {
+          if (item["title"] == "Open") {
+            openStatus = item["task_status"];
+          }
+        });
+
+        rateReviewType = result1.data["task_type"][0]["task_type"];
+      }
+    } else {
+      print(new Error());
+      throw new Error();
+    }
+    var saveDate = DateTime.parse(taskDateController.text).toUtc();
+    var saveDateFormat = DateFormat("yyyy-MM-dd HH:mm").format(saveDate);
+
+    // var timeNow = DateFormat("yyyy-MM-dd HH:mm").format(DateTime.now());
+
+    Map data = {
+      "task_status": openStatus,
+      "task_type": rateReviewType,
+      "priority": 2,
+      "lead": lead["lead"],
+      "employee": taskEmployee,
+      "document": {
+        "notes":
+            "This is an automatically generated task for your rate review presentation at " +
+                lead["document"]["businessName"],
+        "title": "Present at " + lead["document"]["businessName"],
+      },
+      "date": saveDateFormat
+    };
+
+    try {
+      MutationOptions options = MutationOptions(documentNode: gql("""
+        mutation InsertTask(\$data: [task_insert_input!]! = {}) {
+          insert_task(objects: \$data) {
+            returning {
+              task
+            }
+          }
+        }
+            """), variables: {"data": data});
+
+      final QueryResult result = await authGqlMutate(options);
+
+      if (result != null) {
+        if (result.hasException == false) {
+          Fluttertoast.showToast(
+              msg: successMsg,
+              toastLength: msgLength,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.grey[600],
+              textColor: Colors.white,
+              fontSize: 16.0);
+        }
+      } else {
+        print(new Error());
+        throw new Error();
+      }
+    } catch (err) {
+      print(err);
+      Fluttertoast.showToast(
+          msg: "Failed to create task for employee!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0);
+    }
+  }
+
   Future<void> leaveCheck() async {
     if (!uploadsComplete && imageDLList.length > 0) {
       return showDialog<void>(
@@ -110,35 +218,108 @@ class _StatementUploaderState extends State<StatementUploader> {
         builder: (BuildContext context) {
           return AlertDialog(
             title: Text('Unsent Statement!'),
-            content: SingleChildScrollView(
-              child: ListBody(
-                children: <Widget>[
-                  Text('You have an unsubmitted statement!'),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
-                    child: Text(
-                        ' Would you like to submit this statement before you leave?'),
-                  ),
-                ],
-              ),
-            ),
-            actions: <Widget>[
-              FlatButton(
-                child: Text('Submit', style: TextStyle(fontSize: 17)),
-                onPressed: () {
-                  Navigator.pop(context);
-                  uploadComplete();
-                },
-              ),
-              FlatButton(
-                child: Text('Leave',
-                    style: TextStyle(color: Colors.red, fontSize: 17)),
-                onPressed: () {
-                  Navigator.pushNamed(context, "/viewlead",
-                      arguments: lead["lead"]);
-                },
-              ),
-            ],
+            content: StatefulBuilder(
+                builder: (BuildContext context, StateSetter setState) {
+              return SingleChildScrollView(
+                child: ListBody(
+                  children: <Widget>[
+                    Text('You have an unsubmitted statement!'),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
+                      child: Text(
+                          ' Would you like to submit this statement before you leave?'),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
+                      child: Text(
+                          'Please enter the date and time you intend to present the rate review to this merchant'),
+                    ),
+                    DateTimeField(
+                      onEditingComplete: () =>
+                          FocusScope.of(context).nextFocus(),
+                      decoration: InputDecoration(
+                          labelText: "Date to Present Rate Review"),
+                      format: DateFormat("yyyy-MM-dd HH:mm"),
+                      controller: taskDateController,
+                      onShowPicker: (context, currentValue) async {
+                        final date = await showDatePicker(
+                          context: context,
+                          firstDate: DateTime(1900),
+                          initialDate: currentValue ?? DateTime.now(),
+                          lastDate: DateTime(2100),
+                        );
+                        if (date != null) {
+                          final time = await showTimePicker(
+                            context: context,
+                            initialTime: TimeOfDay.fromDateTime(
+                              currentValue ?? DateTime.now(),
+                            ),
+                          );
+                          return DateTimeField.combine(date, time);
+                        } else {
+                          return currentValue;
+                        }
+                      },
+                    ),
+                    Divider(
+                      color: Colors.white,
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: <Widget>[
+                        FlatButton(
+                          child: Text('Submit',
+                              style:
+                                  TextStyle(color: Colors.green, fontSize: 17)),
+                          onPressed: () {
+                            if (taskDateController.text != "" &&
+                                taskDateController.text != null) {
+                              Navigator.pop(context);
+                              uploadComplete();
+                            } else {
+                              Fluttertoast.showToast(
+                                  msg: "Please select a date/time!",
+                                  toastLength: Toast.LENGTH_SHORT,
+                                  gravity: ToastGravity.BOTTOM,
+                                  backgroundColor: Colors.grey[600],
+                                  textColor: Colors.white,
+                                  fontSize: 16.0);
+                            }
+                          },
+                        ),
+                        FlatButton(
+                          child: Text('Leave',
+                              style:
+                                  TextStyle(color: Colors.red, fontSize: 17)),
+                          onPressed: () {
+                            Navigator.pushNamed(context, "/viewlead",
+                                arguments: lead["lead"]);
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            }),
+            // actions: <Widget>[
+            //   FlatButton(
+            //     child: Text('Submit', style: TextStyle(fontSize: 17)),
+            //     onPressed: () {
+
+            //       Navigator.pop(context);
+            //       uploadComplete();
+            //     },
+            //   ),
+            //   FlatButton(
+            //     child: Text('Leave',
+            //         style: TextStyle(color: Colors.red, fontSize: 17)),
+            //     onPressed: () {
+            //       Navigator.pushNamed(context, "/viewlead",
+            //           arguments: lead["lead"]);
+            //     },
+            //   ),
+            // ],
           );
         },
       );
@@ -511,6 +692,7 @@ class _StatementUploaderState extends State<StatementUploader> {
 
       if (result.hasException == false) {
         if (result.data != null && result.data != "") {
+          createTask();
           setState(() {
             uploadsComplete = true;
             isLoading = false;

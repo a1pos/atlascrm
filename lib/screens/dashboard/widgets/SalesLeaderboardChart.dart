@@ -43,9 +43,16 @@ class _SalesLeaderboardChartState extends State<SalesLeaderboardChart> {
   @override
   void initState() {
     super.initState();
-    // this.widget.controller.addListener(
-    //     refreshSubscription("statement", this.widget.controller.text, null));
     initSub(weekStart);
+  }
+
+  @override
+  void dispose() async {
+    super.dispose();
+    if (subscription != null) {
+      await subscription.cancel();
+      subscription = null;
+    }
   }
 
   int itemTotal = 0;
@@ -108,16 +115,20 @@ class _SalesLeaderboardChartState extends State<SalesLeaderboardChart> {
           }
         }
       },
-      onError: (error) {
-        print(error);
-
-        Fluttertoast.showToast(
-            msg: error,
-            toastLength: Toast.LENGTH_LONG,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.grey[600],
-            textColor: Colors.white,
-            fontSize: 16.0);
+      onError: (error) async {
+        var errMsg = error.payload["message"];
+        print(errMsg);
+        if (errMsg.contains("JWTExpired")) {
+          await refreshSubscription();
+        } else {
+          Fluttertoast.showToast(
+              msg: errMsg,
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.grey[600],
+              textColor: Colors.white,
+              fontSize: 16.0);
+        }
       },
     );
   }

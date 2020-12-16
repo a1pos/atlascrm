@@ -498,46 +498,51 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: UniversalStyles.backgroundColor,
-      drawer: CustomDrawer(),
-      appBar: CustomAppBar(
-        key: Key("inventoryscreenappbar"),
-        title: Text(isLoading ? "Loading..." : "$locationSearch"),
-        action: <Widget>[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(5, 8, 10, 8),
-            child: IconButton(
-              onPressed: () {
-                openLocationFilter();
-              },
-              icon: Icon(Icons.business, color: Colors.white),
-            ),
-          )
-        ],
-      ),
-      body: Container(
-        padding: EdgeInsets.all(10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            isLoading
-                ? CenteredLoadingSpinner()
-                : Container(
-                    child: Expanded(
-                      child:
-                          isLoading ? CenteredLoadingSpinner() : getDataTable(),
-                    ),
-                  ),
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.pushReplacementNamed(context, "/dashboard");
+        return false;
+      },
+      child: Scaffold(
+        backgroundColor: UniversalStyles.backgroundColor,
+        drawer: CustomDrawer(),
+        appBar: CustomAppBar(
+          key: Key("inventoryscreenappbar"),
+          title: Text(isLoading ? "Loading..." : "$locationSearch"),
+          action: <Widget>[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(5, 8, 10, 8),
+              child: IconButton(
+                onPressed: () {
+                  openLocationFilter();
+                },
+                icon: Icon(Icons.business, color: Colors.white),
+              ),
+            )
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: openAddInventoryForm,
-        backgroundColor: UniversalStyles.actionColor,
-        foregroundColor: Colors.white,
-        child: Icon(Icons.add),
-        splashColor: Colors.white,
+        body: isLoading
+            ? CenteredLoadingSpinner()
+            : Container(
+                padding: EdgeInsets.all(10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    Container(
+                      child: Expanded(
+                        child: getDataTable(),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: openAddInventoryForm,
+          backgroundColor: UniversalStyles.actionColor,
+          foregroundColor: Colors.white,
+          child: Icon(Icons.add),
+          splashColor: Colors.white,
+        ),
       ),
     );
   }

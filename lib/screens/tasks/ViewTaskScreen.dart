@@ -50,6 +50,11 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
     loadTaskData();
   }
 
+  @override
+  dispose() {
+    super.dispose();
+  }
+
   changeButton() {
     setState(() {
       isChanged = true;

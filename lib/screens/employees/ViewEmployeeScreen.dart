@@ -1,11 +1,10 @@
 import 'dart:developer';
 
+import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
-import 'package:atlascrm/components/shared/LoadingScreen.dart';
 import 'package:atlascrm/components/shared/RoleDropdown.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
-import 'package:atlascrm/models/Employee.dart';
 import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -34,12 +33,22 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
 
   var defaultRoles = [];
   var devices = [];
+  var subscription;
 
   @override
   void initState() {
     super.initState();
 
     initData();
+  }
+
+  @override
+  void dispose() async {
+    super.dispose();
+    if (subscription != null) {
+      await subscription.cancel();
+      subscription = null;
+    }
   }
 
   Future<void> initData() async {
@@ -66,7 +75,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
         }
     """), variables: {"employee": "${this.widget.employeeId}"});
     var result = await authGqlSubscribe(options);
-    result.listen(
+    subscription = result.listen(
       (data) async {
         var deviceArrDecoded = data.data["employee_device"];
         if (deviceArrDecoded != null) {
@@ -77,18 +86,30 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
           }
         }
       },
-      onError: (error) {
-        print(error);
-
-        Fluttertoast.showToast(
-            msg: "Failed to load Devices!",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.grey[600],
-            textColor: Colors.white,
-            fontSize: 16.0);
+      onError: (error) async {
+        var errMsg = error.payload["message"];
+        print(errMsg);
+        if (errMsg.contains("JWTExpired")) {
+          await refreshSub();
+        } else {
+          Fluttertoast.showToast(
+              msg: errMsg,
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.grey[600],
+              textColor: Colors.white,
+              fontSize: 16.0);
+        }
       },
     );
+  }
+
+  Future refreshSub() async {
+    if (subscription != null) {
+      await subscription.cancel();
+      subscription = null;
+      loadDevices();
+    }
   }
 
   Future<void> loadEmployeeData() async {
@@ -375,7 +396,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
             isLoading ? "Loading..." : employee["document"]["displayName"]),
       ),
       body: isLoading
-          ? LoadingScreen()
+          ? CenteredLoadingSpinner()
           : Container(
               padding: EdgeInsets.all(15),
               child: SingleChildScrollView(

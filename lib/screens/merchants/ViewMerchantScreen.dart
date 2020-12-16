@@ -53,9 +53,21 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
   var displayPhone;
   var devices = [];
   var merchantLocation = "";
+  var subscription;
+
+  @override
   void initState() {
     super.initState();
     loadMerchantData(this.widget.merchantId);
+  }
+
+  @override
+  void dispose() async {
+    super.dispose();
+    if (subscription != null) {
+      await subscription.cancel();
+      subscription = null;
+    }
   }
 
   Future<void> loadMerchantData(merchantId) async {
@@ -157,7 +169,7 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
             """), variables: {"merchant": "${this.widget.merchantId}"});
 
     var result2 = await authGqlSubscribe(deviceOptions);
-    result2.listen(
+    subscription = result2.listen(
       (data) async {
         var devicesArrDecoded = data.data["inventory"];
         if (devicesArrDecoded != null) {
@@ -168,22 +180,30 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
         isLoading = false;
         inventoryLoading = false;
       },
-      onError: (error) {
-        print("STREAM LISTEN ERROR MERCHANT INVENTORY: " + error);
-        setState(() {
-          isLoading = false;
-          inventoryLoading = false;
-        });
-
-        Fluttertoast.showToast(
-            msg: "Failed to load devices for employee!",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.grey[600],
-            textColor: Colors.white,
-            fontSize: 16.0);
+      onError: (error) async {
+        var errMsg = error.payload["message"];
+        print(errMsg);
+        if (errMsg.contains("JWTExpired")) {
+          await refreshSub();
+        } else {
+          Fluttertoast.showToast(
+              msg: errMsg,
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.grey[600],
+              textColor: Colors.white,
+              fontSize: 16.0);
+        }
       },
     );
+  }
+
+  Future refreshSub() async {
+    if (subscription != null) {
+      await subscription.cancel();
+      subscription = null;
+      loadMerchantData(this.widget.merchantId);
+    }
   }
 
   // Future<void> updateMerchant(merchantId) async {

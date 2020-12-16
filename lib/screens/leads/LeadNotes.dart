@@ -28,6 +28,8 @@ List notesDisplay;
 var notesEmpty = true;
 var typeUpper;
 var type = "lead";
+var subscription;
+
 ScrollController _scrollController = ScrollController();
 
 class _LeadNotesState extends State<LeadNotes> {
@@ -41,8 +43,16 @@ class _LeadNotesState extends State<LeadNotes> {
     _focus.addListener(_onFocusChange);
   }
 
+  @override
+  void dispose() async {
+    super.dispose();
+    if (subscription != null) {
+      await subscription.cancel();
+      subscription = null;
+    }
+  }
+
   void _onFocusChange() {
-    debugPrint("Focus: " + _focus.hasFocus.toString());
     setState(() {
       isFocused = _focus.hasFocus;
     });
@@ -62,7 +72,7 @@ class _LeadNotesState extends State<LeadNotes> {
           }
     """), variables: {"id": "$objectId"});
     var result = await authGqlSubscribe(options);
-    result.listen(
+    subscription = result.listen(
       (data) async {
         var notesArrDecoded = data.data["${type}_note"];
         if (notesArrDecoded != null) {
@@ -79,18 +89,30 @@ class _LeadNotesState extends State<LeadNotes> {
           duration: const Duration(milliseconds: 300),
         );
       },
-      onError: (error) {
-        print(error);
-
-        Fluttertoast.showToast(
-            msg: "Failed to load Notes!",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.grey[600],
-            textColor: Colors.white,
-            fontSize: 16.0);
+      onError: (error) async {
+        var errMsg = error.payload["message"];
+        print(errMsg);
+        if (errMsg.contains("JWTExpired")) {
+          await refreshSub();
+        } else {
+          Fluttertoast.showToast(
+              msg: errMsg,
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.grey[600],
+              textColor: Colors.white,
+              fontSize: 16.0);
+        }
       },
     );
+  }
+
+  Future refreshSub() async {
+    if (subscription != null) {
+      await subscription.cancel();
+      subscription = null;
+      loadNotes(this.widget.object[type], type);
+    }
   }
 
   Future<void> saveNote({type, objectId, newNote}) async {

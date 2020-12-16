@@ -285,66 +285,71 @@ class _LeadsScreenState extends State<LeadsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      drawer: CustomDrawer(),
-      appBar: CustomAppBar(
-          key: Key("leadsScreenAppBar"),
-          title: Text("Leads"),
-          action: <Widget>[
-            Row(
-              children: <Widget>[
-                // Icon(Icons.sort),
-                Theme(
-                    data: Theme.of(context).copyWith(
-                      canvasColor: Colors.grey.shade900,
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.pushReplacementNamed(context, "/dashboard");
+        return false;
+      },
+      child: Scaffold(
+        drawer: CustomDrawer(),
+        appBar: CustomAppBar(
+            key: Key("leadsScreenAppBar"),
+            title: Text("Leads"),
+            action: <Widget>[
+              Row(
+                children: <Widget>[
+                  // Icon(Icons.sort),
+                  Theme(
+                      data: Theme.of(context).copyWith(
+                        canvasColor: Colors.grey.shade900,
+                      ),
+                      child: DropdownButton(
+                          value: dropdownVal,
+                          items: [
+                            {'value': '0', 'text': 'Newest'},
+                            {'value': '1', 'text': 'Oldest'},
+                            {'value': '2', 'text': 'Alphabetical'}
+                          ].map<DropdownMenuItem<String>>((item) {
+                            return DropdownMenuItem<String>(
+                              value: item['value'],
+                              child: Text(item['text'],
+                                  style: TextStyle(color: Colors.white)),
+                            );
+                          }).toList(),
+                          onChanged: (newVal) {
+                            setState(() {
+                              dropdownVal = newVal;
+                              sortQuery = sortQueries[int.parse(dropdownVal)];
+                              clearSearch();
+                              pageNum = 0;
+                              leads = [];
+                              onScroll();
+                            });
+                          })),
+                ],
+              )
+            ]),
+        body: isLoading
+            ? CenteredLoadingSpinner()
+            : Container(
+                padding: EdgeInsets.all(10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    Container(
+                      child: Expanded(
+                        child: getDataTable(),
+                      ),
                     ),
-                    child: DropdownButton(
-                        value: dropdownVal,
-                        items: [
-                          {'value': '0', 'text': 'Newest'},
-                          {'value': '1', 'text': 'Oldest'},
-                          {'value': '2', 'text': 'Alphabetical'}
-                        ].map<DropdownMenuItem<String>>((item) {
-                          return DropdownMenuItem<String>(
-                            value: item['value'],
-                            child: Text(item['text'],
-                                style: TextStyle(color: Colors.white)),
-                          );
-                        }).toList(),
-                        onChanged: (newVal) {
-                          setState(() {
-                            dropdownVal = newVal;
-                            sortQuery = sortQueries[int.parse(dropdownVal)];
-                            clearSearch();
-                            pageNum = 0;
-                            leads = [];
-                            onScroll();
-                          });
-                        })),
-              ],
-            )
-          ]),
-      body: Container(
-        padding: EdgeInsets.all(10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            isLoading
-                ? CenteredLoadingSpinner()
-                : Container(
-                    child: Expanded(
-                      child:
-                          isLoading ? CenteredLoadingSpinner() : getDataTable(),
-                    ),
-                  ),
-          ],
+                  ],
+                ),
+              ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: openAddLeadForm,
+          foregroundColor: Colors.white,
+          child: Icon(Icons.add),
+          splashColor: Colors.white,
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: openAddLeadForm,
-        foregroundColor: Colors.white,
-        child: Icon(Icons.add),
-        splashColor: Colors.white,
       ),
     );
   }

@@ -20,12 +20,22 @@ class _TasksState extends State<Tasks> {
   var isLoading = true;
   var tasks = [];
   var activeTasks = [];
+  var subscription;
   @override
   void initState() {
     super.initState();
 
     initTasks();
     print(UserService.employee);
+  }
+
+  @override
+  void dispose() async {
+    super.dispose();
+    if (subscription != null) {
+      await subscription.cancel();
+      subscription = null;
+    }
   }
 
   Future<void> initTasks() async {
@@ -55,7 +65,7 @@ class _TasksState extends State<Tasks> {
             """), variables: {"employee": "${this.widget.employee}"});
 
     var result = await authGqlSubscribe(options);
-    result.listen(
+    subscription = result.listen(
       (data) async {
         var tasksArrDecoded = data.data["employee_by_pk"]["tasks"];
         if (tasksArrDecoded != null) {
@@ -72,21 +82,30 @@ class _TasksState extends State<Tasks> {
         }
         isLoading = false;
       },
-      onError: (error) {
-        print("STREAM LISTEN ERROR EMPLOYEE TASKS: " + error);
-        setState(() {
-          isLoading = false;
-        });
-
-        Fluttertoast.showToast(
-            msg: "Failed to load tasks for employee!",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.grey[600],
-            textColor: Colors.white,
-            fontSize: 16.0);
+      onError: (error) async {
+        var errMsg = error.payload["message"];
+        print(errMsg);
+        if (errMsg.contains("JWTExpired")) {
+          await refreshSub();
+        } else {
+          Fluttertoast.showToast(
+              msg: errMsg,
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.grey[600],
+              textColor: Colors.white,
+              fontSize: 16.0);
+        }
       },
     );
+  }
+
+  Future refreshSub() async {
+    if (subscription != null) {
+      await subscription.cancel();
+      subscription = null;
+      initTasks();
+    }
   }
 
   @override

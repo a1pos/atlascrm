@@ -25,6 +25,7 @@ List notes;
 List notesDisplay;
 var notesEmpty = true;
 var typeUpper;
+var subscription;
 
 class _NotesState extends State<Notes> {
   FocusNode _focus = new FocusNode();
@@ -35,6 +36,15 @@ class _NotesState extends State<Notes> {
     notesController.clear();
     loadNotes(this.widget.object, this.widget.type);
     _focus.addListener(_onFocusChange);
+  }
+
+  @override
+  void dispose() async {
+    super.dispose();
+    if (subscription != null) {
+      await subscription.cancel();
+      subscription = null;
+    }
   }
 
   void _onFocusChange() {
@@ -58,7 +68,7 @@ class _NotesState extends State<Notes> {
           }
     """), variables: {"id": "$objectId"});
     var result = await authGqlSubscribe(options);
-    result.listen(
+    subscription = result.listen(
       (data) async {
         var notesArrDecoded = data.data["${type}_note"];
         if (notesArrDecoded != null) {
@@ -70,16 +80,24 @@ class _NotesState extends State<Notes> {
           }
         }
       },
-      onError: (error) {
-        print(error);
-
-        Fluttertoast.showToast(
-            msg: "Failed to load Notes!",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.grey[600],
-            textColor: Colors.white,
-            fontSize: 16.0);
+      onError: (error) async {
+        var errMsg = error.payload["message"];
+        print(errMsg);
+        if (errMsg.contains("JWTExpired")) {
+          if (subscription != null) {
+            await subscription.cancel();
+            subscription = null;
+            loadNotes(this.widget.object, this.widget.type);
+          }
+        } else {
+          Fluttertoast.showToast(
+              msg: errMsg,
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.grey[600],
+              textColor: Colors.white,
+              fontSize: 16.0);
+        }
       },
     );
   }

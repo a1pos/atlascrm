@@ -266,60 +266,65 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: UniversalStyles.backgroundColor,
-      drawer: CustomDrawer(),
-      appBar: CustomAppBar(
-          key: Key("merchantsScreenAppBar"),
-          title: Text("Merchants"),
-          action: <Widget>[
-            Row(
-              children: <Widget>[
-                Theme(
-                    data: Theme.of(context).copyWith(
-                      canvasColor: Colors.grey.shade900,
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.pushReplacementNamed(context, "/dashboard");
+        return false;
+      },
+      child: Scaffold(
+        backgroundColor: UniversalStyles.backgroundColor,
+        drawer: CustomDrawer(),
+        appBar: CustomAppBar(
+            key: Key("merchantsScreenAppBar"),
+            title: Text("Merchants"),
+            action: <Widget>[
+              Row(
+                children: <Widget>[
+                  Theme(
+                      data: Theme.of(context).copyWith(
+                        canvasColor: Colors.grey.shade900,
+                      ),
+                      child: DropdownButton(
+                          value: dropdownVal,
+                          items: [
+                            {'value': '0', 'text': 'Newest'},
+                            {'value': '1', 'text': 'Oldest'},
+                            {'value': '2', 'text': 'Alphabetical'}
+                          ].map<DropdownMenuItem<String>>((item) {
+                            return DropdownMenuItem<String>(
+                              value: item['value'],
+                              child: Text(item['text'],
+                                  style: TextStyle(color: Colors.white)),
+                            );
+                          }).toList(),
+                          onChanged: (newVal) {
+                            setState(() {
+                              dropdownVal = newVal;
+                              sortQuery = sortQueries[int.parse(dropdownVal)];
+                              clearSearch();
+                              pageNum = 0;
+                              merchants = [];
+                              onScroll();
+                            });
+                          })),
+                ],
+              )
+            ]),
+        body: isLoading
+            ? CenteredLoadingSpinner()
+            : Container(
+                padding: EdgeInsets.all(10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    Container(
+                      child: Expanded(
+                        child: getDataTable(),
+                      ),
                     ),
-                    child: DropdownButton(
-                        value: dropdownVal,
-                        items: [
-                          {'value': '0', 'text': 'Newest'},
-                          {'value': '1', 'text': 'Oldest'},
-                          {'value': '2', 'text': 'Alphabetical'}
-                        ].map<DropdownMenuItem<String>>((item) {
-                          return DropdownMenuItem<String>(
-                            value: item['value'],
-                            child: Text(item['text'],
-                                style: TextStyle(color: Colors.white)),
-                          );
-                        }).toList(),
-                        onChanged: (newVal) {
-                          setState(() {
-                            dropdownVal = newVal;
-                            sortQuery = sortQueries[int.parse(dropdownVal)];
-                            clearSearch();
-                            pageNum = 0;
-                            merchants = [];
-                            onScroll();
-                          });
-                        })),
-              ],
-            )
-          ]),
-      body: Container(
-        padding: EdgeInsets.all(10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            isLoading
-                ? CenteredLoadingSpinner()
-                : Container(
-                    child: Expanded(
-                      child:
-                          isLoading ? CenteredLoadingSpinner() : getDataTable(),
-                    ),
-                  ),
-          ],
-        ),
+                  ],
+                ),
+              ),
       ),
     );
   }

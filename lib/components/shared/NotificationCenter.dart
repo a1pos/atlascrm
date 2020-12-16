@@ -23,8 +23,18 @@ class _NotificationCenterState extends State<NotificationCenter> {
     initNotificationsSub();
   }
 
+  @override
+  void dispose() async {
+    super.dispose();
+    if (subscription != null) {
+      await subscription.cancel();
+      subscription = null;
+    }
+  }
+
   var notifCount = 0;
   var notifications = [];
+  var subscription;
 
   Future<void> initNotificationsSub() async {
     Operation options =
@@ -38,7 +48,7 @@ class _NotificationCenterState extends State<NotificationCenter> {
             """), variables: {"employee": "${UserService.employee.employee}"});
 
     var result = await authGqlSubscribe(options);
-    result.listen(
+    subscription = result.listen(
       (data) async {
         var notificationsArrDecoded = data.data["notification"];
         if (notificationsArrDecoded != null && this.mounted) {
@@ -48,18 +58,27 @@ class _NotificationCenterState extends State<NotificationCenter> {
           });
         }
       },
-      onError: (error) {
-        print(error);
-
-        Fluttertoast.showToast(
-            msg: "Failed to load notifications for employee!",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.grey[600],
-            textColor: Colors.white,
-            fontSize: 16.0);
+      onError: (error) async {
+        var errMsg = error.payload["message"];
+        print(errMsg);
+        if (errMsg.contains("JWTExpired")) {
+          if (subscription != null) {
+            await subscription.cancel();
+            subscription = null;
+            initNotificationsSub();
+          }
+        } else {
+          Fluttertoast.showToast(
+              msg: errMsg,
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.grey[600],
+              textColor: Colors.white,
+              fontSize: 16.0);
+        }
       },
     );
+    print("notifs initialized");
   }
 
   Future<void> markOneAsRead(notification) async {

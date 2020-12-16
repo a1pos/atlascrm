@@ -26,7 +26,7 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
   final Set<Marker> markers = new Set<Marker>();
   final List<LatLng> markerLatLngs = [];
   bool runOnce = true;
-
+  var subscription;
   static final CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(40.907569, -79.923725),
     zoom: 13.0,
@@ -42,8 +42,12 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
   }
 
   @override
-  void dispose() {
+  void dispose() async {
     super.dispose();
+    if (subscription != null) {
+      await subscription.cancel();
+      subscription = null;
+    }
   }
 
   LatLngBounds boundsFromLatLngList(List<LatLng> list) {
@@ -86,7 +90,7 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
         }
     """));
     var result = await authGqlSubscribe(options);
-    result.listen(
+    subscription = result.listen(
       (data) async {
         for (var currentLocation in data.data["employee_device"]) {
           var stopCount;
@@ -209,16 +213,20 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
           }
         }
       },
-      onError: (error) {
-        print(error);
-
-        Fluttertoast.showToast(
-            msg: "Failed to load Locations!",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.grey[600],
-            textColor: Colors.white,
-            fontSize: 16.0);
+      onError: (error) async {
+        var errMsg = error.payload["message"];
+        print(errMsg);
+        if (errMsg.contains("JWTExpired")) {
+          await refreshSub();
+        } else {
+          Fluttertoast.showToast(
+              msg: errMsg,
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.grey[600],
+              textColor: Colors.white,
+              fontSize: 16.0);
+        }
       },
     );
     // an attempt was made at auto-zooming to include all employees in initial view
@@ -233,6 +241,14 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
     //     runOnce = false;
     //   });
     // });
+  }
+
+  Future refreshSub() async {
+    if (subscription != null) {
+      await subscription.cancel();
+      subscription = null;
+      initSubListener();
+    }
   }
 
   Future<void> initBaseMap() async {

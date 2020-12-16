@@ -37,7 +37,11 @@ class _AuthScreenState extends State<AuthScreen> {
       if (succeeded) {
         var resp = await this.widget.userService.linkGoogleAccount();
         if (resp.hasException == false) {
-          Navigator.of(context).pushNamed("/dashboard");
+          Navigator.of(context).pushReplacementNamed("/dashboard");
+          setState(() {
+            isLoading = false;
+            UserService.isAuthenticated = true;
+          });
         } else {
           throw ('ERROR');
         }

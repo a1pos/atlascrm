@@ -124,139 +124,131 @@ class _AtlasCRMState extends State<AtlasCRM> {
       client: ValueNotifier<GraphQLClient>(client),
       child: CacheProvider(
         child: MaterialApp(
-          title: 'ATLAS CRM',
-          theme: defaultTheme,
-          // ThemeData(
-          //   appBarTheme: AppBarTheme(color: Colors.red),
-          //   primarySwatch: Colors.red,
-          //   backgroundColor: Colors.orange,
-          //   brightness: Brightness.light,
-          //   fontFamily: "LatoRegular",
-          // ),
-          home: UserService.isAuthenticated
-              ? DashboardScreen()
-              : WillPopScope(
-                  onWillPop: () {
-                    print("main trying to pop");
-                    return Future(() => false);
-                  },
-                  child: AuthScreen()),
-          initialRoute: "/",
-          onGenerateRoute: (RouteSettings settings) {
-            switch (settings.name) {
-              case '/dashboard':
-                return MaterialPageRoute(
-                    builder: (context) => DashboardScreen());
-                break;
-              case "/leads":
-                return MaterialPageRoute(builder: (context) => LeadsScreen());
-                break;
-              case "/merchants":
-                return MaterialPageRoute(
-                    builder: (context) => MerchantsScreen());
-                break;
-              case "/inventory":
-                return MaterialPageRoute(
-                    builder: (context) => InventoryScreen());
-                break;
-              case "/installs":
-                return MaterialPageRoute(
-                    builder: (context) => InstallsScreen());
-                break;
-              case "/logout":
-                handleLogoutRoute();
-                return MaterialPageRoute(builder: (context) => AtlasCRM());
-                break;
-              case '/viewlead':
-                return SlideRightRoute(
-                    page: ViewLeadScreen(settings.arguments));
-                break;
-              case '/viewmerchant':
-                return SlideRightRoute(
-                    page: ViewMerchantScreen(settings.arguments));
-                break;
-              case '/viewinventory':
-                return SlideRightRoute(
-                    page: ViewInventoryScreen(settings.arguments));
-                break;
-              case '/viewinstall':
-                return SlideRightRoute(
-                    page: ViewInstallScreen(settings.arguments));
-                break;
-              case '/employeemgmt':
-                return MaterialPageRoute(
-                    builder: (context) => EmployeesManagementScreen());
-                break;
-              case '/employeemap':
-                return SlideRightRoute(
-                  page: EmployeeMapScreen(),
-                );
-                break;
-              case '/employeemaphistory':
-                return SlideRightRoute(
-                  page: EmployeeMapHistoryScreen(settings.arguments),
-                );
-                break;
-              case '/tasks':
-                return SlideRightRoute(
-                  page: TaskScreen(),
-                );
-                break;
-              case '/employeelist':
-                return SlideRightRoute(
-                  page: EmployeeListScreen(true),
-                );
-                break;
-              case '/employeecallhistory':
-                return SlideRightRoute(
-                  page: EmployeeCallHistoryScreen(settings.arguments),
-                );
-                break;
-              case '/viewemployee':
-                return SlideRightRoute(
-                    page: ViewEmployeeScreen(settings.arguments));
-                break;
-              case '/viewtask':
-                return SlideRightRoute(
-                    page: ViewTaskScreen(settings.arguments));
-                break;
-              case '/agreementbuilder':
-                return SlideRightRoute(
-                    page: AgreementBuilder(settings.arguments));
-                break;
-              case '/camera':
-                return SlideRightRoute(
-                    page: CameraPage(
-                        cameras: cameras, callback: settings.arguments));
-                break;
-              case '/mileage':
-                return MaterialPageRoute(builder: (context) => MileageScreen());
-                break;
-              case '/docusigner':
-                return SlideRightRoute(
-                  page: CustomWebView(
-                    title: "Docusigner",
-                    selectedUrl:
-                        "https://demo.docusign.net/Member/PowerFormSigning.aspx?PowerFormId=c04d3d47-c7be-46d5-a10a-471e8c9e531b&env=demo&acct=d805e4d3-b594-4e79-9d49-243e076e75e6&v=2",
-                  ),
-                );
-                break;
-              case '/statementuploads':
-                return SlideRightRoute(
-                    page: StatementUploader(settings.arguments));
-                break;
-              case '/leadnotes':
-                return SlideRightRoute(page: LeadNotes(settings.arguments));
-                break;
-              case '/leadtasks':
-                return SlideRightRoute(page: LeadTasks(settings.arguments));
-                break;
-              case '/settings':
-                // return MaterialPageRoute(builder: (context) => SettingsScreen());
-                break;
-            }
-          },
-        ),
+            title: 'ATLAS CRM',
+            theme: defaultTheme,
+            // ThemeData(
+            //   appBarTheme: AppBarTheme(color: Colors.red),
+            //   primarySwatch: Colors.red,
+            //   backgroundColor: Colors.orange,
+            //   brightness: Brightness.light,
+            //   fontFamily: "LatoRegular",
+            // ),
+            home: UserService.isAuthenticated
+                ? DashboardScreen()
+                : WillPopScope(
+                    onWillPop: () async {
+                      print("main trying to pop");
+                      return false;
+                    },
+                    child: AuthScreen()),
+            initialRoute: "/",
+            onGenerateRoute: (RouteSettings settings) {
+              switch (settings.name) {
+                case '/dashboard':
+                  print("navigated to: " + settings.name);
+                  return MaterialPageRoute(
+                      builder: (context) => DashboardScreen());
+                  break;
+                case "/leads":
+                  return MaterialPageRoute(builder: (context) => LeadsScreen());
+                  break;
+                case "/merchants":
+                  return MaterialPageRoute(
+                      builder: (context) => MerchantsScreen());
+                  break;
+                case "/inventory":
+                  return MaterialPageRoute(
+                      builder: (context) => InventoryScreen());
+                  break;
+                case "/installs":
+                  return MaterialPageRoute(
+                      builder: (context) => InstallsScreen());
+                  break;
+                case "/logout":
+                  handleLogoutRoute();
+                  return MaterialPageRoute(builder: (context) => AtlasCRM());
+                  break;
+                case '/viewlead':
+                  return SlideRightRoute(
+                      page: ViewLeadScreen(settings.arguments));
+                  break;
+                case '/viewmerchant':
+                  return SlideRightRoute(
+                      page: ViewMerchantScreen(settings.arguments));
+                  break;
+                case '/viewinventory':
+                  return SlideRightRoute(
+                      page: ViewInventoryScreen(settings.arguments));
+                  break;
+                case '/viewinstall':
+                  return SlideRightRoute(
+                      page: ViewInstallScreen(settings.arguments));
+                  break;
+                case '/employeemgmt':
+                  return MaterialPageRoute(
+                      builder: (context) => EmployeesManagementScreen());
+                  break;
+                case '/employeemap':
+                  return SlideRightRoute(
+                    page: EmployeeMapScreen(),
+                  );
+                  break;
+                case '/employeemaphistory':
+                  return SlideRightRoute(
+                    page: EmployeeMapHistoryScreen(settings.arguments),
+                  );
+                  break;
+                case '/tasks':
+                  return SlideRightRoute(
+                    page: TaskScreen(),
+                  );
+                  break;
+                case '/employeelist':
+                  return SlideRightRoute(
+                    page: EmployeeListScreen(true),
+                  );
+                  break;
+                case '/employeecallhistory':
+                  return SlideRightRoute(
+                    page: EmployeeCallHistoryScreen(settings.arguments),
+                  );
+                  break;
+                case '/viewemployee':
+                  return SlideRightRoute(
+                      page: ViewEmployeeScreen(settings.arguments));
+                  break;
+                case '/viewtask':
+                  return SlideRightRoute(
+                      page: ViewTaskScreen(settings.arguments));
+                  break;
+                case '/agreementbuilder':
+                  return SlideRightRoute(
+                      page: AgreementBuilder(settings.arguments));
+                  break;
+                case '/camera':
+                  return SlideRightRoute(
+                      page: CameraPage(
+                          cameras: cameras, callback: settings.arguments));
+                  break;
+                case '/mileage':
+                  return MaterialPageRoute(
+                      builder: (context) => MileageScreen());
+                  break;
+                case '/statementuploads':
+                  return SlideRightRoute(
+                      page: StatementUploader(settings.arguments));
+                  break;
+                case '/leadnotes':
+                  return SlideRightRoute(page: LeadNotes(settings.arguments));
+                  break;
+                case '/leadtasks':
+                  return SlideRightRoute(page: LeadTasks(settings.arguments));
+                  break;
+                case '/settings':
+                  // return MaterialPageRoute(builder: (context) => SettingsScreen());
+                  break;
+              }
+            }),
       ),
     );
   }

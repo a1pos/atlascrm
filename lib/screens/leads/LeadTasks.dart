@@ -49,6 +49,7 @@ class _LeadTasksState extends State<LeadTasks> {
   var taskTypeDropdownValue;
   var taskPriorityDropdownValue;
   var employeeDropdownValue;
+  var subscription;
 
   bool isSaveDisabled;
   @override
@@ -58,6 +59,15 @@ class _LeadTasksState extends State<LeadTasks> {
     _calendarController = CalendarController();
     _calendarEvents = {};
     initTasks();
+  }
+
+  @override
+  void dispose() async {
+    super.dispose();
+    if (subscription != null) {
+      await subscription.cancel();
+      subscription = null;
+    }
   }
 
   Future<void> fillEvents() async {
@@ -156,7 +166,7 @@ class _LeadTasksState extends State<LeadTasks> {
         """), variables: {"lead": "${this.widget.lead["lead"]}"});
 
     var result = await authGqlSubscribe(options);
-    result.listen(
+    subscription = result.listen(
       (data) async {
         var tasksArrDecoded = data.data["task"];
         if (tasksArrDecoded != null) {
@@ -171,19 +181,30 @@ class _LeadTasksState extends State<LeadTasks> {
         }
         isLoading = false;
       },
-      onError: (error) {
-        print(error);
-        isLoading = false;
-
-        Fluttertoast.showToast(
-            msg: "Failed to load tasks for employee!",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.grey[600],
-            textColor: Colors.white,
-            fontSize: 16.0);
+      onError: (error) async {
+        var errMsg = error.payload["message"];
+        print(errMsg);
+        if (errMsg.contains("JWTExpired")) {
+          await refreshSub();
+        } else {
+          Fluttertoast.showToast(
+              msg: errMsg,
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.grey[600],
+              textColor: Colors.white,
+              fontSize: 16.0);
+        }
       },
     );
+  }
+
+  Future refreshSub() async {
+    if (subscription != null) {
+      await subscription.cancel();
+      subscription = null;
+      initTasks();
+    }
   }
 
   Future<void> createTask() async {

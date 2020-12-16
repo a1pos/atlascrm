@@ -342,84 +342,90 @@ class _MileageScreenState extends State<MileageScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.orange,
-      drawer: CustomDrawer(),
-      appBar: CustomAppBar(
-        key: Key("mileageCustomAppBar"),
-        title: Text("Mileage"),
-      ),
-      body: isLoading
-          ? LoadingScreen()
-          : Container(
-              color: Colors.black,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  isRunning
-                      ? Expanded(
-                          child: Column(
-                            children: <Widget>[
-                              Expanded(
-                                child: Image(
-                                  fit: BoxFit.fill,
-                                  image: NetworkImage(
-                                      "https://media.giphy.com/media/l378BzHA5FwWFXVSg/giphy.gif"),
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.pushReplacementNamed(context, "/dashboard");
+        return false;
+      },
+      child: Scaffold(
+        backgroundColor: Colors.orange,
+        drawer: CustomDrawer(),
+        appBar: CustomAppBar(
+          key: Key("mileageCustomAppBar"),
+          title: Text("Mileage"),
+        ),
+        body: isLoading
+            ? LoadingScreen()
+            : Container(
+                color: Colors.black,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    isRunning
+                        ? Expanded(
+                            child: Column(
+                              children: <Widget>[
+                                Expanded(
+                                  child: Image(
+                                    fit: BoxFit.fill,
+                                    image: NetworkImage(
+                                        "https://media.giphy.com/media/l378BzHA5FwWFXVSg/giphy.gif"),
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        )
-                      : Expanded(
-                          child: Column(
-                            children: <Widget>[
-                              Expanded(
-                                child: Image(
-                                  fit: BoxFit.fill,
-                                  image: NetworkImage(
-                                      "https://media.giphy.com/media/brHaCdJqCXijm/source.gif"),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                  Expanded(
-                    child: isRunning
-                        ? MaterialButton(
-                            height: MediaQuery.of(context).size.height / 2,
-                            color: Colors.red[300],
-                            onPressed: () {
-                              toggleTripStatus({});
-                            },
-                            child: Text(
-                              'STOP',
-                              style: TextStyle(
-                                fontSize: 34,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 10,
-                              ),
+                              ],
                             ),
                           )
-                        : MaterialButton(
-                            height: MediaQuery.of(context).size.height / 2,
-                            color: Colors.green[200],
-                            onPressed: () {
-                              selectDestination(true);
-                            },
-                            child: Text(
-                              'START',
-                              style: TextStyle(
-                                fontSize: 34,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 10,
-                              ),
+                        : Expanded(
+                            child: Column(
+                              children: <Widget>[
+                                Expanded(
+                                  child: Image(
+                                    fit: BoxFit.fill,
+                                    image: NetworkImage(
+                                        "https://media.giphy.com/media/brHaCdJqCXijm/source.gif"),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                  ),
-                ],
+                    Expanded(
+                      child: isRunning
+                          ? MaterialButton(
+                              height: MediaQuery.of(context).size.height / 2,
+                              color: Colors.red[300],
+                              onPressed: () {
+                                toggleTripStatus({});
+                              },
+                              child: Text(
+                                'STOP',
+                                style: TextStyle(
+                                  fontSize: 34,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 10,
+                                ),
+                              ),
+                            )
+                          : MaterialButton(
+                              height: MediaQuery.of(context).size.height / 2,
+                              color: Colors.green[200],
+                              onPressed: () {
+                                selectDestination(true);
+                              },
+                              child: Text(
+                                'START',
+                                style: TextStyle(
+                                  fontSize: 34,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 10,
+                                ),
+                              ),
+                            ),
+                    ),
+                  ],
+                ),
               ),
-            ),
+      ),
     );
   }
 

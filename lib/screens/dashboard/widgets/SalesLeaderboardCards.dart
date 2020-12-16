@@ -42,13 +42,15 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
   ];
   @override
   void initState() {
-    super.initState();
     initSub();
+    super.initState();
   }
 
   @override
   void dispose() {
     _pageController.dispose();
+    subscription.cancel();
+    subscription = null;
     super.dispose();
   }
 
@@ -103,18 +105,30 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
           }
         }
       },
-      onError: (error) {
-        print(error);
-
-        Fluttertoast.showToast(
-            msg: error,
-            toastLength: Toast.LENGTH_LONG,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.grey[600],
-            textColor: Colors.white,
-            fontSize: 16.0);
+      onError: (error) async {
+        var errMsg = error.payload["message"];
+        print(errMsg);
+        if (errMsg.contains("JWTExpired")) {
+          await refreshSub();
+        } else {
+          Fluttertoast.showToast(
+              msg: errMsg,
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.grey[600],
+              textColor: Colors.white,
+              fontSize: 16.0);
+        }
       },
     );
+  }
+
+  Future refreshSub() async {
+    if (subscription != null) {
+      await subscription.cancel();
+      subscription = null;
+      initSub();
+    }
   }
 
   _builder(int index) {

@@ -90,7 +90,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 ),
               ),
               onTap: () {
-                Navigator.popAndPushNamed(context, "/dashboard");
+                Navigator.pushReplacementNamed(context, "/dashboard");
               },
             ),
             ListTile(
@@ -105,7 +105,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 ),
               ),
               onTap: () {
-                Navigator.popAndPushNamed(context, "/tasks");
+                Navigator.pushReplacementNamed(context, "/tasks");
               },
             ),
             UserService.isTech
@@ -122,7 +122,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                       ),
                     ),
                     onTap: () {
-                      Navigator.popAndPushNamed(context, "/leads");
+                      Navigator.pushReplacementNamed(context, "/leads");
                     },
                   ),
             UserService.isTech || UserService.isAdmin
@@ -138,7 +138,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                       ),
                     ),
                     onTap: () {
-                      Navigator.popAndPushNamed(context, "/merchants");
+                      Navigator.pushReplacementNamed(context, "/merchants");
                     },
                   )
                 : Container(),
@@ -155,7 +155,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                       ),
                     ),
                     onTap: () {
-                      Navigator.popAndPushNamed(context, "/inventory");
+                      Navigator.pushReplacementNamed(context, "/inventory");
                     },
                   )
                 : Text(""),
@@ -189,7 +189,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                       ),
                     ),
                     onTap: () {
-                      Navigator.popAndPushNamed(context, "/mileage");
+                      Navigator.pushReplacementNamed(context, "/mileage");
                     },
                   )
                 : Text(""),
@@ -206,7 +206,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                       ),
                     ),
                     onTap: () {
-                      Navigator.popAndPushNamed(context, "/employeemgmt");
+                      Navigator.pushReplacementNamed(context, "/employeemgmt");
                     },
                   )
                 : Text(""),
