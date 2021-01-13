@@ -678,6 +678,7 @@ class _StatementUploaderState extends State<StatementUploader> {
         }
         """), variables: {
         "to": [
+          "nick.kalich@butlerbizsys.com",
           "jerrod.lumley@a1pos.com",
           "john.deluga@butlerbizsys.com",
           "ahrindo@gmail.com"

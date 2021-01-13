@@ -38,7 +38,7 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
   var inventoryDocument;
   var isLoading = true;
   var displayPhone;
-  var deviceStatus;
+  var deviceStatus = "?";
   void initState() {
     super.initState();
     loadInventoryData();
@@ -113,7 +113,7 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
 
   Future<void> loadInventoryData() async {
     QueryOptions options = QueryOptions(documentNode: gql("""
-        query {inventory_by_pk(inventory: "${this.widget.incoming["id"]}"){
+        query GET_INVENTORY{inventory_by_pk(inventory: "${this.widget.incoming["id"]}"){
           inventory
           merchantByMerchant{
             merchant
@@ -133,6 +133,26 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
             model
           }
           document
+          inventory_trackings (order_by: {created_at: asc}) {
+           inventory_tracking
+            inventoryTrackingTypeByInventoryTrackingType {
+              title
+            }
+            old_employee
+            employeeByEmployee{
+              document
+            }
+            created_by
+            created_at
+            merchant
+            old_merchant
+            inventoryLocationByInventoryLocation {
+              name
+            }
+            merchantByMerchant {
+              document
+            }
+          }
         }}
             """), fetchPolicy: FetchPolicy.networkOnly);
 
@@ -203,34 +223,34 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
         alert = "Device installed!";
         locationName = merchantNameController.text;
       }
-      if (inventory["document"] != null) newDocument = inventory["document"];
-      if (newDocument["history"] == null) newDocument["history"] = [];
+      // if (inventory["document"] != null) newDocument = inventory["document"];
+      // if (newDocument["history"] == null) newDocument["history"] = [];
 
-      var currentTimestamp = DateTime.now().millisecondsSinceEpoch;
-      print(currentTimestamp);
-      var newEvent = {
-        "date": currentTimestamp,
-        "employee": UserService.employee.employee,
-        "location": merchantController.text,
-        "merchant": type == "return" ? false : true,
-        "description": type,
-        "employeeName": UserService.employee.document["displayName"],
-        "locationName": locationName
-      };
-      newDocument["history"].add(newEvent);
+      // var currentTimestamp = DateTime.now().millisecondsSinceEpoch;
+      // print(currentTimestamp);
+      // var newEvent = {
+      //   "date": currentTimestamp,
+      //   "employee": UserService.employee.employee,
+      //   "location": merchantController.text,
+      //   "merchant": type == "return" ? false : true,
+      //   "description": type,
+      //   "employeeName": UserService.employee.document["displayName"],
+      //   "locationName": locationName
+      // };
+      // newDocument["history"].add(newEvent);
 
-      data["document"] = newDocument;
+      // data["document"] = newDocument;
     }
-    if (type == "return") {
-      data["id"] = null;
-      setState(() {
-        merchantNameController.text = "";
-        idController.text = "";
-        employee = "";
-      });
-    } else {
-      data["id"] = idController.text;
-    }
+    // if (type == "return") {
+    //   data["id"] = null;
+    //   setState(() {
+    //     merchantNameController.text = "";
+    //     idController.text = "";
+    //     employee = "";
+    //   });
+    // } else {
+    //   data["id"] = idController.text;
+    // }
 
     MutationOptions mutateOptions = MutationOptions(documentNode: gql("""
       mutation UPDATE_INVENTORY (\$data: inventory_set_input){
@@ -269,6 +289,8 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
           backgroundColor: Colors.grey[600],
           textColor: Colors.white,
           fontSize: 16.0);
+
+      print(result.exception.toString());
     }
   }
 
@@ -384,45 +406,76 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
     }
   }
 
+  getEmployee(employeeId) async {
+    QueryOptions options = QueryOptions(documentNode: gql("""
+      query GET_EMPLOYEE_BY_PK {
+        employee_by_pk(employee: "$employeeId"){
+          displayName: document(path: "displayName")
+        }
+      }
+    """), fetchPolicy: FetchPolicy.networkOnly);
+
+    final QueryResult result = await authGqlQuery(options);
+
+    if (result.hasException == false) {
+      var body = result.data["employee_by_pk"];
+      if (body != null) {
+        return await body["displayName"];
+      }
+    }
+  }
+
   Widget buildHistoryList() {
     var historyList = [];
-    if (inventory["document"] != null) {
-      if (inventory["document"]["history"] != null) {
-        var reversed = List.from(inventory["document"]["history"].reversed);
-        historyList = reversed;
-      }
+    if (inventory["inventory_trackings"].length != 0) {
+      var reversed = List.from(inventory["inventory_trackings"].reversed);
+      historyList = reversed;
     }
     return ListView(
         shrinkWrap: true,
         children: List.generate(historyList.length, (index) {
           var event = historyList[index];
-          DateTime date =
-              new DateTime.fromMillisecondsSinceEpoch(event["date"]);
-          var dateFormat = DateFormat.yMd().add_jm();
-          var eventDate = dateFormat.format(date);
+          var eventType =
+              event["inventoryTrackingTypeByInventoryTrackingType"]["title"];
+          var eventEmployee;
+          if (eventType == "Returned" || eventType == "Scanned In") {
+            eventEmployee = FutureBuilder(
+                future: getEmployee(event["created_by"]),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.done) {
+                    return Text(snapshot.data);
+                  } else {
+                    return Text("loading");
+                  }
+                });
+          } else {
+            eventEmployee =
+                Text(event["employeeByEmployee"]["document"]["displayName"]);
+          }
+          var initDate = DateTime.parse(event["created_at"]).toLocal();
+          var eventDate = DateFormat.yMd().add_jm().format(initDate);
+
           return Card(
               shape: new RoundedRectangleBorder(
                   side: new BorderSide(color: Colors.grey[200], width: 2.0),
                   borderRadius: BorderRadius.circular(4.0)),
               child: ListTile(
                   isThreeLine: true,
-                  title: Text(event["locationName"] != null
-                      ? event["locationName"]
-                      : ""),
+                  title: Text(eventType == "Returned" ||
+                          eventType == "Scanned In"
+                      ? event["inventoryLocationByInventoryLocation"]["name"]
+                      : event["merchantByMerchant"]["document"]["leadDocument"]
+                          ["businessName"]),
                   subtitle: Align(
                       alignment: Alignment.centerLeft,
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
-                        child: Text(event["employeeName"] != null
-                            ? event["employeeName"]
-                            : ""),
+                        child: eventEmployee,
                       )),
                   trailing: Column(
                     children: <Widget>[
                       Text(eventDate),
-                      Text(event["description"] != null
-                          ? event["description"]
-                          : ""),
+                      Text(eventType),
                     ],
                   )));
         }));

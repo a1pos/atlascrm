@@ -70,24 +70,27 @@ class InventoryAddState extends State<InventoryAdd> {
       // print(currentTimestamp);
       setState(() {
         serialList.add({
+          // "inventory_tracking_type": "221812b6-a915-4832-a05a-930a59f78891",
+          // "employee": UserService.employee.employee,
           "inventory_price_tier": priceTierController.text,
           "inventory_location": locationController.text,
           "serial": input,
-          "document": {
-            "history": [
-              {
-                // "date": currentTimestamp,
-                "employee": UserService.employee.employee,
-                "location": locationController.text,
-                "merchant": false,
-                "description": "add",
-                "employeeName": UserService.employee.document["displayName"],
-                "locationName": locationNameController.text
-              }
-            ]
-          }
+          // "document": {
+          //   "history": [
+          //     {
+          //       // "date": currentTimestamp,
+          //       "employee": UserService.employee.employee,
+          //       "location": locationController.text,
+          //       "merchant": false,
+          //       "description": "add",
+          //       "employeeName": UserService.employee.document["displayName"],
+          //       "locationName": locationNameController.text
+          //     }
+          //   ]
+          // }
         });
       });
+      print(serialList);
     } else {
       if (isListed) {
         Fluttertoast.showToast(
@@ -144,8 +147,8 @@ class InventoryAddState extends State<InventoryAdd> {
       bool cleanPost = true;
       for (var device in serialList) {
         var data = device;
-        var currentTimestamp = DateTime.now().millisecondsSinceEpoch;
-        device["document"]["history"][0]["date"] = currentTimestamp;
+        // var currentTimestamp = DateTime.now().millisecondsSinceEpoch;
+        // device["document"]["history"][0]["date"] = currentTimestamp;
 
         MutationOptions options = MutationOptions(documentNode: gql("""
         mutation InsertDevices (\$objects: [inventory_insert_input!]!) {
@@ -470,11 +473,15 @@ class InventoryAddState extends State<InventoryAdd> {
                             label: Padding(
                               padding: EdgeInsets.all(20),
                               child: _currentStep == stepsLength - 1
-                                  ? added ? Text('Done') : Text('Save')
+                                  ? added
+                                      ? Text('Done')
+                                      : Text('Save')
                                   : Text('Next'),
                             ),
                             icon: _currentStep == stepsLength - 1
-                                ? added ? Icon(Icons.done) : Icon(Icons.save)
+                                ? added
+                                    ? Icon(Icons.done)
+                                    : Icon(Icons.save)
                                 : Icon(Icons.arrow_forward),
                           )
                         : Container(),
