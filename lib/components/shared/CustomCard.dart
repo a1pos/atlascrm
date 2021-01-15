@@ -7,6 +7,8 @@ class CustomCard extends StatefulWidget {
   final bool isClickable;
   final String route;
   final Key key;
+  final Color color;
+  final Widget trailing;
 
   CustomCard(
       {this.child,
@@ -14,7 +16,9 @@ class CustomCard extends StatefulWidget {
       this.icon,
       this.isClickable = false,
       this.route,
-      this.key});
+      this.key,
+      this.color = Colors.white,
+      this.trailing});
 
   @override
   _CustomCardState createState() => _CustomCardState();
@@ -27,6 +31,7 @@ class _CustomCardState extends State<CustomCard> {
       key: this.widget.key,
       margin: EdgeInsets.fromLTRB(0, 10, 0, 10),
       child: Card(
+        color: this.widget.color,
         elevation: 3,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15.0),
@@ -50,7 +55,9 @@ class _CustomCardState extends State<CustomCard> {
                   ? Icon(
                       Icons.open_in_new,
                     )
-                  : null,
+                  : this.widget.trailing == null
+                      ? null
+                      : this.widget.trailing,
               onTap: this.widget.isClickable
                   ? () {
                       Navigator.pushNamed(context, this.widget.route);

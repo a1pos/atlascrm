@@ -691,6 +691,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                           arguments: lead);
                                     },
                                     child: Container(
+                                      padding: EdgeInsets.all(8),
                                       color: Colors.white,
                                       child: Row(
                                         mainAxisAlignment:
@@ -722,6 +723,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                           arguments: lead);
                                     },
                                     child: Container(
+                                      padding: EdgeInsets.all(8),
                                       color: Colors.white,
                                       child: Row(
                                         mainAxisAlignment:
@@ -763,40 +765,36 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                           icon: Icons.file_upload,
                           child: Column(
                             children: <Widget>[
-                              Column(
-                                children: <Widget>[
-                                  GestureDetector(
-                                    onTap: () {
-                                      Navigator.pushNamed(
-                                          context, "/statementuploads",
-                                          arguments: lead);
-                                    },
-                                    child: Container(
-                                      color: Colors.white,
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.pushNamed(
+                                      context, "/statementuploads",
+                                      arguments: lead);
+                                },
+                                child: Container(
+                                  padding: EdgeInsets.all(8),
+                                  color: Colors.white,
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: <Widget>[
+                                      Row(
                                         children: <Widget>[
-                                          Row(
-                                            children: <Widget>[
-                                              statementComplete
-                                                  ? Icon(Icons.done,
-                                                      color: Colors.green)
-                                                  : Text(""),
-                                              statementDirty
-                                                  ? Icon(Icons.error,
-                                                      color: Colors.red)
-                                                  : Text(""),
-                                              Text('Statements'),
-                                            ],
-                                          ),
-                                          Icon(Icons.arrow_forward_ios,
-                                              size: 14),
+                                          statementComplete
+                                              ? Icon(Icons.done,
+                                                  color: Colors.green)
+                                              : Text(""),
+                                          statementDirty
+                                              ? Icon(Icons.error,
+                                                  color: Colors.red)
+                                              : Text(""),
+                                          Text('Statements'),
                                         ],
                                       ),
-                                    ),
+                                      Icon(Icons.arrow_forward_ios, size: 14),
+                                    ],
                                   ),
-                                ],
+                                ),
                               ),
                             ],
                           ),

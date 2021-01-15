@@ -1,3 +1,4 @@
+import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/config/ConfigSettings.dart';
 import 'package:atlascrm/services/api.dart';
@@ -43,6 +44,7 @@ class _StatementUploaderState extends State<StatementUploader> {
   List imageFileList = [];
   List imageDLList = [];
   TextEditingController taskDateController = TextEditingController();
+  var statementEmployee = UserService.employee.employee;
 
   @override
   void initState() {
@@ -68,6 +70,7 @@ class _StatementUploaderState extends State<StatementUploader> {
       QueryOptions options = QueryOptions(documentNode: gql("""
         query GET_STATEMENT {
           statement(where: {lead: {_eq: "${lead["lead"]}"}}) {
+            employee
             statement
             document
             leadByLead{
@@ -82,6 +85,7 @@ class _StatementUploaderState extends State<StatementUploader> {
       if (result.hasException == false) {
         if (result.data != null && result.data != "") {
           setState(() {
+            statementEmployee = result.data["statement"][0]["employee"];
             statementId = result.data["statement"][0]["statement"];
           });
           if (result.data["statement"][0]["document"] != null) {
@@ -110,7 +114,15 @@ class _StatementUploaderState extends State<StatementUploader> {
     var successMsg = "Task created!";
     var msgLength = Toast.LENGTH_SHORT;
     var taskEmployee = UserService.employee.employee;
-
+    // if (UserService.isAdmin || UserService.isSalesManager) {
+    //   if (statementEmployee != null) {
+    //     taskEmployee = statementEmployee;
+    //   } else {
+    //     taskEmployee = UserService.employee.employee;
+    //   }
+    // } else {
+    //   taskEmployee = UserService.employee.employee;
+    // }
     var openStatus;
     var rateReviewType;
 
@@ -229,38 +241,42 @@ class _StatementUploaderState extends State<StatementUploader> {
                       child: Text(
                           ' Would you like to submit this statement before you leave?'),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
-                      child: Text(
-                          'Please enter the date and time you intend to present the rate review to this merchant'),
-                    ),
-                    DateTimeField(
-                      onEditingComplete: () =>
-                          FocusScope.of(context).nextFocus(),
-                      decoration: InputDecoration(
-                          labelText: "Date to Present Rate Review"),
-                      format: DateFormat("yyyy-MM-dd HH:mm"),
-                      controller: taskDateController,
-                      onShowPicker: (context, currentValue) async {
-                        final date = await showDatePicker(
-                          context: context,
-                          firstDate: DateTime(1900),
-                          initialDate: currentValue ?? DateTime.now(),
-                          lastDate: DateTime(2100),
-                        );
-                        if (date != null) {
-                          final time = await showTimePicker(
-                            context: context,
-                            initialTime: TimeOfDay.fromDateTime(
-                              currentValue ?? DateTime.now(),
-                            ),
-                          );
-                          return DateTimeField.combine(date, time);
-                        } else {
-                          return currentValue;
-                        }
-                      },
-                    ),
+                    UserService.isAdmin || UserService.isSalesManager
+                        ? Container()
+                        : Padding(
+                            padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
+                            child: Text(
+                                'Please enter the date and time you intend to present the rate review to this merchant'),
+                          ),
+                    UserService.isAdmin || UserService.isSalesManager
+                        ? Container()
+                        : DateTimeField(
+                            onEditingComplete: () =>
+                                FocusScope.of(context).nextFocus(),
+                            decoration: InputDecoration(
+                                labelText: "Date to Present Rate Review"),
+                            format: DateFormat("yyyy-MM-dd HH:mm"),
+                            controller: taskDateController,
+                            onShowPicker: (context, currentValue) async {
+                              final date = await showDatePicker(
+                                context: context,
+                                firstDate: DateTime(1900),
+                                initialDate: currentValue ?? DateTime.now(),
+                                lastDate: DateTime(2100),
+                              );
+                              if (date != null) {
+                                final time = await showTimePicker(
+                                  context: context,
+                                  initialTime: TimeOfDay.fromDateTime(
+                                    currentValue ?? DateTime.now(),
+                                  ),
+                                );
+                                return DateTimeField.combine(date, time);
+                              } else {
+                                return currentValue;
+                              }
+                            },
+                          ),
                     Divider(
                       color: Colors.white,
                     ),
@@ -272,18 +288,24 @@ class _StatementUploaderState extends State<StatementUploader> {
                               style:
                                   TextStyle(color: Colors.green, fontSize: 17)),
                           onPressed: () {
-                            if (taskDateController.text != "" &&
-                                taskDateController.text != null) {
+                            if (UserService.isAdmin ||
+                                UserService.isSalesManager) {
                               Navigator.pop(context);
                               uploadComplete();
                             } else {
-                              Fluttertoast.showToast(
-                                  msg: "Please select a date/time!",
-                                  toastLength: Toast.LENGTH_SHORT,
-                                  gravity: ToastGravity.BOTTOM,
-                                  backgroundColor: Colors.grey[600],
-                                  textColor: Colors.white,
-                                  fontSize: 16.0);
+                              if (taskDateController.text != "" &&
+                                  taskDateController.text != null) {
+                                Navigator.pop(context);
+                                uploadComplete();
+                              } else {
+                                Fluttertoast.showToast(
+                                    msg: "Please select a date/time!",
+                                    toastLength: Toast.LENGTH_SHORT,
+                                    gravity: ToastGravity.BOTTOM,
+                                    backgroundColor: Colors.grey[600],
+                                    textColor: Colors.white,
+                                    fontSize: 16.0);
+                              }
                             }
                           },
                         ),
@@ -320,6 +342,73 @@ class _StatementUploaderState extends State<StatementUploader> {
             //     },
             //   ),
             // ],
+          );
+        },
+      );
+    } else {
+      Navigator.pushNamed(context, "/viewlead", arguments: lead["lead"]);
+      // Navigator.pop(context);
+      return;
+    }
+  }
+
+  Future<void> adminUploadCheck(result) async {
+    if (imageDLList.length == 0) {
+      return showDialog<void>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Assign Statement'),
+            content: StatefulBuilder(
+                builder: (BuildContext context, StateSetter setState) {
+              return SingleChildScrollView(
+                child: ListBody(
+                  children: <Widget>[
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
+                      child: Text(
+                          'Would you like to give a different employee credit for this statement?'),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(15, 10, 15, 0),
+                      child: EmployeeDropDown(
+                          caption: "Statement Owner",
+                          displayClear: false,
+                          value: statementEmployee,
+                          callback: (value) {
+                            print(value);
+                            statementEmployee = value;
+                          }),
+                    ),
+                    Divider(
+                      color: Colors.white,
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: <Widget>[
+                        FlatButton(
+                          child: Text('Assign',
+                              style:
+                                  TextStyle(color: Colors.green, fontSize: 17)),
+                          onPressed: () {
+                            addImage(result);
+                            Navigator.pop(context);
+                          },
+                        ),
+                        FlatButton(
+                          child: Text('Cancel',
+                              style:
+                                  TextStyle(color: Colors.red, fontSize: 17)),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            }),
           );
         },
       );
@@ -693,7 +782,9 @@ class _StatementUploaderState extends State<StatementUploader> {
 
       if (result.hasException == false) {
         if (result.data != null && result.data != "") {
-          createTask();
+          if (!UserService.isAdmin || !UserService.isSalesManager) {
+            createTask();
+          }
           setState(() {
             uploadsComplete = true;
             isLoading = false;
@@ -730,10 +821,26 @@ class _StatementUploaderState extends State<StatementUploader> {
     print("FILE URI: $path");
 
     try {
-      var resp = await this.widget.apiService.authFilePost(
-          context,
-          "/api/upload/statement?lead=${lead["lead"]}&employee=${UserService.employee.employee}",
-          path);
+      var resp;
+      if (UserService.isAdmin || UserService.isSalesManager) {
+        if (imageDLList.length == 0) {
+          resp = await this.widget.apiService.authFilePost(
+              context,
+              "/api/upload/statement?lead=${lead["lead"]}&employee=$statementEmployee",
+              path);
+        } else {
+          resp = await this.widget.apiService.authFilePost(
+              context,
+              "/api/upload/statement?lead=${lead["lead"]}&employee=${UserService.employee.employee}",
+              path);
+        }
+      } else {
+        resp = await this.widget.apiService.authFilePost(
+            context,
+            "/api/upload/statement?lead=${lead["lead"]}&employee=${UserService.employee.employee}",
+            path);
+      }
+
       if (resp.statusCode == 200) {
         setState(() {
           statementId = resp.data["statement"];
@@ -805,7 +912,16 @@ class _StatementUploaderState extends State<StatementUploader> {
                                   : () async {
                                       var result = await platform
                                           .invokeMethod("openMedia");
-                                      addImage(result);
+                                      if (UserService.isAdmin ||
+                                          UserService.isSalesManager) {
+                                        if (imageDLList.length == 0) {
+                                          adminUploadCheck(result);
+                                        } else {
+                                          addImage(result);
+                                        }
+                                      } else {
+                                        addImage(result);
+                                      }
                                     },
                               child: Padding(
                                 padding: const EdgeInsets.all(8.0),
@@ -830,7 +946,16 @@ class _StatementUploaderState extends State<StatementUploader> {
                                 : () async {
                                     var result = await platform
                                         .invokeMethod("openCamera");
-                                    addImage(result);
+                                    if (UserService.isAdmin ||
+                                        UserService.isSalesManager) {
+                                      if (imageDLList.length == 0) {
+                                        adminUploadCheck(result);
+                                      } else {
+                                        addImage(result);
+                                      }
+                                    } else {
+                                      addImage(result);
+                                    }
                                   },
                             child: Padding(
                               padding: const EdgeInsets.all(18.0),
@@ -857,7 +982,16 @@ class _StatementUploaderState extends State<StatementUploader> {
                                       var result = await FilePicker.getFilePath(
                                           type: FileType.custom,
                                           allowedExtensions: ['pdf']);
-                                      addImage(result);
+                                      if (UserService.isAdmin ||
+                                          UserService.isSalesManager) {
+                                        if (imageDLList.length == 0) {
+                                          adminUploadCheck(result);
+                                        } else {
+                                          addImage(result);
+                                        }
+                                      } else {
+                                        addImage(result);
+                                      }
                                     },
                               child: Padding(
                                 padding: const EdgeInsets.all(8.0),

@@ -43,6 +43,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
     "leadbusinessname: asc"
   ];
   var sortQuery = "leadbusinessname: asc";
+  bool salesIncludeStale = false;
   ScrollController _scrollController = ScrollController();
   TextEditingController _searchController = TextEditingController();
 
@@ -68,12 +69,83 @@ class _LeadsScreenState extends State<LeadsScreen> {
     super.dispose();
   }
 
+  Future<void> openStaleModal(lead) async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Stale Lead'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('This lead is stale, would you like to claim it?'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('Yes',
+                  style: TextStyle(fontSize: 17, color: Colors.green)),
+              onPressed: () async {
+                Map data = {
+                  "employee": UserService.employee.employee,
+                  "is_stale": false
+                };
+
+                MutationOptions mutateOptions =
+                    MutationOptions(documentNode: gql("""
+                      mutation UPDATE_LEAD (\$data: lead_set_input){
+                        update_lead_by_pk(pk_columns: {lead: "${lead["lead"]}"}, _set: \$data){
+                          lead
+                        }
+                      }
+                  """), variables: {"data": data});
+                final QueryResult result = await authGqlMutate(mutateOptions);
+
+                if (result.hasException == false) {
+                  Fluttertoast.showToast(
+                      msg: "Lead Claimed!",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      backgroundColor: Colors.grey[600],
+                      textColor: Colors.white,
+                      fontSize: 16.0);
+                  openLead(lead);
+                } else {
+                  Fluttertoast.showToast(
+                      msg: "Failed to claim lead!",
+                      toastLength: Toast.LENGTH_LONG,
+                      gravity: ToastGravity.BOTTOM,
+                      backgroundColor: Colors.grey[600],
+                      textColor: Colors.white,
+                      fontSize: 16.0);
+                }
+              },
+            ),
+            FlatButton(
+              child:
+                  Text('No', style: TextStyle(fontSize: 17, color: Colors.red)),
+              onPressed: () {
+                openLead(lead);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   var initParams = "offset: 0, limit: 10, order_by: {leadbusinessname: asc}";
   Future<void> initLeadsData() async {
     try {
       if (!UserService.isAdmin) {
-        initParams =
-            'offset: 0, limit: 10, order_by: {leadbusinessname: asc}, where: {employee: {_eq: "${UserService.employee.employee}"}}';
+        if (salesIncludeStale) {
+          initParams =
+              'offset: 0, limit: 10, order_by: {leadbusinessname: asc}, where: {_or: [{employee: {_eq: "${UserService.employee.employee}"}}, {stale: {_eq: true}}]}';
+        } else {
+          initParams =
+              'offset: 0, limit: 10, order_by: {leadbusinessname: asc}, where: {employee: {_eq: "${UserService.employee.employee}"}}';
+        }
       }
       print(initParams);
 
@@ -87,6 +159,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
               leadbusinessname
               leadfirstname
               leadlastname
+              stale
             }
           }
       """), fetchPolicy: FetchPolicy.networkOnly);
@@ -159,11 +232,21 @@ class _LeadsScreenState extends State<LeadsScreen> {
               'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "$filterEmployee"}, $searchParams}';
         }
       } else if (isSearching) {
-        params =
-            'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "${UserService.employee.employee}"}, $searchParams}';
+        if (salesIncludeStale) {
+          params =
+              'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {_and:[{_or: [{employee: {_eq: "${UserService.employee.employee}"}},{stale: {_eq: true}}]},{$searchParams}]}';
+        } else {
+          params =
+              'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "${UserService.employee.employee}"}, $searchParams}';
+        }
       } else {
-        params =
-            'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "${UserService.employee.employee}"}}';
+        if (salesIncludeStale) {
+          params =
+              'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {_or: [{employee: {_eq: "${UserService.employee.employee}"}}, {stale: {_eq: true}}]}';
+        } else {
+          params =
+              'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "${UserService.employee.employee}"}}';
+        }
       }
 
       QueryOptions options = QueryOptions(documentNode: gql("""
@@ -176,6 +259,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
               leadbusinessname
               leadfirstname
               leadlastname
+              stale
             }
           }
       """), fetchPolicy: FetchPolicy.networkOnly);
@@ -258,6 +342,19 @@ class _LeadsScreenState extends State<LeadsScreen> {
       });
       onScroll();
     }
+  }
+
+  Future<void> toggleStale(value) async {
+    clearSearch();
+    setState(() {
+      pageNum = 0;
+      currentSearch = "";
+      isSearching = false;
+      _searchController.clear();
+      leads = [];
+      salesIncludeStale = value;
+    });
+    onScroll();
   }
 
   void openAddLeadForm() {
@@ -403,7 +500,17 @@ class _LeadsScreenState extends State<LeadsScreen> {
                       clearFilter();
                     }
                   })
-                : Container(),
+                : Row(
+                    children: [
+                      Switch(
+                          activeColor: UniversalStyles.themeColor,
+                          value: salesIncludeStale,
+                          onChanged: (value) {
+                            toggleStale(value);
+                          }),
+                      Text("Show all Stale leads")
+                    ],
+                  ),
           ),
           isEmpty
               ? Padding(
@@ -417,13 +524,13 @@ class _LeadsScreenState extends State<LeadsScreen> {
                     children: leads.map((lead) {
                       var employeeName;
 
-                      if (UserService.isAdmin) {
-                        if (lead["employeefullname"] != null) {
-                          employeeName = lead["employeefullname"];
-                        } else {
-                          employeeName = "Not Found";
-                        }
+                      // if (UserService.isAdmin) {
+                      if (lead["employeefullname"] != null) {
+                        employeeName = lead["employeefullname"];
+                      } else {
+                        employeeName = "Not Found";
                       }
+                      // }
                       var fullName = "";
                       var businessName = "";
 
@@ -440,9 +547,28 @@ class _LeadsScreenState extends State<LeadsScreen> {
 
                       return GestureDetector(
                         onTap: () {
-                          openLead(lead);
+                          lead["stale"] ? openStaleModal(lead) : openLead(lead);
                         },
                         child: CustomCard(
+                          trailing: lead["stale"]
+                              ? Container(
+                                  decoration: BoxDecoration(
+                                      color: Colors.orange[50],
+                                      border: Border.all(
+                                        color: Colors.orange[50],
+                                      ),
+                                      borderRadius:
+                                          BorderRadius.all(Radius.circular(8))),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(3.0),
+                                    child: Text("Stale",
+                                        style: TextStyle(
+                                            fontSize: 18,
+                                            color: Colors.orange[400],
+                                            fontWeight: FontWeight.bold)),
+                                  ))
+                              : null,
+                          color: Colors.white,
                           title: businessName,
                           icon: Icons.arrow_forward_ios,
                           child: Column(
@@ -504,13 +630,20 @@ class _LeadsScreenState extends State<LeadsScreen> {
                                   ),
                                 ],
                               ),
-                              UserService.isAdmin
+                              UserService.isAdmin || lead["stale"]
                                   ? Divider(thickness: 2)
                                   : Container(),
-                              UserService.isAdmin
-                                  ? Text("Employee: " + employeeName,
-                                      style: TextStyle(),
-                                      textAlign: TextAlign.right)
+                              UserService.isAdmin || lead["stale"]
+                                  ? Row(
+                                      mainAxisAlignment: lead["stale"]
+                                          ? MainAxisAlignment.spaceEvenly
+                                          : MainAxisAlignment.center,
+                                      children: [
+                                        Text("Employee: " + employeeName,
+                                            style: TextStyle(),
+                                            textAlign: TextAlign.right),
+                                      ],
+                                    )
                                   : Container(),
                             ],
                           ),

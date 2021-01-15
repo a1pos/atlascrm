@@ -13,6 +13,7 @@ class UserService {
 
   static bool isAdmin = false;
   static bool isTech = false;
+  static bool isSalesManager = false;
   static bool isAuthenticated = false;
 
   final GoogleSignIn googleSignIn =
@@ -121,6 +122,12 @@ class UserService {
         // socketService.initWebSocketConnection();
       } else {
         isTech = false;
+      }
+      if (employee.role == "salesmanager") {
+        isSalesManager = true;
+        // socketService.initWebSocketConnection();
+      } else {
+        isSalesManager = false;
       }
       setPrivateGraphQLClient(idTokenResult);
       String companyId = empDecoded["company"];

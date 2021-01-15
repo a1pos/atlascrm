@@ -1,6 +1,5 @@
 import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/services/api.dart';
-import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -28,6 +27,7 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
   final currencyFmt = new NumberFormat("#,##0", "en_US");
   List starColors = [Colors.yellow[600], Colors.grey[500], Colors.orange[600]];
   var timeDropdownValue = "week";
+
   var timeFilterItems = [
     {"text": "Today", "value": "today"},
     {"text": "Week to Date", "value": "week"},
@@ -81,6 +81,7 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
         operationName: "GET_CARD_LEADERBOARD_COUNT", documentNode: gql("""
           subscription GET_CARD_LEADERBOARD_COUNT {
             v_leaderboard {
+              employee
               agreements
               leads
               name
@@ -140,32 +141,47 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
     }
     var employee = graphFinal[index];
     bool tied = false;
-    if (index == 0) {
-      if (employee["agreements"] == graphFinal[index + 1]["agreements"] &&
-          employee["statements"] == graphFinal[index + 1]["statements"] &&
-          employee["volume"] == graphFinal[index + 1]["volume"]) {
-        tied = true;
+    bool ranked = false;
+    Color borderColor = Colors.grey[100];
+    Widget trailingWidget = Text("");
+
+    if (employee["agreements"] != 0 ||
+        employee["statements"] != 0 ||
+        employee["volume"] != 0) {
+      if (index < 3) {
+        ranked = true;
       }
-    } else if (index == graphFinal.length - 1) {
-      if (employee["agreements"] == graphFinal[index - 1]["agreements"] &&
-          employee["statements"] == graphFinal[index - 1]["statements"]) {
-        tied = true;
-      }
-    } else if (employee["agreements"] == graphFinal[index - 1]["agreements"] &&
-        employee["statements"] == graphFinal[index - 1]["statements"] &&
-        employee["volume"] == graphFinal[index + 1]["volume"]) {
+    }
+    if (employee["tied"] == true) {
       tied = true;
     }
+
+    if (ranked == true) {
+      if (tied == true) {
+        borderColor = UniversalStyles.themeColor;
+        trailingWidget =
+            Text("Tied!", style: TextStyle(color: UniversalStyles.themeColor));
+      } else {
+        borderColor = starColors[index];
+        trailingWidget = IconButton(
+          icon: Icon(Icons.stars, color: starColors[index]),
+          onPressed: null,
+        );
+      }
+    } else {
+      if (tied == true) {
+        borderColor = UniversalStyles.themeColor;
+        trailingWidget =
+            Text("Tied!", style: TextStyle(color: UniversalStyles.themeColor));
+      }
+    }
+    print(graphFinal);
 
     return Card(
       elevation: 3,
       color: Colors.grey[100],
       shape: RoundedRectangleBorder(
-        side: index < 3
-            ? tied
-                ? BorderSide(color: UniversalStyles.themeColor, width: 3.0)
-                : BorderSide(color: starColors[index], width: 3.0)
-            : BorderSide(width: 0),
+        side: BorderSide(color: borderColor, width: 3.0),
         borderRadius: BorderRadius.circular(15.0),
       ),
       child: Column(
@@ -178,15 +194,7 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
                     fontSize: 22,
                     color: Color.fromRGBO(144, 97, 249, 1)),
               ),
-              trailing: index < 3
-                  ? tied
-                      ? Icon(Icons.swap_vert, color: UniversalStyles.themeColor)
-                      : Icon(
-                          Icons.star,
-                          size: 25,
-                          color: starColors[index],
-                        )
-                  : Text("")),
+              trailing: trailingWidget),
           Padding(
             padding: const EdgeInsets.all(15.0),
             child: Stack(
@@ -395,24 +403,49 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
         shrinkWrap: true,
         children: List.generate(graphFinal.length, (index) {
           var employee = graphFinal[index];
-          bool tied = false;
 
-          if (index == 0) {
-            if (employee["agreements"] == graphFinal[index + 1]["agreements"] &&
-                employee["statements"] == graphFinal[index + 1]["statements"] &&
-                employee["volume"] == graphFinal[index + 1]["volume"]) {
-              tied = true;
+          bool tied = false;
+          bool ranked = false;
+          Color borderColor = Colors.grey[100];
+          Widget trailingWidget = Text("");
+
+          if (employee["agreements"] != 0 ||
+              employee["statements"] != 0 ||
+              employee["volume"] != 0) {
+            if (index < 3) {
+              ranked = true;
             }
-          } else if (index == graphFinal.length - 1) {
-            if (employee["agreements"] == graphFinal[index - 1]["agreements"] &&
-                employee["statements"] == graphFinal[index - 1]["statements"]) {
-              tied = true;
-            }
-          } else if (employee["agreements"] ==
-                  graphFinal[index - 1]["agreements"] &&
-              employee["statements"] == graphFinal[index - 1]["statements"] &&
-              employee["volume"] == graphFinal[index + 1]["volume"]) {
+          }
+          if (employee["tied"] == true) {
             tied = true;
+          }
+
+          if (ranked == true) {
+            if (tied == true) {
+              borderColor = UniversalStyles.themeColor;
+              // trailingWidget = IconButton(
+              //   icon: Icon(Icons.swap_vert, color: UniversalStyles.themeColor),
+              //   onPressed: null,
+              // );
+              trailingWidget = Text("Tied!",
+                  style: TextStyle(color: UniversalStyles.themeColor));
+            } else {
+              borderColor = starColors[index];
+              trailingWidget = IconButton(
+                icon: Icon(Icons.stars, color: starColors[index]),
+                onPressed: null,
+              );
+            }
+          } else {
+            if (tied == true) {
+              borderColor = UniversalStyles.themeColor;
+              // trailingWidget = IconButton(
+              //   icon: Icon(Icons.swap_vert, color: UniversalStyles.themeColor),
+              //   onPressed: null,
+              // );
+              trailingWidget = Text("Tied!",
+                  style: TextStyle(color: UniversalStyles.themeColor));
+            }
           }
 
           var employeeImage;
@@ -430,13 +463,7 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
               child: Card(
                   elevation: 2,
                   shape: RoundedRectangleBorder(
-                      side: BorderSide(
-                          color: index < 3
-                              ? tied
-                                  ? UniversalStyles.themeColor
-                                  : starColors[index]
-                              : Colors.grey[100],
-                          width: 2.0),
+                      side: BorderSide(color: borderColor, width: 2.0),
                       borderRadius: BorderRadius.circular(4.0)),
                   child: ListTile(
                       leading: CircleAvatar(
@@ -477,23 +504,7 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
                           //     employee["stopCount"].toString()),
                         ],
                       ),
-                      trailing: index < 3
-                          ? tied
-                              ? IconButton(
-                                  icon: Icon(Icons.swap_vert,
-                                      color: UniversalStyles.themeColor),
-                                  onPressed: null,
-                                )
-                              : IconButton(
-                                  icon: Icon(Icons.stars,
-                                      color: index == 0
-                                          ? Colors.yellow[600]
-                                          : index == 1
-                                              ? Colors.grey[500]
-                                              : Colors.orange[600]),
-                                  onPressed: null,
-                                )
-                          : Text(""))));
+                      trailing: trailingWidget)));
         }));
   }
 
@@ -525,6 +536,59 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
         graphTemp.sort((a, b) => b["statements"].compareTo(a["statements"]));
         graphTemp.sort((a, b) => b["volume"].compareTo(a["volume"]));
         graphTemp.sort((a, b) => b["agreements"].compareTo(a["agreements"]));
+        bool checkTies = true;
+        for (var i = 0; i < graphTemp.length; i++) {
+          if (graphTemp[i]["agreements"] != 0 ||
+              graphTemp[i]["statements"] != 0 ||
+              graphTemp[i]["volume"] != 0) {
+            if (i < 3) {
+              if (i == 0) {
+                if (graphTemp[i]["agreements"] ==
+                        graphTemp[i + 1]["agreements"] &&
+                    graphTemp[i]["statements"] ==
+                        graphTemp[i + 1]["statements"] &&
+                    graphTemp[i]["volume"] == graphTemp[i + 1]["volume"]) {
+                  graphTemp[i]["tied"] = true;
+                }
+              } else if (i == graphTemp.length - 1) {
+                if (graphTemp.length != 1) {
+                  if (graphTemp[i]["agreements"] ==
+                          graphTemp[i - 1]["agreements"] &&
+                      graphTemp[i]["statements"] ==
+                          graphTemp[i - 1]["statements"] &&
+                      graphTemp[i]["volume"] == graphTemp[i - 1]["volume"]) {
+                    graphTemp[i]["tied"] = true;
+                  }
+                }
+              } else {
+                if (graphTemp[i]["agreements"] ==
+                        graphTemp[i - 1]["agreements"] &&
+                    graphTemp[i]["statements"] ==
+                        graphTemp[i - 1]["statements"] &&
+                    graphTemp[i]["volume"] == graphTemp[i - 1]["volume"]) {
+                  graphTemp[i]["tied"] = true;
+                }
+                if (graphTemp[i]["agreements"] ==
+                        graphTemp[i + 1]["agreements"] &&
+                    graphTemp[i]["statements"] ==
+                        graphTemp[i + 1]["statements"] &&
+                    graphTemp[i]["volume"] == graphTemp[i + 1]["volume"]) {
+                  graphTemp[i]["tied"] = true;
+                }
+              }
+            } else if (i > 2 && checkTies) {
+              if (graphTemp[i]["agreements"] ==
+                      graphTemp[i - 1]["agreements"] &&
+                  graphTemp[i]["statements"] ==
+                      graphTemp[i - 1]["statements"] &&
+                  graphTemp[i]["volume"] == graphTemp[i - 1]["volume"]) {
+                graphTemp[i]["tied"] = true;
+              } else {
+                checkTies = false;
+              }
+            }
+          }
+        }
 
         graphFinal = graphTemp;
 

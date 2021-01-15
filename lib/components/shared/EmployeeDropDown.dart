@@ -5,13 +5,21 @@ import 'package:searchable_dropdown/searchable_dropdown.dart';
 
 class EmployeeDropDown extends StatefulWidget {
   EmployeeDropDown(
-      {this.employeeId, this.callback, this.value, this.role, this.disabled});
+      {this.employeeId,
+      this.callback,
+      this.value,
+      this.role,
+      this.disabled,
+      this.displayClear = true,
+      this.caption = "Employee"});
 
   final String employeeId;
   final String value;
   final Function callback;
   final String role;
   final bool disabled;
+  final bool displayClear;
+  final String caption;
 
   @override
   _EmployeeDropDownState createState() => _EmployeeDropDownState();
@@ -74,13 +82,14 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Text(
-          'Employee',
+          this.widget.caption,
           style: TextStyle(
             color: Colors.grey,
             fontSize: 13,
           ),
         ),
         SearchableDropdown.single(
+          displayClearIcon: this.widget.displayClear,
           value: startVal,
           onClear: () {
             setState(() {
