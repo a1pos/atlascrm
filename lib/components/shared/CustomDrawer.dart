@@ -125,7 +125,9 @@ class _CustomDrawerState extends State<CustomDrawer> {
                       Navigator.pushReplacementNamed(context, "/leads");
                     },
                   ),
-            UserService.isTech || UserService.isAdmin
+            UserService.isTech ||
+                    UserService.isAdmin ||
+                    UserService.isSalesManager
                 ? ListTile(
                     leading: Icon(
                       Icons.people,
@@ -158,7 +160,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                       Navigator.pushReplacementNamed(context, "/inventory");
                     },
                   )
-                : Text(""),
+                : Container(),
             // UserService.isTech || UserService.isAdmin
             //     ? ListTile(
             //         leading: Icon(
@@ -192,8 +194,8 @@ class _CustomDrawerState extends State<CustomDrawer> {
                       Navigator.pushReplacementNamed(context, "/mileage");
                     },
                   )
-                : Text(""),
-            UserService.isAdmin
+                : Container(),
+            UserService.isAdmin || UserService.isSalesManager
                 ? ListTile(
                     leading: Icon(
                       Icons.account_box,
