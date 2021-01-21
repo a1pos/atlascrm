@@ -1,8 +1,9 @@
 import 'package:flutter/foundation.dart';
 
 class ConfigSettings {
-  static String HOOK_API_URL =
-      kReleaseMode ? "http://atlascrm.us:4433" : "http://atlascrm.us:4434";
+  static String HOOK_API_URL = kReleaseMode
+      ? "https://api-prod.atlascrm.us"
+      : "https://api-dev.atlascrm.us";
 
   static String HASURA_URL = kReleaseMode
       ? "https://hasura-prod.atlascrm.us/v1/graphql"
