@@ -13,7 +13,7 @@
 
     <application
         tools:replace="android:label"
-        android:name="io.flutter.app.FlutterApplication"
+        android:name=".Application"
         android:icon="@mipmap/launcher_icon"
         android:label="Atlas CRM"
         android:usesCleartextTraffic="true">
@@ -46,6 +46,9 @@
             android:value="2" />
         <meta-data android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyB-rMAdwtIjM7s_4Lb8SdRXAfhbiLTVl7s"/>
+        <meta-data android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="@string/default_notification_channel_id"/>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="com.ces.atlascrm.fileprovider"

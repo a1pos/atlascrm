@@ -1,13 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'package:http_parser/http_parser.dart';
 import 'package:atlascrm/config/ConfigSettings.dart';
 
 import 'package:atlascrm/services/StorageService.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/widgets.dart';
-import 'package:image/image.dart';
 import 'UserService.dart';
 
 class ApiService {
@@ -143,6 +141,32 @@ class ApiService {
       var f = MultipartFile.fromFileSync(filePath,
           contentType: MediaType(type, subType));
       var formData = FormData.fromMap({"statement": f});
+
+      var resp = await Dio(
+        BaseOptions(
+          baseUrl: URLBASE,
+          headers: {
+            "Content-Type": "multipart/form-data",
+            "Authorization": "Bearer $token",
+          },
+          sendTimeout: 10000,
+        ),
+      ).post(url, data: formData);
+
+      if (resp.statusCode == 401) {
+        Navigator.of(context).popAndPushNamed('/logout');
+        return null;
+      }
+      return resp;
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  Future<Response> authFilePostWithFormData(context, url, FormData formData, {isRetry: true}) async {
+    try {
+      var currentUser = await UserService.getCurrentUser();
+      var token = await currentUser.getIdToken();
 
       var resp = await Dio(
         BaseOptions(
