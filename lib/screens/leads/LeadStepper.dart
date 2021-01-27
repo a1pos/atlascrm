@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'dart:convert';
+import 'package:atlascrm/components/shared/ProcessorDropDown.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
@@ -35,18 +36,19 @@ class LeadStepperState extends State<LeadStepper> {
   // var leads;
   // static final translator = {'#': RegExp(r'/[^0-9]/g')};
 
-  final UserService userService = new UserService();
+  final UserService userService = UserService();
 
-  var firstNameController = new TextEditingController();
-  var lastNameController = new TextEditingController();
-  var emailAddrController = new TextEditingController();
-  var phoneNumberController = new MaskedTextController(mask: '000-000-0000');
+  var firstNameController = TextEditingController();
+  var lastNameController = TextEditingController();
+  var emailAddrController = TextEditingController();
+  var phoneNumberController = MaskedTextController(mask: '000-000-0000');
 
-  var businessNameController = new TextEditingController();
-  var dbaNameController = new TextEditingController();
-  var businessAddrController = new TextEditingController();
-  var businessPhoneNumber = new TextEditingController();
-  var address2Controller = new TextEditingController();
+  var businessNameController = TextEditingController();
+  var dbaNameController = TextEditingController();
+  var businessAddrController = TextEditingController();
+  var businessPhoneNumber = TextEditingController();
+  var address2Controller = TextEditingController();
+  var processorDropdownValue;
 
   Map businessAddress = {
     "address": "",
@@ -222,11 +224,11 @@ class LeadStepperState extends State<LeadStepper> {
     try {
       String rawNumber = phoneNumberController.text;
       var filteredNumber = rawNumber.replaceAll(RegExp("[^0-9]"), "");
-      // var created =
-      //     DateFormat('yyyy-MM-dd HH:mm:ss.mmm').format(DateTime.now());
+
       var lead = {
         "employee": UserService.employee.employee,
         "is_active": true,
+        "processor": processorDropdownValue,
         "document": {
           "firstName": firstNameController.text,
           "lastName": lastNameController.text,
@@ -387,7 +389,17 @@ class LeadStepperState extends State<LeadStepper> {
                                     controller: dbaNameController,
                                     // validator: validate,
                                   ),
-                                  Text(""),
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 8.0),
+                                    child: ProcessorDropDown(
+                                      value: processorDropdownValue,
+                                      callback: ((val) {
+                                        setState(() {
+                                          processorDropdownValue = val;
+                                        });
+                                      }),
+                                    ),
+                                  ),
                                   // DropdownButton<String>(
                                   //   items: businessTypes.map((value) {
                                   //     var dpValue = value["document"]["code"];

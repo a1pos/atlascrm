@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
+import 'package:atlascrm/services/UserService.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
@@ -7,12 +8,9 @@ import 'package:atlascrm/services/api.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/components/shared/AddressSearch.dart';
-import 'package:atlascrm/components/shared/Notes.dart';
-import 'package:intl/intl.dart';
 import 'package:maps_launcher/maps_launcher.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
-import 'package:atlascrm/components/shared/ImageUploader.dart';
 
 class LeadInfoEntry {
   final TextEditingController controller;
@@ -34,32 +32,37 @@ bool pulseVisibility;
 class ViewLeadScreenState extends State<ViewLeadScreen>
     with SingleTickerProviderStateMixin {
   final _leadFormKey = GlobalKey<FormState>();
+  final scrollController = ScrollController();
+
+  MaskedTextController phoneNumberController =
+      MaskedTextController(mask: '000-000-0000');
+  TextEditingController firstNameController = TextEditingController();
+  TextEditingController lastNameController = TextEditingController();
+  TextEditingController emailAddrController = TextEditingController();
+  TextEditingController businessNameController = TextEditingController();
+  TextEditingController dbaController = TextEditingController();
+  TextEditingController businessAddressController = TextEditingController();
+  TextEditingController notesController = TextEditingController();
+  TextEditingController leadSourceController = TextEditingController();
+
+  List leadInfoEntries = List<LeadInfoEntry>();
+  var lead;
+  var leadDocument;
+  var displayPhone;
+  var repeats = 2;
+
   AnimationController pulseController;
   Animation pulse;
 
-  var firstNameController = TextEditingController();
-  var lastNameController = TextEditingController();
-  var emailAddrController = TextEditingController();
-  var phoneNumberController = MaskedTextController(mask: '000-000-0000');
-  var businessNameController = TextEditingController();
-  var dbaController = TextEditingController();
-  var businessAddressController = TextEditingController();
-  var notesController = TextEditingController();
-  var leadSourceController = TextEditingController();
-
-  var leadInfoEntries = List<LeadInfoEntry>();
-
   Map businessAddress = {"address": "", "city": "", "state": "", "zipcode": ""};
+
   String addressText;
+
   bool isChanged = false;
-  var lead;
-  var leadDocument;
   bool isLoading = true;
-  var displayPhone;
   bool statementDirty = false;
   bool statementComplete = false;
-  final scrollController = ScrollController();
-  var repeats = 2;
+  bool isStale = false;
 
   void initState() {
     super.initState();
@@ -69,7 +72,6 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
 
     pulseController =
         AnimationController(vsync: this, duration: Duration(seconds: 1));
-    // pulseController.repeat(reverse: true);
 
     pulse = Tween(begin: 2.0, end: 15.0).animate(pulseController)
       ..addStatusListener((status) {
@@ -150,6 +152,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
           lead_by_pk(lead: \$lead) {
             lead
             document
+            is_stale
             employee: employeeByEmployee {
               employee
               fullName: document(path: "fullName")
@@ -162,6 +165,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
 
     if (result.hasException == false) {
       var body = result.data["lead_by_pk"];
+      isStale = result.data["lead_by_pk"]["is_stale"];
       if (body != null) {
         var bodyDecoded = body;
 
@@ -215,7 +219,6 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
   Future<void> updateLead(leadId) async {
     String rawNumber = phoneNumberController.text;
     var filteredNumber = rawNumber.replaceAll(RegExp("[^0-9]"), "");
-    // var updated = DateFormat('yyyy-MM-dd HH:mm:ss.mmm').format(DateTime.now());
 
     Map data = {
       "document": {
@@ -427,6 +430,24 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: <Widget>[
+                        isStale
+                            ? Padding(
+                                padding: const EdgeInsets.only(top: 8.0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.info_outline,
+                                        color: Colors.orange[400]),
+                                    Text(
+                                        "This is a stale lead! Claim it to edit",
+                                        style: TextStyle(
+                                            fontSize: 18,
+                                            color: Colors.orange[400],
+                                            fontWeight: FontWeight.bold)),
+                                  ],
+                                ),
+                              )
+                            : Container(),
                         CustomCard(
                           key: Key("leads2"),
                           icon: Icons.business,
@@ -442,9 +463,10 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                   return 'Please enter a business name';
                                 }
                                 return null;
-                              }),
+                              }, editable: !isStale),
                               getInfoRow("Doing Business As",
-                                  leadDocument["dbaName"], dbaController),
+                                  leadDocument["dbaName"], dbaController,
+                                  editable: !isStale),
                               Container(
                                   child: Padding(
                                       padding: EdgeInsets.all(15),
@@ -459,13 +481,18 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                           ),
                                           Expanded(
                                               flex: 8,
-                                              child: AddressSearch(
-                                                  locationValue: addressText,
-                                                  onAddressChange: (val) {
-                                                    setState(() {
-                                                      businessAddress = val;
-                                                    });
-                                                  })),
+                                              child: addressText == null
+                                                  ? Text("")
+                                                  : Text(addressText)
+                                              //  AddressSearch(
+                                              //     locationValue:
+                                              //         addressText,
+                                              //     onAddressChange: (val) {
+                                              //       setState(() {
+                                              //         businessAddress = val;
+                                              //       });
+                                              //     })
+                                              ),
                                         ],
                                       ))),
                             ],
@@ -485,9 +512,10 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                   return 'Please enter a contact first name';
                                 }
                                 return null;
-                              }),
+                              }, editable: !isStale),
                               getInfoRow("Last Name", leadDocument["lastName"],
-                                  lastNameController),
+                                  lastNameController,
+                                  editable: !isStale),
                               validatorRow(
                                   "Email Address",
                                   leadDocument["emailAddr"],
@@ -496,7 +524,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                   return 'Please enter a valid email';
                                 }
                                 return null;
-                              }),
+                              }, editable: !isStale),
                               Container(
                                 child: Padding(
                                   padding: EdgeInsets.all(15),
@@ -511,118 +539,145 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                       ),
                                       Expanded(
                                         flex: 8,
-                                        child: TextField(
-                                          controller: phoneNumberController,
-                                        ),
+                                        child: isStale
+                                            ? Text(phoneNumberController.text)
+                                            : TextField(
+                                                controller:
+                                                    phoneNumberController,
+                                              ),
                                       ),
                                     ],
                                   ),
                                 ),
                               ),
-                              Divider(),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: <Widget>[
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: RaisedButton(
-                                      child: Row(
-                                        children: <Widget>[
-                                          Icon(Icons.mail, color: Colors.white),
-                                          Text("Email",
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold))
-                                        ],
-                                      ),
-                                      onPressed: () {
-                                        if (emailAddrController.text != null &&
-                                            emailAddrController.text != "") {
-                                          var launchURL1 =
-                                              'mailto:${emailAddrController.text}?subject=Followup about ${businessNameController.text}';
-                                          launch(launchURL1);
-                                        } else {
-                                          Fluttertoast.showToast(
-                                              msg: "No email specified!",
-                                              toastLength: Toast.LENGTH_SHORT,
-                                              gravity: ToastGravity.BOTTOM,
-                                              backgroundColor: Colors.grey[600],
-                                              textColor: Colors.white,
-                                              fontSize: 16.0);
-                                        }
-                                      },
+                              isStale ? Container() : Divider(),
+                              isStale
+                                  ? Container()
+                                  : Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: <Widget>[
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: RaisedButton(
+                                            child: Row(
+                                              children: <Widget>[
+                                                Icon(Icons.mail,
+                                                    color: Colors.white),
+                                                Text("Email",
+                                                    style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight:
+                                                            FontWeight.bold))
+                                              ],
+                                            ),
+                                            onPressed: () {
+                                              if (emailAddrController.text !=
+                                                      null &&
+                                                  emailAddrController.text !=
+                                                      "") {
+                                                var launchURL1 =
+                                                    'mailto:${emailAddrController.text}?subject=Followup about ${businessNameController.text}';
+                                                launch(launchURL1);
+                                              } else {
+                                                Fluttertoast.showToast(
+                                                    msg: "No email specified!",
+                                                    toastLength:
+                                                        Toast.LENGTH_SHORT,
+                                                    gravity:
+                                                        ToastGravity.BOTTOM,
+                                                    backgroundColor:
+                                                        Colors.grey[600],
+                                                    textColor: Colors.white,
+                                                    fontSize: 16.0);
+                                              }
+                                            },
+                                          ),
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: RaisedButton(
+                                            child: Row(
+                                              children: <Widget>[
+                                                Icon(Icons.call,
+                                                    color: Colors.white),
+                                                Text("Call",
+                                                    style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight:
+                                                            FontWeight.bold))
+                                              ],
+                                            ),
+                                            onPressed: () {
+                                              if (phoneNumberController.text !=
+                                                      null &&
+                                                  phoneNumberController.text !=
+                                                      "") {
+                                                var launchURL2 =
+                                                    'tel:${phoneNumberController.text}';
+                                                launch(launchURL2);
+                                              } else {
+                                                Fluttertoast.showToast(
+                                                    msg:
+                                                        "No phone number specified!",
+                                                    toastLength:
+                                                        Toast.LENGTH_SHORT,
+                                                    gravity:
+                                                        ToastGravity.BOTTOM,
+                                                    backgroundColor:
+                                                        Colors.grey[600],
+                                                    textColor: Colors.white,
+                                                    fontSize: 16.0);
+                                              }
+                                            },
+                                          ),
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: RaisedButton(
+                                            child: Row(
+                                              children: <Widget>[
+                                                Icon(Icons.map,
+                                                    color: Colors.white),
+                                                Text("Map",
+                                                    style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight:
+                                                            FontWeight.bold))
+                                              ],
+                                            ),
+                                            onPressed: () {
+                                              if (businessAddress["address"] !=
+                                                  null) {
+                                                addressText = businessAddress[
+                                                        "address"] +
+                                                    ", " +
+                                                    businessAddress["city"] +
+                                                    ", " +
+                                                    businessAddress["state"] +
+                                                    ", " +
+                                                    businessAddress["zipcode"];
+                                                print(addressText);
+                                                MapsLauncher.launchQuery(
+                                                    addressText);
+                                              } else {
+                                                Fluttertoast.showToast(
+                                                    msg:
+                                                        "No address specified!",
+                                                    toastLength:
+                                                        Toast.LENGTH_SHORT,
+                                                    gravity:
+                                                        ToastGravity.BOTTOM,
+                                                    backgroundColor:
+                                                        Colors.grey[600],
+                                                    textColor: Colors.white,
+                                                    fontSize: 16.0);
+                                              }
+                                            },
+                                          ),
+                                        )
+                                      ],
                                     ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: RaisedButton(
-                                      child: Row(
-                                        children: <Widget>[
-                                          Icon(Icons.call, color: Colors.white),
-                                          Text("Call",
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold))
-                                        ],
-                                      ),
-                                      onPressed: () {
-                                        if (phoneNumberController.text !=
-                                                null &&
-                                            phoneNumberController.text != "") {
-                                          var launchURL2 =
-                                              'tel:${phoneNumberController.text}';
-                                          launch(launchURL2);
-                                        } else {
-                                          Fluttertoast.showToast(
-                                              msg: "No phone number specified!",
-                                              toastLength: Toast.LENGTH_SHORT,
-                                              gravity: ToastGravity.BOTTOM,
-                                              backgroundColor: Colors.grey[600],
-                                              textColor: Colors.white,
-                                              fontSize: 16.0);
-                                        }
-                                      },
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: RaisedButton(
-                                      child: Row(
-                                        children: <Widget>[
-                                          Icon(Icons.map, color: Colors.white),
-                                          Text("Map",
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold))
-                                        ],
-                                      ),
-                                      onPressed: () {
-                                        if (businessAddress["address"] !=
-                                            null) {
-                                          addressText =
-                                              businessAddress["address"] +
-                                                  ", " +
-                                                  businessAddress["city"] +
-                                                  ", " +
-                                                  businessAddress["state"] +
-                                                  ", " +
-                                                  businessAddress["zipcode"];
-                                          print(addressText);
-                                          MapsLauncher.launchQuery(addressText);
-                                        } else {
-                                          Fluttertoast.showToast(
-                                              msg: "No address specified!",
-                                              toastLength: Toast.LENGTH_SHORT,
-                                              gravity: ToastGravity.BOTTOM,
-                                              backgroundColor: Colors.grey[600],
-                                              textColor: Colors.white,
-                                              fontSize: 16.0);
-                                        }
-                                      },
-                                    ),
-                                  )
-                                ],
-                              ),
                             ],
                           ),
                         ),
@@ -635,48 +690,11 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                               getInfoRow(
                                   "Lead Source",
                                   leadDocument["leadSource"],
-                                  leadSourceController),
+                                  leadSourceController,
+                                  editable: !isStale),
                             ],
                           ),
                         ),
-                        // CustomCard(
-                        //   key: Key("leads5"),
-                        //   title: "Tools",
-                        //   icon: Icons.build,
-                        //   child: Row(
-                        //     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        //     children: <Widget>[
-                        //       Padding(
-                        //         padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                        //         child: MaterialButton(
-                        //           padding: EdgeInsets.all(5),
-                        //           color: UniversalStyles.actionColor,
-                        //           // color: Colors.grey[300],
-                        //           onPressed: () {
-                        //             // return null;
-                        //             Navigator.pushNamed(
-                        //                 context, "/agreementbuilder",
-                        //                 arguments: lead["lead"]);
-                        //           },
-                        //           child: Row(
-                        //             children: <Widget>[
-                        //               Icon(
-                        //                 Icons.extension,
-                        //                 color: Colors.white,
-                        //               ),
-                        //               Text(
-                        //                 'Agreement Builder',
-                        //                 style: TextStyle(
-                        //                   color: Colors.white,
-                        //                 ),
-                        //               ),
-                        //             ],
-                        //           ),
-                        //         ),
-                        //       ),
-                        //     ],
-                        //   ),
-                        // ),
                         CustomCard(
                           key: Key("leadTasks"),
                           title: 'Tasks',
@@ -687,8 +705,22 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                 children: <Widget>[
                                   GestureDetector(
                                     onTap: () {
-                                      Navigator.pushNamed(context, "/leadtasks",
-                                          arguments: lead);
+                                      if (!isStale ||
+                                          UserService.isSalesManager ||
+                                          UserService.isAdmin) {
+                                        Navigator.pushNamed(
+                                            context, "/leadtasks",
+                                            arguments: lead);
+                                      } else {
+                                        Fluttertoast.showToast(
+                                            msg:
+                                                "Claim this lead to see tasks!",
+                                            toastLength: Toast.LENGTH_SHORT,
+                                            gravity: ToastGravity.BOTTOM,
+                                            backgroundColor: Colors.grey[600],
+                                            textColor: Colors.white,
+                                            fontSize: 16.0);
+                                      }
                                     },
                                     child: Container(
                                       padding: EdgeInsets.all(8),
@@ -719,8 +751,22 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                 children: <Widget>[
                                   GestureDetector(
                                     onTap: () {
-                                      Navigator.pushNamed(context, "/leadnotes",
-                                          arguments: lead);
+                                      if (!isStale ||
+                                          UserService.isSalesManager ||
+                                          UserService.isAdmin) {
+                                        Navigator.pushNamed(
+                                            context, "/leadnotes",
+                                            arguments: lead);
+                                      } else {
+                                        Fluttertoast.showToast(
+                                            msg:
+                                                "Claim this lead to see notes!",
+                                            toastLength: Toast.LENGTH_SHORT,
+                                            gravity: ToastGravity.BOTTOM,
+                                            backgroundColor: Colors.grey[600],
+                                            textColor: Colors.white,
+                                            fontSize: 16.0);
+                                      }
                                     },
                                     child: Container(
                                       padding: EdgeInsets.all(8),
@@ -736,24 +782,6 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                       ),
                                     ),
                                   ),
-                                  // rowDivider(),
-                                  // GestureDetector(
-                                  //   onTap: () {
-                                  //     Navigator.pushNamed(
-                                  //         context, "/");
-                                  //   },
-                                  //   child: Container(
-                                  //     color: Colors.white,
-                                  //     child: Row(
-                                  //       mainAxisAlignment:
-                                  //           MainAxisAlignment.spaceBetween,
-                                  //       children: <Widget>[
-                                  //         Text('Next Item'),
-                                  //         Icon(Icons.arrow_forward_ios, size: 14),
-                                  //       ],
-                                  //     ),
-                                  //   ),
-                                  // ),
                                 ],
                               ),
                             ],
@@ -767,9 +795,22 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                             children: <Widget>[
                               GestureDetector(
                                 onTap: () {
-                                  Navigator.pushNamed(
-                                      context, "/statementuploads",
-                                      arguments: lead);
+                                  if (!isStale ||
+                                      UserService.isSalesManager ||
+                                      UserService.isAdmin) {
+                                    Navigator.pushNamed(
+                                        context, "/statementuploads",
+                                        arguments: lead);
+                                  } else {
+                                    Fluttertoast.showToast(
+                                        msg:
+                                            "Claim this lead to see statements!",
+                                        toastLength: Toast.LENGTH_SHORT,
+                                        gravity: ToastGravity.BOTTOM,
+                                        backgroundColor: Colors.grey[600],
+                                        textColor: Colors.white,
+                                        fontSize: 16.0);
+                                  }
                                 },
                                 child: Container(
                                   padding: EdgeInsets.all(8),
@@ -807,19 +848,21 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                   ),
                 ),
               ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () async {
-            if (_leadFormKey.currentState.validate()) {
-              updateLead(this.widget.leadId);
-            }
-          },
-          child: Icon(Icons.save),
-        ),
+        floatingActionButton: isStale
+            ? Container()
+            : FloatingActionButton(
+                onPressed: () async {
+                  if (_leadFormKey.currentState.validate()) {
+                    updateLead(this.widget.leadId);
+                  }
+                },
+                child: Icon(Icons.save),
+              ),
       ),
     );
   }
 
-  Widget getInfoRow(label, value, controller) {
+  Widget getInfoRow(label, value, controller, {editable = true}) {
     if (value != null) {
       controller.text = value;
     }
@@ -844,10 +887,12 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
             ),
             Expanded(
               flex: 8,
-              child: TextField(
-                onChanged: (s) {},
-                controller: controller,
-              ),
+              child: !editable
+                  ? Text(controller.text)
+                  : TextField(
+                      onChanged: (s) {},
+                      controller: controller,
+                    ),
             ),
           ],
         ),
@@ -855,7 +900,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
     );
   }
 
-  Widget validatorRow(label, value, controller, validator) {
+  Widget validatorRow(label, value, controller, validator, {editable = true}) {
     if (value != null) {
       controller.text = value;
     }
@@ -880,10 +925,12 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
             ),
             Expanded(
               flex: 8,
-              child: TextFormField(
-                controller: controller,
-                validator: validator,
-              ),
+              child: !editable
+                  ? Text(controller.text)
+                  : TextFormField(
+                      controller: controller,
+                      validator: validator,
+                    ),
             ),
           ],
         ),
