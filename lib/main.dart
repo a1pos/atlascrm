@@ -1,5 +1,4 @@
 import 'package:atlascrm/components/shared/CameraPage.dart';
-import 'package:atlascrm/components/shared/CustomWebView.dart';
 import 'package:atlascrm/components/shared/LoadingScreen.dart';
 import 'package:atlascrm/components/shared/SlideRightRoute.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
@@ -25,7 +24,7 @@ import 'package:atlascrm/screens/mileage/MileageScreen.dart';
 import 'package:atlascrm/screens/tasks/TaskScreen.dart';
 import 'package:atlascrm/screens/tasks/ViewTaskScreen.dart';
 import 'package:atlascrm/screens/agreement/AgreementBuilder.dart';
-import 'package:atlascrm/services/NotificationService.dart';
+import 'package:atlascrm/services/FirebaseCESService.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
@@ -40,7 +39,7 @@ List<CameraDescription> cameras;
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await NotificationService().init();
+  await FirebaseCESService().init();
 
   Map<PermissionGroup, PermissionStatus> permissions = await PermissionHandler()
       .requestPermissions([PermissionGroup.camera, PermissionGroup.storage]);
@@ -58,7 +57,6 @@ class AtlasCRM extends StatefulWidget {
 }
 
 class _AtlasCRMState extends State<AtlasCRM> {
-  bool isAuthenticated = false;
   bool isLoading = true;
 
   @override
@@ -69,26 +67,59 @@ class _AtlasCRMState extends State<AtlasCRM> {
   }
 
   Future<void> isAuthCheck() async {
-    var isAuthed = UserService.isAuthenticated;
-    if (isAuthed) {
-      setState(() {
-        isLoading = false;
-        isAuthenticated = true;
-      });
+    try{
+      var currentUser = UserService.firebaseAuth.currentUser;
+      if (currentUser == null) {
+        UserService.isAuthenticated = false;
 
-      SystemChrome.setSystemUIOverlayStyle(
-        SystemUiOverlayStyle(
-          statusBarColor: Color.fromARGB(0, 1, 56, 112),
-        ),
-      );
-    } else {
-      if (this.mounted) {
         setState(() {
           isLoading = false;
-          isAuthenticated = false;
         });
+      } else {
+        UserService.isAuthenticated = true;
+
+        await userService.linkGoogleAccount();
+
+        setState(() {
+          isLoading = false;
+        });
+
+        SystemChrome.setSystemUIOverlayStyle(
+          SystemUiOverlayStyle(
+            statusBarColor: Color.fromARGB(0, 1, 56, 112),
+          ),
+        );
       }
+    }catch(err){
+      UserService.isAuthenticated = false;
+
+      setState(() {
+        isLoading = false;
+      });
     }
+    
+    // var isAuthed = await userService.signInWithGoogle();
+    // if (isAuthed) {
+    //   UserService.isAuthenticated = true;
+
+    //   setState(() {
+    //     isLoading = false;
+    //   });
+
+    //   SystemChrome.setSystemUIOverlayStyle(
+    //     SystemUiOverlayStyle(
+    //       statusBarColor: Color.fromARGB(0, 1, 56, 112),
+    //     ),
+    //   );
+    // } else {
+    //   if (this.mounted) {
+    //     UserService.isAuthenticated = false;
+
+    //     setState(() {
+    //       isLoading = false;
+    //     });
+    //   }
+    // }
   }
 
   Future<void> handleLogoutRoute() async {
@@ -99,13 +130,6 @@ class _AtlasCRMState extends State<AtlasCRM> {
         statusBarColor: Colors.transparent,
       ),
     );
-
-    setState(() {
-      // isLoading = true;
-      isAuthenticated = false;
-      UserService.isAuthenticated = false;
-    });
-    getHomeScreen();
   }
 
   @override
@@ -133,14 +157,16 @@ class _AtlasCRMState extends State<AtlasCRM> {
             //   brightness: Brightness.light,
             //   fontFamily: "LatoRegular",
             // ),
-            home: UserService.isAuthenticated
-                ? DashboardScreen()
-                : WillPopScope(
-                    onWillPop: () async {
-                      print("main trying to pop");
-                      return false;
-                    },
-                    child: AuthScreen()),
+            home: UserService.isAuthenticated 
+            ? 
+              DashboardScreen()
+            :
+              WillPopScope(
+                  onWillPop: () async {
+                    print("main trying to pop");
+                    return false;
+                  },
+                  child: AuthScreen()),
             initialRoute: "/",
             onGenerateRoute: (RouteSettings settings) {
               switch (settings.name) {

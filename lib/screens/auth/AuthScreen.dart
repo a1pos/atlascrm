@@ -33,18 +33,13 @@ class _AuthScreenState extends State<AuthScreen> {
     });
 
     try {
-      var succeeded = await this.widget.userService.signInWithGoogle(context);
+      var succeeded = await this.widget.userService.signInWithGoogle();
       if (succeeded) {
-        var resp = await this.widget.userService.linkGoogleAccount();
-        if (resp.hasException == false) {
-          Navigator.of(context).pushReplacementNamed("/dashboard");
-          setState(() {
-            isLoading = false;
-            UserService.isAuthenticated = true;
-          });
-        } else {
-          throw ('ERROR');
-        }
+        setState(() {
+          isLoading = false;
+          UserService.isAuthenticated = true;
+        });
+        Navigator.of(context).pushReplacementNamed("/dashboard");
       } else {
         throw ('ERROR');
       }

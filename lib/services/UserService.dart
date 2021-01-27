@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
-import 'package:atlascrm/services/NotificationService.dart';
+import 'package:atlascrm/services/FirebaseCESService.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:atlascrm/models/Employee.dart';
@@ -21,38 +21,10 @@ class UserService {
 
   static GoogleSignInAuthentication googleSignInAuthentication;
 
-  static final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-
-  // void startStreams() {
-  //   _firebaseAuth.authStateChanges().listen((firebaseUser) async {
-  //     print("AUTHSTATE CHANGES");
-  //     // if (firebaseUser != null) {
-  //     //   var user = _firebaseAuth.currentUser;
-  //     //   var idTokenResult = await user.getIdToken();
-  //     //   setPrivateGraphQLClient(idTokenResult);
-  //     //   isAuthenticated = true;
-  //     // } else {
-  //     //   isAuthenticated = false;
-  //     //   employee = Employee.getEmpty();
-  //     // }
-  //   });
-
-  //   _firebaseAuth.idTokenChanges().listen((firebaseUser) async {
-  //     print("ID TOKEN CHANGES");
-  //     if (firebaseUser != null) {
-  //       var user = _firebaseAuth.currentUser;
-  //       var idTokenResult = await user.getIdToken();
-  //       setPrivateGraphQLClient(idTokenResult);
-  //       isAuthenticated = true;
-  //     } else {
-  //       isAuthenticated = false;
-  //       employee = Employee.getEmpty();
-  //     }
-  //   });
-  // }
+  static FirebaseAuth firebaseAuth = FirebaseAuth.instance;
 
   getToken() async {
-    var user = _firebaseAuth.currentUser;
+    var user = firebaseAuth.currentUser;
     if (user == null) {
       isAuthenticated = false;
       employee = Employee.getEmpty();
@@ -63,33 +35,54 @@ class UserService {
     }
   }
 
-  Future<bool> signInWithGoogle(context) async {
-    await Firebase.initializeApp();
+  Future<bool> signInWithGoogle() async {
     try {
-      var googleSignInAccount = await googleSignIn.signIn();
-      googleSignInAuthentication = await googleSignInAccount.authentication;
+      await Firebase.initializeApp();
 
-      await _firebaseAuth.signInWithCredential(GoogleAuthProvider.credential(
+      final GoogleSignInAccount googleSignInAccount =
+          await googleSignIn.signIn();
+      final GoogleSignInAuthentication googleSignInAuthentication =
+          await googleSignInAccount.authentication;
+
+      final AuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleSignInAuthentication.accessToken,
         idToken: googleSignInAuthentication.idToken,
-      ));
+      );
 
-      return true;
+      final UserCredential authResult =
+          await firebaseAuth.signInWithCredential(credential);
+      final User user = authResult.user;
+
+      if (user != null) {
+        assert(!user.isAnonymous);
+        assert(await user.getIdToken() != null);
+
+        final User currentUser = firebaseAuth.currentUser;
+        assert(user.uid == currentUser.uid);
+
+        print('signInWithGoogle succeeded: $user');
+
+        await linkGoogleAccount();
+
+        return true;
+      }
     } catch (err) {
-      log(err);
+      print(err);
     }
     return false;
   }
 
   Future<void> signOutGoogle() async {
+    isAuthenticated = false;
+
     await googleSignIn.signOut();
-    await _firebaseAuth.signOut();
+    await firebaseAuth.signOut();
   }
 
-  Future linkGoogleAccount() async {
+  Future<void> linkGoogleAccount() async {
     setPublicGraphQLClient();
 
-    var user = _firebaseAuth.currentUser;
+    var user = firebaseAuth.currentUser;
     print(user);
     MutationOptions mutateOptions = MutationOptions(documentNode: gql("""
         mutation ACTION_LINK(\$uid: String!, \$email: String!) {
@@ -104,7 +97,7 @@ class UserService {
     final QueryResult linkResult = await client.mutate(mutateOptions);
 
     if (linkResult.hasException) {
-      return null;
+      throw (linkResult.exception);
     } else {
       var idTokenResult = await user.getIdToken(true);
       print(idTokenResult);
@@ -146,7 +139,7 @@ class UserService {
         employee.companyName = companyResult.data["company_by_pk"]["title"];
       }
 
-      var registrationToken = NotificationService.getToken();
+      var registrationToken = FirebaseCESService.getToken();
 
       MutationOptions notificationRegistrationMutateOptions =
           MutationOptions(documentNode: gql("""
@@ -164,8 +157,6 @@ class UserService {
           await client.mutate(notificationRegistrationMutateOptions);
 
       print(notificationRegistrationResult);
-
-      return linkResult;
     }
   }
 
@@ -175,7 +166,7 @@ class UserService {
 
   static Future<User> getCurrentUser() async {
     try {
-      return _firebaseAuth.currentUser;
+      return firebaseAuth.currentUser;
     } catch (err) {
       log(err);
     }
