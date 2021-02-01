@@ -151,6 +151,10 @@ class MainActivity : FlutterActivity() {
                 e.printStackTrace()
             }
         }
+
+        if(resultCode == Activity.RESULT_CANCELED){
+            CURRENT_RESULT?.success(null)
+        }
     }
 
     fun getRealPathFromURI(context: Context, contentUri: Uri?): String? {

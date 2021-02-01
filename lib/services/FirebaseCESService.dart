@@ -1,10 +1,12 @@
 import 'dart:convert';
 
 import 'package:atlascrm/services/ApiService.dart';
+import 'package:atlascrm/services/api.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/services.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
 import 'dart:async';
 import 'package:http_parser/http_parser.dart';
 
@@ -78,14 +80,6 @@ class FirebaseCESService {
     if (messageActionType == null) return null;
     print("has messageActionType: $messageActionType");
 
-    var messagePayload = messageData["payload"];
-    if (messagePayload == null) return null;
-    print("has messagePayload: $messagePayload");
-
-    var messagePayloadJson = jsonDecode(messagePayload);
-    if (messagePayloadJson == null) return null;
-    print("has messagePayloadJson: $messagePayloadJson");
-
     switch (messageActionType) {
       case "IGNORE":
         return null;
@@ -95,31 +89,35 @@ class FirebaseCESService {
         var result = await platform.invokeMethod("openCamera");
         print("FILE URI: $result");
 
-        try {
-          // var type = "application";
-          // var subType = "octet-stream";
-          // if (result.contains(".jpg") ||
-          //     result.contains(".jpeg") ||
-          //     result.contains(".JPG") ||
-          //     result.contains(".JPEG")) {
-          //   type = "image";
-          //   subType = "jpeg";
-          // }
-          // if (result.contains(".png") || result.contains(".PNG")) {
-          //   type = "image";
-          //   subType = "png";
-          // }
+        var options = MutationOptions(
+            documentNode: gql("""
+          mutation REMOVE_PHONE_LINK(\$phone_link_stream: uuid!) {
+            update_phone_link_stream_by_pk(pk_columns: {phone_link_stream: \$phone_link_stream},_set:{completed:true}){
+              phone_link_stream
+            }
+          }
+          """),
+            variables: {"phone_link_stream": messageData["phone_link_stream"]},
+            fetchPolicy: FetchPolicy.networkOnly);
 
+        if (result == null) {
+          await authGqlMutate(options);
+          return;
+        }
+
+        try {
           var formData = FormData.fromMap({
-            "agreementBuilder": messagePayloadJson["agreementBuilder"],
-            messagePayloadJson["uploadType"]: await MultipartFile.fromFile(result)
+            "agreementBuilder": messageData["agreementBuilder"],
+            messageData["uploadType"]: await MultipartFile.fromFile(result)
           });
 
           var resp = await apiService.authFilePostWithFormData(
               null, "/api/agreement/omaha/documents/upload", formData);
 
-          if (resp.statusCode == 200) {
-          } else {}
+          await authGqlMutate(options);
+          if (resp.statusCode != 200) {
+            print(resp);
+          }
         } catch (err) {
           print(err);
         }
