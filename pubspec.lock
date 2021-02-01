@@ -400,7 +400,7 @@ packages:
       name: image
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.1.12"
+    version: "2.1.19"
   image_picker:
     dependency: "direct main"
     description:
@@ -428,7 +428,7 @@ packages:
       name: js
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.6.1+1"
+    version: "0.6.2"
   json_annotation:
     dependency: transitive
     description:
@@ -547,7 +547,7 @@ packages:
       name: petitparser
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.4.0"
+    version: "3.1.0"
   photo_view:
     dependency: "direct main"
     description:
@@ -678,7 +678,7 @@ packages:
       name: synchronized
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.2.0"
+    version: "2.2.0+2"
   table_calendar:
     dependency: "direct main"
     description:
@@ -755,7 +755,7 @@ packages:
       name: uuid
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.2.0"
+    version: "2.2.2"
   uuid_enhanced:
     dependency: transitive
     description:
@@ -797,7 +797,7 @@ packages:
       name: xml
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.6.1"
+    version: "4.5.1"
   yaml:
     dependency: transitive
     description:
