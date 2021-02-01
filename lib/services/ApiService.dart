@@ -163,7 +163,8 @@ class ApiService {
     }
   }
 
-  Future<Response> authFilePostWithFormData(context, url, FormData formData, {isRetry: true}) async {
+  Future<Response> authFilePostWithFormData(context, url, FormData formData,
+      {isRetry: true}) async {
     try {
       var currentUser = await UserService.getCurrentUser();
       var token = await currentUser.getIdToken();
@@ -189,13 +190,14 @@ class ApiService {
     }
   }
 
-  Future<Response> authFilesPut(context, url, filePaths,
-      {isRetry: true}) async {
+  Future<Response> authFilesPost(context, url, filePaths,
+      {isRetry: true, fileName: "file"}) async {
     try {
       var currentUser = await UserService.getCurrentUser();
       var token = await currentUser.getIdToken();
-      Map<String, dynamic> dataMap = {};
-      var i = 1;
+
+      var formData = FormData();
+
       for (var fPath in filePaths) {
         var type = "application";
         var subType = "octet-stream";
@@ -215,18 +217,13 @@ class ApiService {
           subType = "pdf";
         }
         if (fPath != "") {
-          dataMap["file$i"] = MultipartFile.fromFileSync(fPath,
+          var file = MultipartFile.fromFileSync(fPath,
               contentType: MediaType(type, subType));
+          formData.files.add(MapEntry(fileName, file));
         } else {
-          dataMap["file$i"] = "undefined";
+          formData.files.add(MapEntry(fileName, null));
         }
-        i++;
       }
-      // var f1 = MultipartFile.fromFileSync(filePaths["file1"]);
-      // var f2 = MultipartFile.fromFileSync(filePaths["file2"]);
-
-      // var formData = FormData.fromMap({"file1": f1, "file2": f2});
-      var formData = FormData.fromMap(dataMap);
 
       var resp = await Dio(
         BaseOptions(
@@ -237,7 +234,7 @@ class ApiService {
           },
           sendTimeout: TIMEOUT,
         ),
-      ).put(url, data: formData);
+      ).post(url, data: formData);
 
       if (resp.statusCode == 401) {
         Navigator.of(context).popAndPushNamed('/logout');

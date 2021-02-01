@@ -30,7 +30,18 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
   }
 
   Future<void> getEmployees() async {
-    QueryOptions options = QueryOptions(documentNode: gql("""
+    QueryOptions options;
+    if (UserService.isSalesManager) {
+      options = QueryOptions(documentNode: gql("""
+       query GET_EMPLOYEES {
+        employee(where: {_or: [{roleByRole: {title: {_eq: "sales"}}},{roleByRole: {title: {_eq: "salesmanager"}}}]}) {
+          employee
+          document
+        }
+      }
+      """), fetchPolicy: FetchPolicy.networkOnly);
+    } else {
+      options = QueryOptions(documentNode: gql("""
         query GET_EMPLOYEES{
           employee{
             employee
@@ -38,13 +49,16 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
           }
         }
       """), fetchPolicy: FetchPolicy.networkOnly);
-
+    }
     final QueryResult result = await authGqlQuery(options);
     if (result != null) {
       if (result.hasException == false) {
         var employeeArrDecoded = result.data["employee"];
         if (employeeArrDecoded != null) {
           var employeeArr = List.from(employeeArrDecoded);
+          employeeArr.sort((a, b) => a["document"]["displayName"]
+              .toString()
+              .compareTo(b["document"]["displayName"].toString()));
           if (employeeArr.length > 0) {
             setState(() {
               isEmpty = false;
@@ -89,24 +103,27 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
                 ? Empty("No employees")
                 : Column(
                     children: <Widget>[
-                      Expanded(
-                        flex: 1,
-                        child: TextField(
-                          decoration: InputDecoration(
-                            labelText: "Search Employees",
-                          ),
-                          onChanged: (value) {
-                            var filtered = employeesFull.where((e) {
-                              String name = e["document"]["displayName"];
-                              return name
-                                  .toLowerCase()
-                                  .contains(value.toLowerCase());
-                            }).toList();
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Expanded(
+                          flex: 1,
+                          child: TextField(
+                            decoration: InputDecoration(
+                              labelText: "Search Employees",
+                            ),
+                            onChanged: (value) {
+                              var filtered = employeesFull.where((e) {
+                                String name = e["document"]["displayName"];
+                                return name
+                                    .toLowerCase()
+                                    .contains(value.toLowerCase());
+                              }).toList();
 
-                            setState(() {
-                              employees = filtered.toList();
-                            });
-                          },
+                              setState(() {
+                                employees = filtered.toList();
+                              });
+                            },
+                          ),
                         ),
                       ),
                       Expanded(

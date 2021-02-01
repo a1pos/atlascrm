@@ -208,18 +208,24 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
       if (type == "checkout") {
         data = {
           "employee": UserService.employee.employee,
-          "merchant": merchantController.text
+          "merchant": merchantController.text,
+          "id": idController.text
         };
         alert = "Device checked out!";
         locationName = merchantNameController.text;
       }
       if (type == "return") {
-        data = {"merchant": null, "employee": null, "is_installed": false};
+        data = {
+          "merchant": null,
+          "employee": null,
+          "is_installed": false,
+          "id": idController.text
+        };
         alert = "Device returned!";
         locationName = UserService.employee.companyName;
       }
       if (type == "install") {
-        data = {"is_installed": true};
+        data = {"is_installed": true, "id": idController.text};
         alert = "Device installed!";
         locationName = merchantNameController.text;
       }
@@ -240,6 +246,8 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
       // newDocument["history"].add(newEvent);
 
       // data["document"] = newDocument;
+    } else {
+      data = {"id": idController.text};
     }
     // if (type == "return") {
     //   data["id"] = null;

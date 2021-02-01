@@ -140,10 +140,10 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
           '	_or: [{merchantbusinessname: {_ilike: "%$currentSearch%"}}, {merchantemailaddress: {_ilike: "%$currentSearch%"}}, {merchantfirstname: {_ilike: "%$currentSearch%"}}, {merchantlastname: {_ilike: "%$currentSearch%"}}, {merchantdbaname: {_ilike: "%$currentSearch%"}}, {merchantphonenumber: {_ilike: "%$currentSearch%"}},]';
       // if (UserService.isAdmin) {
       params =
-          "offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}";
+          "offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where:{_and:[{is_active:{_eq: true}}]}";
       if (isSearching) {
         params =
-            'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {$searchParams}';
+            'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where:{_and:[{is_active:{_eq: true}},{$searchParams}]}';
       }
       // EMPLOYEE FILTERING
       // if (isFiltering) {
@@ -165,7 +165,7 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
       // }
 
       QueryOptions options = QueryOptions(documentNode: gql("""
-          query GetAllMerchant {
+          query GET_V_MERCHANTS {
             v_merchant($params) {
               updated_at
               merchant

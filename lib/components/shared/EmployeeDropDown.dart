@@ -9,7 +9,7 @@ class EmployeeDropDown extends StatefulWidget {
       this.callback,
       this.value,
       this.role,
-      this.disabled,
+      this.disabled = false,
       this.displayClear = true,
       this.caption = "Employee"});
 
@@ -27,33 +27,27 @@ class EmployeeDropDown extends StatefulWidget {
 
 class _EmployeeDropDownState extends State<EmployeeDropDown> {
   var employees = [];
-  var disabled;
 
   @override
   void initState() {
     super.initState();
 
     initEmployees();
-    if (this.widget.disabled != null) {
-      setState(() {
-        disabled = this.widget.disabled;
-      });
-    } else {
-      disabled = false;
-    }
   }
 
   var startVal;
 
   Future<void> initEmployees() async {
-    QueryOptions options = QueryOptions(documentNode: gql("""
-      query Employee {
-        employee {
-          employee
-          displayName:document(path:"displayName")
+    QueryOptions options;
+
+    options = QueryOptions(documentNode: gql("""
+        query GET_EMPLOYEES {
+          employee {
+            employee
+            displayName: document(path: "displayName")
+          }
         }
-      }
-    """));
+      """));
 
     final QueryResult result = await authGqlQuery(options);
 
@@ -62,6 +56,10 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
         var employeeArrDecoded = result.data["employee"];
         if (employeeArrDecoded != null) {
           if (this.mounted) {
+            employeeArrDecoded.sort((a, b) => a["displayName"]
+                .toString()
+                .compareTo(b["displayName"].toString()));
+
             setState(() {
               employees = employeeArrDecoded;
             });
@@ -115,7 +113,7 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
             );
           }).toList(),
           disabledHint: startVal,
-          onChanged: disabled
+          onChanged: this.widget.disabled
               ? null
               : (newValue) {
                   setState(() {
@@ -141,93 +139,3 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
     );
   }
 }
-
-// import 'package:atlascrm/services/ApiService.dart';
-// import 'package:flutter/material.dart';
-
-// class EmployeeDropDown extends StatefulWidget {
-//   final String employeeId;
-//   final String value;
-//   final Function callback;
-//   final String role;
-
-//   EmployeeDropDown({this.employeeId, this.callback, this.value, this.role});
-
-//   @override
-//   _EmployeeDropDownState createState() => _EmployeeDropDownState();
-// }
-
-// class _EmployeeDropDownState extends State<EmployeeDropDown> {
-//   final ApiService apiService = ApiService();
-
-//   var employees = [];
-
-//   @override
-//   void initState() {
-//     super.initState();
-
-//     initEmployees();
-//   }
-
-//   Future<void> initEmployees() async {
-//     var employeeResp = await apiService.authGet(context, "/employee");
-//     if (employeeResp != null) {
-//       if (employeeResp.statusCode == 200) {
-//         var employeeArrDecoded = employeeResp.data;
-//         if (employeeArrDecoded != null) {
-//           if (this.widget.role != null) {
-//             for (var employee in employeeArrDecoded) {
-//               if (employee["document"]["roles"].contains(this.widget.role)) {
-//                 setState(() {
-//                   employees.add(employee);
-//                 });
-//               }
-//             }
-//           } else {
-//             setState(() {
-//               employees = employeeArrDecoded;
-//             });
-//           }
-//         }
-//       }
-//     }
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Column(
-//       crossAxisAlignment: CrossAxisAlignment.start,
-//       children: <Widget>[
-//         Text(
-//           'Employee',
-//           style: TextStyle(
-//             color: Colors.grey,
-//             fontSize: 13,
-//           ),
-//         ),
-//         DropdownButtonFormField<String>(
-//           validator: (value) {
-//             if (value == null) {
-//               return 'Please select an employee';
-//             }
-//             return null;
-//           },
-//           isExpanded: true,
-//           value: this.widget.value,
-//           hint: Text("Please choose one"),
-//           items: employees.map((dynamic item) {
-//             return DropdownMenuItem<String>(
-//               value: item["employee"],
-//               child: Text(
-//                 item["document"]["fullName"],
-//               ),
-//             );
-//           }).toList(),
-//           onChanged: (newValue) {
-//             this.widget.callback(newValue);
-//           },
-//         ),
-//       ],
-//     );
-//   }
-// }

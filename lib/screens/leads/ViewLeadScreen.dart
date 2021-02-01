@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
+import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
@@ -50,6 +51,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
   var leadDocument;
   var displayPhone;
   var repeats = 2;
+  var leadEmployee;
 
   AnimationController pulseController;
   Animation pulse;
@@ -98,6 +100,76 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
   void dispose() {
     pulseController.dispose();
     super.dispose();
+  }
+
+  void openLead(lead) {
+    Navigator.popAndPushNamed(context, "/viewlead", arguments: lead["lead"]);
+  }
+
+  Future<void> openStaleModal(lead) async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Stale Lead'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('This lead is stale, would you like to claim it?'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('Yes',
+                  style: TextStyle(fontSize: 17, color: Colors.green)),
+              onPressed: () async {
+                Map data = {
+                  "employee": UserService.employee.employee,
+                  "is_stale": false
+                };
+
+                MutationOptions mutateOptions =
+                    MutationOptions(documentNode: gql("""
+                      mutation UPDATE_LEAD (\$data: lead_set_input){
+                        update_lead_by_pk(pk_columns: {lead: "${lead["lead"]}"}, _set: \$data){
+                          lead
+                        }
+                      }
+                  """), variables: {"data": data});
+                final QueryResult result = await authGqlMutate(mutateOptions);
+
+                if (result.hasException == false) {
+                  Fluttertoast.showToast(
+                      msg: "Lead Claimed!",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      backgroundColor: Colors.grey[600],
+                      textColor: Colors.white,
+                      fontSize: 16.0);
+                  openLead(lead);
+                } else {
+                  Fluttertoast.showToast(
+                      msg: "Failed to claim lead!",
+                      toastLength: Toast.LENGTH_LONG,
+                      gravity: ToastGravity.BOTTOM,
+                      backgroundColor: Colors.grey[600],
+                      textColor: Colors.white,
+                      fontSize: 16.0);
+                }
+              },
+            ),
+            FlatButton(
+              child:
+                  Text('No', style: TextStyle(fontSize: 17, color: Colors.red)),
+              onPressed: () {
+                openLead(lead);
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> loadStatement() async {
@@ -171,6 +243,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
 
         setState(() {
           lead = bodyDecoded;
+          leadEmployee = bodyDecoded["employee"]["employee"];
           leadDocument = bodyDecoded["document"];
           firstNameController.text = leadDocument["firstName"];
         });
@@ -221,6 +294,8 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
     var filteredNumber = rawNumber.replaceAll(RegExp("[^0-9]"), "");
 
     Map data = {
+      "employee": leadEmployee,
+      "is_stale": false,
       "document": {
         "dbaName": "${dbaController.text}",
         "city": "${businessAddress["city"]}",
@@ -438,15 +513,40 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                   children: [
                                     Icon(Icons.info_outline,
                                         color: Colors.orange[400]),
-                                    Text(
-                                        "This is a stale lead! Claim it to edit",
-                                        style: TextStyle(
-                                            fontSize: 18,
-                                            color: Colors.orange[400],
-                                            fontWeight: FontWeight.bold)),
+                                    UserService.isAdmin ||
+                                            UserService.isSalesManager
+                                        ? Text(
+                                            "This is a stale lead! Assign it to edit",
+                                            style: TextStyle(
+                                                fontSize: 18,
+                                                color: Colors.orange[400],
+                                                fontWeight: FontWeight.bold))
+                                        : Text(
+                                            "This is a stale lead! Claim it to edit",
+                                            style: TextStyle(
+                                                fontSize: 18,
+                                                color: Colors.orange[400],
+                                                fontWeight: FontWeight.bold)),
                                   ],
                                 ),
                               )
+                            : Container(),
+                        UserService.isAdmin || UserService.isSalesManager
+                            ? CustomCard(
+                                key: Key("leadEmployee"),
+                                title: 'Employee',
+                                icon: Icons.person,
+                                child: EmployeeDropDown(
+                                  // disabled: isStale,
+                                  value: leadEmployee,
+                                  callback: ((val) {
+                                    setState(() {
+                                      if (val != null) {
+                                        leadEmployee = val;
+                                      }
+                                    });
+                                  }),
+                                ))
                             : Container(),
                         CustomCard(
                           key: Key("leads2"),
@@ -705,9 +805,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                 children: <Widget>[
                                   GestureDetector(
                                     onTap: () {
-                                      if (!isStale ||
-                                          UserService.isSalesManager ||
-                                          UserService.isAdmin) {
+                                      if (!isStale) {
                                         Navigator.pushNamed(
                                             context, "/leadtasks",
                                             arguments: lead);
@@ -751,9 +849,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                 children: <Widget>[
                                   GestureDetector(
                                     onTap: () {
-                                      if (!isStale ||
-                                          UserService.isSalesManager ||
-                                          UserService.isAdmin) {
+                                      if (!isStale) {
                                         Navigator.pushNamed(
                                             context, "/leadnotes",
                                             arguments: lead);
@@ -795,9 +891,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                             children: <Widget>[
                               GestureDetector(
                                 onTap: () {
-                                  if (!isStale ||
-                                      UserService.isSalesManager ||
-                                      UserService.isAdmin) {
+                                  if (!isStale) {
                                     Navigator.pushNamed(
                                         context, "/statementuploads",
                                         arguments: lead);
@@ -848,16 +942,24 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                   ),
                 ),
               ),
-        floatingActionButton: isStale
-            ? Container()
-            : FloatingActionButton(
-                onPressed: () async {
-                  if (_leadFormKey.currentState.validate()) {
-                    updateLead(this.widget.leadId);
-                  }
-                },
-                child: Icon(Icons.save),
-              ),
+        floatingActionButton:
+            isStale && !UserService.isSalesManager && !UserService.isAdmin
+                ? FloatingActionButton(
+                    onPressed: () async {
+                      if (_leadFormKey.currentState.validate()) {
+                        openStaleModal(lead);
+                      }
+                    },
+                    child: Icon(Icons.how_to_reg),
+                  )
+                : FloatingActionButton(
+                    onPressed: () async {
+                      if (_leadFormKey.currentState.validate()) {
+                        updateLead(this.widget.leadId);
+                      }
+                    },
+                    child: Icon(Icons.save),
+                  ),
       ),
     );
   }

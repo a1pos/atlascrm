@@ -216,7 +216,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
       var params;
       var searchParams =
           '	_or: [{leadbusinessname: {_ilike: "%$currentSearch%"}}, {employeefullname: {_ilike: "%$currentSearch%"}}, {leademailaddress: {_ilike: "%$currentSearch%"}}, {leadfirstname: {_ilike: "%$currentSearch%"}}, {leadlastname: {_ilike: "%$currentSearch%"}}, {leaddbaname: {_ilike: "%$currentSearch%"}}, {leadphonenumber: {_ilike: "%$currentSearch%"}},]';
-      if (UserService.isAdmin) {
+      if (UserService.isAdmin || UserService.isSalesManager) {
         params =
             "offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}";
         if (isSearching) {
@@ -492,7 +492,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
-            child: UserService.isAdmin
+            child: UserService.isAdmin || UserService.isSalesManager
                 ? EmployeeDropDown(callback: (val) {
                     if (val != null) {
                       filterByEmployee(val);
@@ -547,7 +547,11 @@ class _LeadsScreenState extends State<LeadsScreen> {
 
                       return GestureDetector(
                         onTap: () {
-                          lead["stale"] ? openStaleModal(lead) : openLead(lead);
+                          lead["stale"] &&
+                                  !UserService.isSalesManager &&
+                                  !UserService.isAdmin
+                              ? openStaleModal(lead)
+                              : openLead(lead);
                         },
                         child: CustomCard(
                           trailing: lead["stale"]
@@ -630,10 +634,14 @@ class _LeadsScreenState extends State<LeadsScreen> {
                                   ),
                                 ],
                               ),
-                              UserService.isAdmin || lead["stale"]
+                              UserService.isAdmin ||
+                                      UserService.isSalesManager ||
+                                      lead["stale"]
                                   ? Divider(thickness: 2)
                                   : Container(),
-                              UserService.isAdmin || lead["stale"]
+                              UserService.isAdmin ||
+                                      UserService.isSalesManager ||
+                                      lead["stale"]
                                   ? Row(
                                       mainAxisAlignment: lead["stale"]
                                           ? MainAxisAlignment.spaceEvenly

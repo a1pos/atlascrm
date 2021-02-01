@@ -37,12 +37,12 @@ class _MerchantDropDownState extends State<MerchantDropDown> {
 
   Future<void> initMerchants(e) async {
     QueryOptions options = QueryOptions(documentNode: gql("""
-        query GET_MERCHANTS {
-          merchant{
-            merchant
-            document
-          }
+      query GET_MERCHANTS {
+        merchant(where: {is_active: {_eq: true}}) {
+          merchant
+          businessName: document(path:"leadDocument['businessName']")
         }
+      }
       """), fetchPolicy: FetchPolicy.networkOnly);
 
     final QueryResult result = await authGqlQuery(options);
@@ -52,16 +52,25 @@ class _MerchantDropDownState extends State<MerchantDropDown> {
         var merchantsArrDecoded = result.data["merchant"];
         if (merchantsArrDecoded != null) {
           if (this.mounted) {
+            merchantsArrDecoded.sort((a, b) => a["businessName"]
+                .toString()
+                .toUpperCase()
+                .compareTo(b["businessName"].toString().toUpperCase()));
             setState(() {
               merchants = merchantsArrDecoded;
             });
           }
         }
         for (var merchant in merchants) {
-          if (this.widget.value == merchant["merchant"]) {
-            startVal = merchant["document"]["leadDocument"]["businessName"];
+          print("MERCHANT: ");
+          print(merchant);
+          if (this.widget.value == merchant["merchant"] &&
+              merchant["businessName"] != null) {
+            startVal = merchant["businessName"];
           }
         }
+      } else {
+        print("GRAPHQL ERROR: " + result.exception.toString());
       }
     }
   }
@@ -93,10 +102,11 @@ class _MerchantDropDownState extends State<MerchantDropDown> {
           // menuConstraints: BoxConstraints.tight(Size.fromHeight(350)),
           items: merchants.map<DropdownMenuItem<String>>((dynamic item) {
             var merchantName;
-            if (item["document"]["leadDocument"]?.isEmpty ?? true) {
-              merchantName = "";
+
+            if (item["businessName"] != null) {
+              merchantName = item["businessName"];
             } else {
-              merchantName = item["document"]["leadDocument"]["businessName"];
+              merchantName = "";
             }
             return DropdownMenuItem<String>(
               value: merchantName,
@@ -113,12 +123,10 @@ class _MerchantDropDownState extends State<MerchantDropDown> {
                     var setVal;
                     for (var merchant in merchants) {
                       var merchantBusinessName;
-                      if (merchant["document"]["leadDocument"] != null) {
-                        merchantBusinessName = merchant["document"]
-                            ["leadDocument"]["businessName"];
+                      if (merchant["businessName"] != null) {
+                        merchantBusinessName = merchant["businessName"];
                       } else if (merchant["document"]["businessName"] != null) {
-                        merchantBusinessName =
-                            merchant["document"]["businessName"];
+                        merchantBusinessName = merchant["businessName"];
                       } else {
                         merchantBusinessName = "";
                       }
