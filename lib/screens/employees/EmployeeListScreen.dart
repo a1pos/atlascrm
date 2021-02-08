@@ -1,7 +1,7 @@
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
 import 'package:atlascrm/services/UserService.dart';
-import 'package:atlascrm/services/api.dart';
+import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 
@@ -50,7 +50,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
         }
       """), fetchPolicy: FetchPolicy.networkOnly);
     }
-    final QueryResult result = await authGqlQuery(options);
+    final QueryResult result = await GqlClientFactory().authGqlquery(options);
     if (result != null) {
       if (result.hasException == false) {
         var employeeArrDecoded = result.data["employee"];

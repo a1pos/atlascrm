@@ -2,7 +2,7 @@ import 'dart:developer';
 import 'package:atlascrm/components/inventory/InventoryLocationDropDown.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/services/UserService.dart';
-import 'package:atlascrm/services/api.dart';
+import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:intl/intl.dart';
@@ -101,7 +101,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
         }
       """), pollInterval: 5);
 
-      final QueryResult result = await authGqlQuery(options);
+      final QueryResult result = await GqlClientFactory().authGqlquery(options);
       // var endpoint = "/inventory?page=$pageNum&size=10&$sortQuery";
       // var resp = await this.widget.apiService.authGet(context, endpoint);
 
@@ -192,7 +192,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
         }
       """), fetchPolicy: FetchPolicy.networkOnly);
 
-      final QueryResult result = await authGqlQuery(options);
+      final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
       if (result != null) {
         if (result.hasException == false) {

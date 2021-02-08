@@ -7,7 +7,7 @@ import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/services/UserService.dart';
-import 'package:atlascrm/services/api.dart';
+import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
@@ -86,7 +86,7 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
           }
       """), fetchPolicy: FetchPolicy.networkOnly);
 
-      final QueryResult result = await authGqlQuery(options);
+      final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
       if (result != null) {
         if (result.hasException == false) {
@@ -179,7 +179,7 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
           }
       """), fetchPolicy: FetchPolicy.networkOnly);
 
-      final QueryResult result = await authGqlQuery(options);
+      final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
       if (result != null) {
         if (result.hasException == false) {

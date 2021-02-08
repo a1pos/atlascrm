@@ -1,4 +1,4 @@
-import 'package:atlascrm/services/api.dart';
+import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'dart:async';
@@ -67,39 +67,59 @@ class _NotesState extends State<Notes> {
             }
           }
     """), variables: {"id": "$objectId"});
-    var result = await authGqlSubscribe(options);
-    subscription = result.listen(
-      (data) async {
-        var notesArrDecoded = data.data["${type}_note"];
-        if (notesArrDecoded != null) {
-          if (this.mounted) {
-            setState(() {
-              notes = notesArrDecoded.toList();
-              notesEmpty = false;
-            });
-          }
+    subscription = await GqlClientFactory().authGqlsubscribe(options, (data) {
+      var notesArrDecoded = data.data["${type}_note"];
+      if (notesArrDecoded != null) {
+        if (this.mounted) {
+          setState(() {
+            notes = notesArrDecoded.toList();
+            notesEmpty = false;
+          });
         }
-      },
-      onError: (error) async {
-        var errMsg = error.payload["message"];
-        print(errMsg);
-        if (errMsg.contains("JWTExpired")) {
-          if (subscription != null) {
-            await subscription.cancel();
-            subscription = null;
-            loadNotes(this.widget.object, this.widget.type);
-          }
-        } else {
-          Fluttertoast.showToast(
-              msg: errMsg,
-              toastLength: Toast.LENGTH_LONG,
-              gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.grey[600],
-              textColor: Colors.white,
-              fontSize: 16.0);
-        }
-      },
-    );
+      }
+    }, (error) {}, () => refreshSub());
+
+    // subscription = result.listen(
+    //   (data) async {
+    //     var notesArrDecoded = data.data["${type}_note"];
+    //     if (notesArrDecoded != null) {
+    //       if (this.mounted) {
+    //         setState(() {
+    //           notes = notesArrDecoded.toList();
+    //           notesEmpty = false;
+    //         });
+    //       }
+    //     }
+    //   },
+    //   onError: (error) async {
+    //     var errMsg = error.payload["message"];
+    //     print(errMsg);
+    //     if (errMsg.contains("JWTExpired")) {
+    //       if (subscription != null) {
+    //         await subscription.cancel();
+    //         subscription = null;
+    //         loadNotes(this.widget.object, this.widget.type);
+    //       }
+    //     } else {
+    //       Fluttertoast.showToast(
+    //           msg: errMsg,
+    //           toastLength: Toast.LENGTH_LONG,
+    //           gravity: ToastGravity.BOTTOM,
+    //           backgroundColor: Colors.grey[600],
+    //           textColor: Colors.white,
+    //           fontSize: 16.0);
+    //     }
+    //   },
+    // );
+  }
+
+  Future refreshSub() async {
+    print("refreshing sub from frontend");
+    if (subscription != null) {
+      await subscription.cancel();
+      subscription = null;
+      loadNotes(this.widget.object, this.widget.type);
+    }
   }
 
   Future<void> saveNote({type, object, newNote}) async {
@@ -115,7 +135,8 @@ class _NotesState extends State<Notes> {
       }
     }
       """), variables: {"object": sendNote});
-    final QueryResult result = await authGqlMutate(mutateOptions);
+    final QueryResult result =
+        await GqlClientFactory().authGqlmutate(mutateOptions);
     if (result.hasException == true) {
       Fluttertoast.showToast(
           msg: result.exception.toString(),

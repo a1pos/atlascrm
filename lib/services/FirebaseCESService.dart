@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:atlascrm/services/ApiService.dart';
-import 'package:atlascrm/services/api.dart';
+import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -101,7 +101,7 @@ class FirebaseCESService {
             fetchPolicy: FetchPolicy.networkOnly);
 
         if (result == null) {
-          await authGqlMutate(options);
+          await GqlClientFactory().authGqlmutate(options);
           return;
         }
 
@@ -114,7 +114,7 @@ class FirebaseCESService {
           var resp = await apiService.authFilePostWithFormData(
               null, "/api/agreement/omaha/documents/upload", formData);
 
-          await authGqlMutate(options);
+          await GqlClientFactory().authGqlmutate(options);
           if (resp.statusCode != 200) {
             print(resp);
           }

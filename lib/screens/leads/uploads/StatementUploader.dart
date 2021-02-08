@@ -1,7 +1,7 @@
 import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/config/ConfigSettings.dart';
-import 'package:atlascrm/services/api.dart';
+import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -80,7 +80,7 @@ class _StatementUploaderState extends State<StatementUploader> {
         }
       """), fetchPolicy: FetchPolicy.networkOnly);
 
-      final QueryResult result = await authGqlQuery(options);
+      final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
       if (result.hasException == false) {
         if (result.data != null && result.data != "") {
@@ -145,8 +145,10 @@ class _StatementUploaderState extends State<StatementUploader> {
       }
     """), variables: {"title": "Rate Review Presentation"});
 
-    final QueryResult result0 = await authGqlQuery(openStatusOptions);
-    final QueryResult result1 = await authGqlQuery(rateReviewTypeOptions);
+    final QueryResult result0 =
+        await GqlClientFactory().authGqlquery(openStatusOptions);
+    final QueryResult result1 =
+        await GqlClientFactory().authGqlquery(rateReviewTypeOptions);
 
     if (result0 != null && result1 != null) {
       if (result0.hasException == false && result0.hasException == false) {
@@ -195,7 +197,8 @@ class _StatementUploaderState extends State<StatementUploader> {
         }
             """), variables: {"data": data});
 
-      final QueryResult result = await authGqlMutate(options);
+      final QueryResult result =
+          await GqlClientFactory().authGqlmutate(options);
 
       if (result != null) {
         if (result.hasException == false) {
@@ -723,7 +726,7 @@ class _StatementUploaderState extends State<StatementUploader> {
           variables: {"lead": lead["lead"]},
           fetchPolicy: FetchPolicy.networkOnly);
 
-      final QueryResult result = await authGqlQuery(options);
+      final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
       if (result.hasException == false) {
         if (result.data != null && result.data != "") {
@@ -778,7 +781,8 @@ class _StatementUploaderState extends State<StatementUploader> {
         "type": "STATEMENT",
         "statement": statementId
       });
-      final QueryResult result = await authGqlMutate(mutateOptions);
+      final QueryResult result =
+          await GqlClientFactory().authGqlmutate(mutateOptions);
 
       if (result.hasException == false) {
         if (result.data != null && result.data != "") {

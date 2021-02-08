@@ -5,7 +5,7 @@ import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/RoleDropdown.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
-import 'package:atlascrm/services/api.dart';
+import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/screens/employees/widgets/Tasks.dart';
@@ -74,34 +74,43 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
           }
         }
     """), variables: {"employee": "${this.widget.employeeId}"});
-    var result = await authGqlSubscribe(options);
-    subscription = result.listen(
-      (data) async {
-        var deviceArrDecoded = data.data["employee_device"];
-        if (deviceArrDecoded != null) {
-          if (this.mounted) {
-            setState(() {
-              devices = deviceArrDecoded.toList();
-            });
-          }
+    subscription = await GqlClientFactory().authGqlsubscribe(options, (data) {
+      var deviceArrDecoded = data.data["employee_device"];
+      if (deviceArrDecoded != null) {
+        if (this.mounted) {
+          setState(() {
+            devices = deviceArrDecoded.toList();
+          });
         }
-      },
-      onError: (error) async {
-        var errMsg = error.payload["message"];
-        print(errMsg);
-        if (errMsg.contains("JWTExpired")) {
-          await refreshSub();
-        } else {
-          Fluttertoast.showToast(
-              msg: errMsg,
-              toastLength: Toast.LENGTH_LONG,
-              gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.grey[600],
-              textColor: Colors.white,
-              fontSize: 16.0);
-        }
-      },
-    );
+      }
+    }, (error) {}, () => refreshSub());
+    // subscription = result.listen(
+    //   (data) async {
+    //     var deviceArrDecoded = data.data["employee_device"];
+    //     if (deviceArrDecoded != null) {
+    //       if (this.mounted) {
+    //         setState(() {
+    //           devices = deviceArrDecoded.toList();
+    //         });
+    //       }
+    //     }
+    //   },
+    //   onError: (error) async {
+    //     var errMsg = error.payload["message"];
+    //     print(errMsg);
+    //     if (errMsg.contains("JWTExpired")) {
+    //       await refreshSub();
+    //     } else {
+    //       Fluttertoast.showToast(
+    //           msg: errMsg,
+    //           toastLength: Toast.LENGTH_LONG,
+    //           gravity: ToastGravity.BOTTOM,
+    //           backgroundColor: Colors.grey[600],
+    //           textColor: Colors.white,
+    //           fontSize: 16.0);
+    //     }
+    //   },
+    // );
   }
 
   Future refreshSub() async {
@@ -123,7 +132,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
       }
     """));
 
-    final QueryResult result = await authGqlQuery(options);
+    final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
     if (result.hasException == false) {
       var body = result.data["employee_by_pk"];
@@ -148,7 +157,8 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
         }
       }
           """), variables: {"employee": this.widget.employeeId, "role": role});
-    final QueryResult result = await authGqlMutate(mutateOptions);
+    final QueryResult result =
+        await GqlClientFactory().authGqlmutate(mutateOptions);
     if (result.hasException == true) {
       Fluttertoast.showToast(
           msg: result.exception.toString(),
@@ -279,7 +289,8 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                         }
                       }
                   """), variables: {"object": newDevice});
-                  final QueryResult result = await authGqlMutate(mutateOptions);
+                  final QueryResult result =
+                      await GqlClientFactory().authGqlmutate(mutateOptions);
                   if (result.hasException == true) {
                     Fluttertoast.showToast(
                         msg: result.exception.toString(),
@@ -337,7 +348,8 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                         }
                       }
                   """), variables: {"employee_device": deviceId});
-                final QueryResult result = await authGqlMutate(mutateOptions);
+                final QueryResult result =
+                    await GqlClientFactory().authGqlmutate(mutateOptions);
                 if (result.hasException == true) {
                   Fluttertoast.showToast(
                       msg: result.exception.toString(),

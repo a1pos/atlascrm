@@ -1,5 +1,5 @@
 import 'package:atlascrm/components/style/UniversalStyles.dart';
-import 'package:atlascrm/services/api.dart';
+import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -77,6 +77,7 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
   var subscription;
 
   Future initSub() async {
+    print("starting sub in frontend");
     Operation options = Operation(
         operationName: "GET_CARD_LEADERBOARD_COUNT", documentNode: gql("""
           subscription GET_CARD_LEADERBOARD_COUNT {
@@ -93,38 +94,52 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
           }
         """));
 
-    var result = await authGqlSubscribe(options);
-    subscription = result.listen(
-      (data) async {
-        var incomingData = data.data["v_leaderboard"];
-        if (incomingData != null) {
-          if (this.mounted) {
-            setState(() {
-              graphList = incomingData;
-              isLoading = false;
-            });
-          }
+    subscription = await GqlClientFactory().authGqlsubscribe(options, (data) {
+      var incomingData = data.data["v_leaderboard"];
+      if (incomingData != null) {
+        if (this.mounted) {
+          setState(() {
+            graphList = incomingData;
+            isLoading = false;
+          });
         }
-      },
-      onError: (error) async {
-        var errMsg = error.payload["message"];
-        print(errMsg);
-        if (errMsg.contains("JWTExpired")) {
-          await refreshSub();
-        } else {
-          Fluttertoast.showToast(
-              msg: errMsg,
-              toastLength: Toast.LENGTH_LONG,
-              gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.grey[600],
-              textColor: Colors.white,
-              fontSize: 16.0);
-        }
-      },
-    );
+      }
+    }, (error) {
+      print("found error: " + error.toString() + " in front end");
+    }, () => refreshSub());
+
+    // subscription = result.listen(
+    //   (data) async {
+    //     var incomingData = data.data["v_leaderboard"];
+    //     if (incomingData != null) {
+    //       if (this.mounted) {
+    //         setState(() {
+    //           graphList = incomingData;
+    //           isLoading = false;
+    //         });
+    //       }
+    //     }
+    //   },
+    //   onError: (error) async {
+    //     var errMsg = error.payload["message"];
+    //     print(errMsg);
+    //     if (errMsg.contains("JWTExpired")) {
+    //       await refreshSub();
+    //     } else {
+    //       Fluttertoast.showToast(
+    //           msg: errMsg,
+    //           toastLength: Toast.LENGTH_LONG,
+    //           gravity: ToastGravity.BOTTOM,
+    //           backgroundColor: Colors.grey[600],
+    //           textColor: Colors.white,
+    //           fontSize: 16.0);
+    //     }
+    //   },
+    // );
   }
 
   Future refreshSub() async {
+    print("refreshing sub from frontend");
     if (subscription != null) {
       await subscription.cancel();
       subscription = null;

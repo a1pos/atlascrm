@@ -7,7 +7,7 @@ import 'package:atlascrm/components/task/TaskPriorityDropDown.dart';
 import 'package:atlascrm/components/task/TaskTypeDropDown.dart';
 import 'package:atlascrm/services/StorageService.dart';
 import 'package:atlascrm/services/UserService.dart';
-import 'package:atlascrm/services/api.dart';
+import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -72,7 +72,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
       }
     """));
 
-    final QueryResult result0 = await authGqlQuery(options);
+    final QueryResult result0 = await GqlClientFactory().authGqlquery(options);
 
     if (result0 != null) {
       if (result0.hasException == false) {
@@ -108,7 +108,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
       }
             """), fetchPolicy: FetchPolicy.networkOnly);
 
-    final QueryResult result = await authGqlQuery(options);
+    final QueryResult result = await GqlClientFactory().authGqlquery(options);
     if (result.hasException == false) {
       var body = result.data["task_by_pk"];
       if (body != null) {
@@ -205,7 +205,8 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
         }
             """), variables: {"data": data});
 
-      final QueryResult result = await authGqlMutate(options);
+      final QueryResult result =
+          await GqlClientFactory().authGqlmutate(options);
 
       if (result != null) {
         if (result.hasException == false) {

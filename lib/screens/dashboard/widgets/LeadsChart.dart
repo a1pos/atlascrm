@@ -1,4 +1,4 @@
-import 'package:atlascrm/services/api.dart';
+import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
@@ -93,35 +93,47 @@ class _LeadsChartState extends State<LeadsChart> {
 
     """), variables: {"from": from});
 
-    var result = await authGqlSubscribe(leadOptions);
-    subscription = result.listen(
-      (data) async {
-        var incomingData = data.data["employee"];
-        if (incomingData != null) {
-          if (this.mounted) {
-            setState(() {
-              graphList = incomingData;
-              isLoading = false;
-            });
-          }
+    subscription =
+        await GqlClientFactory().authGqlsubscribe(leadOptions, (data) {
+      var incomingData = data.data["employee"];
+      if (incomingData != null) {
+        if (this.mounted) {
+          setState(() {
+            graphList = incomingData;
+            isLoading = false;
+          });
         }
-      },
-      onError: (error) async {
-        var errMsg = error.payload["message"];
-        print(errMsg);
-        if (errMsg.contains("JWTExpired")) {
-          await refreshSubscription();
-        } else {
-          Fluttertoast.showToast(
-              msg: errMsg,
-              toastLength: Toast.LENGTH_LONG,
-              gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.grey[600],
-              textColor: Colors.white,
-              fontSize: 16.0);
-        }
-      },
-    );
+      }
+    }, (error) {}, () => refreshSubscription());
+
+    // subscription = result.listen(
+    //   (data) async {
+    //     var incomingData = data.data["employee"];
+    //     if (incomingData != null) {
+    //       if (this.mounted) {
+    //         setState(() {
+    //           graphList = incomingData;
+    //           isLoading = false;
+    //         });
+    //       }
+    //     }
+    //   },
+    //   onError: (error) async {
+    //     var errMsg = error.payload["message"];
+    //     print(errMsg);
+    //     if (errMsg.contains("JWTExpired")) {
+    //       await refreshSubscription();
+    //     } else {
+    //       Fluttertoast.showToast(
+    //           msg: errMsg,
+    //           toastLength: Toast.LENGTH_LONG,
+    //           gravity: ToastGravity.BOTTOM,
+    //           backgroundColor: Colors.grey[600],
+    //           textColor: Colors.white,
+    //           fontSize: 16.0);
+    //     }
+    //   },
+    // );
   }
 
   refreshSubscription() async {

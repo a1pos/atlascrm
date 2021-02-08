@@ -5,7 +5,7 @@ import 'dart:ui' as ui;
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/DeviceDropdown.dart';
-import 'package:atlascrm/services/api.dart';
+import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -125,7 +125,7 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
         },
         fetchPolicy: FetchPolicy.networkOnly);
 
-    final QueryResult result = await authGqlQuery(options);
+    final QueryResult result = await GqlClientFactory().authGqlquery(options);
     if (result != null) {
       if (result.hasException == false) {
         var locationDataDecoded = result.data["v_employee_route"];
@@ -200,7 +200,8 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
           "next_day": endDate.toString()
         });
 
-        final QueryResult countResult = await authGqlQuery(options);
+        final QueryResult countResult =
+            await GqlClientFactory().authGqlquery(options);
         if (countResult != null) {
           if (countResult.hasException == false) {
             var count = await countResult.data["v_stop_count"];

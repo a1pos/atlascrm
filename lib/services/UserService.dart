@@ -4,7 +4,7 @@ import 'package:atlascrm/services/FirebaseCESService.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:atlascrm/models/Employee.dart';
-import 'package:atlascrm/services/api.dart';
+import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 
@@ -15,6 +15,8 @@ class UserService {
   static bool isTech = false;
   static bool isSalesManager = false;
   static bool isAuthenticated = false;
+  static String token;
+  static String rToken;
 
   final GoogleSignIn googleSignIn =
       GoogleSignIn(scopes: ['https://www.googleapis.com/auth/calendar']);
@@ -73,14 +75,15 @@ class UserService {
   }
 
   Future<void> signOutGoogle() async {
+    if (isAuthenticated) {
+      await googleSignIn.signOut();
+      await firebaseAuth.signOut();
+    }
     isAuthenticated = false;
-
-    await googleSignIn.signOut();
-    await firebaseAuth.signOut();
   }
 
   Future<void> linkGoogleAccount() async {
-    setPublicGraphQLClient();
+    GqlClientFactory.setPublicGraphQLClient();
 
     var user = firebaseAuth.currentUser;
     print(user);
@@ -88,17 +91,22 @@ class UserService {
         mutation ACTION_LINK(\$uid: String!, \$email: String!) {
           link_google_account(uid: \$uid, email: \$email) {
               employee
+              token
+              refreshToken
           }
         }
     """), variables: {
       "email": user.email,
       "uid": user.uid,
     });
-    final QueryResult linkResult = await client.mutate(mutateOptions);
+    final QueryResult linkResult =
+        await GqlClientFactory().authGqlmutate(mutateOptions);
 
     if (linkResult.hasException) {
       throw (linkResult.exception);
     } else {
+      token = linkResult.data["link_google_account"]["token"];
+      rToken = linkResult.data["link_google_account"]["refreshToken"];
       var idTokenResult = await user.getIdToken(true);
       print(idTokenResult);
       var empDecoded = linkResult.data["link_google_account"]["employee"];
@@ -122,7 +130,7 @@ class UserService {
       } else {
         isSalesManager = false;
       }
-      setPrivateGraphQLClient(idTokenResult);
+      GqlClientFactory.setPrivateGraphQLClient(idTokenResult);
       String companyId = empDecoded["company"];
       QueryOptions companyQueryOptions = QueryOptions(documentNode: gql("""
         query GET_COMPANY {
@@ -133,7 +141,8 @@ class UserService {
         }
       """));
 
-      final QueryResult companyResult = await client.query(companyQueryOptions);
+      final QueryResult companyResult =
+          await GqlClientFactory().authGqlquery(companyQueryOptions);
 
       if (companyResult.hasException == false) {
         employee.companyName = companyResult.data["company_by_pk"]["title"];
@@ -153,8 +162,9 @@ class UserService {
         "uid": user.uid,
       });
 
-      final QueryResult notificationRegistrationResult =
-          await client.mutate(notificationRegistrationMutateOptions);
+      final QueryResult notificationRegistrationResult = await GqlClientFactory
+          .client
+          .mutate(notificationRegistrationMutateOptions);
 
       print(notificationRegistrationResult);
     }
@@ -172,5 +182,29 @@ class UserService {
     }
 
     return null;
+  }
+
+  exchangeRefreshToken() async {
+    MutationOptions mutateOptions = MutationOptions(documentNode: gql("""
+     mutation REFRESH_TOKEN(\$token: String!, \$refreshToken: String!) {
+        refresh_token(token: \$token, refreshToken: \$refreshToken) {
+            token
+          }
+        }
+  """), variables: {"token": token, "refreshToken": rToken});
+    final QueryResult result =
+        await GqlClientFactory().authGqlmutate(mutateOptions);
+    if (result.hasException == true) {
+      print(result.exception.toString());
+      try {
+        print("SIGN OUT GOOGLE GOES HERE");
+        // signOutGoogle();
+      } catch (err) {
+        print("CATCH ERROR GOES HERE");
+        print(err);
+      }
+    } else {
+      token = result.data["refresh_token"]["token"];
+    }
   }
 }

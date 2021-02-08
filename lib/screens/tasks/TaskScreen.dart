@@ -15,7 +15,7 @@ import 'package:atlascrm/components/task/TaskItem.dart';
 import 'package:atlascrm/components/task/TaskTypeDropDown.dart';
 import 'package:atlascrm/services/StorageService.dart';
 import 'package:atlascrm/services/UserService.dart';
-import 'package:atlascrm/services/api.dart';
+import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -224,38 +224,52 @@ class _TaskScreenState extends State<TaskScreen> {
           }
         """), variables: {"employee": "${UserService.employee.employee}"});
 
-    var result = await authGqlSubscribe(options);
-    subscription = result.listen(
-      (data) async {
-        var tasksArrDecoded = data.data["employee_by_pk"]["tasks"];
-        if (tasksArrDecoded != null) {
-          setState(() {
-            tasks = tasksArrDecoded;
-            // activeTasks = tasks.where((e) => e["document"]["active"]).toList();
-            tasksFull = tasks;
-            // if (tasks.length > 0) {}
-            isLoading = false;
-          });
-          await fillEvents();
-        }
-        isLoading = false;
-      },
-      onError: (error) async {
-        var errMsg = error.payload["message"];
-        print(errMsg);
-        if (errMsg.contains("JWTExpired")) {
-          await refreshSub();
-        } else {
-          Fluttertoast.showToast(
-              msg: errMsg,
-              toastLength: Toast.LENGTH_LONG,
-              gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.grey[600],
-              textColor: Colors.white,
-              fontSize: 16.0);
-        }
-      },
-    );
+    subscription =
+        await GqlClientFactory().authGqlsubscribe(options, (data) async {
+      var tasksArrDecoded = data.data["employee_by_pk"]["tasks"];
+      if (tasksArrDecoded != null) {
+        setState(() {
+          tasks = tasksArrDecoded;
+          // activeTasks = tasks.where((e) => e["document"]["active"]).toList();
+          tasksFull = tasks;
+          // if (tasks.length > 0) {}
+          isLoading = false;
+        });
+        await fillEvents();
+      }
+      isLoading = false;
+    }, (error) {}, () => refreshSub());
+    // subscription = result.listen(
+    //   (data) async {
+    //     var tasksArrDecoded = data.data["employee_by_pk"]["tasks"];
+    //     if (tasksArrDecoded != null) {
+    //       setState(() {
+    //         tasks = tasksArrDecoded;
+    //         // activeTasks = tasks.where((e) => e["document"]["active"]).toList();
+    //         tasksFull = tasks;
+    //         // if (tasks.length > 0) {}
+    //         isLoading = false;
+    //       });
+    //       await fillEvents();
+    //     }
+    //     isLoading = false;
+    //   },
+    //   onError: (error) async {
+    //     var errMsg = error.payload["message"];
+    //     print(errMsg);
+    //     if (errMsg.contains("JWTExpired")) {
+    //       await refreshSub();
+    //     } else {
+    //       Fluttertoast.showToast(
+    //           msg: errMsg,
+    //           toastLength: Toast.LENGTH_LONG,
+    //           gravity: ToastGravity.BOTTOM,
+    //           backgroundColor: Colors.grey[600],
+    //           textColor: Colors.white,
+    //           fontSize: 16.0);
+    //     }
+    //   },
+    // );
   }
 
   Future refreshSub() async {
@@ -305,7 +319,7 @@ class _TaskScreenState extends State<TaskScreen> {
       }
     """));
 
-    final QueryResult result0 = await authGqlQuery(options);
+    final QueryResult result0 = await GqlClientFactory().authGqlquery(options);
 
     if (result0 != null) {
       if (result0.hasException == false) {
@@ -350,7 +364,8 @@ class _TaskScreenState extends State<TaskScreen> {
         }
             """), variables: {"data": data});
 
-      final QueryResult result = await authGqlMutate(options);
+      final QueryResult result =
+          await GqlClientFactory().authGqlmutate(options);
 
       if (result != null) {
         if (result.hasException == false) {

@@ -1,7 +1,7 @@
 import 'dart:developer';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/services/UserService.dart';
-import 'package:atlascrm/services/api.dart';
+import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter/foundation.dart';
@@ -157,7 +157,8 @@ class InventoryAddState extends State<InventoryAdd> {
           }
         }
       """), variables: {"objects": data});
-        final QueryResult result = await authGqlMutate(options);
+        final QueryResult result =
+            await GqlClientFactory().authGqlmutate(options);
 
         if (result != null) {
           if (result.hasException == false) {

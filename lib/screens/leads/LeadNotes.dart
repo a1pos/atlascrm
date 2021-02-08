@@ -1,7 +1,7 @@
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
-import 'package:atlascrm/services/api.dart';
+import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'dart:async';
@@ -71,40 +71,55 @@ class _LeadNotesState extends State<LeadNotes> {
             }
           }
     """), variables: {"id": "$objectId"});
-    var result = await authGqlSubscribe(options);
-    subscription = result.listen(
-      (data) async {
-        var notesArrDecoded = data.data["${type}_note"];
-        if (notesArrDecoded != null) {
-          if (this.mounted) {
-            setState(() {
-              notes = notesArrDecoded.toList();
-              notesEmpty = false;
-            });
-          }
+    subscription = await GqlClientFactory().authGqlsubscribe(options, (data) {
+      var notesArrDecoded = data.data["${type}_note"];
+      if (notesArrDecoded != null) {
+        if (this.mounted) {
+          setState(() {
+            notes = notesArrDecoded.toList();
+            notesEmpty = false;
+          });
         }
-        _scrollController.animateTo(
-          0.0,
-          curve: Curves.easeOut,
-          duration: const Duration(milliseconds: 300),
-        );
-      },
-      onError: (error) async {
-        var errMsg = error.payload["message"];
-        print(errMsg);
-        if (errMsg.contains("JWTExpired")) {
-          await refreshSub();
-        } else {
-          Fluttertoast.showToast(
-              msg: errMsg,
-              toastLength: Toast.LENGTH_LONG,
-              gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.grey[600],
-              textColor: Colors.white,
-              fontSize: 16.0);
-        }
-      },
-    );
+      }
+      _scrollController.animateTo(
+        0.0,
+        curve: Curves.easeOut,
+        duration: const Duration(milliseconds: 300),
+      );
+    }, (error) {}, () => refreshSub());
+    // subscription = result.listen(
+    //   (data) async {
+    //     var notesArrDecoded = data.data["${type}_note"];
+    //     if (notesArrDecoded != null) {
+    //       if (this.mounted) {
+    //         setState(() {
+    //           notes = notesArrDecoded.toList();
+    //           notesEmpty = false;
+    //         });
+    //       }
+    //     }
+    //     _scrollController.animateTo(
+    //       0.0,
+    //       curve: Curves.easeOut,
+    //       duration: const Duration(milliseconds: 300),
+    //     );
+    //   },
+    //   onError: (error) async {
+    //     var errMsg = error.payload["message"];
+    //     print(errMsg);
+    //     if (errMsg.contains("JWTExpired")) {
+    //       await refreshSub();
+    //     } else {
+    //       Fluttertoast.showToast(
+    //           msg: errMsg,
+    //           toastLength: Toast.LENGTH_LONG,
+    //           gravity: ToastGravity.BOTTOM,
+    //           backgroundColor: Colors.grey[600],
+    //           textColor: Colors.white,
+    //           fontSize: 16.0);
+    //     }
+    //   },
+    // );
   }
 
   Future refreshSub() async {
@@ -128,7 +143,8 @@ class _LeadNotesState extends State<LeadNotes> {
       }
     }
       """), variables: {"object": sendNote});
-    final QueryResult result = await authGqlMutate(mutateOptions);
+    final QueryResult result =
+        await GqlClientFactory().authGqlmutate(mutateOptions);
     if (result.hasException == true) {
       Fluttertoast.showToast(
           msg: result.exception.toString(),

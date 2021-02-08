@@ -3,7 +3,7 @@ import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
-import 'package:atlascrm/services/api.dart';
+import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/services/UserService.dart';
@@ -156,7 +156,7 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
         }}
             """), fetchPolicy: FetchPolicy.networkOnly);
 
-    final QueryResult result = await authGqlQuery(options);
+    final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
     if (result.hasException == false) {
       var body = result.data["inventory_by_pk"];
@@ -268,7 +268,8 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
         }
       }
       """), variables: {"data": data});
-    final QueryResult result = await authGqlMutate(mutateOptions);
+    final QueryResult result =
+        await GqlClientFactory().authGqlmutate(mutateOptions);
 
     if (result.hasException == false) {
       Fluttertoast.showToast(
@@ -393,7 +394,8 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
       }
     }
           """), variables: {"inventory": inventory["inventory"]});
-    final QueryResult result = await authGqlMutate(mutateOptions);
+    final QueryResult result =
+        await GqlClientFactory().authGqlmutate(mutateOptions);
     if (result.hasException == true) {
       Fluttertoast.showToast(
           msg: result.exception.toString(),
@@ -423,7 +425,7 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
       }
     """), fetchPolicy: FetchPolicy.networkOnly);
 
-    final QueryResult result = await authGqlQuery(options);
+    final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
     if (result.hasException == false) {
       var body = result.data["employee_by_pk"];

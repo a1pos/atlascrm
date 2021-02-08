@@ -1,4 +1,4 @@
-import 'package:atlascrm/services/api.dart';
+import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:searchable_dropdown/searchable_dropdown.dart';
@@ -45,7 +45,7 @@ class _MerchantDropDownState extends State<MerchantDropDown> {
       }
       """), fetchPolicy: FetchPolicy.networkOnly);
 
-    final QueryResult result = await authGqlQuery(options);
+    final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
     if (result != null) {
       if (result.hasException == false) {

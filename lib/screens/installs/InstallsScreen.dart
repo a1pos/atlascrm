@@ -1,7 +1,7 @@
 import 'dart:developer';
 import 'package:atlascrm/components/inventory/InventoryLocationDropDown.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
-import 'package:atlascrm/services/api.dart';
+import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
@@ -86,7 +86,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
         }
       """));
 
-      final QueryResult result = await authGqlQuery(options);
+      final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
       if (result != null) {
         if (result.hasException == false) {
@@ -165,7 +165,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
         }
       """), fetchPolicy: FetchPolicy.networkOnly);
 
-      final QueryResult result = await authGqlQuery(options);
+      final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
       if (result != null) {
         if (result.hasException == false) {

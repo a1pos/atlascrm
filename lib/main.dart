@@ -31,7 +31,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:atlascrm/services/api.dart';
+import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:atlascrm/screens/leads/uploads/StatementUploader.dart';
 
 List<CameraDescription> cameras;
@@ -49,9 +49,9 @@ Future<void> main() async {
   runApp(AtlasCRM());
 }
 
-class AtlasCRM extends StatefulWidget {
-  final UserService userService = new UserService();
+final UserService userService = new UserService();
 
+class AtlasCRM extends StatefulWidget {
   @override
   _AtlasCRMState createState() => _AtlasCRMState();
 }
@@ -62,12 +62,12 @@ class _AtlasCRMState extends State<AtlasCRM> {
   @override
   void initState() {
     super.initState();
-    setPublicGraphQLClient();
+    GqlClientFactory.setPublicGraphQLClient();
     isAuthCheck();
   }
 
   Future<void> isAuthCheck() async {
-    try{
+    try {
       var currentUser = UserService.firebaseAuth.currentUser;
       if (currentUser == null) {
         UserService.isAuthenticated = false;
@@ -90,14 +90,14 @@ class _AtlasCRMState extends State<AtlasCRM> {
           ),
         );
       }
-    }catch(err){
+    } catch (err) {
       UserService.isAuthenticated = false;
 
       setState(() {
         isLoading = false;
       });
     }
-    
+
     // var isAuthed = await userService.signInWithGoogle();
     // if (isAuthed) {
     //   UserService.isAuthenticated = true;
@@ -123,7 +123,7 @@ class _AtlasCRMState extends State<AtlasCRM> {
   }
 
   Future<void> handleLogoutRoute() async {
-    await this.widget.userService.signOutGoogle();
+    await userService.signOutGoogle();
 
     SystemChrome.setSystemUIOverlayStyle(
       SystemUiOverlayStyle(
@@ -145,7 +145,7 @@ class _AtlasCRMState extends State<AtlasCRM> {
 
   Widget getHomeScreen() {
     return GraphQLProvider(
-      client: ValueNotifier<GraphQLClient>(client),
+      client: ValueNotifier<GraphQLClient>(GqlClientFactory.client),
       child: CacheProvider(
         child: MaterialApp(
             title: 'ATLAS CRM',
@@ -157,16 +157,14 @@ class _AtlasCRMState extends State<AtlasCRM> {
             //   brightness: Brightness.light,
             //   fontFamily: "LatoRegular",
             // ),
-            home: UserService.isAuthenticated 
-            ? 
-              DashboardScreen()
-            :
-              WillPopScope(
-                  onWillPop: () async {
-                    print("main trying to pop");
-                    return false;
-                  },
-                  child: AuthScreen()),
+            home: UserService.isAuthenticated
+                ? DashboardScreen()
+                : WillPopScope(
+                    onWillPop: () async {
+                      print("main trying to pop");
+                      return false;
+                    },
+                    child: AuthScreen()),
             initialRoute: "/",
             onGenerateRoute: (RouteSettings settings) {
               switch (settings.name) {

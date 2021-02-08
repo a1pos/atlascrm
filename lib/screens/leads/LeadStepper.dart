@@ -2,7 +2,7 @@ import 'dart:developer';
 import 'dart:convert';
 import 'package:atlascrm/components/shared/ProcessorDropDown.dart';
 import 'package:atlascrm/services/UserService.dart';
-import 'package:atlascrm/services/api.dart';
+import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/components/shared/AddressSearch.dart';
@@ -108,7 +108,7 @@ class LeadStepperState extends State<LeadStepper> {
       """), fetchPolicy: FetchPolicy.networkOnly);
       }
 
-      final QueryResult result = await authGqlQuery(options);
+      final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
       if (result != null) {
         if (result.hasException == false) {
@@ -253,7 +253,8 @@ class LeadStepperState extends State<LeadStepper> {
           }
         }
       """), variables: {"objects": lead});
-      final QueryResult result = await authGqlMutate(mutateOptions);
+      final QueryResult result =
+          await GqlClientFactory().authGqlmutate(mutateOptions);
 
       if (result.hasException == false) {
         // Navigator.pop(context);

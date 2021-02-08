@@ -1,4 +1,4 @@
-import 'package:atlascrm/services/api.dart';
+import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:searchable_dropdown/searchable_dropdown.dart';
@@ -48,7 +48,8 @@ class _InventoryPriceTierDropDownState
         }
       """), fetchPolicy: FetchPolicy.networkOnly);
 
-    final QueryResult locationsResp = await authGqlQuery(options);
+    final QueryResult locationsResp =
+        await GqlClientFactory().authGqlquery(options);
 
     //REPLACE WITH GRAPHQL
     // var locationsResp = await apiService.authGet(context, "/inventory/tier");

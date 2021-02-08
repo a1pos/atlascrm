@@ -5,7 +5,7 @@ import 'package:atlascrm/services/UserService.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
-import 'package:atlascrm/services/api.dart';
+import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/components/shared/AddressSearch.dart';
@@ -137,7 +137,8 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                         }
                       }
                   """), variables: {"data": data});
-                final QueryResult result = await authGqlMutate(mutateOptions);
+                final QueryResult result =
+                    await GqlClientFactory().authGqlmutate(mutateOptions);
 
                 if (result.hasException == false) {
                   Fluttertoast.showToast(
@@ -188,7 +189,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
         }
       """), fetchPolicy: FetchPolicy.networkOnly);
 
-      final QueryResult result = await authGqlQuery(options);
+      final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
       if (result.hasException == false) {
         if (result.data != null && result.data != "") {
@@ -233,7 +234,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
         }
     """), variables: {"lead": this.widget.leadId});
 
-    final QueryResult result = await authGqlQuery(options);
+    final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
     if (result.hasException == false) {
       var body = result.data["lead_by_pk"];
@@ -318,7 +319,8 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
           }
         }
       """), variables: {"data": data});
-    final QueryResult result = await authGqlMutate(mutateOptions);
+    final QueryResult result =
+        await GqlClientFactory().authGqlmutate(mutateOptions);
 
     if (result.hasException == false) {
       await loadLeadData(this.widget.leadId);

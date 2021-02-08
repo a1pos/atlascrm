@@ -6,7 +6,7 @@ import 'package:atlascrm/components/shared/MerchantDropdown.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/services/StorageService.dart';
 import 'package:atlascrm/services/UserService.dart';
-import 'package:atlascrm/services/api.dart';
+import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
@@ -265,7 +265,8 @@ class _MileageScreenState extends State<MileageScreen> {
           "employee": UserService.employee.employee
         });
 
-        final QueryResult result = await authGqlMutate(mutateOptions);
+        final QueryResult result =
+            await GqlClientFactory().authGqlmutate(mutateOptions);
         if (result.hasException == true) {
           Fluttertoast.showToast(
               msg: result.exception.toString(),
@@ -294,7 +295,8 @@ class _MileageScreenState extends State<MileageScreen> {
           }
            """), variables: {"completed_at": currentTime, "trip": trip});
 
-          final QueryResult result = await authGqlMutate(mutateOptions);
+          final QueryResult result =
+              await GqlClientFactory().authGqlmutate(mutateOptions);
           if (result.hasException == true) {
             Fluttertoast.showToast(
                 msg: result.exception.toString(),

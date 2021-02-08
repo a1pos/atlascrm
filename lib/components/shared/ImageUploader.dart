@@ -2,7 +2,7 @@ import 'package:atlascrm/components/shared/PlacesSuggestions.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/config/ConfigSettings.dart';
 import 'package:atlascrm/screens/leads/ViewLeadScreen.dart';
-import 'package:atlascrm/services/api.dart';
+import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -93,7 +93,7 @@ class _ImageUploaderState extends State<ImageUploader> {
         }
       """), fetchPolicy: FetchPolicy.networkOnly);
 
-      final QueryResult result = await authGqlQuery(options);
+      final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
       if (result.hasException == false) {
         if (result.data != null && result.data != "") {
@@ -663,7 +663,7 @@ class _ImageUploaderState extends State<ImageUploader> {
           variables: {"lead": objectId},
           fetchPolicy: FetchPolicy.networkOnly);
 
-      final QueryResult result = await authGqlQuery(options);
+      final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
       if (result.hasException == false) {
         if (result.data != null && result.data != "") {
@@ -715,7 +715,8 @@ class _ImageUploaderState extends State<ImageUploader> {
         "type": "STATEMENT",
         "statement": statementId
       });
-      final QueryResult result = await authGqlMutate(mutateOptions);
+      final QueryResult result =
+          await GqlClientFactory().authGqlmutate(mutateOptions);
 
       if (result.hasException == false) {
         if (result.data != null && result.data != "") {

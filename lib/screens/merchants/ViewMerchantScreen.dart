@@ -6,7 +6,7 @@ import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/services/UserService.dart';
-import 'package:atlascrm/services/api.dart';
+import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
@@ -88,7 +88,7 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
       }
     """), variables: {"merchant": merchantId});
 
-    final QueryResult result = await authGqlQuery(options);
+    final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
     if (result.hasException == false) {
       var body = result.data["merchant_by_pk"];
@@ -168,34 +168,44 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
           }
             """), variables: {"merchant": "${this.widget.merchantId}"});
 
-    var result2 = await authGqlSubscribe(deviceOptions);
-    subscription = result2.listen(
-      (data) async {
-        var devicesArrDecoded = data.data["inventory"];
-        if (devicesArrDecoded != null) {
-          setState(() {
-            devices = devicesArrDecoded;
-          });
-        }
-        isLoading = false;
-        inventoryLoading = false;
-      },
-      onError: (error) async {
-        var errMsg = error.payload["message"];
-        print(errMsg);
-        if (errMsg.contains("JWTExpired")) {
-          await refreshSub();
-        } else {
-          Fluttertoast.showToast(
-              msg: errMsg,
-              toastLength: Toast.LENGTH_LONG,
-              gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.grey[600],
-              textColor: Colors.white,
-              fontSize: 16.0);
-        }
-      },
-    );
+    subscription =
+        await GqlClientFactory().authGqlsubscribe(deviceOptions, (data) {
+      var devicesArrDecoded = data.data["inventory"];
+      if (devicesArrDecoded != null) {
+        setState(() {
+          devices = devicesArrDecoded;
+        });
+      }
+      isLoading = false;
+      inventoryLoading = false;
+    }, (error) {}, () => refreshSub());
+    // subscription = result2.listen(
+    //   (data) async {
+    //     var devicesArrDecoded = data.data["inventory"];
+    //     if (devicesArrDecoded != null) {
+    //       setState(() {
+    //         devices = devicesArrDecoded;
+    //       });
+    //     }
+    //     isLoading = false;
+    //     inventoryLoading = false;
+    //   },
+    //   onError: (error) async {
+    //     var errMsg = error.payload["message"];
+    //     print(errMsg);
+    //     if (errMsg.contains("JWTExpired")) {
+    //       await refreshSub();
+    //     } else {
+    //       Fluttertoast.showToast(
+    //           msg: errMsg,
+    //           toastLength: Toast.LENGTH_LONG,
+    //           gravity: ToastGravity.BOTTOM,
+    //           backgroundColor: Colors.grey[600],
+    //           textColor: Colors.white,
+    //           fontSize: 16.0);
+    //     }
+    //   },
+    // );
   }
 
   Future refreshSub() async {

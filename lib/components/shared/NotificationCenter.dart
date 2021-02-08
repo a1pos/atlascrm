@@ -1,6 +1,6 @@
 import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/services/UserService.dart';
-import 'package:atlascrm/services/api.dart';
+import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:atlascrm/services/ApiService.dart';
@@ -20,7 +20,7 @@ class _NotificationCenterState extends State<NotificationCenter> {
   @override
   void initState() {
     super.initState();
-    initNotificationsSub();
+    // initNotificationsSub();
   }
 
   @override
@@ -47,38 +47,56 @@ class _NotificationCenterState extends State<NotificationCenter> {
           }
             """), variables: {"employee": "${UserService.employee.employee}"});
 
-    var result = await authGqlSubscribe(options);
-    subscription = result.listen(
-      (data) async {
-        var notificationsArrDecoded = data.data["notification"];
-        if (notificationsArrDecoded != null && this.mounted) {
-          setState(() {
-            notifCount = notificationsArrDecoded.length;
-            notifications = notificationsArrDecoded;
-          });
-        }
-      },
-      onError: (error) async {
-        var errMsg = error.payload["message"];
-        print(errMsg);
-        if (errMsg.contains("JWTExpired")) {
-          if (subscription != null) {
-            await subscription.cancel();
-            subscription = null;
-            initNotificationsSub();
-          }
-        } else {
-          Fluttertoast.showToast(
-              msg: errMsg,
-              toastLength: Toast.LENGTH_LONG,
-              gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.grey[600],
-              textColor: Colors.white,
-              fontSize: 16.0);
-        }
-      },
-    );
+    subscription = await GqlClientFactory().authGqlsubscribe(options, (data) {
+      var notificationsArrDecoded = data.data["notification"];
+      if (notificationsArrDecoded != null && this.mounted) {
+        setState(() {
+          notifCount = notificationsArrDecoded.length;
+          notifications = notificationsArrDecoded;
+        });
+      }
+    }, (error) {}, () => refreshSub());
+
+    // subscription = result.listen(
+    //   (data) async {
+    //     var notificationsArrDecoded = data.data["notification"];
+    //     if (notificationsArrDecoded != null && this.mounted) {
+    //       setState(() {
+    //         notifCount = notificationsArrDecoded.length;
+    //         notifications = notificationsArrDecoded;
+    //       });
+    //     }
+    //   },
+    //   onError: (error) async {
+    //     var errMsg = error.payload["message"];
+    //     print(errMsg);
+    //     if (errMsg.contains("JWTExpired")) {
+    //       if (subscription != null) {
+    //         await subscription.cancel();
+    //         subscription = null;
+    //         initNotificationsSub();
+    //       }
+    //     } else {
+    //       Fluttertoast.showToast(
+    //           msg: errMsg,
+    //           toastLength: Toast.LENGTH_LONG,
+    //           gravity: ToastGravity.BOTTOM,
+    //           backgroundColor: Colors.grey[600],
+    //           textColor: Colors.white,
+    //           fontSize: 16.0);
+    //     }
+    //   },
+    // );
     print("notifs initialized");
+  }
+
+  Future refreshSub() async {
+    print("refreshing sub from frontend");
+    if (subscription != null) {
+      await subscription.cancel();
+      subscription = null;
+      initNotificationsSub();
+    }
   }
 
   Future<void> markOneAsRead(notification) async {
@@ -91,7 +109,8 @@ class _NotificationCenterState extends State<NotificationCenter> {
             }
           }
       """), variables: {"notification": notification});
-    final QueryResult result = await authGqlMutate(mutateOptions);
+    final QueryResult result =
+        await GqlClientFactory().authGqlmutate(mutateOptions);
 
     if (result.hasException == false) {
       Fluttertoast.showToast(
@@ -122,7 +141,8 @@ class _NotificationCenterState extends State<NotificationCenter> {
             }
           }
       """), variables: {"employee": UserService.employee.employee});
-    final QueryResult result = await authGqlMutate(mutateOptions);
+    final QueryResult result =
+        await GqlClientFactory().authGqlmutate(mutateOptions);
 
     if (result.hasException == false) {
       Fluttertoast.showToast(

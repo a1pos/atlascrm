@@ -8,7 +8,7 @@ import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/services/UserService.dart';
-import 'package:atlascrm/services/api.dart';
+import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
@@ -100,7 +100,8 @@ class _LeadsScreenState extends State<LeadsScreen> {
                         }
                       }
                   """), variables: {"data": data});
-                final QueryResult result = await authGqlMutate(mutateOptions);
+                final QueryResult result =
+                    await GqlClientFactory().authGqlmutate(mutateOptions);
 
                 if (result.hasException == false) {
                   Fluttertoast.showToast(
@@ -164,7 +165,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
           }
       """), fetchPolicy: FetchPolicy.networkOnly);
 
-      final QueryResult result = await authGqlQuery(options);
+      final result = await GqlClientFactory().authGqlquery(options);
 
       if (result != null) {
         if (result.hasException == false) {
@@ -264,7 +265,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
           }
       """), fetchPolicy: FetchPolicy.networkOnly);
 
-      final QueryResult result = await authGqlQuery(options);
+      final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
       if (result != null) {
         if (result.hasException == false) {

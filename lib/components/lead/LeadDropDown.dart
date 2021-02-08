@@ -1,5 +1,5 @@
 import 'package:atlascrm/screens/tasks/TaskScreen.dart';
-import 'package:atlascrm/services/api.dart';
+import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:searchable_dropdown/searchable_dropdown.dart';
@@ -67,7 +67,7 @@ class _LeadDropDownState extends State<LeadDropDown> {
             """), fetchPolicy: FetchPolicy.networkOnly);
     }
     if (this.widget.employeeId != null) {
-      final QueryResult result = await authGqlQuery(options);
+      final QueryResult result = await GqlClientFactory().authGqlquery(options);
       var leadsArrDecoded;
       if (result != null) {
         if (result.hasException == false) {
