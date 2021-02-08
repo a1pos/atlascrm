@@ -49,8 +49,7 @@ class ApiService {
 
   Future<Response> authGet(context, url, {isRetry: false}) async {
     try {
-      var currentUser = await UserService.getCurrentUser();
-      var token = await currentUser.getIdToken();
+      var token = UserService.token;
 
       var resp = await Dio(
         BaseOptions(
@@ -85,8 +84,7 @@ class ApiService {
   Future<Response> authPost(context, url, data,
       {isFile = false, isRetry: false}) async {
     try {
-      var currentUser = await UserService.getCurrentUser();
-      var token = await currentUser.getIdToken();
+      var token = UserService.token;
 
       var resp = await Dio(
         BaseOptions(
@@ -117,8 +115,7 @@ class ApiService {
 
   Future<Response> authFilePost(context, url, filePath, {isRetry: true}) async {
     try {
-      var currentUser = await UserService.getCurrentUser();
-      var token = await currentUser.getIdToken();
+      var token = UserService.token;
 
       var type = "application";
       var subType = "octet-stream";
@@ -166,8 +163,7 @@ class ApiService {
   Future<Response> authFilePostWithFormData(context, url, FormData formData,
       {isRetry: true}) async {
     try {
-      var currentUser = await UserService.getCurrentUser();
-      var token = await currentUser.getIdToken();
+      var token = UserService.token;
 
       var resp = await Dio(
         BaseOptions(
@@ -193,8 +189,7 @@ class ApiService {
   Future<Response> authFilesPost(context, url, filePaths,
       {isRetry: true, fileName: "file"}) async {
     try {
-      var currentUser = await UserService.getCurrentUser();
-      var token = await currentUser.getIdToken();
+      var token = UserService.token;
 
       var formData = FormData();
 
@@ -253,8 +248,7 @@ class ApiService {
 
   Future<Response> authPut(context, url, data, {isRetry: false}) async {
     try {
-      var currentUser = await UserService.getCurrentUser();
-      var token = await currentUser.getIdToken();
+      var token = UserService.token;
 
       var resp = await Dio(
         BaseOptions(
@@ -285,8 +279,7 @@ class ApiService {
 
   Future<Response> authDelete(context, url, data, {isRetry: false}) async {
     try {
-      var currentUser = await UserService.getCurrentUser();
-      var token = await currentUser.getIdToken();
+      var token = UserService.token;
 
       var resp = await Dio(
         BaseOptions(
