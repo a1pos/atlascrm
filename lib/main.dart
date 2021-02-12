@@ -58,12 +58,20 @@ class AtlasCRM extends StatefulWidget {
 
 class _AtlasCRMState extends State<AtlasCRM> {
   bool isLoading = true;
+  GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   @override
   void initState() {
     super.initState();
     GqlClientFactory.setPublicGraphQLClient();
     isAuthCheck();
+    UserService.firebaseAuth.authStateChanges().listen((firebaseUser) {
+      print(firebaseUser);
+      if (firebaseUser == null && UserService.isAuthenticated) {
+        navigatorKey.currentState.popAndPushNamed('/logout');
+        // Navigator.of(context).popAndPushNamed('/logout');
+      }
+    });
   }
 
   Future<void> isAuthCheck() async {
@@ -124,7 +132,6 @@ class _AtlasCRMState extends State<AtlasCRM> {
 
   Future<void> handleLogoutRoute() async {
     await userService.signOutGoogle();
-
     SystemChrome.setSystemUIOverlayStyle(
       SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
@@ -134,7 +141,7 @@ class _AtlasCRMState extends State<AtlasCRM> {
 
   @override
   Widget build(BuildContext context) {
-    return isLoading ? getLoadingScreen() : getHomeScreen();
+    return isLoading ? getLoadingScreen() : getHomeScreen(context);
   }
 
   Widget getLoadingScreen() {
@@ -143,13 +150,14 @@ class _AtlasCRMState extends State<AtlasCRM> {
     );
   }
 
-  Widget getHomeScreen() {
+  Widget getHomeScreen(context) {
     return GraphQLProvider(
       client: ValueNotifier<GraphQLClient>(GqlClientFactory.client),
       child: CacheProvider(
         child: MaterialApp(
             title: 'ATLAS CRM',
             theme: defaultTheme,
+            navigatorKey: navigatorKey,
             // ThemeData(
             //   appBarTheme: AppBarTheme(color: Colors.red),
             //   primarySwatch: Colors.red,

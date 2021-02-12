@@ -77,12 +77,13 @@ class _LeadsChartState extends State<LeadsChart> {
       employee(
         where: {
           _and: [
-            { document: { _has_key: "displayName" } }
+            { document: { _has_key: "shortName" } }
             { roleByRole: { title: { _eq: "sales" } } }
+            { is_active: { _eq: true } }
           ]
         }
       ) {
-        displayName: document(path: "displayName")
+        displayName: document(path: "shortName")
         leads_aggregate (where: {_and: [{created_at: {_gte: \$from}}]}){
           aggregate {
             count

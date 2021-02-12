@@ -13,93 +13,114 @@ class GqlClientFactory {
   static InMemoryCache cache = InMemoryCache();
   static InMemoryCache cache2 = InMemoryCache();
   UserService userService = UserService();
+  static bool isRefreshing = false;
 
   Future<QueryResult> authGqlquery(options) async {
-    var result = await client.query(options);
-    if (result != null) {
-      if (result.hasException != false) {
-        var errMsg = result.exception.toString();
-        print(errMsg);
-        if (errMsg.contains("JWTExpired")) {
-          await refreshClient();
-          result = await client.query(options);
-        } else {
-          Fluttertoast.showToast(
-              msg: errMsg,
-              toastLength: Toast.LENGTH_LONG,
-              gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.grey[600],
-              textColor: Colors.white,
-              fontSize: 16.0);
+    try {
+      var result = await client.query(options);
+      if (result != null) {
+        if (result.hasException != false) {
+          var errMsg = result.exception.toString();
+          print(errMsg);
+          if (errMsg.contains("JWTExpired")) {
+            await refreshClient();
+            result = await client.query(options);
+          } else {
+            Fluttertoast.showToast(
+                msg: errMsg,
+                toastLength: Toast.LENGTH_LONG,
+                gravity: ToastGravity.BOTTOM,
+                backgroundColor: Colors.grey[600],
+                textColor: Colors.white,
+                fontSize: 16.0);
+          }
         }
       }
+      return result;
+    } catch (err) {
+      print(err);
     }
-    return result;
   }
 
   Future<QueryResult> authGqlmutate(options) async {
-    var result = await client.mutate(options);
-    if (result != null) {
-      if (result.hasException != false) {
-        var errMsg = result.exception.toString();
-        print(errMsg);
-        if (errMsg.contains("JWTExpired")) {
-          await refreshClient();
-          result = await client.mutate(options);
-        } else {
-          Fluttertoast.showToast(
-              msg: errMsg,
-              toastLength: Toast.LENGTH_LONG,
-              gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.grey[600],
-              textColor: Colors.white,
-              fontSize: 16.0);
+    try {
+      var result = await client.mutate(options);
+      if (result != null) {
+        if (result.hasException != false) {
+          var errMsg = result.exception.toString();
+          print(errMsg);
+          if (errMsg.contains("JWTExpired")) {
+            await refreshClient();
+            result = await client.mutate(options);
+          } else {
+            Fluttertoast.showToast(
+                msg: errMsg,
+                toastLength: Toast.LENGTH_LONG,
+                gravity: ToastGravity.BOTTOM,
+                backgroundColor: Colors.grey[600],
+                textColor: Colors.white,
+                fontSize: 16.0);
+          }
         }
       }
+      return result;
+    } catch (err) {
+      print(err);
     }
-    return result;
   }
 
   Future<StreamSubscription<FetchResult>> authGqlsubscribe(
       options, Function onData, Function onError, Function refresh) async {
-    var result = client.subscribe(options);
+    try {
+      var result = client.subscribe(options);
 
-    StreamSubscription<FetchResult> subscription = result.listen(
-      (data) async {
-        onData(data);
-      },
-      onError: (error) async {
-        var errMsg = error.toString();
+      StreamSubscription<FetchResult> subscription = result.listen(
+        (data) async {
+          onData(data);
+        },
+        onError: (error) async {
+          var errMsg = error.toString();
 
-        print(errMsg);
-        if (errMsg.contains("JWTExpired")) {
-          await refreshClient();
-          onError(error);
-          refresh();
-        } else {
-          onError(error);
-          Fluttertoast.showToast(
-              msg: errMsg,
-              toastLength: Toast.LENGTH_LONG,
-              gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.grey[600],
-              textColor: Colors.white,
-              fontSize: 16.0);
-        }
-      },
-    );
-    return subscription;
+          print(errMsg);
+          if (errMsg.contains("JWTExpired")) {
+            await refreshClient();
+            onError(error);
+            refresh();
+          } else {
+            onError(error);
+            Fluttertoast.showToast(
+                msg: errMsg,
+                toastLength: Toast.LENGTH_LONG,
+                gravity: ToastGravity.BOTTOM,
+                backgroundColor: Colors.grey[600],
+                textColor: Colors.white,
+                fontSize: 16.0);
+          }
+        },
+      );
+      return subscription;
+    } catch (err) {
+      print(err);
+    }
   }
 
   static refreshClient() async {
-    print("TRYING TO REFRESH CLIENT");
-    //set a public client so we can refresh tokens
-    setPublicGraphQLClient();
-    print("CLIENT SET TO PUBLIC");
-    await UserService().exchangeRefreshToken();
-    print("TOKEN REFRESHED");
-    setPrivateGraphQLClient(UserService.token);
-    print("CLIENT SET TO PRIVATE");
+    if (!isRefreshing) {
+      isRefreshing = true;
+      print("TRYING TO REFRESH CLIENT");
+      //set a public client so we can refresh tokens
+      setPublicGraphQLClient();
+      print("CLIENT SET TO PUBLIC");
+      var success = await UserService().exchangeRefreshToken();
+      if (success) {
+        print("TOKEN REFRESHED");
+        setPrivateGraphQLClient(UserService.token);
+        print("CLIENT SET TO PRIVATE");
+      } else {
+        print("REFRESH TOKEN TIMED OUT: SIGNING OUT");
+      }
+      isRefreshing = false;
+    }
   }
 
   static void setPrivateGraphQLClient(token) async {

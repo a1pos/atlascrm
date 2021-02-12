@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:atlascrm/models/Employee.dart';
 import 'package:atlascrm/services/GqlClientFactory.dart';
+import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 
@@ -184,7 +185,7 @@ class UserService {
     return null;
   }
 
-  exchangeRefreshToken() async {
+  Future<bool> exchangeRefreshToken() async {
     MutationOptions mutateOptions = MutationOptions(documentNode: gql("""
      mutation REFRESH_TOKEN(\$token: String!, \$refreshToken: String!) {
         refresh_token(token: \$token, refreshToken: \$refreshToken) {
@@ -198,13 +199,15 @@ class UserService {
       print(result.exception.toString());
       try {
         print("SIGN OUT GOOGLE GOES HERE");
-        // signOutGoogle();
+        signOutGoogle();
+        return false;
       } catch (err) {
         print("CATCH ERROR GOES HERE");
         print(err);
       }
     } else {
       token = result.data["refresh_token"]["token"];
+      return true;
     }
   }
 }
