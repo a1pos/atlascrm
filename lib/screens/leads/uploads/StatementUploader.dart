@@ -770,10 +770,11 @@ class _StatementUploaderState extends State<StatementUploader> {
         }
         """), variables: {
         "to": [
-          "nick.kalich@butlerbizsys.com",
-          "jerrod.lumley@a1pos.com",
-          "john.deluga@butlerbizsys.com",
-          "ahrindo@gmail.com"
+          "joe.pounds@a1pos.com"
+          // "nick.kalich@butlerbizsys.com",
+          // "jerrod.lumley@a1pos.com",
+          // "john.deluga@butlerbizsys.com",
+          // "ahrindo@gmail.com"
         ],
         "subject":
             "New Statement For Review: ${this.widget.lead["document"]["businessName"]} - ${this.widget.lead["document"]["address"]}",
@@ -858,10 +859,15 @@ class _StatementUploaderState extends State<StatementUploader> {
             backgroundColor: Colors.grey[600],
             textColor: Colors.white,
             fontSize: 16.0);
+        var imgUrl = resp.data["name"];
+        var url = "${ConfigSettings.HOOK_API_URL}/uploads/statement/$imgUrl";
         setState(() {
-          imageDLList = [];
+          imageDLList.add({"name": imgUrl, "url": url});
         });
-        loadImages();
+        // setState(() {
+        //   imageDLList = [];
+        // });
+        // loadImages();
       } else {
         Fluttertoast.showToast(
             msg: "Failed to upload file!",

@@ -19,18 +19,23 @@ class _LoadingScreenState extends State<LoadingScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Container(
-                  height: 100,
-                  width: 100,
-                  child: LoadingDoubleFlipping.square(
-                    size: 100,
-                    duration: Duration(milliseconds: 1150),
-                    backgroundColor: Colors.white70,
-                  )
-                  // CircularProgressIndicator(
-                  //   strokeWidth: 4,
-                  //   valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                  // ),
-                  ),
+                  height: 300,
+                  width: 300,
+                  child: Image.asset(
+                    "assets/globe-PS.gif",
+                    height: 300.0,
+                    width: 300.0,
+                  )),
+
+              // Container(
+              //     height: 100,
+              //     width: 100,
+              //     child: LoadingDoubleFlipping.square(
+              //       size: 100,
+              //       duration: Duration(milliseconds: 1150),
+              //       backgroundColor: Colors.white70,
+              //     )
+              //     ),
               // Padding(
               //   padding: EdgeInsets.all(50),
               //   child: Text(

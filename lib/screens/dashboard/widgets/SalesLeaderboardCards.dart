@@ -547,26 +547,35 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
             "leads": employee["leads"]
           });
         }
-
-        graphTemp.sort((a, b) => b["statements"].compareTo(a["statements"]));
-        graphTemp.sort((a, b) => b["volume"].compareTo(a["volume"]));
-        graphTemp.sort((a, b) => b["agreements"].compareTo(a["agreements"]));
-        bool checkTies = true;
-        for (var i = 0; i < graphTemp.length; i++) {
-          if (graphTemp[i]["agreements"] != 0 ||
-              graphTemp[i]["statements"] != 0 ||
-              graphTemp[i]["volume"] != 0) {
-            if (i < 3) {
-              if (i == 0) {
-                if (graphTemp[i]["agreements"] ==
-                        graphTemp[i + 1]["agreements"] &&
-                    graphTemp[i]["statements"] ==
-                        graphTemp[i + 1]["statements"] &&
-                    graphTemp[i]["volume"] == graphTemp[i + 1]["volume"]) {
-                  graphTemp[i]["tied"] = true;
-                }
-              } else if (i == graphTemp.length - 1) {
-                if (graphTemp.length != 1) {
+        if (graphTemp.length > 1) {
+          graphTemp.sort((a, b) => b["statements"].compareTo(a["statements"]));
+          graphTemp.sort((a, b) => b["volume"].compareTo(a["volume"]));
+          graphTemp.sort((a, b) => b["agreements"].compareTo(a["agreements"]));
+          bool checkTies = true;
+          for (var i = 0; i < graphTemp.length; i++) {
+            if (graphTemp[i]["agreements"] != 0 ||
+                graphTemp[i]["statements"] != 0 ||
+                graphTemp[i]["volume"] != 0) {
+              if (i < 3) {
+                if (i == 0) {
+                  if (graphTemp[i]["agreements"] ==
+                          graphTemp[i + 1]["agreements"] &&
+                      graphTemp[i]["statements"] ==
+                          graphTemp[i + 1]["statements"] &&
+                      graphTemp[i]["volume"] == graphTemp[i + 1]["volume"]) {
+                    graphTemp[i]["tied"] = true;
+                  }
+                } else if (i == graphTemp.length - 1) {
+                  if (graphTemp.length != 1) {
+                    if (graphTemp[i]["agreements"] ==
+                            graphTemp[i - 1]["agreements"] &&
+                        graphTemp[i]["statements"] ==
+                            graphTemp[i - 1]["statements"] &&
+                        graphTemp[i]["volume"] == graphTemp[i - 1]["volume"]) {
+                      graphTemp[i]["tied"] = true;
+                    }
+                  }
+                } else {
                   if (graphTemp[i]["agreements"] ==
                           graphTemp[i - 1]["agreements"] &&
                       graphTemp[i]["statements"] ==
@@ -574,32 +583,24 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
                       graphTemp[i]["volume"] == graphTemp[i - 1]["volume"]) {
                     graphTemp[i]["tied"] = true;
                   }
+                  if (graphTemp[i]["agreements"] ==
+                          graphTemp[i + 1]["agreements"] &&
+                      graphTemp[i]["statements"] ==
+                          graphTemp[i + 1]["statements"] &&
+                      graphTemp[i]["volume"] == graphTemp[i + 1]["volume"]) {
+                    graphTemp[i]["tied"] = true;
+                  }
                 }
-              } else {
+              } else if (i > 2 && checkTies) {
                 if (graphTemp[i]["agreements"] ==
                         graphTemp[i - 1]["agreements"] &&
                     graphTemp[i]["statements"] ==
                         graphTemp[i - 1]["statements"] &&
                     graphTemp[i]["volume"] == graphTemp[i - 1]["volume"]) {
                   graphTemp[i]["tied"] = true;
+                } else {
+                  checkTies = false;
                 }
-                if (graphTemp[i]["agreements"] ==
-                        graphTemp[i + 1]["agreements"] &&
-                    graphTemp[i]["statements"] ==
-                        graphTemp[i + 1]["statements"] &&
-                    graphTemp[i]["volume"] == graphTemp[i + 1]["volume"]) {
-                  graphTemp[i]["tied"] = true;
-                }
-              }
-            } else if (i > 2 && checkTies) {
-              if (graphTemp[i]["agreements"] ==
-                      graphTemp[i - 1]["agreements"] &&
-                  graphTemp[i]["statements"] ==
-                      graphTemp[i - 1]["statements"] &&
-                  graphTemp[i]["volume"] == graphTemp[i - 1]["volume"]) {
-                graphTemp[i]["tied"] = true;
-              } else {
-                checkTies = false;
               }
             }
           }
