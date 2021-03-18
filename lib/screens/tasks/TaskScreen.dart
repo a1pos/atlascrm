@@ -317,7 +317,7 @@ class _TaskScreenState extends State<TaskScreen> {
           title
         }
       }
-    """));
+    """), fetchPolicy: FetchPolicy.networkOnly);
 
     final QueryResult result0 = await GqlClientFactory().authGqlquery(options);
 

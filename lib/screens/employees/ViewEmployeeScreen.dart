@@ -130,7 +130,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
           role
         }
       }
-    """));
+    """), fetchPolicy: FetchPolicy.networkOnly);
 
     final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
@@ -141,6 +141,10 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
 
         setState(() {
           employee = bodyDecoded;
+
+          if (employee["document"]["displayName"] == null) {
+            employee["document"]["displayName"] = "N/A";
+          }
         });
       }
     }
