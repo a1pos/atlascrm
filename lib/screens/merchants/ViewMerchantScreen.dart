@@ -5,7 +5,6 @@ import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
-import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -31,6 +30,13 @@ class ViewMerchantScreen extends StatefulWidget {
 class ViewMerchantScreenState extends State<ViewMerchantScreen> {
   final _merchantFormKey = GlobalKey<FormState>();
 
+  bool isChanged = false;
+  bool inventoryLoading = true;
+  bool isLoading = true;
+
+  Map businessAddress = {"address": "", "city": "", "state": "", "zipcode": ""};
+  String addressText;
+
   var firstNameController = TextEditingController();
   var lastNameController = TextEditingController();
   var emailAddrController = TextEditingController();
@@ -43,13 +49,8 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
 
   var merchantInfoEntries = List<MerchantInfoEntry>();
 
-  Map businessAddress = {"address": "", "city": "", "state": "", "zipcode": ""};
-  String addressText;
-  bool isChanged = false;
   var merchant;
   var merchantDocument;
-  var isLoading = true;
-  bool inventoryLoading = true;
   var displayPhone;
   var devices = [];
   var merchantLocation = "";
@@ -71,8 +72,8 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
   }
 
   Future<void> loadMerchantData(merchantId) async {
-    QueryOptions options =
-        QueryOptions(fetchPolicy: FetchPolicy.networkOnly, documentNode: gql("""
+    QueryOptions options = QueryOptions(
+      documentNode: gql("""
       query GET_MERCHANT(\$merchant: uuid!){
         merchant_by_pk(merchant: \$merchant){
           merchant
@@ -84,14 +85,23 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
             employee
             displayName:document(path:"displayName")
           }
+          leadByLead {
+            agreement_builder {
+              document
+            }
+          }
 		    }
       }
-    """), variables: {"merchant": merchantId});
+    """),
+      fetchPolicy: FetchPolicy.networkOnly,
+      variables: {"merchant": merchantId},
+    );
 
     final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
     if (result.hasException == false) {
       var body = result.data["merchant_by_pk"];
+
       if (body != null) {
         var bodyDecoded = body;
 
@@ -101,17 +111,43 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
           firstNameController.text = merchantDocument["firstName"];
         });
 
-        if (merchantDocument["leadDocument"]["address"] != null) {
+        if (merchantDocument["leadDocument"]["address"] != null &&
+            merchantDocument["leadDocument"]["address"] != "" &&
+            merchantDocument["leadDocument"]["city"] != null &&
+            merchantDocument["leadDocument"]["city"] != "" &&
+            merchantDocument["leadDocument"]["state"] != null &&
+            merchantDocument["leadDocument"]["state"] != "" &&
+            merchantDocument["leadDocument"]["zipCode"] != null &&
+            merchantDocument["leadDocument"]["zipCode"] != "") {
           merchantLocation = merchantDocument["leadDocument"]["address"] +
               ", " +
               merchantDocument["leadDocument"]["city"] +
               ", " +
               merchantDocument["leadDocument"]["state"] +
-              ", " +
+              " " +
               merchantDocument["leadDocument"]["zipCode"];
         } else {
-          if (merchant['document']['ApplicationInformation']['MpaOutletInfo']
-                      ['Outlet']['BusinessInfo']['LocationAddress1'] !=
+          if (merchant['leadByLead']['agreement_builder']['document']
+                      ['ApplicationInformation']['CorporateInfo']['Address1'] !=
+                  null &&
+              merchant['leadByLead']['agreement_builder']['document']
+                      ['ApplicationInformation']['CorporateInfo']['Address1'] !=
+                  "") {
+            merchantLocation = merchant['leadByLead']['agreement_builder']
+                        ['document']['ApplicationInformation']['CorporateInfo']
+                    ['Address1'] +
+                ", " +
+                merchant['leadByLead']['agreement_builder']['document']
+                    ['ApplicationInformation']['CorporateInfo']['City'] +
+                ", " +
+                merchant['leadByLead']['agreement_builder']['document']
+                    ['ApplicationInformation']['CorporateInfo']['State'] +
+                " " +
+                merchant['leadByLead']['agreement_builder']['document']
+                    ['ApplicationInformation']['CorporateInfo']['First5Zip'];
+          } else if (merchant['document']['ApplicationInformation']
+                          ['MpaOutletInfo']['Outlet']['BusinessInfo']
+                      ['LocationAddress1'] !=
                   null &&
               merchant['document']['ApplicationInformation']['MpaOutletInfo']
                       ['Outlet']['BusinessInfo']['LocationAddress1'] !=
@@ -125,7 +161,7 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                 ", " +
                 merchant['document']['ApplicationInformation']['MpaOutletInfo']
                     ['Outlet']['BusinessInfo']['State'] +
-                ", " +
+                " " +
                 merchant['document']['ApplicationInformation']['MpaOutletInfo']
                     ['Outlet']['BusinessInfo']['First5Zip'];
           } else if (merchant['document']['ApplicationInformation']
@@ -139,7 +175,7 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                 ", " +
                 merchant['document']['ApplicationInformation']["CorporateInfo"]
                     ['State'] +
-                ", " +
+                " " +
                 merchant['document']['ApplicationInformation']["CorporateInfo"]
                     ['First5Zip'];
           }
@@ -179,64 +215,24 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
       isLoading = false;
       inventoryLoading = false;
     }, (error) {}, () => refreshSub());
-    // subscription = result2.listen(
-    //   (data) async {
-    //     var devicesArrDecoded = data.data["inventory"];
-    //     if (devicesArrDecoded != null) {
-    //       setState(() {
-    //         devices = devicesArrDecoded;
-    //       });
-    //     }
-    //     isLoading = false;
-    //     inventoryLoading = false;
-    //   },
-    //   onError: (error) async {
-    //     var errMsg = error.payload["message"];
-    //     print(errMsg);
-    //     if (errMsg.contains("JWTExpired")) {
-    //       await refreshSub();
-    //     } else {
-    //       Fluttertoast.showToast(
-    //           msg: errMsg,
-    //           toastLength: Toast.LENGTH_LONG,
-    //           gravity: ToastGravity.BOTTOM,
-    //           backgroundColor: Colors.grey[600],
-    //           textColor: Colors.white,
-    //           fontSize: 16.0);
-    //     }
-    //   },
-    // );
   }
 
   Future refreshSub() async {
     if (subscription != null) {
       await subscription.cancel();
       subscription = null;
-      loadMerchantData(this.widget.merchantId);
+      loadMerchantData(
+        this.widget.merchantId,
+      );
     }
   }
 
-  // Future<void> updateMerchant(merchantId) async {
-  //   String rawNumber = phoneNumberController.text;
-  //   var filteredNumber = rawNumber.replaceAll(RegExp("[^0-9]"), "");
-  //   var merchantToUpdate = {
-  //     "dbaName": dbaController.text,
-  //     "businessType": "",
-  //     "firstName": firstNameController.text,
-  //     "lastName": lastNameController.text,
-  //     "emailAddr": emailAddrController.text,
-  //     "phoneNumber": filteredNumber,
-  //     "address": businessAddress["address"],
-  //     "city": businessAddress["city"],
-  //     "state": businessAddress["state"],
-  //     "zipCode": businessAddress["zipcode"],
-  //   };
-  // }
-
   Widget buildList() {
     return ListView(
-        shrinkWrap: true,
-        children: List.generate(devices.length, (index) {
+      shrinkWrap: true,
+      children: List.generate(
+        devices.length,
+        (index) {
           var device = devices[index];
           var deviceIcon;
 
@@ -251,16 +247,21 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
           }
           var sendable = {"id": device["inventory"], "origin": "merchant"};
           return GestureDetector(
-              onTap: () {
-                Navigator.pushNamed(context, "/viewinventory",
-                    arguments: sendable);
-              },
-              child: Card(
-                  child: ListTile(
-                      title: Text(device["priceTier"]["model"]),
-                      subtitle: Text(device["serial"]),
-                      trailing: Icon(deviceIcon))));
-        }));
+            onTap: () {
+              Navigator.pushNamed(context, "/viewinventory",
+                  arguments: sendable);
+            },
+            child: Card(
+              child: ListTile(
+                title: Text(device["priceTier"]["model"]),
+                subtitle: Text(device["serial"]),
+                trailing: Icon(deviceIcon),
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   @override
@@ -275,9 +276,11 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
         backgroundColor: UniversalStyles.backgroundColor,
         appBar: CustomAppBar(
           key: Key("viewTasksAppBar"),
-          title: Text(isLoading
-              ? "Loading..."
-              : merchantDocument["leadDocument"]["businessName"]),
+          title: Text(
+            isLoading
+                ? "Loading..."
+                : merchantDocument["leadDocument"]["businessName"],
+          ),
         ),
         body: isLoading
             ? CenteredClearLoadingScreen()
@@ -320,10 +323,12 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                       child: Row(
                                         children: <Widget>[
                                           Icon(Icons.mail, color: Colors.white),
-                                          Text("Email",
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold))
+                                          Text(
+                                            "Email",
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold),
+                                          )
                                         ],
                                       ),
                                       onPressed: () {
@@ -390,10 +395,12 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                       child: Row(
                                         children: <Widget>[
                                           Icon(Icons.map, color: Colors.white),
-                                          Text("Map",
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold))
+                                          Text(
+                                            "Map",
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold),
+                                          )
                                         ],
                                       ),
                                       onPressed: () {
@@ -431,24 +438,24 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                             Text("Gift Card:",
                                                 style: TextStyle(fontSize: 16)),
                                             Padding(
-                                                padding:
-                                                    const EdgeInsets.fromLTRB(
-                                                        8, 0, 0, 0),
-                                                child: merchant["merchant_configs"]
-                                                                        [0]
-                                                                    ["document"]
-                                                                ["giftcards"]
-                                                            .toString() ==
-                                                        "true"
-                                                    ? Icon(
-                                                        Icons.done,
-                                                        size: 26,
-                                                        color:
-                                                            Colors.green[600],
-                                                      )
-                                                    : Icon(Icons.clear,
-                                                        color: Colors.red[600],
-                                                        size: 26)),
+                                              padding:
+                                                  const EdgeInsets.fromLTRB(
+                                                      8, 0, 0, 0),
+                                              child: merchant["merchant_configs"]
+                                                                      [0]
+                                                                  ["document"]
+                                                              ["giftcards"]
+                                                          .toString() ==
+                                                      "true"
+                                                  ? Icon(
+                                                      Icons.done,
+                                                      size: 26,
+                                                      color: Colors.green[600],
+                                                    )
+                                                  : Icon(Icons.clear,
+                                                      color: Colors.red[600],
+                                                      size: 26),
+                                            ),
                                           ],
                                         ),
                                       ),
@@ -459,25 +466,24 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                             Text("Cash Discounting:",
                                                 style: TextStyle(fontSize: 16)),
                                             Padding(
-                                                padding:
-                                                    const EdgeInsets.fromLTRB(
-                                                        8, 0, 0, 0),
-                                                child: merchant["merchant_configs"]
-                                                                        [0]
-                                                                    ["document"]
-                                                                [
-                                                                "cashDiscounting"]
-                                                            .toString() ==
-                                                        "true"
-                                                    ? Icon(
-                                                        Icons.done,
-                                                        size: 26,
-                                                        color:
-                                                            Colors.green[600],
-                                                      )
-                                                    : Icon(Icons.clear,
-                                                        color: Colors.red[600],
-                                                        size: 26)),
+                                              padding:
+                                                  const EdgeInsets.fromLTRB(
+                                                      8, 0, 0, 0),
+                                              child: merchant["merchant_configs"]
+                                                                      [0]
+                                                                  ["document"][
+                                                              "cashDiscounting"]
+                                                          .toString() ==
+                                                      "true"
+                                                  ? Icon(
+                                                      Icons.done,
+                                                      size: 26,
+                                                      color: Colors.green[600],
+                                                    )
+                                                  : Icon(Icons.clear,
+                                                      color: Colors.red[600],
+                                                      size: 26),
+                                            ),
                                           ],
                                         ),
                                       ),
@@ -511,26 +517,6 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                           ],
                                         ),
                                       ),
-                                      // showInfoRow(
-                                      //   "Gift Card",
-                                      //   merchant["merchant_configs"][0]
-                                      //           ["document"]["giftcards"]
-                                      //       .toString(),
-                                      // ),
-                                      // showInfoRow(
-                                      //   "Cash Discounting",
-                                      //   merchant["merchant_configs"][0]
-                                      //           ["document"]["cashDiscounting"]
-                                      //       .toString(),
-                                      // ),
-                                      // showInfoRow(
-                                      //   "Cash Discounting Percent",
-                                      //   merchant["merchant_configs"][0]
-                                      //                   ["document"]
-                                      //               ["cashDiscountingPercent"]
-                                      //           .toString() +
-                                      //       "%",
-                                      // )
                                     ],
                                   )
                                 : Empty("No Device Settings Found")),
@@ -548,37 +534,6 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                             ],
                           ),
                         ),
-                        // CustomCard(
-                        //     key: Key("merchants4"),
-                        //     title: "Tools",
-                        //     icon: Icons.build,
-                        //     child: Padding(
-                        //       padding: const EdgeInsets.all(8.0),
-                        //       child: RaisedButton(
-                        //         color: UniversalStyles.actionColor,
-                        //         child: Row(
-                        //           children: <Widget>[
-                        //             Icon(Icons.extension, color: Colors.white),
-                        //             Text("Agreement Builder",
-                        //                 style: TextStyle(
-                        //                     color: Colors.white,
-                        //                     fontWeight: FontWeight.bold))
-                        //           ],
-                        //         ),
-                        //         onPressed: () {
-                        //           Navigator.pushNamed(
-                        //               context, "/agreementbuilder",
-                        //               arguments: merchant["lead"]);
-                        //         },
-                        //       ),
-                        //     )),
-                        // // CustomCard(
-                        // //     key: Key("merchants4"),
-                        // //     title: "Notes",
-                        // //     icon: Icons.note,
-                        // //     child: Notes(
-                        // //         type: "merchant",
-                        // //         object: merchant["merchant"])),
                       ],
                     ),
                   ),
@@ -643,11 +598,14 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
               ),
             ),
             Expanded(
-                flex: 8,
-                child: Text(value,
-                    style: color != null
-                        ? TextStyle(fontSize: 14, color: color)
-                        : TextStyle(fontSize: 14))),
+              flex: 8,
+              child: Text(
+                value,
+                style: color != null
+                    ? TextStyle(fontSize: 14, color: color)
+                    : TextStyle(fontSize: 14),
+              ),
+            ),
           ],
         ),
       ),

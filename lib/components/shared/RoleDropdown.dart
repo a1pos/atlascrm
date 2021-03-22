@@ -4,11 +4,11 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:searchable_dropdown/searchable_dropdown.dart';
 
 class RoleDropDown extends StatefulWidget {
-  RoleDropDown({this.callback, this.value, this.disabled});
-
   final String value;
   final Function callback;
   final bool disabled;
+
+  RoleDropDown({this.callback, this.value, this.disabled});
 
   @override
   _RoleDropDownState createState() => _RoleDropDownState();
@@ -17,6 +17,7 @@ class RoleDropDown extends StatefulWidget {
 class _RoleDropDownState extends State<RoleDropDown> {
   var roles = [];
   var disabled;
+  var startVal;
 
   @override
   void initState() {
@@ -32,10 +33,9 @@ class _RoleDropDownState extends State<RoleDropDown> {
     }
   }
 
-  var startVal;
-
   Future<void> initRoles() async {
-    QueryOptions options = QueryOptions(documentNode: gql("""
+    QueryOptions options = QueryOptions(
+      documentNode: gql("""
       query GET_ROLES {
         role{
           role
@@ -43,13 +43,13 @@ class _RoleDropDownState extends State<RoleDropDown> {
           document
         }
       }
-      """), fetchPolicy: FetchPolicy.networkOnly);
+      """),
+      fetchPolicy: FetchPolicy.networkOnly,
+    );
 
     final QueryResult rolesResp =
         await GqlClientFactory().authGqlquery(options);
 
-    //REPLACE WITH GRAPHQL
-    // var locationsResp = await apiService.authGet(context, "/inventory/tier");
     if (rolesResp != null) {
       if (rolesResp.hasException == false) {
         var rolesArrDecoded = rolesResp.data["role"];
@@ -81,7 +81,6 @@ class _RoleDropDownState extends State<RoleDropDown> {
             fontSize: 13,
           ),
         ),
-
         SearchableDropdown.single(
           value: startVal,
           onClear: () {
@@ -92,7 +91,6 @@ class _RoleDropDownState extends State<RoleDropDown> {
           hint: "Please choose one",
           searchHint: null,
           isExpanded: true,
-          // menuConstraints: BoxConstraints.tight(Size.fromHeight(350)),
           items: roles.map<DropdownMenuItem<String>>((dynamic item) {
             var businessName;
             if (item["title"]?.isEmpty ?? true) {
@@ -123,29 +121,6 @@ class _RoleDropDownState extends State<RoleDropDown> {
                   });
                 },
         )
-
-        // DropdownButtonFormField<String>(
-        //   isExpanded: true,
-        //   value: this.widget.value,
-        //   hint: Text("Please choose one"),
-        //   items: leads.map((dynamic item) {
-        //     var businessName;
-        //     if (item["document"]?.isEmpty ?? true) {
-        //       businessName = "";
-        //     } else {
-        //       businessName = item["document"]["businessName"];
-        //     }
-        //     return DropdownMenuItem<String>(
-        //       value: item["lead"],
-        //       child: Text(
-        //         businessName,
-        //       ),
-        //     );
-        //   }).toList(),
-        //   onChanged: (newValue) {
-        //     this.widget.callback(newValue);
-        //   },
-        // ),
       ],
     );
   }

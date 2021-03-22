@@ -20,20 +20,24 @@ class InventoryAdd extends StatefulWidget {
 }
 
 class InventoryAddState extends State<InventoryAdd> {
-  final _formKey = GlobalKey<FormState>();
   List<GlobalKey<FormState>> _formKeys = [
     GlobalKey<FormState>(),
     GlobalKey<FormState>(),
     GlobalKey<FormState>()
   ];
 
+  final UserService userService = UserService();
+  final _formKey = GlobalKey<FormState>();
   final _stepperKey = GlobalKey<FormState>();
+
+  List serialList = [];
+
   bool isSaveDisabled;
   bool isAddress = false;
   bool isLoading = true;
-  var leads;
+  bool added = false;
 
-  final UserService userService = UserService();
+  var leads;
 
   var phoneNumberController = MaskedTextController(mask: '000-000-0000');
 
@@ -44,9 +48,7 @@ class InventoryAddState extends State<InventoryAdd> {
 
   var _currentStep = 0;
   var stepsLength = 2;
-  List serialList = [];
   var locationValue;
-  bool added = false;
 
   @override
   void initState() {
@@ -66,31 +68,17 @@ class InventoryAddState extends State<InventoryAdd> {
       }
     }
     if (isMac == false && isListed == false) {
-      // var currentTimestamp = DateTime.now().millisecondsSinceEpoch;
-      // print(currentTimestamp);
-      setState(() {
-        serialList.add({
-          // "inventory_tracking_type": "221812b6-a915-4832-a05a-930a59f78891",
-          // "employee": UserService.employee.employee,
-          "inventory_price_tier": priceTierController.text,
-          "inventory_location": locationController.text,
-          "serial": input,
-          // "document": {
-          //   "history": [
-          //     {
-          //       // "date": currentTimestamp,
-          //       "employee": UserService.employee.employee,
-          //       "location": locationController.text,
-          //       "merchant": false,
-          //       "description": "add",
-          //       "employeeName": UserService.employee.document["displayName"],
-          //       "locationName": locationNameController.text
-          //     }
-          //   ]
-          // }
-        });
-      });
-      print(serialList);
+      setState(
+        () {
+          serialList.add(
+            {
+              "inventory_price_tier": priceTierController.text,
+              "inventory_location": locationController.text,
+              "serial": input,
+            },
+          );
+        },
+      );
     } else {
       if (isListed) {
         Fluttertoast.showToast(
@@ -114,14 +102,14 @@ class InventoryAddState extends State<InventoryAdd> {
 
   Future<void> scanBarcode() async {
     try {
-      var options = ScanOptions(strings: {
-        "cancel": "done (${serialList.length})",
-        "flash_on": "flash on",
-        "flash_off": "flash off",
-      });
+      var options = ScanOptions(
+        strings: {
+          "cancel": "done (${serialList.length})",
+          "flash_on": "flash on",
+          "flash_off": "flash off",
+        },
+      );
       var result = await BarcodeScanner.scan(options: options);
-
-      print(result.rawContent);
 
       if (result.type != ResultType.Cancelled) {
         addToList(result.rawContent.toString());
@@ -147,47 +135,49 @@ class InventoryAddState extends State<InventoryAdd> {
       bool cleanPost = true;
       for (var device in serialList) {
         var data = device;
-        // var currentTimestamp = DateTime.now().millisecondsSinceEpoch;
-        // device["document"]["history"][0]["date"] = currentTimestamp;
 
-        MutationOptions options = MutationOptions(documentNode: gql("""
-        mutation InsertDevices (\$objects: [inventory_insert_input!]!) {
+        MutationOptions options = MutationOptions(
+          documentNode: gql("""
+        mutation INSERT_DEVICES (\$objects: [inventory_insert_input!]!) {
           insert_inventory(objects: \$objects){
             affected_rows
           }
         }
-      """), variables: {"objects": data});
+      """),
+          variables: {"objects": data},
+        );
+
         final QueryResult result =
             await GqlClientFactory().authGqlmutate(options);
 
         if (result != null) {
           if (result.hasException == false) {
-            setState(() {
-              device["added"] = "true";
-            });
-            setState(() {
-              added = true;
-            });
-            print(added);
+            setState(
+              () {
+                device["added"] = "true";
+              },
+            );
+            setState(
+              () {
+                added = true;
+              },
+            );
           } else {
-            setState(() {
-              device["added"] = "false";
-              cleanPost = false;
-            });
-            // Fluttertoast.showToast(
-            //     msg: "Failed to add device!",
-            //     toastLength: Toast.LENGTH_SHORT,
-            //     gravity: ToastGravity.BOTTOM,
-            //     backgroundColor: Colors.grey[600],
-            //     textColor: Colors.white,
-            //     fontSize: 16.0);
+            setState(
+              () {
+                device["added"] = "false";
+                cleanPost = false;
+              },
+            );
           }
         } else {
-          setState(() {
-            device["added"] = "false";
-            cleanPost = false;
-            added = true;
-          });
+          setState(
+            () {
+              device["added"] = "false";
+              cleanPost = false;
+              added = true;
+            },
+          );
           return null;
         }
       }
@@ -213,8 +203,10 @@ class InventoryAddState extends State<InventoryAdd> {
 
   Widget buildDLGridView() {
     return ListView(
-        shrinkWrap: true,
-        children: List.generate(serialList.length, (index) {
+      shrinkWrap: true,
+      children: List.generate(
+        serialList.length,
+        (index) {
           var device = serialList[index];
           bool isAdded;
           if (device["added"] != null) {
@@ -229,40 +221,51 @@ class InventoryAddState extends State<InventoryAdd> {
               });
             }
           }
-          return GestureDetector(
-              onTap: () {},
-              child: isAdded != null
-                  ? Card(
-                      shape: isAdded
-                          ? new RoundedRectangleBorder(
-                              side: new BorderSide(
-                                  color: Colors.green[200], width: 2.0),
-                              borderRadius: BorderRadius.circular(4.0))
-                          : new RoundedRectangleBorder(
-                              side: new BorderSide(
-                                  color: Colors.red[200], width: 2.0),
-                              borderRadius: BorderRadius.circular(4.0)),
-                      child: ListTile(
-                          title: Text(device["serial"]),
-                          trailing: IconButton(
-                            icon: isAdded
-                                ? Icon(Icons.check, color: Colors.green)
-                                : Icon(Icons.clear, color: Colors.red),
-                            onPressed: null,
-                          )))
-                  : Card(
-                      child: ListTile(
-                          title: Text(device["serial"]),
-                          trailing: IconButton(
-                            icon: Icon(Icons.clear),
-                            onPressed: () {
-                              setState(() {
-                                serialList.removeWhere((item) =>
-                                    item["serial"] == device["serial"]);
-                              });
+          return Container(
+            child: isAdded != null
+                ? Card(
+                    shape: isAdded
+                        ? new RoundedRectangleBorder(
+                            side: new BorderSide(
+                                color: Colors.green[200], width: 2.0),
+                            borderRadius: BorderRadius.circular(4.0),
+                          )
+                        : new RoundedRectangleBorder(
+                            side: new BorderSide(
+                                color: Colors.red[200], width: 2.0),
+                            borderRadius: BorderRadius.circular(4.0),
+                          ),
+                    child: ListTile(
+                      title: Text(device["serial"]),
+                      trailing: IconButton(
+                        icon: isAdded
+                            ? Icon(Icons.check, color: Colors.green)
+                            : Icon(Icons.clear, color: Colors.red),
+                        onPressed: null,
+                      ),
+                    ),
+                  )
+                : Card(
+                    child: ListTile(
+                      title: Text(device["serial"]),
+                      trailing: IconButton(
+                        icon: Icon(Icons.clear),
+                        onPressed: () {
+                          setState(
+                            () {
+                              serialList.removeWhere(
+                                (item) => item["serial"] == device["serial"],
+                              );
                             },
-                          ))));
-        }));
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+          );
+        },
+      ),
+    );
   }
 
   @override
@@ -291,18 +294,14 @@ class InventoryAddState extends State<InventoryAdd> {
                   currentStep: _currentStep,
                   key: this._stepperKey,
                   onStepTapped: (int step) {
-                    // if (validationPassed()) {
                     if (priceTierController.text == "" ||
                         locationController.text == "") {
-                      print("FILL IN FIELDS");
                       setState(() {
                         _currentStep = step;
                       });
                     }
-                    // }
                   },
                   onStepContinue: () {
-                    // if (_formKeys[_currentStep].currentState.validate()) {
                     if (priceTierController.text != "" &&
                         locationController.text != "") {
                       setState(() {
@@ -312,21 +311,20 @@ class InventoryAddState extends State<InventoryAdd> {
                       });
                     } else {
                       Fluttertoast.showToast(
-                          msg: "Please Select Tier and Location!",
+                          msg: "Please Select a Tier and Location!",
                           toastLength: Toast.LENGTH_SHORT,
                           gravity: ToastGravity.BOTTOM,
                           backgroundColor: Colors.grey[600],
                           textColor: Colors.white,
                           fontSize: 16.0);
                     }
-                    // }
                   },
                   onStepCancel: () {
-                    // if (_formKeys[_currentStep].currentState.validate()) {
-                    setState(() {
-                      _currentStep > 0 ? _currentStep -= 1 : null;
-                    });
-                    // }
+                    setState(
+                      () {
+                        _currentStep > 0 ? _currentStep -= 1 : null;
+                      },
+                    );
                   },
                   steps: [
                     Step(
@@ -335,25 +333,33 @@ class InventoryAddState extends State<InventoryAdd> {
                         key: _formKeys[0],
                         child: Column(
                           children: [
-                            InventoryPriceTierDropDown(callback: (newValue) {
-                              setState(() {
-                                priceTierController.text = newValue;
-                              });
-                            }),
+                            InventoryPriceTierDropDown(
+                              callback: (newValue) {
+                                setState(
+                                  () {
+                                    priceTierController.text = newValue;
+                                  },
+                                );
+                              },
+                            ),
                             InventoryLocationDropDown(
                               callback: (newValue) {
                                 if (newValue != null) {
-                                  setState(() {
-                                    locationController.text =
-                                        newValue["location"];
-                                    locationNameController.text =
-                                        newValue["name"];
-                                  });
+                                  setState(
+                                    () {
+                                      locationController.text =
+                                          newValue["location"];
+                                      locationNameController.text =
+                                          newValue["name"];
+                                    },
+                                  );
                                 } else {
-                                  setState(() {
-                                    locationController.clear();
-                                    locationNameController.clear();
-                                  });
+                                  setState(
+                                    () {
+                                      locationController.clear();
+                                      locationNameController.clear();
+                                    },
+                                  );
                                 }
                               },
                               value: locationController.text,
@@ -372,26 +378,30 @@ class InventoryAddState extends State<InventoryAdd> {
                         key: _formKeys[1],
                         child: Column(
                           children: [
-                            Row(children: <Widget>[
-                              Expanded(
-                                child: getInfoRow(
+                            Row(
+                              children: <Widget>[
+                                Expanded(
+                                  child: getInfoRow(
                                     "S/N",
                                     serialNumberController.text,
-                                    serialNumberController, (serial) {
-                                  addToList(serialNumberController.text);
-                                  serialNumberController.clear();
-                                }),
-                              ),
-                              Padding(
-                                padding:
-                                    const EdgeInsets.fromLTRB(15, 13, 0, 0),
-                                child: IconButton(
-                                  icon: Icon(Icons.center_focus_weak),
-                                  color: UniversalStyles.actionColor,
-                                  onPressed: scanBarcode,
+                                    serialNumberController,
+                                    (serial) {
+                                      addToList(serialNumberController.text);
+                                      serialNumberController.clear();
+                                    },
+                                  ),
                                 ),
-                              ),
-                            ]),
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.fromLTRB(15, 13, 0, 0),
+                                  child: IconButton(
+                                    icon: Icon(Icons.center_focus_weak),
+                                    color: UniversalStyles.actionColor,
+                                    onPressed: scanBarcode,
+                                  ),
+                                ),
+                              ],
+                            ),
                             Container(
                               child: Padding(
                                 padding: EdgeInsets.all(15),
@@ -405,20 +415,25 @@ class InventoryAddState extends State<InventoryAdd> {
                                       ),
                                     ),
                                     Expanded(
-                                        flex: 8,
-                                        child:
-                                            Text(serialList.length.toString())),
+                                      flex: 8,
+                                      child: Text(
+                                        serialList.length.toString(),
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
                             ),
                             Divider(),
                             ConstrainedBox(
-                                constraints: new BoxConstraints(
-                                  minHeight: 35.0,
-                                  maxHeight: 340.0,
-                                ),
-                                child: Scrollbar(child: buildDLGridView())),
+                              constraints: new BoxConstraints(
+                                minHeight: 35.0,
+                                maxHeight: 340.0,
+                              ),
+                              child: Scrollbar(
+                                child: buildDLGridView(),
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -430,7 +445,6 @@ class InventoryAddState extends State<InventoryAdd> {
                   ],
                 ),
               ),
-              // custom stepper buttons
               Container(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -452,23 +466,13 @@ class InventoryAddState extends State<InventoryAdd> {
                     !isSaveDisabled
                         ? RaisedButton.icon(
                             onPressed: () {
-                              if (_currentStep == stepsLength - 1
-                                  // &&
-                                  //     _formKeys[_currentStep]
-                                  //         .currentState
-                                  //         .validate()
-                                  ) {
-                                // setState(() {
-                                //   isSaveDisabled = true;
-                                // });
+                              if (_currentStep == stepsLength - 1) {
                                 added
                                     ? Navigator.pushNamed(context, '/inventory')
                                     : addDevice();
                               } else {
-                                // if (isAddress) {
                                 Stepper stepper = _stepperKey.currentWidget;
                                 stepper.onStepContinue();
-                                // }
                               }
                             },
                             label: Padding(

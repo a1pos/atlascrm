@@ -14,15 +14,9 @@ class AuthScreen extends StatefulWidget {
 class _AuthScreenState extends State<AuthScreen> {
   bool isLoading = false;
 
-  TextEditingController _userHandleController = new TextEditingController();
-  TextEditingController _passwordController = new TextEditingController();
-
   @override
   void initState() {
     super.initState();
-
-    _userHandleController.text = "jordan";
-    _passwordController.text = "asdf";
 
     isLoading = false;
   }
@@ -64,7 +58,6 @@ class _AuthScreenState extends State<AuthScreen> {
         ? LoadingScreen()
         : WillPopScope(
             onWillPop: () {
-              print("trying to pop");
               return Future(() => false);
             },
             child: Scaffold(
@@ -85,9 +78,6 @@ class _AuthScreenState extends State<AuthScreen> {
                                 style: TextStyle(fontFamily: "InterLight")),
                           ]),
                     ),
-                    // Image(
-                    //     image: AssetImage("assets/a1logo_wht.png"),
-                    //     height: 80.0),
                     Padding(
                       padding: EdgeInsets.fromLTRB(0, 25, 0, 25),
                     ),
@@ -97,31 +87,6 @@ class _AuthScreenState extends State<AuthScreen> {
                           padding: EdgeInsets.fromLTRB(50, 25, 50, 25),
                           child: Column(
                             children: <Widget>[
-                              // Padding(
-                              //     padding: EdgeInsets.fromLTRB(0, 25, 0, 50),
-                              //     child:
-                              //     RichText(
-                              //       text: TextSpan(
-                              //           style: TextStyle(fontSize: 30),
-                              //           children: <TextSpan>[
-                              //             TextSpan(
-                              //                 text: "ATLAS",
-                              //                 style: TextStyle(
-                              //                     color: Colors.black,
-                              //                     fontFamily: "InterBold")),
-                              //             TextSpan(
-                              //                 text: "CRM",
-                              //                 style: TextStyle(
-                              //                     color: Colors.black,
-                              //                     fontFamily: "InterLight")),
-                              //           ]),
-                              //     )
-                              //     // Text(
-                              //     //   'Atlas CRM',
-                              //     //   style: TextStyle(
-                              //     //       fontSize: 22, fontFamily: 'LatoLight'),
-                              //     // ),
-                              //     ),
                               Image(
                                   image: AssetImage("assets/a1logo_blk.png"),
                                   height: 80.0),
@@ -166,6 +131,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   ],
                 ),
               ),
-            ));
+            ),
+          );
   }
 }

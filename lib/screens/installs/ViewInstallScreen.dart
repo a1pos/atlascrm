@@ -15,7 +15,6 @@ import 'package:maps_launcher/maps_launcher.dart';
 
 class ViewInstallScreen extends StatefulWidget {
   final StorageService storageService = StorageService();
-
   final Map incoming;
 
   ViewInstallScreen(this.incoming);
@@ -26,24 +25,25 @@ class ViewInstallScreen extends StatefulWidget {
 
 class ViewInstallScreenState extends State<ViewInstallScreen> {
   final _leadFormKey = GlobalKey<FormState>();
+  String addressText;
+  bool isChanged = false;
+  bool isLoading = true;
+  bool isRunning = false;
 
   var serialNumberController = TextEditingController();
   var priceTierController = TextEditingController();
   var merchantController = TextEditingController();
 
+  var devices = [];
   var deviceIcon;
-
-  String addressText;
-  bool isChanged = false;
   var install;
   var installDocument;
-  var isLoading = true;
   var displayPhone;
   var deviceStatus;
   var merchant;
-  var isRunning = false;
   var destination;
   var merchantLocation = "";
+
   void initState() {
     super.initState();
     loadMerchantData();
@@ -51,35 +51,34 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
     getInitialTripStatus();
   }
 
-  var devices = [];
-
   Future<void> loadMerchantData() async {
     if (this.widget.incoming["ticket"]["merchant"] != null) {
       var resp;
-      //REPLACE WITH GRAPHQL
-      // var resp = await this.widget.apiService.authGet(
-      //     context, "/merchant/${this.widget.incoming["ticket"]["merchant"]}");
 
       if (resp.statusCode == 200) {
         var body = resp.data;
         if (body != null) {
           var bodyDecoded = body;
 
-          setState(() {
-            merchant = bodyDecoded;
-            destination = {
-              "destination": merchant["merchant"],
-              "merchant": true
-            };
-            isLoading = false;
-          });
+          setState(
+            () {
+              merchant = bodyDecoded;
+              destination = {
+                "destination": merchant["merchant"],
+                "merchant": true
+              };
+              isLoading = false;
+            },
+          );
         }
       }
     } else {
-      setState(() {
-        merchant = null;
-        isLoading = false;
-      });
+      setState(
+        () {
+          merchant = null;
+          isLoading = false;
+        },
+      );
     }
     if (merchant != null) {
       if (merchant['document']['ApplicationInformation']['MpaOutletInfo']
@@ -118,9 +117,6 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
 
   Future<void> loadInventory() async {
     var resp2;
-    //REPLACE WITH GRAPHQL
-    // var resp2 = await this.widget.apiService.authGet(context,
-    //     "/inventory/merchant/" + this.widget.incoming["ticket"]["merchant"]);
 
     if (resp2.statusCode == 200) {
       var body = resp2.data;
@@ -152,7 +148,9 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
       });
     }
 
-    setState(() {});
+    setState(
+      () {},
+    );
   }
 
   Future<void> toggleTripStatus() async {
@@ -164,17 +162,17 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
 
       if (status) {
         var resp;
-        //REPLACE WITH GRAPHQL
-        // var resp = await this.widget.apiService.authPost(context,
-        //     "/employee/${UserService.employee.employee}/trip", destination);
+
         if (resp.statusCode == 200) {
           await this
               .widget
               .storageService
               .save("techTripId", resp.data.toString());
-          setState(() {
-            isRunning = status;
-          });
+          setState(
+            () {
+              isRunning = status;
+            },
+          );
         } else {
           Fluttertoast.showToast(
               msg: "Failed to set status!",
@@ -189,15 +187,13 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
         var trip = await this.widget.storageService.read("techTripId");
         if (trip != "") {
           var resp;
-          //REPLACE WITH GRAPHQL
-          // var resp = await this
-          //     .widget
-          //     .apiService
-          //     .authPost(context, "/employee/trip/$trip", {});
+
           if (resp.statusCode == 200) {
-            setState(() {
-              isRunning = status;
-            });
+            setState(
+              () {
+                isRunning = status;
+              },
+            );
           } else {
             Fluttertoast.showToast(
                 msg: "Failed to set status!",
@@ -220,21 +216,27 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
         }
       }
 
-      await this
-          .widget
-          .storageService
-          .save("isTechTripRunning", status.toString());
+      await this.widget.storageService.save(
+            "isTechTripRunning",
+            status.toString(),
+          );
 
-      setState(() {
-        isLoading = false;
-      });
+      setState(
+        () {
+          isLoading = false;
+        },
+      );
     } catch (err) {
       await this.widget.storageService.delete("isTechTripRunning");
       await this.widget.storageService.delete("techTripId");
-      setState(() {
-        isLoading = false;
-        isRunning = false;
-      });
+
+      setState(
+        () {
+          isLoading = false;
+          isRunning = false;
+        },
+      );
+
       log(err);
     }
   }
@@ -304,37 +306,18 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
 
   Future<void> completeInstall() async {
     var resp;
-    //REPLACE WITH GRAPHQL
-    // var resp = await this
-    //     .widget
-    //     .apiService
-    //     .authPost(context, "/merchant/install/" + merchant["merchant"], null);
+    var resp2;
+    var resp3;
 
     if (resp.statusCode == 200) {
       var body = resp.data;
-      if (body != null) {
-        // var bodyDecoded = body;
-      }
+      if (body != null) {}
     }
-    var resp2;
-    //REPLACE WITH GRAPHQL
-    // var resp2 = await this
-    //     .widget
-    //     .apiService
-    //     .authPut(context, "/status/Closed", this.widget.incoming["ticket"]);
 
     if (resp2.statusCode == 200) {
       var body = resp2.data;
-      if (body != null) {
-        // var bodyDecoded = body;
-      }
+      if (body != null) {}
     }
-    var resp3;
-    //REPLACE WITH GRAPHQL
-    // var resp3 = await this
-    //     .widget
-    //     .apiService
-    //     .authPut(context, "/inventory/install", devices);
 
     if (resp3.statusCode == 200) {
       await loadInventory();
@@ -346,6 +329,7 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
           backgroundColor: Colors.grey[600],
           textColor: Colors.white,
           fontSize: 16.0);
+
       if (this.widget.incoming["origin"] == null) {
         Navigator.pushNamed(context, '/inventory');
       } else {
@@ -360,6 +344,7 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
           textColor: Colors.white,
           fontSize: 16.0);
     }
+
     Fluttertoast.showToast(
         msg: "INSTALL COMPLETE",
         toastLength: Toast.LENGTH_SHORT,
@@ -371,8 +356,10 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
 
   Widget buildList() {
     return ListView(
-        shrinkWrap: true,
-        children: List.generate(devices.length, (index) {
+      shrinkWrap: true,
+      children: List.generate(
+        devices.length,
+        (index) {
           var device = devices[index];
           var deviceIcon;
 
@@ -387,29 +374,36 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
           }
           var sendable = {"id": device["inventory"], "origin": "merchant"};
           return GestureDetector(
-              onTap: () {
-                Navigator.pushNamed(context, "/viewinventory",
-                    arguments: sendable);
-              },
-              child: Card(
-                  child: ListTile(
-                      title: Text(device["model"]),
-                      subtitle: Text(device["serial"]),
-                      trailing: Icon(deviceIcon))));
-        }));
+            onTap: () {
+              Navigator.pushNamed(context, "/viewinventory",
+                  arguments: sendable);
+            },
+            child: Card(
+              child: ListTile(
+                title: Text(device["model"]),
+                subtitle: Text(device["serial"]),
+                trailing: Icon(deviceIcon),
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   Future<void> scanBarcode() async {
     try {
-      var options = ScanOptions(strings: {
-        "cancel": "done",
-        "flash_on": "flash on",
-        "flash_off": "flash off",
-      });
+      var options = ScanOptions(
+        strings: {
+          "cancel": "done",
+          "flash_on": "flash on",
+          "flash_off": "flash off",
+        },
+      );
       var result = await BarcodeScanner.scan(options: options);
 
-      print(result.rawContent);
       checkoutDevice(result.rawContent);
+
       if (result.type != ResultType.Cancelled) {}
     } catch (err) {
       log(err);
@@ -420,17 +414,15 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
     var deviceId;
     var data;
     var alert;
+    var resp2;
+
     data = {
       "employee": UserService.employee.employee,
       "merchant": merchant["merchant"]
     };
+
     alert = "Device checked out!";
-    var resp2;
-    //REPLACE WITH GRAPHQL
-    // var resp2 = await this
-    //     .widget
-    //     .apiService
-    //     .authGet(context, "/inventory/serial/" + serial);
+
     if (resp2.statusCode == 200) {
       var body = resp2.data;
       if (body != null) {
@@ -458,11 +450,6 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
               deviceId = bodyDecoded["inventory"];
             });
             var resp;
-            //REPLACE WITH GRAPHQL
-            // var resp = await this
-            //     .widget
-            //     .apiService
-            //     .authPut(context, "/inventory/" + deviceId, data);
 
             if (resp.statusCode == 200) {
               await loadInventory();
@@ -502,8 +489,9 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
   @override
   Widget build(BuildContext context) {
     if (this.widget.incoming["ticket"]["due_date"] != null) {
-      installDate = DateFormat.yMMMMd('en_US')
-          .format(DateTime.parse(this.widget.incoming["ticket"]["due_date"]));
+      installDate = DateFormat.yMMMMd('en_US').format(
+        DateTime.parse(this.widget.incoming["ticket"]["due_date"]),
+      );
     }
     return WillPopScope(
       onWillPop: () {
@@ -515,9 +503,11 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
         backgroundColor: UniversalStyles.backgroundColor,
         appBar: CustomAppBar(
           key: Key("viewInstallAppBar"),
-          title: Text(isLoading
-              ? "Loading..."
-              : this.widget.incoming["ticket"]["document"]["title"]),
+          title: Text(
+            isLoading
+                ? "Loading..."
+                : this.widget.incoming["ticket"]["document"]["title"],
+          ),
         ),
         body: isLoading
             ? CenteredClearLoadingScreen()
@@ -566,7 +556,8 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
                                       onPressed: () {
                                         MapsLauncher.launchQuery(
                                             merchantLocation);
-                                      })
+                                      },
+                                    )
                                   : Container(),
                             ],
                           ),
@@ -685,7 +676,10 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
                 style: TextStyle(fontSize: 16),
               ),
             ),
-            Expanded(flex: 8, child: Text(value)),
+            Expanded(
+              flex: 8,
+              child: Text(value),
+            ),
           ],
         ),
       ),

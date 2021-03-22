@@ -13,19 +13,21 @@ class InstallsScreen extends StatefulWidget {
 }
 
 class _InstallsScreenState extends State<InstallsScreen> {
+  bool isSearching = false;
+  bool myTickets = false;
+  bool isFiltering = false;
+  bool isLocFiltering = false;
+  bool isLoading = true;
+  bool isEmpty = true;
+
+  ScrollController _scrollController = ScrollController();
+  TextEditingController _searchController = TextEditingController();
+
   var installs = [];
   var installsFull = [];
   var employees = [];
   var employeesFull = [];
   var columns = [];
-
-  var isLoading = true;
-  var isEmpty = true;
-
-  bool isSearching = false;
-  bool myTickets = false;
-  bool isFiltering = false;
-  bool isLocFiltering = false;
 
   var currentSearch = "";
   var pageNum = 1;
@@ -35,8 +37,6 @@ class _InstallsScreenState extends State<InstallsScreen> {
 
   var sortQuery =
       "sorters%5B0%5D%5Bfield%5D=employee&sorters%5B0%5D%5Bdir%5D=asc";
-  ScrollController _scrollController = ScrollController();
-  TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -65,8 +65,6 @@ class _InstallsScreenState extends State<InstallsScreen> {
       var endpoint =
           "/ticket?page=$pageNum&size=10&searchString=&installView=true&closedTickets=false";
       var resp;
-      //REPLACE WITH GRAPHQL
-      // var resp = await this.widget.apiService.authGet(context, endpoint);
       if (resp != null) {
         if (resp.statusCode == 200) {
           var installsArrDecoded = resp.data["data"];
@@ -282,8 +280,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
     try {
       var endpoint = "/employee";
       var resp;
-      //REPLACE WITH GRAPHQL
-      // var resp = await this.widget.apiService.authGet(context, endpoint);
+
       if (resp != null) {
         if (resp.statusCode == 200) {
           var employeesArrDecoded = resp.data;

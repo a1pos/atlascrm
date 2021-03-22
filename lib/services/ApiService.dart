@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http_parser/http_parser.dart';
 import 'package:atlascrm/config/ConfigSettings.dart';
-
 import 'package:atlascrm/services/StorageService.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/widgets.dart';
@@ -96,7 +95,10 @@ class ApiService {
           },
           sendTimeout: TIMEOUT,
         ),
-      ).post(url, data: jsonEncode(data));
+      ).post(
+        url,
+        data: jsonEncode(data),
+      );
 
       if (resp.statusCode == 401) {
         Navigator.of(context).popAndPushNamed('/logout');

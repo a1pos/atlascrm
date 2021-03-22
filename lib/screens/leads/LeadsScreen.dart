@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
@@ -21,16 +20,19 @@ class LeadsScreen extends StatefulWidget {
 }
 
 class _LeadsScreenState extends State<LeadsScreen> {
+  bool isSearching = false;
+  bool isFiltering = false;
+  bool salesIncludeStale = false;
+  bool isLoading = true;
+  bool isEmpty = true;
+
+  ScrollController _scrollController = ScrollController();
+  TextEditingController _searchController = TextEditingController();
+
   var leads = [];
   var employees = [];
   var employeesFull = [];
   var columns = [];
-
-  var isLoading = true;
-  var isEmpty = true;
-
-  bool isSearching = false;
-  bool isFiltering = false;
 
   var dropdownVal = "2";
 
@@ -43,16 +45,11 @@ class _LeadsScreenState extends State<LeadsScreen> {
     "leadbusinessname: asc"
   ];
   var sortQuery = "leadbusinessname: asc";
-  bool salesIncludeStale = false;
-  ScrollController _scrollController = ScrollController();
-  TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    if (UserService.isAdmin) {
-      // initEmployeeData();
-    }
+    if (UserService.isAdmin) {}
     initLeadsData();
 
     _scrollController.addListener(() {
@@ -84,22 +81,26 @@ class _LeadsScreenState extends State<LeadsScreen> {
           ),
           actions: <Widget>[
             FlatButton(
-              child: Text('Yes',
-                  style: TextStyle(fontSize: 17, color: Colors.green)),
+              child: Text(
+                'Yes',
+                style: TextStyle(fontSize: 17, color: Colors.green),
+              ),
               onPressed: () async {
                 Map data = {
                   "employee": UserService.employee.employee,
                   "is_stale": false
                 };
 
-                MutationOptions mutateOptions =
-                    MutationOptions(documentNode: gql("""
+                MutationOptions mutateOptions = MutationOptions(
+                  documentNode: gql("""
                       mutation UPDATE_LEAD (\$data: lead_set_input){
                         update_lead_by_pk(pk_columns: {lead: "${lead["lead"]}"}, _set: \$data){
                           lead
                         }
                       }
-                  """), variables: {"data": data});
+                  """),
+                  variables: {"data": data},
+                );
                 final QueryResult result =
                     await GqlClientFactory().authGqlmutate(mutateOptions);
 
@@ -124,8 +125,10 @@ class _LeadsScreenState extends State<LeadsScreen> {
               },
             ),
             FlatButton(
-              child:
-                  Text('No', style: TextStyle(fontSize: 17, color: Colors.red)),
+              child: Text(
+                'No',
+                style: TextStyle(fontSize: 17, color: Colors.red),
+              ),
               onPressed: () {
                 openLead(lead);
               },
@@ -148,7 +151,6 @@ class _LeadsScreenState extends State<LeadsScreen> {
               'offset: 0, limit: 10, order_by: {leadbusinessname: asc}, where: {employee: {_eq: "${UserService.employee.employee}"}}';
         }
       }
-      print(initParams);
 
       QueryOptions options = QueryOptions(documentNode: gql("""
           query GET_LEADS {
@@ -173,20 +175,24 @@ class _LeadsScreenState extends State<LeadsScreen> {
           if (leadsArrDecoded != null) {
             var leadsArr = List.from(leadsArrDecoded);
             if (leadsArr.length > 0) {
-              setState(() {
-                isEmpty = false;
-                isLoading = false;
-                leads += leadsArr;
-                pageNum++;
-              });
+              setState(
+                () {
+                  isEmpty = false;
+                  isLoading = false;
+                  leads += leadsArr;
+                  pageNum++;
+                },
+              );
             } else {
-              setState(() {
-                if (pageNum == 1) {
-                  isEmpty = true;
-                  leadsArr = [];
-                }
-                isLoading = false;
-              });
+              setState(
+                () {
+                  if (pageNum == 1) {
+                    isEmpty = true;
+                    leadsArr = [];
+                  }
+                  isLoading = false;
+                },
+              );
             }
           }
         } else {
@@ -199,14 +205,18 @@ class _LeadsScreenState extends State<LeadsScreen> {
               fontSize: 16.0);
         }
       }
-      setState(() {
-        isLoading = false;
-      });
+      setState(
+        () {
+          isLoading = false;
+        },
+      );
     } catch (err) {
       log(err);
-      setState(() {
-        isLoading = false;
-      });
+      setState(
+        () {
+          isLoading = false;
+        },
+      );
     }
   }
 
@@ -250,7 +260,8 @@ class _LeadsScreenState extends State<LeadsScreen> {
         }
       }
 
-      QueryOptions options = QueryOptions(documentNode: gql("""
+      QueryOptions options = QueryOptions(
+        documentNode: gql("""
           query GET_LEADS {
             v_lead($params) {
               lead
@@ -263,7 +274,9 @@ class _LeadsScreenState extends State<LeadsScreen> {
               stale
             }
           }
-      """), fetchPolicy: FetchPolicy.networkOnly);
+      """),
+        fetchPolicy: FetchPolicy.networkOnly,
+      );
 
       final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
@@ -273,88 +286,104 @@ class _LeadsScreenState extends State<LeadsScreen> {
           if (leadsArrDecoded != null) {
             var leadsArr = List.from(leadsArrDecoded);
             if (leadsArr.length > 0) {
-              setState(() {
-                isEmpty = false;
-                isLoading = false;
-                leads += leadsArr;
-                pageNum++;
-              });
+              setState(
+                () {
+                  isEmpty = false;
+                  isLoading = false;
+                  leads += leadsArr;
+                  pageNum++;
+                },
+              );
             } else {
-              setState(() {
-                if (pageNum == 0) {
-                  isEmpty = true;
-                  leadsArr = [];
-                }
-                isLoading = false;
-              });
+              setState(
+                () {
+                  if (pageNum == 0) {
+                    isEmpty = true;
+                    leadsArr = [];
+                  }
+                  isLoading = false;
+                },
+              );
             }
           }
         }
       }
 
-      setState(() {
-        isLoading = false;
-      });
+      setState(
+        () {
+          isLoading = false;
+        },
+      );
     } catch (err) {
       log(err);
     }
   }
 
   Future<void> searchLeads(searchString) async {
-    setState(() {
-      currentSearch = searchString;
-      pageNum = 0;
-      isSearching = true;
-      leads = [];
-      onScroll();
-    });
+    setState(
+      () {
+        currentSearch = searchString;
+        pageNum = 0;
+        isSearching = true;
+        leads = [];
+        onScroll();
+      },
+    );
   }
 
   Future<void> filterByEmployee(employeeId) async {
-    setState(() {
-      filterEmployee = employeeId;
-      pageNum = 0;
-      isFiltering = true;
-      leads = [];
-      onScroll();
-    });
+    setState(
+      () {
+        filterEmployee = employeeId;
+        pageNum = 0;
+        isFiltering = true;
+        leads = [];
+        onScroll();
+      },
+    );
   }
 
   Future<void> clearFilter() async {
     if (isFiltering) {
-      setState(() {
-        filterEmployee = "";
-        pageNum = 0;
-        isFiltering = false;
-        leads = [];
-      });
+      setState(
+        () {
+          filterEmployee = "";
+          pageNum = 0;
+          isFiltering = false;
+          leads = [];
+        },
+      );
       onScroll();
     }
   }
 
   Future<void> clearSearch() async {
     if (isSearching) {
-      setState(() {
-        pageNum = 0;
-        currentSearch = "";
-        isSearching = false;
-        _searchController.clear();
-        leads = [];
-      });
+      setState(
+        () {
+          pageNum = 0;
+          currentSearch = "";
+          isSearching = false;
+          _searchController.clear();
+          leads = [];
+        },
+      );
       onScroll();
     }
   }
 
   Future<void> toggleStale(value) async {
     clearSearch();
-    setState(() {
-      pageNum = 0;
-      currentSearch = "";
-      isSearching = false;
-      _searchController.clear();
-      leads = [];
-      salesIncludeStale = value;
-    });
+    setState(
+      () {
+        pageNum = 0;
+        currentSearch = "";
+        isSearching = false;
+        _searchController.clear();
+        leads = [];
+        salesIncludeStale = value;
+      },
+    );
     onScroll();
   }
 
@@ -391,42 +420,50 @@ class _LeadsScreenState extends State<LeadsScreen> {
       child: Scaffold(
         drawer: CustomDrawer(),
         appBar: CustomAppBar(
-            key: Key("leadsScreenAppBar"),
-            title: Text("Leads"),
-            action: <Widget>[
-              Row(
-                children: <Widget>[
-                  // Icon(Icons.sort),
-                  Theme(
-                      data: Theme.of(context).copyWith(
-                        canvasColor: Colors.grey.shade900,
-                      ),
-                      child: DropdownButton(
-                          value: dropdownVal,
-                          items: [
-                            {'value': '0', 'text': 'Newest'},
-                            {'value': '1', 'text': 'Oldest'},
-                            {'value': '2', 'text': 'Alphabetical'}
-                          ].map<DropdownMenuItem<String>>((item) {
-                            return DropdownMenuItem<String>(
-                              value: item['value'],
-                              child: Text(item['text'],
-                                  style: TextStyle(color: Colors.white)),
-                            );
-                          }).toList(),
-                          onChanged: (newVal) {
-                            setState(() {
-                              dropdownVal = newVal;
-                              sortQuery = sortQueries[int.parse(dropdownVal)];
-                              clearSearch();
-                              pageNum = 0;
-                              leads = [];
-                              onScroll();
-                            });
-                          })),
-                ],
-              )
-            ]),
+          key: Key("leadsScreenAppBar"),
+          title: Text("Leads"),
+          action: <Widget>[
+            Row(
+              children: <Widget>[
+                Theme(
+                  data: Theme.of(context).copyWith(
+                    canvasColor: Colors.grey.shade900,
+                  ),
+                  child: DropdownButton(
+                    value: dropdownVal,
+                    items: [
+                      {'value': '0', 'text': 'Newest'},
+                      {'value': '1', 'text': 'Oldest'},
+                      {'value': '2', 'text': 'Alphabetical'}
+                    ].map<DropdownMenuItem<String>>(
+                      (item) {
+                        return DropdownMenuItem<String>(
+                          value: item['value'],
+                          child: Text(
+                            item['text'],
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        );
+                      },
+                    ).toList(),
+                    onChanged: (newVal) {
+                      setState(
+                        () {
+                          dropdownVal = newVal;
+                          sortQuery = sortQueries[int.parse(dropdownVal)];
+                          clearSearch();
+                          pageNum = 0;
+                          leads = [];
+                          onScroll();
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            )
+          ],
+        ),
         body: isLoading
             ? CenteredLoadingSpinner()
             : Container(
@@ -522,143 +559,154 @@ class _LeadsScreenState extends State<LeadsScreen> {
                   flex: 6,
                   child: ListView(
                     controller: _scrollController,
-                    children: leads.map((lead) {
-                      var employeeName;
+                    children: leads.map(
+                      (lead) {
+                        var employeeName;
+                        var fullName = "";
+                        var businessName = "";
 
-                      // if (UserService.isAdmin) {
-                      if (lead["employeefullname"] != null) {
-                        employeeName = lead["employeefullname"];
-                      } else {
-                        employeeName = "Not Found";
-                      }
-                      // }
-                      var fullName = "";
-                      var businessName = "";
+                        if (lead["employeefullname"] != null) {
+                          employeeName = lead["employeefullname"];
+                        } else {
+                          employeeName = "Not Found";
+                        }
 
-                      if (lead["leadfirstname"] != null &&
-                          lead["leadlastname"] != null) {
-                        fullName =
-                            lead["leadfirstname"] + " " + lead["leadlastname"];
-                      } else if (lead["leadfirstname"] != null) {
-                        fullName = lead["leadfirstname"];
-                      }
-                      if (lead["leadbusinessname"] != null) {
-                        businessName = lead["leadbusinessname"];
-                      }
+                        if (lead["leadfirstname"] != null &&
+                            lead["leadlastname"] != null) {
+                          fullName = lead["leadfirstname"] +
+                              " " +
+                              lead["leadlastname"];
+                        } else if (lead["leadfirstname"] != null) {
+                          fullName = lead["leadfirstname"];
+                        }
+                        if (lead["leadbusinessname"] != null) {
+                          businessName = lead["leadbusinessname"];
+                        }
 
-                      return GestureDetector(
-                        onTap: () {
-                          lead["stale"] &&
-                                  !UserService.isSalesManager &&
-                                  !UserService.isAdmin
-                              ? openStaleModal(lead)
-                              : openLead(lead);
-                        },
-                        child: CustomCard(
-                          trailing: lead["stale"]
-                              ? Container(
-                                  decoration: BoxDecoration(
+                        return GestureDetector(
+                          onTap: () {
+                            lead["stale"] &&
+                                    !UserService.isSalesManager &&
+                                    !UserService.isAdmin
+                                ? openStaleModal(lead)
+                                : openLead(lead);
+                          },
+                          child: CustomCard(
+                            trailing: lead["stale"]
+                                ? Container(
+                                    decoration: BoxDecoration(
                                       color: Colors.orange[50],
                                       border: Border.all(
                                         color: Colors.orange[50],
                                       ),
-                                      borderRadius:
-                                          BorderRadius.all(Radius.circular(8))),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(3.0),
-                                    child: Text("Stale",
+                                      borderRadius: BorderRadius.all(
+                                        Radius.circular(8),
+                                      ),
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(3.0),
+                                      child: Text(
+                                        "Stale",
                                         style: TextStyle(
                                             fontSize: 18,
                                             color: Colors.orange[400],
-                                            fontWeight: FontWeight.bold)),
-                                  ))
-                              : null,
-                          color: Colors.white,
-                          title: businessName,
-                          icon: Icons.arrow_forward_ios,
-                          child: Column(
-                            children: <Widget>[
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: <Widget>[
-                                  Column(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: <Widget>[
-                                      Padding(
-                                        padding: EdgeInsets.all(5),
-                                        child: Text(
-                                          'Business:',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                          ),
-                                        ),
+                                            fontWeight: FontWeight.bold),
                                       ),
-                                      Padding(
-                                        padding: EdgeInsets.all(5),
-                                        child: Text(
-                                          'Full Name:',
-                                          style: TextStyle(
-                                            fontSize: 15,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Expanded(
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.end,
+                                    ),
+                                  )
+                                : null,
+                            color: Colors.white,
+                            title: businessName,
+                            icon: Icons.arrow_forward_ios,
+                            child: Column(
+                              children: <Widget>[
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: <Widget>[
+                                    Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
                                       crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                          CrossAxisAlignment.end,
                                       children: <Widget>[
                                         Padding(
                                           padding: EdgeInsets.all(5),
                                           child: Text(
-                                            businessName,
+                                            'Business:',
                                             style: TextStyle(
-                                              fontSize: 14,
+                                              fontSize: 16,
                                             ),
                                           ),
                                         ),
                                         Padding(
                                           padding: EdgeInsets.all(5),
                                           child: Text(
-                                            '$fullName',
+                                            'Full Name:',
                                             style: TextStyle(
-                                              fontSize: 14,
+                                              fontSize: 15,
                                             ),
                                           ),
                                         ),
                                       ],
                                     ),
-                                  ),
-                                ],
-                              ),
-                              UserService.isAdmin ||
-                                      UserService.isSalesManager ||
-                                      lead["stale"]
-                                  ? Divider(thickness: 2)
-                                  : Container(),
-                              UserService.isAdmin ||
-                                      UserService.isSalesManager ||
-                                      lead["stale"]
-                                  ? Row(
-                                      mainAxisAlignment: lead["stale"]
-                                          ? MainAxisAlignment.spaceEvenly
-                                          : MainAxisAlignment.center,
-                                      children: [
-                                        Text("Employee: " + employeeName,
+                                    Expanded(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.end,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: <Widget>[
+                                          Padding(
+                                            padding: EdgeInsets.all(5),
+                                            child: Text(
+                                              businessName,
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: EdgeInsets.all(5),
+                                            child: Text(
+                                              '$fullName',
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                UserService.isAdmin ||
+                                        UserService.isSalesManager ||
+                                        lead["stale"]
+                                    ? Divider(thickness: 2)
+                                    : Container(),
+                                UserService.isAdmin ||
+                                        UserService.isSalesManager ||
+                                        lead["stale"]
+                                    ? Row(
+                                        mainAxisAlignment: lead["stale"]
+                                            ? MainAxisAlignment.spaceEvenly
+                                            : MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            "Employee: " + employeeName,
                                             style: TextStyle(),
-                                            textAlign: TextAlign.right),
-                                      ],
-                                    )
-                                  : Container(),
-                            ],
+                                            textAlign: TextAlign.right,
+                                          ),
+                                        ],
+                                      )
+                                    : Container(),
+                              ],
+                            ),
                           ),
-                        ),
-                      );
-                    }).toList(),
+                        );
+                      },
+                    ).toList(),
                   ),
                 ),
         ],

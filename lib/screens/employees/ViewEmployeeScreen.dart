@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
@@ -23,12 +22,10 @@ class ViewEmployeeScreen extends StatefulWidget {
 class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
   final deviceNameController = new TextEditingController();
   final deviceIdController = new TextEditingController();
-
   final _formKey = new GlobalKey<FormState>();
 
-  var isLoading = true;
+  bool isLoading = true;
 
-  // Employee employee;
   var employee;
 
   var defaultRoles = [];
@@ -58,9 +55,11 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
     } catch (err) {
       log(err);
     }
-    setState(() {
-      isLoading = false;
-    });
+    setState(
+      () {
+        isLoading = false;
+      },
+    );
   }
 
   Future<void> loadDevices() async {
@@ -74,43 +73,21 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
           }
         }
     """), variables: {"employee": "${this.widget.employeeId}"});
-    subscription = await GqlClientFactory().authGqlsubscribe(options, (data) {
-      var deviceArrDecoded = data.data["employee_device"];
-      if (deviceArrDecoded != null) {
-        if (this.mounted) {
-          setState(() {
-            devices = deviceArrDecoded.toList();
-          });
+    subscription = await GqlClientFactory().authGqlsubscribe(
+      options,
+      (data) {
+        var deviceArrDecoded = data.data["employee_device"];
+        if (deviceArrDecoded != null) {
+          if (this.mounted) {
+            setState(() {
+              devices = deviceArrDecoded.toList();
+            });
+          }
         }
-      }
-    }, (error) {}, () => refreshSub());
-    // subscription = result.listen(
-    //   (data) async {
-    //     var deviceArrDecoded = data.data["employee_device"];
-    //     if (deviceArrDecoded != null) {
-    //       if (this.mounted) {
-    //         setState(() {
-    //           devices = deviceArrDecoded.toList();
-    //         });
-    //       }
-    //     }
-    //   },
-    //   onError: (error) async {
-    //     var errMsg = error.payload["message"];
-    //     print(errMsg);
-    //     if (errMsg.contains("JWTExpired")) {
-    //       await refreshSub();
-    //     } else {
-    //       Fluttertoast.showToast(
-    //           msg: errMsg,
-    //           toastLength: Toast.LENGTH_LONG,
-    //           gravity: ToastGravity.BOTTOM,
-    //           backgroundColor: Colors.grey[600],
-    //           textColor: Colors.white,
-    //           fontSize: 16.0);
-    //     }
-    //   },
-    // );
+      },
+      (error) {},
+      () => refreshSub(),
+    );
   }
 
   Future refreshSub() async {
@@ -139,19 +116,22 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
       if (body != null) {
         var bodyDecoded = body;
 
-        setState(() {
-          employee = bodyDecoded;
+        setState(
+          () {
+            employee = bodyDecoded;
 
-          if (employee["document"]["displayName"] == null) {
-            employee["document"]["displayName"] = "N/A";
-          }
-        });
+            if (employee["document"]["displayName"] == null) {
+              employee["document"]["displayName"] = "N/A";
+            }
+          },
+        );
       }
     }
   }
 
   Future<void> updateRole(role) async {
-    MutationOptions mutateOptions = MutationOptions(documentNode: gql("""
+    MutationOptions mutateOptions = MutationOptions(
+      documentNode: gql("""
       mutation UPDATE_ROLE (\$employee: uuid!, \$role: uuid!){
         update_employee_by_pk(pk_columns: {employee: \$employee}, _set: {role: \$role}){
           roleByRole{
@@ -160,7 +140,9 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
           }
         }
       }
-          """), variables: {"employee": this.widget.employeeId, "role": role});
+          """),
+      variables: {"employee": this.widget.employeeId, "role": role},
+    );
     final QueryResult result =
         await GqlClientFactory().authGqlmutate(mutateOptions);
     if (result.hasException == true) {
@@ -182,37 +164,6 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
         textColor: Colors.white,
         fontSize: 16.0);
   }
-  // Future<void> updateEmployee() async {
-  //   try {
-  //     var resp;
-  //     //REPLACE WITH GRAPHQL
-  //     // var resp = await apiService.authPut(
-  //     //     context, "/employee/" + employee.employee, employee);
-  //     if (resp.statusCode == 200) {
-  //       Fluttertoast.showToast(
-  //           msg: "Update Successful!",
-  //           toastLength: Toast.LENGTH_SHORT,
-  //           gravity: ToastGravity.BOTTOM,
-  //           backgroundColor: Colors.grey[600],
-  //           textColor: Colors.white,
-  //           fontSize: 16.0);
-
-  //       await loadEmployeeData();
-  //     } else {
-  //       throw ('ERROR');
-  //     }
-  //   } catch (err) {
-  //     Fluttertoast.showToast(
-  //         msg: "Failed to udpate employee!",
-  //         toastLength: Toast.LENGTH_SHORT,
-  //         gravity: ToastGravity.BOTTOM,
-  //         backgroundColor: Colors.grey[600],
-  //         textColor: Colors.white,
-  //         fontSize: 16.0);
-
-  //     await loadEmployeeData();
-  //   }
-  // }
 
   void addDeviceDialog() {
     showDialog(
@@ -293,8 +244,10 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                         }
                       }
                   """), variables: {"object": newDevice});
+
                   final QueryResult result =
                       await GqlClientFactory().authGqlmutate(mutateOptions);
+
                   if (result.hasException == true) {
                     Fluttertoast.showToast(
                         msg: result.exception.toString(),
@@ -309,6 +262,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                   deviceNameController.text = "";
 
                   Navigator.pop(context);
+
                   Fluttertoast.showToast(
                       msg: "Device Added!",
                       toastLength: Toast.LENGTH_SHORT,
@@ -344,16 +298,20 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                   style: TextStyle(fontSize: 17, color: Colors.green)),
               onPressed: () async {
                 //LOGIC TO MUTATE DELETE A DEVICE
-                MutationOptions mutateOptions =
-                    MutationOptions(documentNode: gql("""
+                MutationOptions mutateOptions = MutationOptions(
+                  documentNode: gql("""
                       mutation INSERT_ONE_EMPLOYEE_DEVICE(\$employee_device: uuid!) {
                         delete_employee_device_by_pk(employee_device: \$employee_device){
                           employee_device
                         }
                       }
-                  """), variables: {"employee_device": deviceId});
+                  """),
+                  variables: {"employee_device": deviceId},
+                );
+
                 final QueryResult result =
                     await GqlClientFactory().authGqlmutate(mutateOptions);
+
                 if (result.hasException == true) {
                   Fluttertoast.showToast(
                       msg: result.exception.toString(),
@@ -364,6 +322,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                       fontSize: 16.0);
                 }
                 Navigator.pop(context);
+
                 Fluttertoast.showToast(
                     msg: "Device Deleted!",
                     toastLength: Toast.LENGTH_SHORT,
@@ -371,19 +330,13 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                     backgroundColor: Colors.grey[600],
                     textColor: Colors.white,
                     fontSize: 16.0);
-                // var employeeDeviceArr =
-                //     List.from(employee["document"]["devices"]);
-                // employeeDeviceArr.removeWhere(
-                //     (deviceToRemove) => deviceToRemove["deviceId"] == deviceId);
-
-                // employee["document"]["devices"] = employeeDeviceArr;
-
-                // await updateEmployee();
               },
             ),
             MaterialButton(
-              child: Text("Cancel",
-                  style: TextStyle(fontSize: 17, color: Colors.red)),
+              child: Text(
+                "Cancel",
+                style: TextStyle(fontSize: 17, color: Colors.red),
+              ),
               onPressed: () {
                 Navigator.pop(context);
               },
@@ -409,7 +362,8 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
       appBar: CustomAppBar(
         key: Key("viewEmployeeScreenAppBar"),
         title: Text(
-            isLoading ? "Loading..." : employee["document"]["displayName"]),
+          isLoading ? "Loading..." : employee["document"]["displayName"],
+        ),
       ),
       body: isLoading
           ? CenteredLoadingSpinner()
@@ -425,13 +379,6 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                       icon: Icons.account_box,
                       child: Column(
                         children: <Widget>[
-                          // Row(
-                          //   children: <Widget>[
-                          //     Expanded(
-                          //       child: getLabel("Role"),
-                          //     ),
-                          //   ],
-                          // ),
                           Row(children: <Widget>[
                             Expanded(
                               child: RoleDropDown(
@@ -457,28 +404,29 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                               Expanded(
                                 child: ListView(
                                   shrinkWrap: true,
-                                  children: List.from(devices).map((device) {
-                                    return Card(
-                                      child: ListTile(
-                                        title: Text(
-                                          // "Name: " +
-                                          device["deviceName"],
-                                        ),
-                                        subtitle: Text(
-                                          "ID: " + device["device_id"],
-                                        ),
-                                        trailing: GestureDetector(
-                                          onTap: () {
-                                            deleteEmployeeDevice(
-                                                device["employee_device"]);
-                                          },
-                                          child: Icon(
-                                            Icons.delete,
+                                  children: List.from(devices).map(
+                                    (device) {
+                                      return Card(
+                                        child: ListTile(
+                                          title: Text(
+                                            device["deviceName"],
+                                          ),
+                                          subtitle: Text(
+                                            "ID: " + device["device_id"],
+                                          ),
+                                          trailing: GestureDetector(
+                                            onTap: () {
+                                              deleteEmployeeDevice(
+                                                  device["employee_device"]);
+                                            },
+                                            child: Icon(
+                                              Icons.delete,
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                    );
-                                  }).toList(),
+                                      );
+                                    },
+                                  ).toList(),
                                 ),
                               ),
                             ],
@@ -522,25 +470,6 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                                   ),
                                 ),
                               ),
-                              // rowDivider(),
-                              // GestureDetector(
-                              //   onTap: () {
-                              //     Navigator.pushNamed(
-                              //         context, "/employeecallhistory",
-                              //         arguments: this.widget.employeeId);
-                              //   },
-                              //   child: Container(
-                              //     color: Colors.white,
-                              //     child: Row(
-                              //       mainAxisAlignment:
-                              //           MainAxisAlignment.spaceBetween,
-                              //       children: <Widget>[
-                              //         Text('Call Log'),
-                              //         Icon(Icons.arrow_forward_ios, size: 14),
-                              //       ],
-                              //     ),
-                              //   ),
-                              // ),
                             ],
                           ),
                         ],
@@ -558,13 +487,6 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                 ),
               ),
             ),
-      // floatingActionButton: FloatingActionButton(
-      //   child: Icon(Icons.save),
-      //   backgroundColor: UniversalStyles.actionColor,
-      //   onPressed: () async {
-      //     await updateEmployee();
-      //   },
-      // ),
     );
   }
 

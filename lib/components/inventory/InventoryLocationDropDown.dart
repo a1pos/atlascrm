@@ -20,6 +20,7 @@ class InventoryLocationDropDown extends StatefulWidget {
 class _InventoryLocationDropDownState extends State<InventoryLocationDropDown> {
   var locations = [];
   var disabled;
+  var startVal;
 
   @override
   void initState() {
@@ -35,11 +36,9 @@ class _InventoryLocationDropDownState extends State<InventoryLocationDropDown> {
     }
   }
 
-  var startVal;
-
   Future<void> initLocations() async {
     QueryOptions options = QueryOptions(documentNode: gql("""
-        query GetInventoryLocations {
+        query GET_INVENTORY_LOCATIONS {
           inventory_location{
             inventory_location
             name
@@ -49,8 +48,6 @@ class _InventoryLocationDropDownState extends State<InventoryLocationDropDown> {
 
     final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
-    // var locationsResp =
-    //     await apiService.authGet(context, "/inventory/location");
     if (result != null) {
       if (result.hasException == false) {
         var locationsArrDecoded = result.data["inventory_location"];
@@ -92,7 +89,6 @@ class _InventoryLocationDropDownState extends State<InventoryLocationDropDown> {
           hint: "Please choose one",
           searchHint: null,
           isExpanded: true,
-          // menuConstraints: BoxConstraints.tight(Size.fromHeight(350)),
           items: locations.map<DropdownMenuItem<String>>((dynamic item) {
             var businessName;
             if (item["name"]?.isEmpty ?? true) {

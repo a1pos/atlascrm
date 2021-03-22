@@ -2,7 +2,6 @@ import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:intl/intl.dart';
@@ -16,7 +15,8 @@ class LeadsChart extends StatefulWidget {
 class _LeadsChartState extends State<LeadsChart> {
   final UserService userService = UserService();
 
-  var isLoading = true;
+  bool isLoading = true;
+
   var seriesList;
   var statementData = List<LeaderboardData>();
   var agreementData = List<LeaderboardData>();
@@ -34,8 +34,7 @@ class _LeadsChartState extends State<LeadsChart> {
   @override
   void initState() {
     super.initState();
-    // this.widget.controller.addListener(
-    //     refreshSubscription("statement", this.widget.controller.text, null));
+
     initSub(weekStart, null);
   }
 
@@ -106,35 +105,6 @@ class _LeadsChartState extends State<LeadsChart> {
         }
       }
     }, (error) {}, () => refreshSubscription());
-
-    // subscription = result.listen(
-    //   (data) async {
-    //     var incomingData = data.data["employee"];
-    //     if (incomingData != null) {
-    //       if (this.mounted) {
-    //         setState(() {
-    //           graphList = incomingData;
-    //           isLoading = false;
-    //         });
-    //       }
-    //     }
-    //   },
-    //   onError: (error) async {
-    //     var errMsg = error.payload["message"];
-    //     print(errMsg);
-    //     if (errMsg.contains("JWTExpired")) {
-    //       await refreshSubscription();
-    //     } else {
-    //       Fluttertoast.showToast(
-    //           msg: errMsg,
-    //           toastLength: Toast.LENGTH_LONG,
-    //           gravity: ToastGravity.BOTTOM,
-    //           backgroundColor: Colors.grey[600],
-    //           textColor: Colors.white,
-    //           fontSize: 16.0);
-    //     }
-    //   },
-    // );
   }
 
   refreshSubscription() async {
@@ -212,42 +182,44 @@ class _LeadsChartState extends State<LeadsChart> {
       ];
     }
 
-    return Column(children: <Widget>[
-      Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
-            child: DropdownButton<String>(
-              value: timeDropdownValue,
-              items: timeFilterItems.map((dynamic item) {
-                return DropdownMenuItem<String>(
-                  value: item["value"],
-                  child: Text(item["text"]),
-                );
-              }).toList(),
-              onChanged: (String newValue) {
-                setState(() {
-                  isLoading = true;
-                  timeDropdownValue = newValue;
-                  refreshSubscription();
-                });
-              },
-            ),
-          ),
-        ],
-      ),
-      isLoading
-          ? Expanded(
-              child: CenteredLoadingSpinner(),
-            )
-          : Expanded(
-              child: BarChart(
-                _displayData(),
-                animate: true,
+    return Column(
+      children: <Widget>[
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
+              child: DropdownButton<String>(
+                value: timeDropdownValue,
+                items: timeFilterItems.map((dynamic item) {
+                  return DropdownMenuItem<String>(
+                    value: item["value"],
+                    child: Text(item["text"]),
+                  );
+                }).toList(),
+                onChanged: (String newValue) {
+                  setState(() {
+                    isLoading = true;
+                    timeDropdownValue = newValue;
+                    refreshSubscription();
+                  });
+                },
               ),
             ),
-    ]);
+          ],
+        ),
+        isLoading
+            ? Expanded(
+                child: CenteredLoadingSpinner(),
+              )
+            : Expanded(
+                child: BarChart(
+                  _displayData(),
+                  animate: true,
+                ),
+              ),
+      ],
+    );
   }
 }
 

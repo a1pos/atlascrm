@@ -4,6 +4,14 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:searchable_dropdown/searchable_dropdown.dart';
 
 class ProcessorDropDown extends StatefulWidget {
+  final String processorId;
+  final String value;
+  final Function callback;
+  final String role;
+  final bool disabled;
+  final bool displayClear;
+  final String caption;
+
   ProcessorDropDown(
       {this.processorId,
       this.callback,
@@ -13,14 +21,6 @@ class ProcessorDropDown extends StatefulWidget {
       this.displayClear = true,
       this.caption = "Processor"});
 
-  final String processorId;
-  final String value;
-  final Function callback;
-  final String role;
-  final bool disabled;
-  final bool displayClear;
-  final String caption;
-
   @override
   _ProcessorDropDownState createState() => _ProcessorDropDownState();
 }
@@ -28,6 +28,7 @@ class ProcessorDropDown extends StatefulWidget {
 class _ProcessorDropDownState extends State<ProcessorDropDown> {
   var processors = [];
   var disabled;
+  var startVal;
 
   @override
   void initState() {
@@ -43,17 +44,18 @@ class _ProcessorDropDownState extends State<ProcessorDropDown> {
     }
   }
 
-  var startVal;
-
   Future<void> initProcessors() async {
-    QueryOptions options = QueryOptions(documentNode: gql("""
+    QueryOptions options = QueryOptions(
+      documentNode: gql("""
       query GET_PROCESSORS {
         processor {
           processor
           name:document(path:"name")
         }
       }
-    """));
+    """),
+      fetchPolicy: FetchPolicy.networkOnly,
+    );
 
     final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
@@ -99,7 +101,6 @@ class _ProcessorDropDownState extends State<ProcessorDropDown> {
           hint: "Please choose one",
           searchHint: null,
           isExpanded: true,
-          // menuConstraints: BoxConstraints.tight(Size.fromHeight(350)),
           items: processors.map<DropdownMenuItem<String>>((dynamic item) {
             var processorName;
             if (item["name"]?.isEmpty ?? true) {

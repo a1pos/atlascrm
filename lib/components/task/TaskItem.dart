@@ -6,8 +6,14 @@ class TaskItem extends StatefulWidget {
   final String dateTime;
   final String type;
   final int priority;
-  TaskItem(
-      {this.title, this.description, this.dateTime, this.type, this.priority});
+
+  TaskItem({
+    this.title,
+    this.description,
+    this.dateTime,
+    this.type,
+    this.priority,
+  });
 
   @override
   _TaskItemState createState() => _TaskItemState();
@@ -34,10 +40,6 @@ class _TaskItemState extends State<TaskItem> {
       Color.fromRGBO(119, 174, 237, 1),
       Color.fromRGBO(247, 188, 74, 1),
       Color.fromRGBO(229, 69, 69, 1),
-
-      // Colors.red[100], //Light Red
-      // Colors.yellow[100], //Light Yellow
-      // Colors.green[100], //Light Green
     ];
     var index =
         _types.indexWhere((typeObj) => typeObj.name == this.widget.type);
@@ -48,7 +50,6 @@ class _TaskItemState extends State<TaskItem> {
         color: Colors.white,
       );
     } else {
-      // taskIcon = Icon(Icons.category);
       taskIcon = null;
     }
     return Center(
@@ -73,7 +74,6 @@ class _TaskItemState extends State<TaskItem> {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(color: Colors.white),
                 ),
-                // trailing: Text("" ?? "", style: TextStyle(fontSize: 11)),
               ),
             ),
             Divider(color: Colors.white),

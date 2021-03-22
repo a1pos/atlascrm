@@ -4,9 +4,7 @@ import 'package:atlascrm/components/shared/CustomDrawer.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/screens/dashboard/widgets/LeadsChart.dart';
 import 'package:atlascrm/screens/dashboard/widgets/SalesLeaderboardCards.dart';
-import 'package:atlascrm/screens/dashboard/widgets/SalesLeaderboardChart.dart';
 import 'package:atlascrm/screens/dashboard/widgets/Tasks.dart';
-import 'package:atlascrm/screens/dashboard/widgets/Employees.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -16,6 +14,9 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  bool isLoading = true;
+  bool cardView = true;
+
   var leadDropdownValue = "leadcounttoday";
   var leadFilterItems = [
     {"text": "Today", "value": "leadcounttoday"},
@@ -23,8 +24,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     {"text": "All Time", "value": "leadcount"}
   ];
   var statsData = [];
-  bool isLoading = true;
-  bool cardView = true;
 
   @override
   void initState() {
@@ -45,8 +44,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        // dispose();
-        print("dash trying to pop");
         return false;
       },
       child: Scaffold(
@@ -86,17 +83,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         fontSize: 22,
                                       ),
                                     ),
-                                    // trailing: IconButton(
-                                    //   icon: Icon(
-                                    //     Icons.equalizer,
-                                    //     color: UniversalStyles.actionColor,
-                                    //   ),
-                                    //   onPressed: () {
-                                    //     setState(() {
-                                    //       cardView = false;
-                                    //     });
-                                    //   },
-                                    // )
                                   ),
                                   Container(
                                     decoration: BoxDecoration(
@@ -106,11 +92,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     ),
                                   ),
                                   Container(
-                                      padding: EdgeInsets.all(15),
-                                      child: Container(
-                                        height: 370,
-                                        child: SalesLeaderboardCards(),
-                                      ))
+                                    padding: EdgeInsets.all(15),
+                                    child: Container(
+                                      height: 370,
+                                      child: SalesLeaderboardCards(),
+                                    ),
+                                  )
                                 ],
                               ),
                             ),
@@ -143,9 +130,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       color: UniversalStyles.actionColor,
                                     ),
                                     onTap: () {
-                                      setState(() {
-                                        cardView = true;
-                                      });
+                                      setState(
+                                        () {
+                                          cardView = true;
+                                        },
+                                      );
                                     },
                                   ),
                                   Container(
@@ -155,17 +144,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       ),
                                     ),
                                   ),
-                                  Container(
-                                      padding: EdgeInsets.all(15),
-                                      child: Container(
-                                        height: 370,
-                                        child: SalesLeaderboardChart(),
-                                      ))
                                 ],
                               ),
                             ),
                           ),
-
                     CustomCard(
                       key: Key("dashboardTasks"),
                       title: "Tasks",
@@ -176,7 +158,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
                     CustomCard(
-                      key: Key("dashboardCalls"),
+                      key: Key("dashboardLeads"),
                       title: "Leads",
                       icon: Icons.person,
                       child: Container(
@@ -184,23 +166,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         child: LeadsChart(),
                       ),
                     ),
-                    CustomCard(
-                        key: Key("employees"),
-                        title: "Employees",
-                        icon: Icons.people,
-                        child: Container(
-                          height: 200,
-                          child: Employees(),
-                        )),
-                    // CustomCard(
-                    //   key: Key("dashboardCalls"),
-                    //   title: "Calls",
-                    //   icon: Icons.phone,
-                    //   child: Container(
-                    //     height: 200,
-                    //     child: WeeklyCallsChart(),
-                    //   ),
-                    // ),
                   ],
                 )
               ],

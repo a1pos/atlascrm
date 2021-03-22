@@ -17,10 +17,11 @@ class EmployeeListScreen extends StatefulWidget {
 class _EmployeeListScreenState extends State<EmployeeListScreen> {
   final UserService userService = new UserService();
 
+  bool isLoading = true;
+  bool isEmpty = true;
+
   var employees = [];
   var employeesFull = [];
-  var isLoading = true;
-  var isEmpty = true;
 
   @override
   void initState() {
@@ -37,6 +38,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
         employee(where: {_or: [{roleByRole: {title: {_eq: "sales"}}},{roleByRole: {title: {_eq: "salesmanager"}}}]}) {
           employee
           document
+          is_active
         }
       }
       """), fetchPolicy: FetchPolicy.networkOnly);
@@ -46,6 +48,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
           employee{
             employee
             document
+            is_active
           }
         }
       """), fetchPolicy: FetchPolicy.networkOnly);
@@ -56,9 +59,11 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
         var employeeArrDecoded = result.data["employee"];
         if (employeeArrDecoded != null) {
           var employeeArr = List.from(employeeArrDecoded);
-          employeeArr.sort((a, b) => a["document"]["displayName"]
-              .toString()
-              .compareTo(b["document"]["displayName"].toString()));
+          employeeArr.sort(
+            (a, b) => a["document"]["displayName"].toString().compareTo(
+                  b["document"]["displayName"].toString(),
+                ),
+          );
           if (employeeArr.length > 0) {
             setState(() {
               isEmpty = false;
@@ -114,9 +119,9 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
                             onChanged: (value) {
                               var filtered = employeesFull.where((e) {
                                 String name = e["document"]["displayName"];
-                                return name
-                                    .toLowerCase()
-                                    .contains(value.toLowerCase());
+                                return name.toLowerCase().contains(
+                                      value.toLowerCase(),
+                                    );
                               }).toList();
 
                               setState(() {
@@ -146,8 +151,16 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
           var empPicture;
           try {
             empPicture = Image.network(emp["document"]["photoURL"]);
+
+            if (emp["is_active"] != true) {
+              empPicture = Image.asset("assets/disabled_user.png");
+            }
           } catch (err) {
             empPicture = Image.asset("assets/google_logo.png");
+
+            if (emp["is_active"] != true) {
+              empPicture = Image.asset("assets/disabled_user.png");
+            }
           }
 
           return GestureDetector(
@@ -165,7 +178,9 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
                   Expanded(
                     flex: 2,
                     child: Padding(
-                      padding: EdgeInsets.all(5),
+                      padding: emp["is_active"] == false
+                          ? EdgeInsets.all(4)
+                          : EdgeInsets.all(2),
                       child: CircleAvatar(
                         child: empPicture,
                       ),
@@ -174,15 +189,27 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
                   Expanded(
                     flex: 8,
                     child: Padding(
-                      padding: EdgeInsets.all(5),
+                      padding: emp["is_active"] == false
+                          ? EdgeInsets.all(8)
+                          : EdgeInsets.all(5),
                       child: Text(
                         emp["document"]["displayName"] ?? "N/A",
                         style: TextStyle(
-                          fontSize: 14,
-                        ),
+                            fontSize: 14,
+                            color: emp["is_active"] == false
+                                ? Colors.grey[400]
+                                : Colors.black),
                       ),
                     ),
                   ),
+                  emp["is_active"] == false
+                      ? Container(
+                          child: Text(
+                            "IA",
+                            style: TextStyle(color: Colors.grey[400]),
+                          ),
+                        )
+                      : Container()
                 ],
               ),
             ),

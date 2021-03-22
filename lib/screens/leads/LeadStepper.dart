@@ -1,5 +1,4 @@
 import 'dart:developer';
-import 'dart:convert';
 import 'package:atlascrm/components/shared/ProcessorDropDown.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/services/GqlClientFactory.dart';
@@ -11,7 +10,6 @@ import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
 import 'package:atlascrm/components/shared/PlacesSuggestions.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-import 'package:intl/intl.dart';
 
 class LeadStepper extends StatefulWidget {
   final Function successCallback;
@@ -23,20 +21,26 @@ class LeadStepper extends StatefulWidget {
 
 class LeadStepperState extends State<LeadStepper> {
   final _formKey = GlobalKey<FormState>();
+  final UserService userService = UserService();
+  final _stepperKey = GlobalKey<FormState>();
+
+  bool isSaveDisabled;
+  bool isAddress = false;
+  bool isLoading = false;
+
   List<GlobalKey<FormState>> _formKeys = [
     GlobalKey<FormState>(),
     GlobalKey<FormState>(),
     GlobalKey<FormState>()
   ];
 
-  final _stepperKey = GlobalKey<FormState>();
-  bool isSaveDisabled;
-  bool isAddress = false;
-  bool isLoading = false;
-  // var leads;
-  // static final translator = {'#': RegExp(r'/[^0-9]/g')};
-
-  final UserService userService = UserService();
+  Map businessAddress = {
+    "address": "",
+    "address2": "",
+    "city": "",
+    "state": "",
+    "zipcode": ""
+  };
 
   var firstNameController = TextEditingController();
   var lastNameController = TextEditingController();
@@ -50,19 +54,12 @@ class LeadStepperState extends State<LeadStepper> {
   var address2Controller = TextEditingController();
   var processorDropdownValue;
 
-  Map businessAddress = {
-    "address": "",
-    "address2": "",
-    "city": "",
-    "state": "",
-    "zipcode": ""
-  };
-
   var _selectedBusinessType;
   var _currentStep = 0;
   var stepsLength = 3;
   var businessTypes = [];
   var locationValue;
+
   @override
   void initState() {
     super.initState();
@@ -72,40 +69,44 @@ class LeadStepperState extends State<LeadStepper> {
   }
 
   Future<void> addressCheck(addressObj) async {
-    // var address = Uri.encodeComponent(addressObj["address"]["address"]);
     var address = addressObj["address"]["address"];
     var address2;
+    var businessName = "";
+
     if (address2Controller.text != null && address2Controller.text != "") {
       address2 = address2Controller.text;
     }
-    // var zip = Uri.encodeComponent(addressObj["address"]["zipcode"]);
-    // var shortAddress =
-    // Uri.encodeComponent(addressObj["shortaddress"]["address"]);
-    var businessName = "";
+
     if (addressObj["place"] != null) {
       businessName = addressObj["place"].name;
     }
-    print(businessName);
+
     try {
       QueryOptions options;
       if (address2 == null) {
-        options = QueryOptions(documentNode: gql("""
-        query CheckLeadAddress {
+        options = QueryOptions(
+          documentNode: gql("""
+        query CHECK_LEAD_ADDRESS {
           lead(where: {document: {_contains: {address: "$address"}}, _and: {document: {_contains: {businessName: "$businessName"}}}}) {
             lead
             document
           }
         }
-      """), fetchPolicy: FetchPolicy.networkOnly);
+      """),
+          fetchPolicy: FetchPolicy.networkOnly,
+        );
       } else {
-        options = QueryOptions(documentNode: gql("""
-        query CheckLeadAddress {
+        options = QueryOptions(
+          documentNode: gql("""
+        query CHECK_LEAD_ADDRESS {
   lead(where: {document: {_contains: {address: "$address"}}, _and: {document: {_contains: {businessName: "$businessName"}}, _and: {document: {_contains: {address2 :"$address2"}}}}}) {
             lead
             document
           }
         }
-      """), fetchPolicy: FetchPolicy.networkOnly);
+      """),
+          fetchPolicy: FetchPolicy.networkOnly,
+        );
       }
 
       final QueryResult result = await GqlClientFactory().authGqlquery(options);
@@ -119,31 +120,36 @@ class LeadStepperState extends State<LeadStepper> {
             });
             dupeLead();
           } else {
-            // nearbySelect(addressObj);
             if (addressObj["place"] != null) {
               if (addressObj["place"].formattedPhoneNumber != null &&
                   addressObj["place"].formattedPhoneNumber != "") {
                 var phoneNumb = addressObj["place"]
                     .formattedPhoneNumber
                     .replaceAll(RegExp("[^0-9]"), "");
-                setState(() {
-                  phoneNumberController.updateText(phoneNumb);
-                });
+                setState(
+                  () {
+                    phoneNumberController.updateText(phoneNumb);
+                  },
+                );
               }
-              setState(() {
-                businessNameController.text = addressObj["place"].name;
-                locationValue = addressObj["place"].formattedAddress;
-                businessAddress = addressObj["address"];
-                isAddress = true;
-              });
+              setState(
+                () {
+                  businessNameController.text = addressObj["place"].name;
+                  locationValue = addressObj["place"].formattedAddress;
+                  businessAddress = addressObj["address"];
+                  isAddress = true;
+                },
+              );
             } else {
-              setState(() {
-                locationValue = addressObj["formattedaddr"];
-                businessNameController.clear();
-                phoneNumberController.clear();
-                businessAddress = addressObj["address"];
-                isAddress = true;
-              });
+              setState(
+                () {
+                  locationValue = addressObj["formattedaddr"];
+                  businessNameController.clear();
+                  phoneNumberController.clear();
+                  businessAddress = addressObj["address"];
+                  isAddress = true;
+                },
+              );
             }
           }
         }
@@ -195,31 +201,6 @@ class LeadStepperState extends State<LeadStepper> {
     );
   }
 
-//This doesn't get used, need to work business types into db logic
-
-  // Future<void> initBusinessTypes() async {
-  //   try {
-  //     _selectedBusinessType = null;
-
-  //     var resp = await apiService.authGet(context, "/business/types");
-  //     if (resp != null) {
-  //       if (resp.statusCode == 200) {
-  //         var bizTypesArrDecoded = resp.data;
-  //         if (bizTypesArrDecoded != null) {
-  //           var bizTypesArr = List.from(bizTypesArrDecoded);
-  //           if (bizTypesArr.length > 0) {
-  //             setState(() {
-  //               businessTypes = bizTypesArr;
-  //             });
-  //           }
-  //         }
-  //       }
-  //     }
-  //   } catch (err) {
-  //     log(err);
-  //   }
-  // }
-
   Future<void> addLead() async {
     try {
       String rawNumber = phoneNumberController.text;
@@ -244,20 +225,23 @@ class LeadStepperState extends State<LeadStepper> {
         },
       };
 
-      MutationOptions mutateOptions = MutationOptions(documentNode: gql("""
-        mutation MyMutation(\$objects: [lead_insert_input!]!) {
+      MutationOptions mutateOptions = MutationOptions(
+        documentNode: gql("""
+        mutation INSERT_LEADS(\$objects: [lead_insert_input!]!) {
           insert_lead(objects: \$objects) {
             returning {
             document
             }
           }
         }
-      """), variables: {"objects": lead});
+      """),
+        variables: {"objects": lead},
+      );
+
       final QueryResult result =
           await GqlClientFactory().authGqlmutate(mutateOptions);
 
       if (result.hasException == false) {
-        // Navigator.pop(context);
         Navigator.popAndPushNamed(context, "/leads");
 
         Fluttertoast.showToast(
@@ -311,25 +295,31 @@ class LeadStepperState extends State<LeadStepper> {
                   key: this._stepperKey,
                   onStepTapped: (int step) {
                     if (validationPassed()) {
-                      setState(() {
-                        _currentStep = step;
-                      });
+                      setState(
+                        () {
+                          _currentStep = step;
+                        },
+                      );
                     }
                   },
                   onStepContinue: () {
                     if (_formKeys[_currentStep].currentState.validate()) {
-                      setState(() {
-                        _currentStep < stepsLength - 1
-                            ? _currentStep += 1
-                            : null;
-                      });
+                      setState(
+                        () {
+                          _currentStep < stepsLength - 1
+                              ? _currentStep += 1
+                              : null;
+                        },
+                      );
                     }
                   },
                   onStepCancel: () {
                     if (_formKeys[_currentStep].currentState.validate()) {
-                      setState(() {
-                        _currentStep > 0 ? _currentStep -= 1 : null;
-                      });
+                      setState(
+                        () {
+                          _currentStep > 0 ? _currentStep -= 1 : null;
+                        },
+                      );
                     }
                   },
                   steps: [
@@ -338,23 +328,27 @@ class LeadStepperState extends State<LeadStepper> {
                       content: Form(
                         key: _formKeys[0],
                         child: !isAddress
-                            ? Column(children: [
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.fromLTRB(0, 32, 0, 0),
-                                  child: AddressSearch(
+                            ? Column(
+                                children: [
+                                  Padding(
+                                    padding:
+                                        const EdgeInsets.fromLTRB(0, 32, 0, 0),
+                                    child: AddressSearch(
                                       onAddressChange: (val) {
                                         nearbySelect(val);
                                       },
                                       returnNearby: true,
-                                      locationValue: locationValue),
-                                ),
-                                TextFormField(
-                                  decoration: InputDecoration(
-                                      labelText: "Address 2 (optional)"),
-                                  controller: address2Controller,
-                                )
-                              ])
+                                      locationValue: locationValue,
+                                    ),
+                                  ),
+                                  TextFormField(
+                                    decoration: InputDecoration(
+                                      labelText: "Address 2 (optional)",
+                                    ),
+                                    controller: address2Controller,
+                                  )
+                                ],
+                              )
                             : Column(
                                 children: [
                                   Padding(
@@ -388,7 +382,6 @@ class LeadStepperState extends State<LeadStepper> {
                                     decoration: InputDecoration(
                                         labelText: "Doing Business As"),
                                     controller: dbaNameController,
-                                    // validator: validate,
                                   ),
                                   Padding(
                                     padding: const EdgeInsets.only(top: 8.0),
@@ -448,12 +441,6 @@ class LeadStepperState extends State<LeadStepper> {
                               decoration:
                                   InputDecoration(labelText: "Last Name"),
                               controller: lastNameController,
-                              // validator: (value) {
-                              //   if (value.isEmpty) {
-                              //     return 'Please enter a contact last name';
-                              //   }
-                              //   return null;
-                              // },
                             ),
                             TextFormField(
                               decoration:
@@ -470,7 +457,6 @@ class LeadStepperState extends State<LeadStepper> {
                               decoration:
                                   InputDecoration(labelText: "Phone Number"),
                               controller: phoneNumberController,
-                              // validator: validate,
                             ),
                           ],
                         ),
@@ -489,7 +475,6 @@ class LeadStepperState extends State<LeadStepper> {
                             TextFormField(
                               decoration:
                                   InputDecoration(labelText: "Lead Source"),
-                              // validator: validate,
                             ),
                           ],
                         ),
@@ -502,7 +487,6 @@ class LeadStepperState extends State<LeadStepper> {
                   ],
                 ),
               ),
-              // custom stepper buttons
               Container(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,

@@ -11,6 +11,7 @@ class PlacesSuggestions extends StatefulWidget {
   final String locationValue;
   final Function onPlaceSelect;
   final Map addressSearchObj;
+
   PlacesSuggestions(
       {this.locationValue, this.onPlaceSelect, this.addressSearchObj});
 
@@ -18,10 +19,10 @@ class PlacesSuggestions extends StatefulWidget {
   _PlacesSuggestionsState createState() => _PlacesSuggestionsState();
 }
 
-var locationTextController = TextEditingController();
+bool isLoading = false;
 final homeScaffoldKey = GlobalKey<ScaffoldState>();
 final searchScaffoldKey = GlobalKey<ScaffoldState>();
-bool isLoading = false;
+var locationTextController = TextEditingController();
 
 class _PlacesSuggestionsState extends State<PlacesSuggestions> {
   @override
@@ -119,9 +120,11 @@ class _PlacesSuggestionsState extends State<PlacesSuggestions> {
                       children: <Widget>[
                         Padding(
                           padding: const EdgeInsets.fromLTRB(0, 20, 0, 15),
-                          child: Text("Nearby Businesses",
-                              style: TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.bold)),
+                          child: Text(
+                            "Nearby Businesses",
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
                         ),
                         Divider(),
                         Column(
@@ -157,21 +160,24 @@ class _PlacesSuggestionsState extends State<PlacesSuggestions> {
                           }).toList(),
                         ),
                         GestureDetector(
-                            onTap: () {
-                              notListed(this.widget.addressSearchObj);
-                              setState(() {
-                                isLoading = true;
-                              });
-                            },
-                            child: Card(
-                              child: ListTile(
-                                title: Text("Not Listed",
-                                    style: TextStyle(
-                                        color: Colors.blue,
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold)),
+                          onTap: () {
+                            notListed(this.widget.addressSearchObj);
+                            setState(() {
+                              isLoading = true;
+                            });
+                          },
+                          child: Card(
+                            child: ListTile(
+                              title: Text(
+                                "Not Listed",
+                                style: TextStyle(
+                                    color: Colors.blue,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold),
                               ),
-                            ))
+                            ),
+                          ),
+                        )
                       ],
                     ),
                   ),

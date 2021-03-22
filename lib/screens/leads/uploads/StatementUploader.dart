@@ -38,13 +38,26 @@ class StatementUploader extends StatefulWidget {
 }
 
 class _StatementUploaderState extends State<StatementUploader> {
+  final picker = ImagePicker();
   static const platform = const MethodChannel('com.ces.atlascrm.channel');
-  List<Asset> images = [];
 
+  bool dirtyFlag = false;
+  bool isLoading = true;
+  bool uploadsComplete = false;
+
+  List<Asset> images = [];
   List imageFileList = [];
   List imageDLList = [];
+
   TextEditingController taskDateController = TextEditingController();
+
   var statementEmployee = UserService.employee.employee;
+
+  var dio = Dio();
+  var widgetType;
+  var lead;
+  var leadDocument;
+  var statementId;
 
   @override
   void initState() {
@@ -53,21 +66,12 @@ class _StatementUploaderState extends State<StatementUploader> {
     loadImages();
   }
 
-  var isLoading = true;
-  bool dirtyFlag = false;
-  var uploadsComplete = false;
-  var dio = Dio();
-  var widgetType;
-  var lead;
-  var leadDocument;
-  final picker = ImagePicker();
-  var statementId;
-
   Future<void> loadStatement() async {
     lead = this.widget.lead;
 
     try {
-      QueryOptions options = QueryOptions(documentNode: gql("""
+      QueryOptions options = QueryOptions(
+        documentNode: gql("""
         query GET_STATEMENT {
           statement(where: {lead: {_eq: "${lead["lead"]}"}}) {
             employee
@@ -78,30 +82,38 @@ class _StatementUploaderState extends State<StatementUploader> {
             }
           }
         }
-      """), fetchPolicy: FetchPolicy.networkOnly);
+      """),
+        fetchPolicy: FetchPolicy.networkOnly,
+      );
 
       final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
       if (result.hasException == false) {
         if (result.data != null && result.data != "") {
-          setState(() {
-            statementEmployee = result.data["statement"][0]["employee"];
-            statementId = result.data["statement"][0]["statement"];
-          });
+          setState(
+            () {
+              statementEmployee = result.data["statement"][0]["employee"];
+              statementId = result.data["statement"][0]["statement"];
+            },
+          );
           if (result.data["statement"][0]["document"] != null) {
             if (result.data["statement"][0]["document"]["emailSent"] != null) {
-              setState(() {
-                uploadsComplete = true;
-              });
+              setState(
+                () {
+                  uploadsComplete = true;
+                },
+              );
             } else {
               setState(() {
                 dirtyFlag = true;
               });
             }
           } else {
-            setState(() {
-              dirtyFlag = true;
-            });
+            setState(
+              () {
+                dirtyFlag = true;
+              },
+            );
           }
         }
       }
@@ -114,36 +126,34 @@ class _StatementUploaderState extends State<StatementUploader> {
     var successMsg = "Task created!";
     var msgLength = Toast.LENGTH_SHORT;
     var taskEmployee = UserService.employee.employee;
-    // if (UserService.isAdmin || UserService.isSalesManager) {
-    //   if (statementEmployee != null) {
-    //     taskEmployee = statementEmployee;
-    //   } else {
-    //     taskEmployee = UserService.employee.employee;
-    //   }
-    // } else {
-    //   taskEmployee = UserService.employee.employee;
-    // }
     var openStatus;
     var rateReviewType;
 
-    QueryOptions openStatusOptions = QueryOptions(documentNode: gql("""
-      query TaskStatus {
+    QueryOptions openStatusOptions = QueryOptions(
+      documentNode: gql("""
+      query TASK_STATUS {
         task_status {
           task_status
           document
           title
         }
       }
-    """));
+    """),
+      fetchPolicy: FetchPolicy.networkOnly,
+    );
 
-    QueryOptions rateReviewTypeOptions = QueryOptions(documentNode: gql("""
-      query MyQuery(\$title: String) {
+    QueryOptions rateReviewTypeOptions = QueryOptions(
+      documentNode: gql("""
+      query TASK_TYPES(\$title: String) {
         task_type(where: {title: {_eq: \$title}}) {
           task_type
           title
         }
       }
-    """), variables: {"title": "Rate Review Presentation"});
+    """),
+      fetchPolicy: FetchPolicy.networkOnly,
+      variables: {"title": "Rate Review Presentation"},
+    );
 
     final QueryResult result0 =
         await GqlClientFactory().authGqlquery(openStatusOptions);
@@ -152,24 +162,21 @@ class _StatementUploaderState extends State<StatementUploader> {
 
     if (result0 != null && result1 != null) {
       if (result0.hasException == false && result0.hasException == false) {
-        //code to nab the task type
-
-        result0.data["task_status"].forEach((item) {
-          if (item["title"] == "Open") {
-            openStatus = item["task_status"];
-          }
-        });
+        result0.data["task_status"].forEach(
+          (item) {
+            if (item["title"] == "Open") {
+              openStatus = item["task_status"];
+            }
+          },
+        );
 
         rateReviewType = result1.data["task_type"][0]["task_type"];
       }
     } else {
       print(new Error());
-      throw new Error();
     }
     var saveDate = DateTime.parse(taskDateController.text).toUtc();
     var saveDateFormat = DateFormat("yyyy-MM-dd HH:mm").format(saveDate);
-
-    // var timeNow = DateFormat("yyyy-MM-dd HH:mm").format(DateTime.now());
 
     Map data = {
       "task_status": openStatus,
@@ -187,15 +194,18 @@ class _StatementUploaderState extends State<StatementUploader> {
     };
 
     try {
-      MutationOptions options = MutationOptions(documentNode: gql("""
-        mutation InsertTask(\$data: [task_insert_input!]! = {}) {
+      MutationOptions options = MutationOptions(
+        documentNode: gql("""
+        mutation INSERT_TASK(\$data: [task_insert_input!]! = {}) {
           insert_task(objects: \$data) {
             returning {
               task
             }
           }
         }
-            """), variables: {"data": data});
+            """),
+        variables: {"data": data},
+      );
 
       final QueryResult result =
           await GqlClientFactory().authGqlmutate(options);
@@ -212,7 +222,6 @@ class _StatementUploaderState extends State<StatementUploader> {
         }
       } else {
         print(new Error());
-        throw new Error();
       }
     } catch (err) {
       print(err);
@@ -234,123 +243,108 @@ class _StatementUploaderState extends State<StatementUploader> {
           return AlertDialog(
             title: Text('Unsent Statement!'),
             content: StatefulBuilder(
-                builder: (BuildContext context, StateSetter setState) {
-              return SingleChildScrollView(
-                child: ListBody(
-                  children: <Widget>[
-                    Text('You have an unsubmitted statement!'),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
-                      child: Text(
-                          ' Would you like to submit this statement before you leave?'),
-                    ),
-                    UserService.isAdmin || UserService.isSalesManager
-                        ? Container()
-                        : Padding(
-                            padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
-                            child: Text(
-                                'Please enter the date and time you intend to present the rate review to this merchant'),
-                          ),
-                    UserService.isAdmin || UserService.isSalesManager
-                        ? Container()
-                        : DateTimeField(
-                            onEditingComplete: () =>
-                                FocusScope.of(context).nextFocus(),
-                            decoration: InputDecoration(
-                                labelText: "Date to Present Rate Review"),
-                            format: DateFormat("yyyy-MM-dd HH:mm"),
-                            controller: taskDateController,
-                            onShowPicker: (context, currentValue) async {
-                              final date = await showDatePicker(
-                                context: context,
-                                firstDate: DateTime(1900),
-                                initialDate: currentValue ?? DateTime.now(),
-                                lastDate: DateTime(2100),
-                              );
-                              if (date != null) {
-                                final time = await showTimePicker(
+              builder: (BuildContext context, StateSetter setState) {
+                return SingleChildScrollView(
+                  child: ListBody(
+                    children: <Widget>[
+                      Text('You have an unsubmitted statement!'),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
+                        child: Text(
+                            ' Would you like to submit this statement before you leave?'),
+                      ),
+                      UserService.isAdmin || UserService.isSalesManager
+                          ? Container()
+                          : Padding(
+                              padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
+                              child: Text(
+                                  'Please enter the date and time you intend to present the rate review to this merchant'),
+                            ),
+                      UserService.isAdmin || UserService.isSalesManager
+                          ? Container()
+                          : DateTimeField(
+                              onEditingComplete: () =>
+                                  FocusScope.of(context).nextFocus(),
+                              decoration: InputDecoration(
+                                  labelText: "Date to Present Rate Review"),
+                              format: DateFormat("yyyy-MM-dd HH:mm"),
+                              controller: taskDateController,
+                              onShowPicker: (context, currentValue) async {
+                                final date = await showDatePicker(
                                   context: context,
-                                  initialTime: TimeOfDay.fromDateTime(
-                                    currentValue ?? DateTime.now(),
-                                  ),
+                                  firstDate: DateTime(1900),
+                                  initialDate: currentValue ?? DateTime.now(),
+                                  lastDate: DateTime(2100),
                                 );
-                                return DateTimeField.combine(date, time);
-                              } else {
-                                return currentValue;
-                              }
-                            },
-                          ),
-                    Divider(
-                      color: Colors.white,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: <Widget>[
-                        FlatButton(
-                          child: Text('Submit',
-                              style:
-                                  TextStyle(color: Colors.green, fontSize: 17)),
-                          onPressed: () {
-                            if (UserService.isAdmin ||
-                                UserService.isSalesManager) {
-                              Navigator.pop(context);
-                              uploadComplete();
-                            } else {
-                              if (taskDateController.text != "" &&
-                                  taskDateController.text != null) {
+                                if (date != null) {
+                                  final time = await showTimePicker(
+                                    context: context,
+                                    initialTime: TimeOfDay.fromDateTime(
+                                      currentValue ?? DateTime.now(),
+                                    ),
+                                  );
+                                  return DateTimeField.combine(date, time);
+                                } else {
+                                  return currentValue;
+                                }
+                              },
+                            ),
+                      Divider(
+                        color: Colors.white,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: <Widget>[
+                          FlatButton(
+                            child: Text('Submit',
+                                style: TextStyle(
+                                    color: Colors.green, fontSize: 17)),
+                            onPressed: () {
+                              if (UserService.isAdmin ||
+                                  UserService.isSalesManager) {
                                 Navigator.pop(context);
                                 uploadComplete();
                               } else {
-                                Fluttertoast.showToast(
-                                    msg: "Please select a date/time!",
-                                    toastLength: Toast.LENGTH_SHORT,
-                                    gravity: ToastGravity.BOTTOM,
-                                    backgroundColor: Colors.grey[600],
-                                    textColor: Colors.white,
-                                    fontSize: 16.0);
+                                if (taskDateController.text != "" &&
+                                    taskDateController.text != null) {
+                                  Navigator.pop(context);
+                                  uploadComplete();
+                                } else {
+                                  Fluttertoast.showToast(
+                                      msg: "Please select a date/time!",
+                                      toastLength: Toast.LENGTH_SHORT,
+                                      gravity: ToastGravity.BOTTOM,
+                                      backgroundColor: Colors.grey[600],
+                                      textColor: Colors.white,
+                                      fontSize: 16.0);
+                                }
                               }
-                            }
-                          },
-                        ),
-                        FlatButton(
-                          child: Text('Leave',
-                              style:
-                                  TextStyle(color: Colors.red, fontSize: 17)),
-                          onPressed: () {
-                            Navigator.pushNamed(context, "/viewlead",
-                                arguments: lead["lead"]);
-                          },
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              );
-            }),
-            // actions: <Widget>[
-            //   FlatButton(
-            //     child: Text('Submit', style: TextStyle(fontSize: 17)),
-            //     onPressed: () {
-
-            //       Navigator.pop(context);
-            //       uploadComplete();
-            //     },
-            //   ),
-            //   FlatButton(
-            //     child: Text('Leave',
-            //         style: TextStyle(color: Colors.red, fontSize: 17)),
-            //     onPressed: () {
-            //       Navigator.pushNamed(context, "/viewlead",
-            //           arguments: lead["lead"]);
-            //     },
-            //   ),
-            // ],
+                            },
+                          ),
+                          FlatButton(
+                            child: Text('Leave',
+                                style:
+                                    TextStyle(color: Colors.red, fontSize: 17)),
+                            onPressed: () {
+                              Navigator.pushNamed(
+                                context,
+                                "/viewlead",
+                                arguments: lead["lead"],
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
           );
         },
       );
     } else {
       Navigator.pushNamed(context, "/viewlead", arguments: lead["lead"]);
-      // Navigator.pop(context);
       return;
     }
   }
@@ -363,106 +357,118 @@ class _StatementUploaderState extends State<StatementUploader> {
           return AlertDialog(
             title: Text('Assign Statement'),
             content: StatefulBuilder(
-                builder: (BuildContext context, StateSetter setState) {
-              return SingleChildScrollView(
-                child: ListBody(
-                  children: <Widget>[
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
-                      child: Text(
-                          'Would you like to give a different employee credit for this statement?'),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(15, 10, 15, 0),
-                      child: EmployeeDropDown(
+              builder: (BuildContext context, StateSetter setState) {
+                return SingleChildScrollView(
+                  child: ListBody(
+                    children: <Widget>[
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
+                        child: Text(
+                            'Would you like to give a different employee credit for this statement?'),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(15, 10, 15, 0),
+                        child: EmployeeDropDown(
                           caption: "Statement Owner",
                           displayClear: false,
                           value: statementEmployee,
                           callback: (value) {
-                            print(value);
                             statementEmployee = value;
-                          }),
-                    ),
-                    Divider(
-                      color: Colors.white,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: <Widget>[
-                        FlatButton(
-                          child: Text('Assign',
-                              style:
-                                  TextStyle(color: Colors.green, fontSize: 17)),
-                          onPressed: () {
-                            addImage(result);
-                            Navigator.pop(context);
                           },
                         ),
-                        FlatButton(
-                          child: Text('Cancel',
+                      ),
+                      Divider(
+                        color: Colors.white,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: <Widget>[
+                          FlatButton(
+                            child: Text(
+                              'Assign',
                               style:
-                                  TextStyle(color: Colors.red, fontSize: 17)),
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              );
-            }),
+                                  TextStyle(color: Colors.green, fontSize: 17),
+                            ),
+                            onPressed: () {
+                              addImage(result);
+                              Navigator.pop(context);
+                            },
+                          ),
+                          FlatButton(
+                            child: Text(
+                              'Cancel',
+                              style: TextStyle(color: Colors.red, fontSize: 17),
+                            ),
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
           );
         },
       );
     } else {
-      Navigator.pushNamed(context, "/viewlead", arguments: lead["lead"]);
-      // Navigator.pop(context);
+      Navigator.pushNamed(
+        context,
+        "/viewlead",
+        arguments: lead["lead"],
+      );
       return;
     }
   }
 
   var currentImage;
   Future<void> viewImage(asset, imgIndex) async {
-    // var newPath = asset. ;
     showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return Scaffold(
-              appBar: CustomAppBar(
-                title: Text("Viewing Image"),
-                action: <Widget>[
-                  uploadsComplete
-                      ? Container()
-                      : MaterialButton(
-                          padding: EdgeInsets.all(5),
-                          color: Colors.red,
-                          // color: Colors.grey[300],
-                          onPressed: () {
-                            deleteCheck(currentImage);
-                          },
-                          child: Row(
-                            children: <Widget>[
-                              Icon(
-                                Icons.clear,
-                                color: Colors.white,
-                              ),
-                              Text(
-                                'Delete',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
+      context: context,
+      builder: (BuildContext context) {
+        return Scaffold(
+          appBar: CustomAppBar(
+            title: Text("Viewing Image"),
+            action: <Widget>[
+              uploadsComplete
+                  ? Container()
+                  : MaterialButton(
+                      padding: EdgeInsets.all(5),
+                      color: Colors.red,
+                      onPressed: () {
+                        deleteCheck(currentImage);
+                      },
+                      child: Row(
+                        children: <Widget>[
+                          Icon(
+                            Icons.clear,
+                            color: Colors.white,
                           ),
-                        ),
-                ],
-              ),
-              body: Center(
-                  child: Column(children: <Widget>[
-                Expanded(child: buildPhotoGallery(context, imgIndex))
-              ])));
-        });
+                          Text(
+                            'Delete',
+                            style: TextStyle(
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+            ],
+          ),
+          body: Center(
+            child: Column(
+              children: <Widget>[
+                Expanded(
+                  child: buildPhotoGallery(context, imgIndex),
+                )
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   String path;
@@ -480,7 +486,6 @@ class _StatementUploaderState extends State<StatementUploader> {
   Future<File> writeCounter(Uint8List stream) async {
     final file = await _localFile;
 
-    // Write the file
     return file.writeAsBytes(stream);
   }
 
@@ -506,45 +511,49 @@ class _StatementUploaderState extends State<StatementUploader> {
     });
     if (!mounted) return;
     showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return Scaffold(
-              appBar: CustomAppBar(
-                title: Text("Viewing PDF"),
-                action: <Widget>[
-                  uploadsComplete
-                      ? Container()
-                      : MaterialButton(
-                          padding: EdgeInsets.all(5),
-                          color: Colors.red,
-                          // color: Colors.grey[300],
-                          onPressed: () {
-                            deleteCheck(asset);
-                          },
-                          child: Row(
-                            children: <Widget>[
-                              Icon(
-                                Icons.clear,
-                                color: Colors.white,
-                              ),
-                              Text(
-                                'Delete',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
+      context: context,
+      builder: (BuildContext context) {
+        return Scaffold(
+          appBar: CustomAppBar(
+            title: Text("Viewing PDF"),
+            action: <Widget>[
+              uploadsComplete
+                  ? Container()
+                  : MaterialButton(
+                      padding: EdgeInsets.all(5),
+                      color: Colors.red,
+                      onPressed: () {
+                        deleteCheck(asset);
+                      },
+                      child: Row(
+                        children: <Widget>[
+                          Icon(
+                            Icons.clear,
+                            color: Colors.white,
                           ),
-                        ),
-                ],
-              ),
-              body: Center(
-                  child: Column(children: <Widget>[
+                          Text(
+                            'Delete',
+                            style: TextStyle(
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+            ],
+          ),
+          body: Center(
+            child: Column(
+              children: <Widget>[
                 Expanded(
                   child: PDFView(filePath: path),
                 )
-              ])));
-        });
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   List galleryImages = [];
@@ -553,56 +562,64 @@ class _StatementUploaderState extends State<StatementUploader> {
     PageController pageController = PageController(initialPage: page);
 
     return Container(
-        child: PhotoViewGallery.builder(
-      scrollPhysics: const BouncingScrollPhysics(),
-      builder: (BuildContext context, int index) {
-        return PhotoViewGalleryPageOptions(
-          imageProvider: NetworkImage(galleryImages[index]["url"]),
-          initialScale: PhotoViewComputedScale.contained * 0.8,
-          // heroAttributes: HeroAttributes(tag: "image $index"),
-        );
-      },
-      itemCount: galleryImages.length,
-      loadingBuilder: (context, event) => Center(
-        child: Container(
-          width: 20.0,
-          height: 20.0,
-          child: CircularProgressIndicator(
-            value: event == null
-                ? 0
-                : event.cumulativeBytesLoaded / event.expectedTotalBytes,
+      child: PhotoViewGallery.builder(
+        scrollPhysics: const BouncingScrollPhysics(),
+        builder: (BuildContext context, int index) {
+          return PhotoViewGalleryPageOptions(
+            imageProvider: NetworkImage(
+              galleryImages[index]["url"],
+            ),
+            initialScale: PhotoViewComputedScale.contained * 0.8,
+          );
+        },
+        itemCount: galleryImages.length,
+        loadingBuilder: (context, event) => Center(
+          child: Container(
+            width: 20.0,
+            height: 20.0,
+            child: CircularProgressIndicator(
+              value: event == null
+                  ? 0
+                  : event.cumulativeBytesLoaded / event.expectedTotalBytes,
+            ),
           ),
         ),
+        // backgroundDecoration: widget.backgroundDecoration,
+        pageController: pageController,
+        onPageChanged: (newVal) {
+          setState(
+            () {
+              currentImage = galleryImages[newVal];
+            },
+          );
+        },
       ),
-      // backgroundDecoration: widget.backgroundDecoration,
-      pageController: pageController,
-      onPageChanged: (newVal) {
-        setState(() {
-          currentImage = galleryImages[newVal];
-        });
-      },
-    ));
+    );
   }
 
   Widget buildDLGridView() {
     return GridView.count(
       shrinkWrap: true,
       crossAxisCount: 3,
-      children: List.generate(imageDLList.length, (index) {
-        Map imgFile = imageDLList[index];
-        var stringLen = imgFile["url"].length;
-        var extendo = imgFile["url"].substring(stringLen - 3, stringLen);
-        return GestureDetector(
+      children: List.generate(
+        imageDLList.length,
+        (index) {
+          Map imgFile = imageDLList[index];
+          var stringLen = imgFile["url"].length;
+          var extendo = imgFile["url"].substring(stringLen - 3, stringLen);
+          return GestureDetector(
             onTap: () {
               if (extendo == "pdf") {
                 viewPdf(
                   imgFile,
                 );
               } else {
-                setState(() {
-                  galleryImages = [];
-                  currentImage = imgFile;
-                });
+                setState(
+                  () {
+                    galleryImages = [];
+                    currentImage = imgFile;
+                  },
+                );
                 for (var item in imageDLList) {
                   var stringLen = item["url"].length;
                   var extendo = item["url"].substring(stringLen - 3, stringLen);
@@ -619,23 +636,29 @@ class _StatementUploaderState extends State<StatementUploader> {
                     height: 300,
                     width: 300,
                     decoration: BoxDecoration(
-                        image: DecorationImage(
-                      fit: BoxFit.fitWidth,
-                      alignment: FractionalOffset.topCenter,
-                      image: AssetImage("assets/pdf_thumbnail.png"),
-                    )),
+                      image: DecorationImage(
+                        fit: BoxFit.fitWidth,
+                        alignment: FractionalOffset.topCenter,
+                        image: AssetImage("assets/pdf_thumbnail.png"),
+                      ),
+                    ),
                   )
                 : Container(
                     height: 300,
                     width: 300,
                     decoration: BoxDecoration(
-                        image: DecorationImage(
-                      fit: BoxFit.fitWidth,
-                      alignment: FractionalOffset.topCenter,
-                      image: NetworkImage(imgFile["url"]),
-                    )),
-                  ));
-      }),
+                      image: DecorationImage(
+                        fit: BoxFit.fitWidth,
+                        alignment: FractionalOffset.topCenter,
+                        image: NetworkImage(
+                          imgFile["url"],
+                        ),
+                      ),
+                    ),
+                  ),
+          );
+        },
+      ),
     );
   }
 
@@ -716,29 +739,34 @@ class _StatementUploaderState extends State<StatementUploader> {
   Future<void> loadImages() async {
     try {
       QueryOptions options = QueryOptions(
-          documentNode: gql("""
+        documentNode: gql("""
       query LEAD_PHOTOS(\$lead: uuid!) {
         lead_photos(lead: \$lead){
           photos
         }
       }
       """),
-          variables: {"lead": lead["lead"]},
-          fetchPolicy: FetchPolicy.networkOnly);
+        fetchPolicy: FetchPolicy.networkOnly,
+        variables: {
+          "lead": lead["lead"],
+        },
+      );
 
       final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
       if (result.hasException == false) {
         if (result.data != null && result.data != "") {
           for (var imgUrl in result.data["lead_photos"]["photos"]) {
-            print(imgUrl);
             var url =
                 "${ConfigSettings.HOOK_API_URL}/uploads/statement/$imgUrl";
-            setState(() {
-              imageDLList.add({"name": imgUrl, "url": url});
-            });
+            setState(
+              () {
+                imageDLList.add(
+                  {"name": imgUrl, "url": url},
+                );
+              },
+            );
           }
-          print(imageDLList);
         }
       }
     } catch (err) {
@@ -751,36 +779,44 @@ class _StatementUploaderState extends State<StatementUploader> {
           textColor: Colors.white,
           fontSize: 16.0);
     }
-    setState(() {
-      isLoading = false;
-    });
+    setState(
+      () {
+        isLoading = false;
+      },
+    );
   }
 
   Future<void> uploadComplete() async {
     try {
-      setState(() {
-        isLoading = true;
-      });
+      setState(
+        () {
+          isLoading = true;
+        },
+      );
 
-      MutationOptions mutateOptions = MutationOptions(documentNode: gql("""
+      MutationOptions mutateOptions = MutationOptions(
+        documentNode: gql("""
         mutation SEND_EMAIL(\$to:[String]!, \$subject:String!, \$html:String!, \$type:String!, \$statement:String!){
           email_statement(to:\$to, subject:\$subject, html:\$html, type:\$type, statement:\$statement){
             email_status
           }
         }
-        """), variables: {
-        "to": [
-          "nick.kalich@butlerbizsys.com",
-          "jerrod.lumley@a1pos.com",
-          "john.deluga@butlerbizsys.com",
-          "ahrindo@gmail.com"
-        ],
-        "subject":
-            "New Statement For Review: ${this.widget.lead["document"]["businessName"]} - ${this.widget.lead["document"]["address"]}",
-        "html": 'Lead: ${this.widget.lead["document"]["businessName"]} <br />',
-        "type": "STATEMENT",
-        "statement": statementId
-      });
+        """),
+        variables: {
+          "to": [
+            "nick.kalich@butlerbizsys.com",
+            "jerrod.lumley@a1pos.com",
+            "john.deluga@butlerbizsys.com",
+            "ahrindo@gmail.com"
+          ],
+          "subject":
+              "New Statement For Review: ${this.widget.lead["document"]["businessName"]} - ${this.widget.lead["document"]["address"]}",
+          "html":
+              'Lead: ${this.widget.lead["document"]["businessName"]} <br />',
+          "type": "STATEMENT",
+          "statement": statementId
+        },
+      );
       final QueryResult result =
           await GqlClientFactory().authGqlmutate(mutateOptions);
 
@@ -789,10 +825,12 @@ class _StatementUploaderState extends State<StatementUploader> {
           if (!UserService.isAdmin || !UserService.isSalesManager) {
             createTask();
           }
-          setState(() {
-            uploadsComplete = true;
-            isLoading = false;
-          });
+          setState(
+            () {
+              uploadsComplete = true;
+              isLoading = false;
+            },
+          );
           Fluttertoast.showToast(
               msg: "Statement Submited!",
               toastLength: Toast.LENGTH_SHORT,
@@ -804,7 +842,6 @@ class _StatementUploaderState extends State<StatementUploader> {
         }
       }
     } catch (err) {
-      print("ERROR LOOK AT THIS vvvvvvvvv");
       print(err);
       setState(() {
         isLoading = false;
@@ -820,10 +857,6 @@ class _StatementUploaderState extends State<StatementUploader> {
   }
 
   Future<void> addImage(path) async {
-    // Uri fileUri = Uri.parse(path);
-    // File newFile = File.fromUri(fileUri);
-    print("FILE URI: $path");
-
     try {
       var resp;
       if (UserService.isAdmin || UserService.isSalesManager) {
@@ -850,7 +883,7 @@ class _StatementUploaderState extends State<StatementUploader> {
           statementId = resp.data["statement"];
           dirtyFlag = true;
         });
-        // await loadLeadData(this.widget.leadId);
+
         Fluttertoast.showToast(
             msg: "File Uploaded!",
             toastLength: Toast.LENGTH_SHORT,
@@ -858,15 +891,13 @@ class _StatementUploaderState extends State<StatementUploader> {
             backgroundColor: Colors.grey[600],
             textColor: Colors.white,
             fontSize: 16.0);
+
         var imgUrl = resp.data["name"];
         var url = "${ConfigSettings.HOOK_API_URL}/uploads/statement/$imgUrl";
+
         setState(() {
           imageDLList.add({"name": imgUrl, "url": url});
         });
-        // setState(() {
-        //   imageDLList = [];
-        // });
-        // loadImages();
       } else {
         Fluttertoast.showToast(
             msg: "Failed to upload file!",
@@ -886,63 +917,28 @@ class _StatementUploaderState extends State<StatementUploader> {
     return WillPopScope(
       onWillPop: () async {
         leaveCheck();
-        // Navigator.pop(context);
         return Future.value(false);
       },
       child: Scaffold(
-          appBar: CustomAppBar(
-              key: Key("viewTasksAppBar"),
-              title: Text(isLoading
-                  ? "Loading..."
-                  : "Statements for: " + lead["document"]["businessName"]),
-              action: <Widget>[]),
-          body: isLoading
-              ? CenteredLoadingSpinner()
-              : Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Padding(
-                      padding: const EdgeInsets.only(top: 0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          Padding(
-                            padding: const EdgeInsets.only(top: 100),
-                            child: RawMaterialButton(
-                              materialTapTargetSize:
-                                  MaterialTapTargetSize.shrinkWrap,
-                              shape: CircleBorder(),
-                              padding: EdgeInsets.all(15.0),
-                              fillColor: uploadsComplete
-                                  ? Colors.grey
-                                  : UniversalStyles.actionColor,
-                              onPressed: uploadsComplete
-                                  ? () {}
-                                  : () async {
-                                      var result = await platform
-                                          .invokeMethod("openMedia");
-                                      if (UserService.isAdmin ||
-                                          UserService.isSalesManager) {
-                                        if (imageDLList.length == 0) {
-                                          adminUploadCheck(result);
-                                        } else {
-                                          addImage(result);
-                                        }
-                                      } else {
-                                        addImage(result);
-                                      }
-                                    },
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Icon(
-                                  Icons.photo_library,
-                                  color: Colors.white,
-                                  size: 30,
-                                ),
-                              ),
-                            ),
-                          ),
-                          RawMaterialButton(
+        appBar: CustomAppBar(
+            key: Key("viewTasksAppBar"),
+            title: Text(isLoading
+                ? "Loading..."
+                : "Statements for: " + lead["document"]["businessName"]),
+            action: <Widget>[]),
+        body: isLoading
+            ? CenteredLoadingSpinner()
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.only(top: 0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Padding(
+                          padding: const EdgeInsets.only(top: 100),
+                          child: RawMaterialButton(
                             materialTapTargetSize:
                                 MaterialTapTargetSize.shrinkWrap,
                             shape: CircleBorder(),
@@ -954,7 +950,7 @@ class _StatementUploaderState extends State<StatementUploader> {
                                 ? () {}
                                 : () async {
                                     var result = await platform
-                                        .invokeMethod("openCamera");
+                                        .invokeMethod("openMedia");
                                     if (UserService.isAdmin ||
                                         UserService.isSalesManager) {
                                       if (imageDLList.length == 0) {
@@ -967,65 +963,102 @@ class _StatementUploaderState extends State<StatementUploader> {
                                     }
                                   },
                             child: Padding(
-                              padding: const EdgeInsets.all(18.0),
+                              padding: const EdgeInsets.all(8.0),
                               child: Icon(
-                                Icons.add_a_photo,
+                                Icons.photo_library,
                                 color: Colors.white,
-                                size: 60,
+                                size: 30,
                               ),
                             ),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 100),
-                            child: RawMaterialButton(
-                              materialTapTargetSize:
-                                  MaterialTapTargetSize.shrinkWrap,
-                              shape: CircleBorder(),
-                              padding: EdgeInsets.all(15.0),
-                              fillColor: uploadsComplete
-                                  ? Colors.grey
-                                  : UniversalStyles.actionColor,
-                              onPressed: uploadsComplete
-                                  ? () {}
-                                  : () async {
-                                      var result = await FilePicker.getFilePath(
-                                          type: FileType.custom,
-                                          allowedExtensions: ['pdf']);
-                                      if (UserService.isAdmin ||
-                                          UserService.isSalesManager) {
-                                        if (imageDLList.length == 0) {
-                                          adminUploadCheck(result);
-                                        } else {
-                                          addImage(result);
-                                        }
+                        ),
+                        RawMaterialButton(
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                          shape: CircleBorder(),
+                          padding: EdgeInsets.all(15.0),
+                          fillColor: uploadsComplete
+                              ? Colors.grey
+                              : UniversalStyles.actionColor,
+                          onPressed: uploadsComplete
+                              ? () {}
+                              : () async {
+                                  var result =
+                                      await platform.invokeMethod("openCamera");
+                                  if (UserService.isAdmin ||
+                                      UserService.isSalesManager) {
+                                    if (imageDLList.length == 0) {
+                                      adminUploadCheck(result);
+                                    } else {
+                                      addImage(result);
+                                    }
+                                  } else {
+                                    addImage(result);
+                                  }
+                                },
+                          child: Padding(
+                            padding: const EdgeInsets.all(18.0),
+                            child: Icon(
+                              Icons.add_a_photo,
+                              color: Colors.white,
+                              size: 60,
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 100),
+                          child: RawMaterialButton(
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
+                            shape: CircleBorder(),
+                            padding: EdgeInsets.all(15.0),
+                            fillColor: uploadsComplete
+                                ? Colors.grey
+                                : UniversalStyles.actionColor,
+                            onPressed: uploadsComplete
+                                ? () {}
+                                : () async {
+                                    var result = await FilePicker.getFilePath(
+                                        type: FileType.custom,
+                                        allowedExtensions: ['pdf']);
+                                    if (UserService.isAdmin ||
+                                        UserService.isSalesManager) {
+                                      if (imageDLList.length == 0) {
+                                        adminUploadCheck(result);
                                       } else {
                                         addImage(result);
                                       }
-                                    },
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Icon(
-                                  Icons.picture_as_pdf,
-                                  color: Colors.white,
-                                  size: 30,
-                                ),
+                                    } else {
+                                      addImage(result);
+                                    }
+                                  },
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Icon(
+                                Icons.picture_as_pdf,
+                                color: Colors.white,
+                                size: 30,
                               ),
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(15.0),
-                      child: Text("Upload Statements",
-                          style: TextStyle(fontSize: 20)),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(15.0),
+                    child: Text(
+                      "Upload Statements",
+                      style: TextStyle(fontSize: 20),
                     ),
-                    Flexible(
-                      fit: FlexFit.loose,
-                      child: buildDLGridView(),
-                    ),
-                  ],
-                )),
+                  ),
+                  Flexible(
+                    fit: FlexFit.loose,
+                    child: buildDLGridView(),
+                  ),
+                ],
+              ),
+      ),
     );
   }
 }

@@ -5,12 +5,13 @@ import 'package:flutter/material.dart';
 class StatementsChart extends StatefulWidget {
   StatementsChart({this.data});
   final List data;
+
   @override
   _StatementsChartState createState() => _StatementsChartState();
 }
 
 class _StatementsChartState extends State<StatementsChart> {
-  var isLoading = true;
+  bool isLoading = true;
 
   var seriesList;
   var statsData = List<SalesPerson>();
@@ -28,7 +29,11 @@ class _StatementsChartState extends State<StatementsChart> {
       var temp = List<SalesPerson>();
       for (var item in this.widget.data) {
         temp.add(
-            SalesPerson(item["fullname"], int.parse(item["statementcount"])));
+          SalesPerson(
+            item["fullname"],
+            int.parse(item["statementcount"]),
+          ),
+        );
       }
       setState(() {
         statsData = temp;

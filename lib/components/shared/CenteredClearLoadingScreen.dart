@@ -5,6 +5,7 @@ class CenteredClearLoadingScreen extends StatefulWidget {
   final String loadText;
 
   CenteredClearLoadingScreen({this.loadText});
+
   @override
   _CenteredClearLoadingScreenState createState() =>
       _CenteredClearLoadingScreenState();

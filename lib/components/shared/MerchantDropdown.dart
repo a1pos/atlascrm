@@ -4,12 +4,12 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:searchable_dropdown/searchable_dropdown.dart';
 
 class MerchantDropDown extends StatefulWidget {
-  MerchantDropDown({this.employeeId, this.callback, this.value, this.disabled});
-
+  final bool disabled;
+  final Function callback;
   final String employeeId;
   final String value;
-  final Function callback;
-  final bool disabled;
+
+  MerchantDropDown({this.employeeId, this.callback, this.value, this.disabled});
 
   @override
   _MerchantDropDownState createState() => _MerchantDropDownState();
@@ -18,6 +18,7 @@ class MerchantDropDown extends StatefulWidget {
 class _MerchantDropDownState extends State<MerchantDropDown> {
   var merchants = [];
   var disabled;
+  var startVal;
 
   @override
   void initState() {
@@ -33,17 +34,18 @@ class _MerchantDropDownState extends State<MerchantDropDown> {
     }
   }
 
-  var startVal;
-
   Future<void> initMerchants(e) async {
-    QueryOptions options = QueryOptions(documentNode: gql("""
+    QueryOptions options = QueryOptions(
+      documentNode: gql("""
       query GET_MERCHANTS {
         merchant(where: {is_active: {_eq: true}}) {
           merchant
           businessName: document(path:"leadDocument['businessName']")
         }
       }
-      """), fetchPolicy: FetchPolicy.networkOnly);
+      """),
+      fetchPolicy: FetchPolicy.networkOnly,
+    );
 
     final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
@@ -62,8 +64,6 @@ class _MerchantDropDownState extends State<MerchantDropDown> {
           }
         }
         for (var merchant in merchants) {
-          print("MERCHANT: ");
-          print(merchant);
           if (this.widget.value == merchant["merchant"] &&
               merchant["businessName"] != null) {
             startVal = merchant["businessName"];
@@ -77,7 +77,6 @@ class _MerchantDropDownState extends State<MerchantDropDown> {
 
   @override
   Widget build(BuildContext context) {
-    // initMerchants(this.widget.employeeId);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -88,7 +87,6 @@ class _MerchantDropDownState extends State<MerchantDropDown> {
             fontSize: 13,
           ),
         ),
-
         SearchableDropdown.single(
           value: startVal,
           onClear: () {
@@ -99,7 +97,6 @@ class _MerchantDropDownState extends State<MerchantDropDown> {
           hint: "Please choose one",
           searchHint: null,
           isExpanded: true,
-          // menuConstraints: BoxConstraints.tight(Size.fromHeight(350)),
           items: merchants.map<DropdownMenuItem<String>>((dynamic item) {
             var merchantName;
 
@@ -140,29 +137,6 @@ class _MerchantDropDownState extends State<MerchantDropDown> {
                   });
                 },
         )
-
-        // DropdownButtonFormField<String>(
-        //   isExpanded: true,
-        //   value: this.widget.value,
-        //   hint: Text("Please choose one"),
-        //   items: merchants.map((dynamic item) {
-        //     var merchantname;
-        //     if (item["document"]?.isEmpty ?? true) {
-        //       merchantname = "";
-        //     } else {
-        //       merchantname = item["document"]["dbaname"];
-        //     }
-        //     return DropdownMenuItem<String>(
-        //       value: item["merchant"],
-        //       child: Text(
-        //         merchantname,
-        //       ),
-        //     );
-        //   }).toList(),
-        //   onChanged: (newValue) {
-        //     this.widget.callback(newValue);
-        //   },
-        // ),
       ],
     );
   }

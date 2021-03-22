@@ -1,4 +1,3 @@
-import 'package:atlascrm/screens/tasks/TaskScreen.dart';
 import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
@@ -17,9 +16,11 @@ class LeadDropDown extends StatefulWidget {
 }
 
 class _LeadDropDownState extends State<LeadDropDown> {
+  bool isLoading = true;
+
   var leads = [];
   var disabled;
-  bool isLoading = true;
+  var startVal;
 
   @override
   void initState() {
@@ -34,8 +35,6 @@ class _LeadDropDownState extends State<LeadDropDown> {
     }
   }
 
-  var startVal;
-
   Future<void> initLeads() async {
     QueryOptions options;
     if (this.widget.employeeId == null) {
@@ -46,16 +45,9 @@ class _LeadDropDownState extends State<LeadDropDown> {
         });
       }
       return;
-      // options = QueryOptions(documentNode: gql("""
-      //       query Leads {
-      //         lead{
-      //           lead
-      //           document
-      //         }
-      //       }
-      //       """), fetchPolicy: FetchPolicy.networkOnly);
     } else {
-      options = QueryOptions(documentNode: gql("""
+      options = QueryOptions(
+        documentNode: gql("""
             query EMPLOYEE_LEADS {
               employee_by_pk(employee: "${this.widget.employeeId}") {
                 leads {
@@ -64,7 +56,9 @@ class _LeadDropDownState extends State<LeadDropDown> {
                 }
               }
             }
-            """), fetchPolicy: FetchPolicy.networkOnly);
+            """),
+        fetchPolicy: FetchPolicy.networkOnly,
+      );
     }
     if (this.widget.employeeId != null) {
       final QueryResult result = await GqlClientFactory().authGqlquery(options);
@@ -120,7 +114,6 @@ class _LeadDropDownState extends State<LeadDropDown> {
           hint: isLoading ? "Loading..." : "Please choose one",
           searchHint: null,
           isExpanded: true,
-          // menuConstraints: BoxConstraints.tight(Size.fromHeight(350)),
           items: leads.map<DropdownMenuItem<String>>((dynamic item) {
             var businessName;
             if (item["document"]?.isEmpty ?? true) {
@@ -151,29 +144,6 @@ class _LeadDropDownState extends State<LeadDropDown> {
                   });
                 },
         )
-
-        // DropdownButtonFormField<String>(
-        //   isExpanded: true,
-        //   value: this.widget.value,
-        //   hint: Text("Please choose one"),
-        //   items: leads.map((dynamic item) {
-        //     var businessName;
-        //     if (item["document"]?.isEmpty ?? true) {
-        //       businessName = "";
-        //     } else {
-        //       businessName = item["document"]["businessName"];
-        //     }
-        //     return DropdownMenuItem<String>(
-        //       value: item["lead"],
-        //       child: Text(
-        //         businessName,
-        //       ),
-        //     );
-        //   }).toList(),
-        //   onChanged: (newValue) {
-        //     this.widget.callback(newValue);
-        //   },
-        // ),
       ],
     );
   }

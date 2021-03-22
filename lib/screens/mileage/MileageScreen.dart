@@ -20,9 +20,9 @@ class MileageScreen extends StatefulWidget {
 }
 
 class _MileageScreenState extends State<MileageScreen> {
-  var isLoading = true;
-  var isRunning = false;
   final destinationController = TextEditingController();
+  bool isLoading = true;
+  bool isRunning = false;
 
   @override
   void initState() {
@@ -99,15 +99,17 @@ class _MileageScreenState extends State<MileageScreen> {
             ),
             actions: <Widget>[
               FlatButton(
-                child: Text('Not a Merchant?',
-                    style: TextStyle(fontSize: 17, color: Colors.green)),
+                child: Text(
+                  'Not a Merchant?',
+                  style: TextStyle(fontSize: 17, color: Colors.green),
+                ),
                 onPressed: () {
-                  setState(() {
-                    Navigator.pop(context);
-                    selectDestination(false);
-                    // destination["merchant"] = !destination["merchant"];
-                    // print(destination);
-                  });
+                  setState(
+                    () {
+                      Navigator.pop(context);
+                      selectDestination(false);
+                    },
+                  );
                 },
               ),
             ],
@@ -192,13 +194,17 @@ class _MileageScreenState extends State<MileageScreen> {
             ),
             actions: <Widget>[
               FlatButton(
-                child: Text('Merchant?',
-                    style: TextStyle(fontSize: 17, color: Colors.green)),
+                child: Text(
+                  'Merchant?',
+                  style: TextStyle(fontSize: 17, color: Colors.green),
+                ),
                 onPressed: () {
-                  setState(() {
-                    Navigator.pop(context);
-                    selectDestination(true);
-                  });
+                  setState(
+                    () {
+                      Navigator.pop(context);
+                      selectDestination(true);
+                    },
+                  );
                 },
               ),
             ],
@@ -251,60 +257,68 @@ class _MileageScreenState extends State<MileageScreen> {
         }
       }
       if (status) {
-        //START TRIP LOGIC
-        MutationOptions mutateOptions = MutationOptions(documentNode: gql("""
+        MutationOptions mutateOptions = MutationOptions(
+          documentNode: gql("""
           mutation INSERT_TRIP (\$started_at: timestamptz, \$merchant: uuid, \$employee: uuid, \$document: jsonb){
             insert_trip_one(object: {started_at: \$started_at, merchant: \$merchant, employee: \$employee, document: \$document}) {
               trip
             }
           }
-        """), variables: {
-          "started_at": currentTime,
-          "merchant": sendMerchant,
-          "document": sendDocument,
-          "employee": UserService.employee.employee
-        });
+        """),
+          variables: {
+            "started_at": currentTime,
+            "merchant": sendMerchant,
+            "document": sendDocument,
+            "employee": UserService.employee.employee
+          },
+        );
 
         final QueryResult result =
             await GqlClientFactory().authGqlmutate(mutateOptions);
         if (result.hasException == true) {
           Fluttertoast.showToast(
-              msg: result.exception.toString(),
-              toastLength: Toast.LENGTH_LONG,
-              gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.grey[600],
-              textColor: Colors.white,
-              fontSize: 16.0);
+            msg: result.exception.toString(),
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0,
+          );
           return;
         } else {
           await this.widget.storageService.save(
               "techTripId", result.data["insert_trip_one"]["trip"].toString());
-          setState(() {
-            isRunning = status;
-          });
+          setState(
+            () {
+              isRunning = status;
+            },
+          );
         }
       } else {
-        //END TRIP LOGIC
         var trip = await this.widget.storageService.read("techTripId");
         if (trip != "" && trip != "null") {
-          MutationOptions mutateOptions = MutationOptions(documentNode: gql("""
+          MutationOptions mutateOptions = MutationOptions(
+            documentNode: gql("""
            mutation UPDATE_TRIP_COMPLETE (\$completed_at: timestamptz, \$trip: uuid!) {
             update_trip_by_pk(pk_columns: {trip: \$trip}, _set: {is_completed: true, completed_at: \$completed_at}) {
               trip
             }
           }
-           """), variables: {"completed_at": currentTime, "trip": trip});
+           """),
+            variables: {"completed_at": currentTime, "trip": trip},
+          );
 
           final QueryResult result =
               await GqlClientFactory().authGqlmutate(mutateOptions);
           if (result.hasException == true) {
             Fluttertoast.showToast(
-                msg: result.exception.toString(),
-                toastLength: Toast.LENGTH_LONG,
-                gravity: ToastGravity.BOTTOM,
-                backgroundColor: Colors.grey[600],
-                textColor: Colors.white,
-                fontSize: 16.0);
+              msg: result.exception.toString(),
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.grey[600],
+              textColor: Colors.white,
+              fontSize: 16.0,
+            );
             return;
           } else {
             setState(() {
@@ -334,10 +348,12 @@ class _MileageScreenState extends State<MileageScreen> {
     } catch (err) {
       await this.widget.storageService.delete("isTechTripRunning");
       await this.widget.storageService.delete("techTripId");
+
       setState(() {
         isLoading = false;
         isRunning = false;
       });
+
       log(err);
     }
   }

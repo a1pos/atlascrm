@@ -21,6 +21,7 @@ class _InventoryPriceTierDropDownState
     extends State<InventoryPriceTierDropDown> {
   var locations = [];
   var disabled;
+  var startVal;
 
   @override
   void initState() {
@@ -36,23 +37,22 @@ class _InventoryPriceTierDropDownState
     }
   }
 
-  var startVal;
-
   Future<void> initPriceTiers() async {
-    QueryOptions options = QueryOptions(documentNode: gql("""
-        query GetPriceTiers {
+    QueryOptions options = QueryOptions(
+      documentNode: gql("""
+        query GET_PRICE_TIERS {
           inventory_price_tier{
             inventory_price_tier
             model    
           }
         }
-      """), fetchPolicy: FetchPolicy.networkOnly);
+      """),
+      fetchPolicy: FetchPolicy.networkOnly,
+    );
 
     final QueryResult locationsResp =
         await GqlClientFactory().authGqlquery(options);
 
-    //REPLACE WITH GRAPHQL
-    // var locationsResp = await apiService.authGet(context, "/inventory/tier");
     if (locationsResp != null) {
       if (locationsResp.hasException == false) {
         var locationsArrDecoded = locationsResp.data["inventory_price_tier"];
@@ -84,7 +84,6 @@ class _InventoryPriceTierDropDownState
             fontSize: 13,
           ),
         ),
-
         SearchableDropdown.single(
           value: startVal,
           onClear: () {
@@ -95,7 +94,6 @@ class _InventoryPriceTierDropDownState
           hint: "Please choose one",
           searchHint: null,
           isExpanded: true,
-          // menuConstraints: BoxConstraints.tight(Size.fromHeight(350)),
           items: locations.map<DropdownMenuItem<String>>((dynamic item) {
             var businessName;
             if (item["model"]?.isEmpty ?? true) {
@@ -126,29 +124,6 @@ class _InventoryPriceTierDropDownState
                   });
                 },
         )
-
-        // DropdownButtonFormField<String>(
-        //   isExpanded: true,
-        //   value: this.widget.value,
-        //   hint: Text("Please choose one"),
-        //   items: leads.map((dynamic item) {
-        //     var businessName;
-        //     if (item["document"]?.isEmpty ?? true) {
-        //       businessName = "";
-        //     } else {
-        //       businessName = item["document"]["businessName"];
-        //     }
-        //     return DropdownMenuItem<String>(
-        //       value: item["lead"],
-        //       child: Text(
-        //         businessName,
-        //       ),
-        //     );
-        //   }).toList(),
-        //   onChanged: (newValue) {
-        //     this.widget.callback(newValue);
-        //   },
-        // ),
       ],
     );
   }

@@ -2,7 +2,6 @@ import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:intl/intl.dart';
@@ -15,50 +14,8 @@ class SalesLeaderboardCards extends StatefulWidget {
 
 class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
   final UserService userService = UserService();
-  var currentPage = 1;
   final _pageController = PageController(viewportFraction: .8);
-  var isLoading = true;
-  var seriesList;
-
-  var items;
-  var statements;
-  var agreements;
-  var label = "items";
   final currencyFmt = new NumberFormat("#,##0", "en_US");
-  List starColors = [Colors.yellow[600], Colors.grey[500], Colors.orange[600]];
-  var timeDropdownValue = "week";
-
-  var timeFilterItems = [
-    {"text": "Today", "value": "today"},
-    {"text": "Week to Date", "value": "week"},
-    {"text": "Month to Date", "value": "month"},
-    {"text": "Year to Date", "value": "year"}
-  ];
-
-  var typeDropdownValue = "statement";
-  var typeFilterItems = [
-    {"text": "Statements", "value": "statement"},
-    {"text": "Agreements", "value": "agreement"}
-  ];
-  @override
-  void initState() {
-    initSub();
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    subscription.cancel();
-    subscription = null;
-    super.dispose();
-  }
-
-  var graphList;
-  var graphFinal = [];
-
-  var dateFrom;
-  var dateTo;
 
   final today =
       DateFormat('yyyy-MM-dd').format(DateTime.now()).toString() + " 11:00";
@@ -74,10 +31,56 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
       .format(DateTime(DateTime.now().year, 1, 1))
       .toString();
 
+  bool isLoading = true;
+
+  List starColors = [Colors.yellow[600], Colors.grey[500], Colors.orange[600]];
+
+  var currentPage = 1;
+
+  var seriesList;
+
+  var items;
+  var statements;
+  var agreements;
+  var label = "items";
+  var timeDropdownValue = "week";
+
+  var graphList;
+  var graphFinal = [];
+
+  var dateFrom;
+  var dateTo;
+
   var subscription;
 
+  var timeFilterItems = [
+    {"text": "Today", "value": "today"},
+    {"text": "Week to Date", "value": "week"},
+    {"text": "Month to Date", "value": "month"},
+    {"text": "Year to Date", "value": "year"}
+  ];
+
+  var typeDropdownValue = "statement";
+  var typeFilterItems = [
+    {"text": "Statements", "value": "statement"},
+    {"text": "Agreements", "value": "agreement"}
+  ];
+
+  @override
+  void initState() {
+    initSub();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    subscription.cancel();
+    subscription = null;
+    super.dispose();
+  }
+
   Future initSub() async {
-    print("starting sub in frontend");
     Operation options = Operation(
         operationName: "GET_CARD_LEADERBOARD_COUNT", documentNode: gql("""
           subscription GET_CARD_LEADERBOARD_COUNT {
@@ -94,52 +97,27 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
           }
         """));
 
-    subscription = await GqlClientFactory().authGqlsubscribe(options, (data) {
-      var incomingData = data.data["v_leaderboard"];
-      if (incomingData != null) {
-        if (this.mounted) {
-          setState(() {
-            graphList = incomingData;
-            isLoading = false;
-          });
+    subscription = await GqlClientFactory().authGqlsubscribe(
+      options,
+      (data) {
+        var incomingData = data.data["v_leaderboard"];
+        if (incomingData != null) {
+          if (this.mounted) {
+            setState(() {
+              graphList = incomingData;
+              isLoading = false;
+            });
+          }
         }
-      }
-    }, (error) {
-      print("found error: " + error.toString() + " in front end");
-    }, () => refreshSub());
-
-    // subscription = result.listen(
-    //   (data) async {
-    //     var incomingData = data.data["v_leaderboard"];
-    //     if (incomingData != null) {
-    //       if (this.mounted) {
-    //         setState(() {
-    //           graphList = incomingData;
-    //           isLoading = false;
-    //         });
-    //       }
-    //     }
-    //   },
-    //   onError: (error) async {
-    //     var errMsg = error.payload["message"];
-    //     print(errMsg);
-    //     if (errMsg.contains("JWTExpired")) {
-    //       await refreshSub();
-    //     } else {
-    //       Fluttertoast.showToast(
-    //           msg: errMsg,
-    //           toastLength: Toast.LENGTH_LONG,
-    //           gravity: ToastGravity.BOTTOM,
-    //           backgroundColor: Colors.grey[600],
-    //           textColor: Colors.white,
-    //           fontSize: 16.0);
-    //     }
-    //   },
-    // );
+      },
+      (error) {
+        print("found error: " + error.toString() + " in front end");
+      },
+      () => refreshSub(),
+    );
   }
 
   Future refreshSub() async {
-    print("refreshing sub from frontend");
     if (subscription != null) {
       await subscription.cancel();
       subscription = null;
@@ -190,7 +168,6 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
             Text("Tied!", style: TextStyle(color: UniversalStyles.themeColor));
       }
     }
-    print(graphFinal);
 
     return Card(
       elevation: 3,
@@ -216,30 +193,13 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
               alignment: Alignment.center,
               overflow: Overflow.visible,
               children: <Widget>[
-                // Container(
-                //     width: 115,
-                //     height: 115,
-                //     child: CircularProgressIndicator(
-                //       valueColor:
-                //           AlwaysStoppedAnimation(Colors.deepPurple[400]),
-                //       strokeWidth: 8,
-                //       value: graphFinal[index]["agreements"] / 6,
-                //     )),
-                // Container(
-                //     width: 135,
-                //     height: 135,
-                //     child: CircularProgressIndicator(
-                //       valueColor:
-                //           AlwaysStoppedAnimation(Colors.deepPurpleAccent[100]),
-                //       strokeWidth: 8,
-                //       value: graphFinal[index]["statements"] / 10,
-                //     )),
                 Center(
                   child: Container(
-                      child: CircleAvatar(
-                    backgroundImage: employeeImage.image,
-                    maxRadius: 50,
-                  )),
+                    child: CircleAvatar(
+                      backgroundImage: employeeImage.image,
+                      maxRadius: 50,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -255,59 +215,71 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
                     padding: const EdgeInsets.all(10),
                     child: Row(
                       children: <Widget>[
-                        Text("Agreements (MTD): ",
-                            style: TextStyle(
-                                color: Color.fromRGBO(144, 97, 249, 1))),
-                        Text(graphFinal[index]["agreements"].toString(),
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Color.fromRGBO(144, 97, 249, 1))),
+                        Text(
+                          "Agreements (MTD): ",
+                          style:
+                              TextStyle(color: Color.fromRGBO(144, 97, 249, 1)),
+                        ),
+                        Text(
+                          graphFinal[index]["agreements"].toString(),
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Color.fromRGBO(144, 97, 249, 1)),
+                        ),
                       ],
                     ),
                   ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(5, 0, 5, 0),
                     child: Container(
-                        width: 250,
-                        height: 10,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.all(Radius.circular(10)),
-                          child: LinearProgressIndicator(
-                            value: graphFinal[index]["agreements"] / 6,
-                            valueColor:
-                                AlwaysStoppedAnimation(Colors.deepPurple[400]),
-                            backgroundColor: Colors.deepPurple[100],
-                          ),
-                        )),
+                      width: 250,
+                      height: 10,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                        child: LinearProgressIndicator(
+                          value: graphFinal[index]["agreements"] / 6,
+                          valueColor:
+                              AlwaysStoppedAnimation(Colors.deepPurple[400]),
+                          backgroundColor: Colors.deepPurple[100],
+                        ),
+                      ),
+                    ),
                   ),
                   Padding(
                     padding: const EdgeInsets.all(10),
                     child: Row(
                       children: <Widget>[
-                        Text(" Statements (WTD): ",
-                            style: TextStyle(
-                                color: Color.fromRGBO(144, 97, 249, 1))),
-                        Text(graphFinal[index]["statements"].toString(),
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Color.fromRGBO(144, 97, 249, 1))),
+                        Text(
+                          " Statements (WTD): ",
+                          style: TextStyle(
+                            color: Color.fromRGBO(144, 97, 249, 1),
+                          ),
+                        ),
+                        Text(
+                          graphFinal[index]["statements"].toString(),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Color.fromRGBO(144, 97, 249, 1),
+                          ),
+                        ),
                       ],
                     ),
                   ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(5, 0, 5, 10),
                     child: Container(
-                        width: 250,
-                        height: 10,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.all(Radius.circular(10)),
-                          child: LinearProgressIndicator(
-                            value: graphFinal[index]["statements"] / 10,
-                            valueColor:
-                                AlwaysStoppedAnimation(Colors.deepPurple[400]),
-                            backgroundColor: Colors.deepPurple[100],
-                          ),
-                        )),
+                      width: 250,
+                      height: 10,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                        child: LinearProgressIndicator(
+                          value: graphFinal[index]["statements"] / 10,
+                          valueColor:
+                              AlwaysStoppedAnimation(Colors.deepPurple[400]),
+                          backgroundColor: Colors.deepPurple[100],
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -322,19 +294,22 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
                 padding: const EdgeInsets.all(10.0),
                 child: Row(
                   children: <Widget>[
-                    Text("Volume (MTD): ",
-                        style: TextStyle(
-                            // fontWeight: FontWeight.bold,
-                            color: Color.fromRGBO(144, 97, 249, 1))),
+                    Text(
+                      "Volume (MTD): ",
+                      style: TextStyle(
+                        color: Color.fromRGBO(144, 97, 249, 1),
+                      ),
+                    ),
                     Text(
                       "\$" +
                           currencyFmt
                               .format(graphFinal[index]["volume"])
                               .toString(),
                       style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Color.fromRGBO(144, 97, 249, 1)),
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Color.fromRGBO(144, 97, 249, 1),
+                      ),
                     ),
                   ],
                 ),
@@ -350,15 +325,20 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
                 padding: const EdgeInsets.all(10.0),
                 child: Row(
                   children: <Widget>[
-                    Text(" Stops (Today): ",
-                        style: TextStyle(
-                            // fontWeight: FontWeight.bold,
-                            color: Color.fromRGBO(144, 97, 249, 1))),
-                    Text(graphFinal[index]["stops"].toString(),
-                        style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Color.fromRGBO(144, 97, 249, 1)))
+                    Text(
+                      " Stops (Today): ",
+                      style: TextStyle(
+                        color: Color.fromRGBO(144, 97, 249, 1),
+                      ),
+                    ),
+                    Text(
+                      graphFinal[index]["stops"].toString(),
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Color.fromRGBO(144, 97, 249, 1),
+                      ),
+                    )
                   ],
                 ),
               ),
@@ -373,15 +353,20 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
                 padding: const EdgeInsets.all(10.0),
                 child: Row(
                   children: <Widget>[
-                    Text(" Leads (Today): ",
-                        style: TextStyle(
-                            // fontWeight: FontWeight.bold,
-                            color: Color.fromRGBO(144, 97, 249, 1))),
-                    Text(graphFinal[index]["leads"].toString(),
-                        style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Color.fromRGBO(144, 97, 249, 1)))
+                    Text(
+                      " Leads (Today): ",
+                      style: TextStyle(
+                        color: Color.fromRGBO(144, 97, 249, 1),
+                      ),
+                    ),
+                    Text(
+                      graphFinal[index]["leads"].toString(),
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Color.fromRGBO(144, 97, 249, 1),
+                      ),
+                    )
                   ],
                 ),
               ),
@@ -399,15 +384,16 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
         return StatefulBuilder(
             builder: (BuildContext context, StateSetter setState) {
           return Center(
-              child: Container(
-            height: 550,
-            child: PageView.builder(
-              controller: _pageController,
-              scrollDirection: Axis.horizontal,
-              itemCount: graphFinal.length,
-              itemBuilder: (context, index) => _builder(index),
+            child: Container(
+              height: 550,
+              child: PageView.builder(
+                controller: _pageController,
+                scrollDirection: Axis.horizontal,
+                itemCount: graphFinal.length,
+                itemBuilder: (context, index) => _builder(index),
+              ),
             ),
-          ));
+          );
         });
       },
     );
@@ -415,8 +401,10 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
 
   Widget buildDLGridView() {
     return ListView(
-        shrinkWrap: true,
-        children: List.generate(graphFinal.length, (index) {
+      shrinkWrap: true,
+      children: List.generate(
+        graphFinal.length,
+        (index) {
           var employee = graphFinal[index];
 
           bool tied = false;
@@ -438,12 +426,10 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
           if (ranked == true) {
             if (tied == true) {
               borderColor = UniversalStyles.themeColor;
-              // trailingWidget = IconButton(
-              //   icon: Icon(Icons.swap_vert, color: UniversalStyles.themeColor),
-              //   onPressed: null,
-              // );
-              trailingWidget = Text("Tied!",
-                  style: TextStyle(color: UniversalStyles.themeColor));
+              trailingWidget = Text(
+                "Tied!",
+                style: TextStyle(color: UniversalStyles.themeColor),
+              );
             } else {
               borderColor = starColors[index];
               trailingWidget = IconButton(
@@ -454,12 +440,10 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
           } else {
             if (tied == true) {
               borderColor = UniversalStyles.themeColor;
-              // trailingWidget = IconButton(
-              //   icon: Icon(Icons.swap_vert, color: UniversalStyles.themeColor),
-              //   onPressed: null,
-              // );
-              trailingWidget = Text("Tied!",
-                  style: TextStyle(color: UniversalStyles.themeColor));
+              trailingWidget = Text(
+                "Tied!",
+                style: TextStyle(color: UniversalStyles.themeColor),
+              );
             }
           }
 
@@ -470,57 +454,52 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
             employeeImage = Image.asset("assets/google_logo.png");
           }
           return GestureDetector(
-              onTap: () async {
-                openCard();
-                return new Future.delayed(const Duration(milliseconds: 50),
-                    () => _pageController.jumpToPage(index));
-              },
-              child: Card(
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                      side: BorderSide(color: borderColor, width: 2.0),
-                      borderRadius: BorderRadius.circular(4.0)),
-                  child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundImage: employeeImage.image,
-                        maxRadius: 20,
-                      ),
-                      title: Text(employee["name"]),
-                      // isThreeLine: true,
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: <Widget>[
-                              Text("Agreements: ",
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold)),
-                              Text(employee["agreements"].toString()),
-                            ],
+            onTap: () async {
+              openCard();
+              return new Future.delayed(const Duration(milliseconds: 50),
+                  () => _pageController.jumpToPage(index));
+            },
+            child: Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                  side: BorderSide(color: borderColor, width: 2.0),
+                  borderRadius: BorderRadius.circular(4.0)),
+              child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundImage: employeeImage.image,
+                    maxRadius: 20,
+                  ),
+                  title: Text(employee["name"]),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: <Widget>[
+                          Text(
+                            "Agreements: ",
+                            style: TextStyle(fontWeight: FontWeight.bold),
                           ),
-                          Row(
-                            children: <Widget>[
-                              // Text("Vol : ",
-                              //     style:
-                              //         TextStyle(fontWeight: FontWeight.bold)),
-                              Text("\$" +
-                                  currencyFmt
-                                      .format(employee["volume"])
-                                      .toString()),
-                            ],
-                          ),
-                          // Row(
-                          //   children: <Widget>[
-                          //     Text(" Statements: "),
-                          //     Text(employee["statementCount"].toString())
-                          //   ],
-                          // ),
-                          // Text(" Stops(TD): " +
-                          //     employee["stopCount"].toString()),
+                          Text(employee["agreements"].toString()),
                         ],
                       ),
-                      trailing: trailingWidget)));
-        }));
+                      Row(
+                        children: <Widget>[
+                          Text(
+                            "\$" +
+                                currencyFmt
+                                    .format(employee["volume"])
+                                    .toString(),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  trailing: trailingWidget),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   @override

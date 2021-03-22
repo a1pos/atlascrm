@@ -4,12 +4,12 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:searchable_dropdown/searchable_dropdown.dart';
 
 class DeviceDropDown extends StatefulWidget {
-  DeviceDropDown({this.callback, this.value, this.disabled, this.employee});
-
-  final String value;
-  final Function callback;
   final bool disabled;
+  final Function callback;
+  final String value;
   final String employee;
+
+  DeviceDropDown({this.callback, this.value, this.disabled, this.employee});
 
   @override
   _DeviceDropDownState createState() => _DeviceDropDownState();
@@ -18,6 +18,7 @@ class DeviceDropDown extends StatefulWidget {
 class _DeviceDropDownState extends State<DeviceDropDown> {
   var devices = [];
   var disabled;
+  var startVal;
 
   @override
   void initState() {
@@ -33,12 +34,10 @@ class _DeviceDropDownState extends State<DeviceDropDown> {
     }
   }
 
-  var startVal;
-
   Future<void> initDevices() async {
     QueryOptions options = QueryOptions(
         documentNode: gql("""
-      query MyQuery (\$employee: uuid!){
+      query GET_DEVICES (\$employee: uuid!){
         employee_device(where: {employee: {_eq: \$employee}}){
           employee_device
             deviceName: document(path: "deviceName")
@@ -52,8 +51,6 @@ class _DeviceDropDownState extends State<DeviceDropDown> {
     final QueryResult devicesResp =
         await GqlClientFactory().authGqlquery(options);
 
-    //REPLACE WITH GRAPHQL
-    // var locationsResp = await apiService.authGet(context, "/inventory/tier");
     if (devicesResp != null) {
       if (devicesResp.hasException == false) {
         var devicesArrDecoded = devicesResp.data["employee_device"];
@@ -85,7 +82,6 @@ class _DeviceDropDownState extends State<DeviceDropDown> {
             fontSize: 13,
           ),
         ),
-
         SearchableDropdown.single(
           value: startVal,
           onClear: () {
@@ -96,7 +92,6 @@ class _DeviceDropDownState extends State<DeviceDropDown> {
           hint: "Please choose one",
           searchHint: null,
           isExpanded: true,
-          // menuConstraints: BoxConstraints.tight(Size.fromHeight(350)),
           items: devices.map<DropdownMenuItem<String>>((dynamic item) {
             var deviceName;
             if (item["deviceName"]?.isEmpty ?? true) {
@@ -127,29 +122,6 @@ class _DeviceDropDownState extends State<DeviceDropDown> {
                   });
                 },
         )
-
-        // DropdownButtonFormField<String>(
-        //   isExpanded: true,
-        //   value: this.widget.value,
-        //   hint: Text("Please choose one"),
-        //   items: leads.map((dynamic item) {
-        //     var deviceName;
-        //     if (item["document"]?.isEmpty ?? true) {
-        //       deviceName = "";
-        //     } else {
-        //       deviceName = item["document"]["deviceName"];
-        //     }
-        //     return DropdownMenuItem<String>(
-        //       value: item["lead"],
-        //       child: Text(
-        //         deviceName,
-        //       ),
-        //     );
-        //   }).toList(),
-        //   onChanged: (newValue) {
-        //     this.widget.callback(newValue);
-        //   },
-        // ),
       ],
     );
   }

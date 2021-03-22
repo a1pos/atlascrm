@@ -24,6 +24,10 @@ class ViewInventoryScreen extends StatefulWidget {
 class ViewInventoryScreenState extends State<ViewInventoryScreen> {
   final _leadFormKey = GlobalKey<FormState>();
 
+  bool idChanged = false;
+  bool isLoading = true;
+  String addressText;
+
   var serialNumberController = TextEditingController();
   var priceTierController = TextEditingController();
   var merchantController = TextEditingController();
@@ -32,71 +36,83 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
 
   var deviceIcon;
 
-  String addressText;
-  bool idChanged = false;
   var inventory;
   var inventoryDocument;
-  var isLoading = true;
   var displayPhone;
   var deviceStatus = "?";
+
+  var employee;
+
+  var childButtons = List<UnicornButton>();
+
   void initState() {
     super.initState();
     loadInventoryData();
   }
 
-  var employee;
-
-  var childButtons = List<UnicornButton>();
   Future<void> initStatus() async {
     childButtons = List<UnicornButton>();
     if (inventory["is_installed"] == true) {
       deviceStatus = "Installed";
       deviceIcon = Icons.done;
-      childButtons.add(UnicornButton(
+      childButtons.add(
+        UnicornButton(
           hasLabel: true,
           labelText: "Return",
           currentButton: FloatingActionButton(
-              heroTag: "return",
-              backgroundColor: Colors.redAccent,
-              mini: true,
-              child: Icon(Icons.replay),
-              onPressed: () {
-                updateDevice("return");
-              })));
+            heroTag: "return",
+            backgroundColor: Colors.redAccent,
+            mini: true,
+            child: Icon(Icons.replay),
+            onPressed: () {
+              updateDevice("return");
+            },
+          ),
+        ),
+      );
     }
     if (inventory["merchantByMerchant"] != null &&
         inventory["is_installed"] != true) {
       deviceStatus = "Awaiting Install";
       deviceIcon = Icons.directions_car;
-      childButtons.add(UnicornButton(
+      childButtons.add(
+        UnicornButton(
           hasLabel: true,
           labelText: "Install",
           currentButton: FloatingActionButton(
-              heroTag: "install",
-              backgroundColor: Colors.greenAccent,
-              mini: true,
-              child: Icon(Icons.build),
-              onPressed: () {
-                updateDevice("install");
-              })));
+            heroTag: "install",
+            backgroundColor: Colors.greenAccent,
+            mini: true,
+            child: Icon(Icons.build),
+            onPressed: () {
+              updateDevice("install");
+            },
+          ),
+        ),
+      );
 
-      childButtons.add(UnicornButton(
+      childButtons.add(
+        UnicornButton(
           hasLabel: true,
           labelText: "Return",
           currentButton: FloatingActionButton(
-              heroTag: "return2",
-              backgroundColor: Colors.redAccent,
-              mini: true,
-              child: Icon(Icons.replay),
-              onPressed: () {
-                updateDevice("return");
-              })));
+            heroTag: "return2",
+            backgroundColor: Colors.redAccent,
+            mini: true,
+            child: Icon(Icons.replay),
+            onPressed: () {
+              updateDevice("return");
+            },
+          ),
+        ),
+      );
     }
     if (inventory["merchantByMerchant"] == null &&
         inventory["employeeByEmployee"] == null) {
       deviceStatus = "In Warehouse";
       deviceIcon = Icons.business;
-      childButtons.add(UnicornButton(
+      childButtons.add(
+        UnicornButton(
           hasLabel: true,
           labelText: "Checkout",
           currentButton: FloatingActionButton(
@@ -107,12 +123,15 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
             onPressed: () {
               checkout();
             },
-          )));
+          ),
+        ),
+      );
     }
   }
 
   Future<void> loadInventoryData() async {
-    QueryOptions options = QueryOptions(documentNode: gql("""
+    QueryOptions options = QueryOptions(
+      documentNode: gql("""
         query GET_INVENTORY{inventory_by_pk(inventory: "${this.widget.incoming["id"]}"){
           inventory
           merchantByMerchant{
@@ -154,7 +173,9 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
             }
           }
         }}
-            """), fetchPolicy: FetchPolicy.networkOnly);
+            """),
+      fetchPolicy: FetchPolicy.networkOnly,
+    );
 
     final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
@@ -163,36 +184,42 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
       if (body != null) {
         var bodyDecoded = body;
 
-        setState(() {
-          inventory = bodyDecoded;
-          if (inventory["id"] != null) {
-            idController.text = inventory["id"];
-          }
-          if (inventory["merchantByMerchant"] != null) {
-            merchantController.text =
-                inventory["merchantByMerchant"]["merchant"];
-
-            merchantNameController.text = inventory["merchantByMerchant"]
-                ["document"]["leadDocument"]["businessName"];
-          } else {
-            merchantController.text = null;
-            merchantNameController.text = null;
-          }
-
-          if (inventory["employeeByEmployee"] != null) {
-            if (inventory["employeeByEmployee"]["document"]["displayName"] !=
-                null) {
-              setState(() {
-                employee =
-                    inventory["employeeByEmployee"]["document"]["displayName"];
-              });
+        setState(
+          () {
+            inventory = bodyDecoded;
+            if (inventory["id"] != null) {
+              idController.text = inventory["id"];
             }
-          }
-          idController.addListener(() {
-            if (!idChanged) idChanged = true;
-          });
-          isLoading = false;
-        });
+            if (inventory["merchantByMerchant"] != null) {
+              merchantController.text =
+                  inventory["merchantByMerchant"]["merchant"];
+
+              merchantNameController.text = inventory["merchantByMerchant"]
+                  ["document"]["leadDocument"]["businessName"];
+            } else {
+              merchantController.text = null;
+              merchantNameController.text = null;
+            }
+
+            if (inventory["employeeByEmployee"] != null) {
+              if (inventory["employeeByEmployee"]["document"]["displayName"] !=
+                  null) {
+                setState(
+                  () {
+                    employee = inventory["employeeByEmployee"]["document"]
+                        ["displayName"];
+                  },
+                );
+              }
+            }
+            idController.addListener(
+              () {
+                if (!idChanged) idChanged = true;
+              },
+            );
+            isLoading = false;
+          },
+        );
       }
     }
     initStatus();
@@ -201,9 +228,9 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
   Future<void> updateDevice(type) async {
     Map data = {};
     var alert;
-    var locationName;
-    var newDocument = {};
+
     alert = "ID updated!";
+
     if (type != "id") {
       if (type == "checkout") {
         data = {
@@ -212,7 +239,6 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
           "id": idController.text
         };
         alert = "Device checked out!";
-        locationName = merchantNameController.text;
       }
       if (type == "return") {
         data = {
@@ -222,52 +248,26 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
           "id": idController.text
         };
         alert = "Device returned!";
-        locationName = UserService.employee.companyName;
       }
       if (type == "install") {
         data = {"is_installed": true, "id": idController.text};
         alert = "Device installed!";
-        locationName = merchantNameController.text;
       }
-      // if (inventory["document"] != null) newDocument = inventory["document"];
-      // if (newDocument["history"] == null) newDocument["history"] = [];
-
-      // var currentTimestamp = DateTime.now().millisecondsSinceEpoch;
-      // print(currentTimestamp);
-      // var newEvent = {
-      //   "date": currentTimestamp,
-      //   "employee": UserService.employee.employee,
-      //   "location": merchantController.text,
-      //   "merchant": type == "return" ? false : true,
-      //   "description": type,
-      //   "employeeName": UserService.employee.document["displayName"],
-      //   "locationName": locationName
-      // };
-      // newDocument["history"].add(newEvent);
-
-      // data["document"] = newDocument;
     } else {
       data = {"id": idController.text};
     }
-    // if (type == "return") {
-    //   data["id"] = null;
-    //   setState(() {
-    //     merchantNameController.text = "";
-    //     idController.text = "";
-    //     employee = "";
-    //   });
-    // } else {
-    //   data["id"] = idController.text;
-    // }
 
-    MutationOptions mutateOptions = MutationOptions(documentNode: gql("""
+    MutationOptions mutateOptions = MutationOptions(
+      documentNode: gql("""
       mutation UPDATE_INVENTORY (\$data: inventory_set_input){
         update_inventory_by_pk(pk_columns: {inventory: "${this.widget.incoming["id"]}"}, _set:\$data){
           inventory
           document
         }
       }
-      """), variables: {"data": data});
+      """),
+      variables: {"data": data},
+    );
     final QueryResult result =
         await GqlClientFactory().authGqlmutate(mutateOptions);
 
@@ -282,13 +282,9 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
       if (this.widget.incoming["origin"] == null) {
         await initStatus();
         await loadInventoryData();
-
-        // Navigator.pushNamed(context, '/inventory');
       } else {
         await initStatus();
         await loadInventoryData();
-
-        // Navigator.pop(context);
       }
     } else {
       Fluttertoast.showToast(
@@ -316,12 +312,16 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
                   padding: const EdgeInsets.fromLTRB(0, 0, 0, 30),
                   child: Text('Checkout this Device'),
                 ),
-                MerchantDropDown(callback: (newValue) {
-                  setState(() {
-                    merchantController.text = newValue["id"];
-                    merchantNameController.text = newValue["name"];
-                  });
-                })
+                MerchantDropDown(
+                  callback: (newValue) {
+                    setState(
+                      () {
+                        merchantController.text = newValue["id"];
+                        merchantNameController.text = newValue["name"];
+                      },
+                    );
+                  },
+                )
               ],
             ),
           ),
@@ -366,14 +366,19 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
           ),
           actions: <Widget>[
             FlatButton(
-              child: Text('Cancel', style: TextStyle(fontSize: 17)),
+              child: Text(
+                'Cancel',
+                style: TextStyle(fontSize: 17),
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             FlatButton(
-              child: Text('Delete',
-                  style: TextStyle(fontSize: 17, color: Colors.red)),
+              child: Text(
+                'Delete',
+                style: TextStyle(fontSize: 17, color: Colors.red),
+              ),
               onPressed: () {
                 deleteDevice();
 
@@ -387,15 +392,19 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
   }
 
   Future<void> deleteDevice() async {
-    MutationOptions mutateOptions = MutationOptions(documentNode: gql("""
+    MutationOptions mutateOptions = MutationOptions(
+      documentNode: gql("""
      mutation DELETE_INVENTORY (\$inventory: uuid!){
       delete_inventory_by_pk(inventory: \$inventory){
         serial
       }
     }
-          """), variables: {"inventory": inventory["inventory"]});
+          """),
+      variables: {"inventory": inventory["inventory"]},
+    );
     final QueryResult result =
         await GqlClientFactory().authGqlmutate(mutateOptions);
+
     if (result.hasException == true) {
       Fluttertoast.showToast(
           msg: result.exception.toString(),
@@ -417,13 +426,16 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
   }
 
   getEmployee(employeeId) async {
-    QueryOptions options = QueryOptions(documentNode: gql("""
+    QueryOptions options = QueryOptions(
+      documentNode: gql("""
       query GET_EMPLOYEE_BY_PK {
         employee_by_pk(employee: "$employeeId"){
           displayName: document(path: "displayName")
         }
       }
-    """), fetchPolicy: FetchPolicy.networkOnly);
+    """),
+      fetchPolicy: FetchPolicy.networkOnly,
+    );
 
     final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
@@ -442,22 +454,25 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
       historyList = reversed;
     }
     return ListView(
-        shrinkWrap: true,
-        children: List.generate(historyList.length, (index) {
+      shrinkWrap: true,
+      children: List.generate(
+        historyList.length,
+        (index) {
           var event = historyList[index];
           var eventType =
               event["inventoryTrackingTypeByInventoryTrackingType"]["title"];
           var eventEmployee;
           if (eventType == "Returned" || eventType == "Scanned In") {
             eventEmployee = FutureBuilder(
-                future: getEmployee(event["created_by"]),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done) {
-                    return Text(snapshot.data);
-                  } else {
-                    return Text("loading");
-                  }
-                });
+              future: getEmployee(event["created_by"]),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  return Text(snapshot.data);
+                } else {
+                  return Text("loading");
+                }
+              },
+            );
           } else {
             eventEmployee =
                 Text(event["employeeByEmployee"]["document"]["displayName"]);
@@ -466,29 +481,33 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
           var eventDate = DateFormat.yMd().add_jm().format(initDate);
 
           return Card(
-              shape: new RoundedRectangleBorder(
-                  side: new BorderSide(color: Colors.grey[200], width: 2.0),
-                  borderRadius: BorderRadius.circular(4.0)),
-              child: ListTile(
-                  isThreeLine: true,
-                  title: Text(eventType == "Returned" ||
-                          eventType == "Scanned In"
-                      ? event["inventoryLocationByInventoryLocation"]["name"]
-                      : event["merchantByMerchant"]["document"]["leadDocument"]
-                          ["businessName"]),
-                  subtitle: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
-                        child: eventEmployee,
-                      )),
-                  trailing: Column(
-                    children: <Widget>[
-                      Text(eventDate),
-                      Text(eventType),
-                    ],
-                  )));
-        }));
+            shape: new RoundedRectangleBorder(
+                side: new BorderSide(color: Colors.grey[200], width: 2.0),
+                borderRadius: BorderRadius.circular(4.0)),
+            child: ListTile(
+              isThreeLine: true,
+              title: Text(eventType == "Returned" || eventType == "Scanned In"
+                  ? event["inventoryLocationByInventoryLocation"]["name"]
+                  : event["merchantByMerchant"]["document"]["leadDocument"]
+                      ["businessName"]),
+              subtitle: Align(
+                alignment: Alignment.centerLeft,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
+                  child: eventEmployee,
+                ),
+              ),
+              trailing: Column(
+                children: <Widget>[
+                  Text(eventDate),
+                  Text(eventType),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   @override

@@ -12,6 +12,7 @@ class AddressSearch extends StatefulWidget {
   final TextEditingController controller;
   final bool returnNearby;
   final Color lineColor;
+
   AddressSearch(
       {this.locationValue,
       this.onAddressChange,
@@ -23,11 +24,11 @@ class AddressSearch extends StatefulWidget {
   _AddressSearchState createState() => _AddressSearchState();
 }
 
-var locationTextController = TextEditingController();
 final homeScaffoldKey = GlobalKey<ScaffoldState>();
 final searchScaffoldKey = GlobalKey<ScaffoldState>();
-
 String locationText;
+
+var locationTextController = TextEditingController();
 
 class _AddressSearchState extends State<AddressSearch> {
   @override
@@ -51,23 +52,26 @@ class _AddressSearchState extends State<AddressSearch> {
   Widget build(BuildContext context) {
     initLocationText();
     return GestureDetector(
-        onTap: () async {
-          Prediction p = await PlacesAutocomplete.show(
-              context: context, apiKey: kGoogleApiKey, mode: Mode.overlay);
-          displayPrediction(p);
-        },
-        child: Container(
-          color: Color.fromRGBO(0, 0, 0, 0),
-          width: MediaQuery.of(context).size.width,
-          child: Column(children: <Widget>[
+      onTap: () async {
+        Prediction p = await PlacesAutocomplete.show(
+            context: context, apiKey: kGoogleApiKey, mode: Mode.overlay);
+        displayPrediction(p);
+      },
+      child: Container(
+        color: Color.fromRGBO(0, 0, 0, 0),
+        width: MediaQuery.of(context).size.width,
+        child: Column(
+          children: <Widget>[
             Align(alignment: Alignment.bottomLeft, child: Text(locationText)),
             Divider(
                 thickness: .5,
                 color: this.widget.lineColor != null
                     ? this.widget.lineColor
                     : Colors.black)
-          ]),
-        ));
+          ],
+        ),
+      ),
+    );
   }
 
   Future<Null> displayPrediction(Prediction p) async {
@@ -97,32 +101,36 @@ class _AddressSearchState extends State<AddressSearch> {
       };
       Map shortAddress = {"address": ""};
       List newAddress = detail.result.addressComponents;
-      newAddress.forEach((element) {
-        element.types.forEach((type) {
-          switch (type) {
-            case "street_number":
-              addressInfo["address"] = element.shortName;
-              shortAddress["address"] = element.shortName;
-              break;
-            case "route":
-              addressInfo["address"] += " " + element.longName;
-              shortAddress["address"] += " " + element.shortName;
-              break;
-            case "subpremise":
-              addressInfo["address2"] = element.shortName;
-              break;
-            case "locality":
-              addressInfo["city"] = element.shortName;
-              break;
-            case "administrative_area_level_1":
-              addressInfo["state"] = element.shortName;
-              break;
-            case "postal_code":
-              addressInfo["zipcode"] = element.shortName;
-              break;
-          }
-        });
-      });
+      newAddress.forEach(
+        (element) {
+          element.types.forEach(
+            (type) {
+              switch (type) {
+                case "street_number":
+                  addressInfo["address"] = element.shortName;
+                  shortAddress["address"] = element.shortName;
+                  break;
+                case "route":
+                  addressInfo["address"] += " " + element.longName;
+                  shortAddress["address"] += " " + element.shortName;
+                  break;
+                case "subpremise":
+                  addressInfo["address2"] = element.shortName;
+                  break;
+                case "locality":
+                  addressInfo["city"] = element.shortName;
+                  break;
+                case "administrative_area_level_1":
+                  addressInfo["state"] = element.shortName;
+                  break;
+                case "postal_code":
+                  addressInfo["zipcode"] = element.shortName;
+                  break;
+              }
+            },
+          );
+        },
+      );
       setState(() {
         locationText = detail.result.formattedAddress;
       });

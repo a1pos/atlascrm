@@ -1,5 +1,4 @@
 import 'dart:ui';
-
 import 'package:atlascrm/components/shared/NotificationCenter.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/services/UserService.dart';
@@ -33,7 +32,6 @@ class _CustomDrawerState extends State<CustomDrawer> {
 
     return Drawer(
       child: Container(
-        // color: Color.fromARGB(255, 21, 27, 38),
         color: UniversalStyles.themeColor,
         child: Column(
           children: <Widget>[
@@ -51,30 +49,22 @@ class _CustomDrawerState extends State<CustomDrawer> {
                       NotificationCenter()
                     ],
                   ),
-
                   RichText(
                     text: TextSpan(
-                        style: TextStyle(fontSize: 22),
-                        children: <TextSpan>[
-                          TextSpan(
-                              text: "ATLAS",
-                              style: TextStyle(fontFamily: "InterBold")),
-                          TextSpan(
-                              text: "CRM",
-                              style: TextStyle(fontFamily: "InterLight")),
-                        ]),
+                      style: TextStyle(fontSize: 22),
+                      children: <TextSpan>[
+                        TextSpan(
+                            text: "ATLAS",
+                            style: TextStyle(fontFamily: "InterBold")),
+                        TextSpan(
+                            text: "CRM",
+                            style: TextStyle(fontFamily: "InterLight")),
+                      ],
+                    ),
                   )
-                  // Text(
-                  //   UserService.employee.document["displayName"],
-                  //   style: TextStyle(
-                  //     color: Colors.white,
-                  //     fontSize: 18,
-                  //   ),
-                  // ),
                 ],
               ),
               decoration: BoxDecoration(
-                // color: Color.fromARGB(255, 21, 27, 38),
                 color: Color.fromRGBO(81, 203, 194, 1),
               ),
             ),
@@ -161,23 +151,6 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     },
                   )
                 : Container(),
-            // UserService.isTech || UserService.isAdmin
-            //     ? ListTile(
-            //         leading: Icon(
-            //           Icons.build,
-            //           color: Colors.white,
-            //         ),
-            //         title: Text(
-            //           'Installs',
-            //           style: TextStyle(
-            //             color: Colors.white,
-            //           ),
-            //         ),
-            //         onTap: () {
-            //           Navigator.popAndPushNamed(context, "/installs");
-            //         },
-            //       )
-            //     : Text(""),
             UserService.isTech || UserService.isAdmin
                 ? ListTile(
                     leading: Icon(

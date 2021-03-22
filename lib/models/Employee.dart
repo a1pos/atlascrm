@@ -1,15 +1,15 @@
 class Employee {
+  bool isActive;
   String employee;
   String role;
-  bool isActive;
-  int employeeAccountType;
-  String company;
-  String companyName;
-  dynamic document;
   String created_at;
   String created_by;
   String updated_at;
   String updated_by;
+  String company;
+  String companyName;
+  int employeeAccountType;
+  dynamic document;
 
   Employee(
       this.employee,

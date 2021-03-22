@@ -17,6 +17,7 @@ class UniversalDropDown extends StatefulWidget {
 class _UniversalDropDownState extends State<UniversalDropDown> {
   var roles = [];
   var disabled;
+  var startVal;
 
   @override
   void initState() {
@@ -32,8 +33,6 @@ class _UniversalDropDownState extends State<UniversalDropDown> {
     }
   }
 
-  var startVal;
-
   Future<void> initRoles() async {
     QueryOptions options = QueryOptions(documentNode: gql("""
       query GET_ROLES {
@@ -48,8 +47,6 @@ class _UniversalDropDownState extends State<UniversalDropDown> {
     final QueryResult rolesResp =
         await GqlClientFactory().authGqlquery(options);
 
-    //REPLACE WITH GRAPHQL
-    // var locationsResp = await apiService.authGet(context, "/inventory/tier");
     if (rolesResp != null) {
       if (rolesResp.hasException == false) {
         var rolesArrDecoded = rolesResp.data["role"];
@@ -81,7 +78,6 @@ class _UniversalDropDownState extends State<UniversalDropDown> {
             fontSize: 13,
           ),
         ),
-
         SearchableDropdown.single(
           value: startVal,
           onClear: () {
@@ -92,7 +88,6 @@ class _UniversalDropDownState extends State<UniversalDropDown> {
           hint: "Please choose one",
           searchHint: null,
           isExpanded: true,
-          // menuConstraints: BoxConstraints.tight(Size.fromHeight(350)),
           items: roles.map<DropdownMenuItem<String>>((dynamic item) {
             var businessName;
             if (item["title"]?.isEmpty ?? true) {
@@ -123,29 +118,6 @@ class _UniversalDropDownState extends State<UniversalDropDown> {
                   });
                 },
         )
-
-        // DropdownButtonFormField<String>(
-        //   isExpanded: true,
-        //   value: this.widget.value,
-        //   hint: Text("Please choose one"),
-        //   items: leads.map((dynamic item) {
-        //     var businessName;
-        //     if (item["document"]?.isEmpty ?? true) {
-        //       businessName = "";
-        //     } else {
-        //       businessName = item["document"]["businessName"];
-        //     }
-        //     return DropdownMenuItem<String>(
-        //       value: item["lead"],
-        //       child: Text(
-        //         businessName,
-        //       ),
-        //     );
-        //   }).toList(),
-        //   onChanged: (newValue) {
-        //     this.widget.callback(newValue);
-        //   },
-        // ),
       ],
     );
   }

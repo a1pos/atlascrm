@@ -5,22 +5,22 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:atlascrm/models/Employee.dart';
 import 'package:atlascrm/services/GqlClientFactory.dart';
-import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 
 class UserService {
+  final GoogleSignIn googleSignIn =
+      GoogleSignIn(scopes: ['https://www.googleapis.com/auth/calendar']);
+
   static Employee employee;
 
   static bool isAdmin = false;
   static bool isTech = false;
   static bool isSalesManager = false;
   static bool isAuthenticated = false;
+
   static String token;
   static String rToken;
-
-  final GoogleSignIn googleSignIn =
-      GoogleSignIn(scopes: ['https://www.googleapis.com/auth/calendar']);
 
   static GoogleSignInAuthentication googleSignInAuthentication;
 
@@ -140,7 +140,7 @@ class UserService {
             title
           }
         }
-      """));
+      """), fetchPolicy: FetchPolicy.networkOnly);
 
       final QueryResult companyResult =
           await GqlClientFactory().authGqlquery(companyQueryOptions);
@@ -198,12 +198,11 @@ class UserService {
     if (result.hasException == true) {
       print(result.exception.toString());
       try {
-        print("SIGN OUT GOOGLE GOES HERE");
         signOutGoogle();
         return false;
       } catch (err) {
-        print("CATCH ERROR GOES HERE");
         print(err);
+        throw new Error();
       }
     } else {
       token = result.data["refresh_token"]["token"];

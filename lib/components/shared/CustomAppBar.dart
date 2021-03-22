@@ -1,10 +1,4 @@
-import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:flutter/material.dart';
-
-// class CustomAppBar extends AppBar {
-//   CustomAppBar({Key key, Widget title})
-//       : super(key: key, title: title, backgroundColor: Colors.green[200]);
-// }
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Widget title;
@@ -26,13 +20,11 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             title: Text(
               stringValue,
               style: TextStyle(
-                // fontFamily: 'InterRegular',
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
             ),
             actions: action,
-            // backgroundColor: UniversalStyles.themeColor,
           ),
         ),
       ],

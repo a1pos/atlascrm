@@ -8,7 +8,6 @@ import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
 import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:atlascrm/components/shared/AddressSearch.dart';
 import 'package:maps_launcher/maps_launcher.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
@@ -46,13 +45,6 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
   TextEditingController notesController = TextEditingController();
   TextEditingController leadSourceController = TextEditingController();
 
-  List leadInfoEntries = List<LeadInfoEntry>();
-  var lead;
-  var leadDocument;
-  var displayPhone;
-  var repeats = 2;
-  var leadEmployee;
-
   AnimationController pulseController;
   Animation pulse;
 
@@ -65,6 +57,13 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
   bool statementDirty = false;
   bool statementComplete = false;
   bool isStale = false;
+  List leadInfoEntries = List<LeadInfoEntry>();
+
+  var lead;
+  var leadDocument;
+  var displayPhone;
+  var repeats = 2;
+  var leadEmployee;
 
   void initState() {
     super.initState();
@@ -129,14 +128,16 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                   "is_stale": false
                 };
 
-                MutationOptions mutateOptions =
-                    MutationOptions(documentNode: gql("""
+                MutationOptions mutateOptions = MutationOptions(
+                  documentNode: gql("""
                       mutation UPDATE_LEAD (\$data: lead_set_input){
                         update_lead_by_pk(pk_columns: {lead: "${lead["lead"]}"}, _set: \$data){
                           lead
                         }
                       }
-                  """), variables: {"data": data});
+                  """),
+                  variables: {"data": data},
+                );
                 final QueryResult result =
                     await GqlClientFactory().authGqlmutate(mutateOptions);
 
@@ -161,8 +162,10 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
               },
             ),
             FlatButton(
-              child:
-                  Text('No', style: TextStyle(fontSize: 17, color: Colors.red)),
+              child: Text(
+                'No',
+                style: TextStyle(fontSize: 17, color: Colors.red),
+              ),
               onPressed: () {
                 openLead(lead);
               },
@@ -177,7 +180,8 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
     lead = this.widget.leadId;
 
     try {
-      QueryOptions options = QueryOptions(documentNode: gql("""
+      QueryOptions options = QueryOptions(
+        documentNode: gql("""
         query GET_STATEMENT {
           statement(where: {lead: {_eq: "${this.widget.leadId}"}}) {
             statement
@@ -187,7 +191,9 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
             }
           }
         }
-      """), fetchPolicy: FetchPolicy.networkOnly);
+      """),
+        fetchPolicy: FetchPolicy.networkOnly,
+      );
 
       final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
@@ -195,18 +201,24 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
         if (result.data != null && result.data != "") {
           if (result.data["statement"][0]["document"] != null) {
             if (result.data["statement"][0]["document"]["emailSent"] != null) {
-              setState(() {
-                statementComplete = true;
-              });
+              setState(
+                () {
+                  statementComplete = true;
+                },
+              );
             } else {
-              setState(() {
-                statementDirty = true;
-              });
+              setState(
+                () {
+                  statementDirty = true;
+                },
+              );
             }
           } else {
-            setState(() {
-              statementDirty = true;
-            });
+            setState(
+              () {
+                statementDirty = true;
+              },
+            );
           }
         }
       }
@@ -219,8 +231,8 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
   }
 
   Future<void> loadLeadData(leadId) async {
-    QueryOptions options =
-        QueryOptions(fetchPolicy: FetchPolicy.networkOnly, documentNode: gql("""
+    QueryOptions options = QueryOptions(
+      documentNode: gql("""
         query GET_LEAD(\$lead: uuid!) {
           lead_by_pk(lead: \$lead) {
             lead
@@ -232,7 +244,10 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
             }
           }
         }
-    """), variables: {"lead": this.widget.leadId});
+    """),
+      fetchPolicy: FetchPolicy.networkOnly,
+      variables: {"lead": this.widget.leadId},
+    );
 
     final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
@@ -242,12 +257,14 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
       if (body != null) {
         var bodyDecoded = body;
 
-        setState(() {
-          lead = bodyDecoded;
-          leadEmployee = bodyDecoded["employee"]["employee"];
-          leadDocument = bodyDecoded["document"];
-          firstNameController.text = leadDocument["firstName"];
-        });
+        setState(
+          () {
+            lead = bodyDecoded;
+            leadEmployee = bodyDecoded["employee"]["employee"];
+            leadDocument = bodyDecoded["document"];
+            firstNameController.text = leadDocument["firstName"];
+          },
+        );
       }
     }
 
@@ -284,9 +301,11 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
     }
     if (leadDocument["phoneNumber"] != null ||
         leadDocument["phoneNumber"] != "") {
-      setState(() {
-        phoneNumberController.updateText(leadDocument["phoneNumber"]);
-      });
+      setState(
+        () {
+          phoneNumberController.updateText(leadDocument["phoneNumber"]);
+        },
+      );
     }
   }
 
@@ -312,13 +331,17 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
       }
     };
 
-    MutationOptions mutateOptions = MutationOptions(documentNode: gql("""
+    MutationOptions mutateOptions = MutationOptions(
+      documentNode: gql("""
         mutation UPDATE_LEAD (\$data: lead_set_input){
           update_lead_by_pk(pk_columns: {lead: "$leadId"}, _set: \$data){
             lead
           }
         }
-      """), variables: {"data": data});
+      """),
+      variables: {"data": data},
+    );
+
     final QueryResult result =
         await GqlClientFactory().authGqlmutate(mutateOptions);
 
@@ -358,14 +381,19 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
           ),
           actions: <Widget>[
             FlatButton(
-              child: Text('Cancel', style: TextStyle(fontSize: 17)),
+              child: Text(
+                'Cancel',
+                style: TextStyle(fontSize: 17),
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             FlatButton(
-              child: Text('Delete',
-                  style: TextStyle(fontSize: 17, color: Colors.red)),
+              child: Text(
+                'Delete',
+                style: TextStyle(fontSize: 17, color: Colors.red),
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -382,37 +410,45 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
       builder: (BuildContext context) {
         return AlertDialog(
           shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(10.0))),
+            borderRadius: BorderRadius.all(
+              Radius.circular(10.0),
+            ),
+          ),
           title: Text('Lead Actions'),
           content: SingleChildScrollView(
             child: Container(
               child: ListBody(
                 children: <Widget>[
                   Card(
-                      shape: RoundedRectangleBorder(
-                          side: new BorderSide(
-                              color: Colors.red[200], width: 2.0),
-                          borderRadius: BorderRadius.circular(4.0)),
-                      child: ListTile(
-                          leading: Icon(Icons.priority_high, color: Colors.red),
-                          title: Text("Unsent Statement"),
-                          subtitle:
-                              Text("Please submit your statement for review."),
-                          onTap: () {
-                            scrollController.animateTo(
-                              scrollController.position.maxScrollExtent,
-                              duration: Duration(seconds: 1),
-                              curve: Curves.fastOutSlowIn,
-                            );
-                            Navigator.pop(context);
-                          })),
+                    shape: RoundedRectangleBorder(
+                      side: new BorderSide(color: Colors.red[200], width: 2.0),
+                      borderRadius: BorderRadius.circular(4.0),
+                    ),
+                    child: ListTile(
+                      leading: Icon(Icons.priority_high, color: Colors.red),
+                      title: Text("Unsent Statement"),
+                      subtitle:
+                          Text("Please submit your statement for review."),
+                      onTap: () {
+                        scrollController.animateTo(
+                          scrollController.position.maxScrollExtent,
+                          duration: Duration(seconds: 1),
+                          curve: Curves.fastOutSlowIn,
+                        );
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ),
                 ],
               ),
             ),
           ),
           actions: <Widget>[
             FlatButton(
-              child: Text('Close', style: TextStyle(color: Colors.red)),
+              child: Text(
+                'Close',
+                style: TextStyle(color: Colors.red),
+              ),
               onPressed: () {
                 Navigator.pop(context);
               },
@@ -426,23 +462,27 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
   Widget button;
   actionButton() {
     if (statementDirty) {
-      setState(() {
-        button = CircleAvatar(
-          radius: 25,
-          backgroundColor: Colors.red,
-          child: IconButton(
-            icon: Icon(Icons.priority_high, color: Colors.white),
-            onPressed: () {},
-          ),
-        );
-      });
+      setState(
+        () {
+          button = CircleAvatar(
+            radius: 25,
+            backgroundColor: Colors.red,
+            child: IconButton(
+              icon: Icon(Icons.priority_high, color: Colors.white),
+              onPressed: () {},
+            ),
+          );
+        },
+      );
     } else {
-      setState(() {
-        button = IconButton(
-          icon: Icon(Icons.done, color: Colors.white),
-          onPressed: () {},
-        );
-      });
+      setState(
+        () {
+          button = IconButton(
+            icon: Icon(Icons.done, color: Colors.white),
+            onPressed: () {},
+          );
+        },
+      );
     }
   }
 
@@ -450,7 +490,6 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        // Navigator.pop(context);
         Navigator.popAndPushNamed(context, "/leads");
 
         return Future.value(false);
@@ -478,19 +517,20 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                 spreadRadius: pulse.value)
                           ]),
                       child: SizedBox(
-                          width: 55.0,
-                          height: 55.0,
-                          child: CircleAvatar(
-                            radius: 15,
-                            backgroundColor: Colors.red,
-                            child: IconButton(
-                              icon: Icon(Icons.priority_high,
-                                  color: Colors.white),
-                              onPressed: () {
-                                popCheck();
-                              },
-                            ),
-                          )),
+                        width: 55.0,
+                        height: 55.0,
+                        child: CircleAvatar(
+                          radius: 15,
+                          backgroundColor: Colors.red,
+                          child: IconButton(
+                            icon:
+                                Icon(Icons.priority_high, color: Colors.white),
+                            onPressed: () {
+                              popCheck();
+                            },
+                          ),
+                        ),
+                      ),
                     )
                   : Container(),
             )
@@ -513,22 +553,28 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Icon(Icons.info_outline,
-                                        color: Colors.orange[400]),
+                                    Icon(
+                                      Icons.info_outline,
+                                      color: Colors.orange[400],
+                                    ),
                                     UserService.isAdmin ||
                                             UserService.isSalesManager
                                         ? Text(
                                             "This is a stale lead! Assign it to edit",
                                             style: TextStyle(
-                                                fontSize: 18,
-                                                color: Colors.orange[400],
-                                                fontWeight: FontWeight.bold))
+                                              fontSize: 18,
+                                              color: Colors.orange[400],
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          )
                                         : Text(
                                             "This is a stale lead! Claim it to edit",
                                             style: TextStyle(
-                                                fontSize: 18,
-                                                color: Colors.orange[400],
-                                                fontWeight: FontWeight.bold)),
+                                              fontSize: 18,
+                                              color: Colors.orange[400],
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
                                   ],
                                 ),
                               )
@@ -539,16 +585,18 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                 title: 'Employee',
                                 icon: Icons.person,
                                 child: EmployeeDropDown(
-                                  // disabled: isStale,
                                   value: leadEmployee,
                                   callback: ((val) {
-                                    setState(() {
-                                      if (val != null) {
-                                        leadEmployee = val;
-                                      }
-                                    });
+                                    setState(
+                                      () {
+                                        if (val != null) {
+                                          leadEmployee = val;
+                                        }
+                                      },
+                                    );
                                   }),
-                                ))
+                                ),
+                              )
                             : Container(),
                         CustomCard(
                           key: Key("leads2"),
@@ -558,45 +606,42 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                             mainAxisSize: MainAxisSize.min,
                             children: <Widget>[
                               validatorRow(
-                                  "Business Name",
-                                  leadDocument["businessName"],
-                                  businessNameController, (val) {
-                                if (val.isEmpty) {
-                                  return 'Please enter a business name';
-                                }
-                                return null;
-                              }, editable: !isStale),
+                                "Business Name",
+                                leadDocument["businessName"],
+                                businessNameController,
+                                (val) {
+                                  if (val.isEmpty) {
+                                    return 'Please enter a business name';
+                                  }
+                                  return null;
+                                },
+                                editable: !isStale,
+                              ),
                               getInfoRow("Doing Business As",
                                   leadDocument["dbaName"], dbaController,
                                   editable: !isStale),
                               Container(
-                                  child: Padding(
-                                      padding: EdgeInsets.all(15),
-                                      child: Row(
-                                        children: <Widget>[
-                                          Expanded(
-                                            flex: 4,
-                                            child: Text(
-                                              'Business Address:',
-                                              style: TextStyle(fontSize: 16),
-                                            ),
-                                          ),
-                                          Expanded(
-                                              flex: 8,
-                                              child: addressText == null
-                                                  ? Text("")
-                                                  : Text(addressText)
-                                              //  AddressSearch(
-                                              //     locationValue:
-                                              //         addressText,
-                                              //     onAddressChange: (val) {
-                                              //       setState(() {
-                                              //         businessAddress = val;
-                                              //       });
-                                              //     })
-                                              ),
-                                        ],
-                                      ))),
+                                child: Padding(
+                                  padding: EdgeInsets.all(15),
+                                  child: Row(
+                                    children: <Widget>[
+                                      Expanded(
+                                        flex: 4,
+                                        child: Text(
+                                          'Business Address:',
+                                          style: TextStyle(fontSize: 16),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        flex: 8,
+                                        child: addressText == null
+                                            ? Text("")
+                                            : Text(addressText),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -607,14 +652,17 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                           child: Column(
                             children: <Widget>[
                               validatorRow(
-                                  "First Name",
-                                  leadDocument["firstName"],
-                                  firstNameController, (val) {
-                                if (val.isEmpty) {
-                                  return 'Please enter a contact first name';
-                                }
-                                return null;
-                              }, editable: !isStale),
+                                "First Name",
+                                leadDocument["firstName"],
+                                firstNameController,
+                                (val) {
+                                  if (val.isEmpty) {
+                                    return 'Please enter a contact first name';
+                                  }
+                                  return null;
+                                },
+                                editable: !isStale,
+                              ),
                               getInfoRow("Last Name", leadDocument["lastName"],
                                   lastNameController,
                                   editable: !isStale),
@@ -666,11 +714,13 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                               children: <Widget>[
                                                 Icon(Icons.mail,
                                                     color: Colors.white),
-                                                Text("Email",
-                                                    style: TextStyle(
-                                                        color: Colors.white,
-                                                        fontWeight:
-                                                            FontWeight.bold))
+                                                Text(
+                                                  "Email",
+                                                  style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                                )
                                               ],
                                             ),
                                             onPressed: () {
@@ -703,11 +753,13 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                               children: <Widget>[
                                                 Icon(Icons.call,
                                                     color: Colors.white),
-                                                Text("Call",
-                                                    style: TextStyle(
-                                                        color: Colors.white,
-                                                        fontWeight:
-                                                            FontWeight.bold))
+                                                Text(
+                                                  "Call",
+                                                  style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                                )
                                               ],
                                             ),
                                             onPressed: () {
@@ -741,11 +793,13 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                               children: <Widget>[
                                                 Icon(Icons.map,
                                                     color: Colors.white),
-                                                Text("Map",
-                                                    style: TextStyle(
-                                                        color: Colors.white,
-                                                        fontWeight:
-                                                            FontWeight.bold))
+                                                Text(
+                                                  "Map",
+                                                  style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                                )
                                               ],
                                             ),
                                             onPressed: () {
@@ -759,21 +813,19 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                                     businessAddress["state"] +
                                                     ", " +
                                                     businessAddress["zipcode"];
-                                                print(addressText);
                                                 MapsLauncher.launchQuery(
                                                     addressText);
                                               } else {
                                                 Fluttertoast.showToast(
-                                                    msg:
-                                                        "No address specified!",
-                                                    toastLength:
-                                                        Toast.LENGTH_SHORT,
-                                                    gravity:
-                                                        ToastGravity.BOTTOM,
-                                                    backgroundColor:
-                                                        Colors.grey[600],
-                                                    textColor: Colors.white,
-                                                    fontSize: 16.0);
+                                                  msg: "No address specified!",
+                                                  toastLength:
+                                                      Toast.LENGTH_SHORT,
+                                                  gravity: ToastGravity.BOTTOM,
+                                                  backgroundColor:
+                                                      Colors.grey[600],
+                                                  textColor: Colors.white,
+                                                  fontSize: 16.0,
+                                                );
                                               }
                                             },
                                           ),
@@ -790,10 +842,11 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                           child: Column(
                             children: <Widget>[
                               getInfoRow(
-                                  "Lead Source",
-                                  leadDocument["leadSource"],
-                                  leadSourceController,
-                                  editable: !isStale),
+                                "Lead Source",
+                                leadDocument["leadSource"],
+                                leadSourceController,
+                                editable: !isStale,
+                              ),
                             ],
                           ),
                         ),
@@ -830,8 +883,10 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                             MainAxisAlignment.spaceBetween,
                                         children: <Widget>[
                                           Text('Tasks'),
-                                          Icon(Icons.arrow_forward_ios,
-                                              size: 14),
+                                          Icon(
+                                            Icons.arrow_forward_ios,
+                                            size: 14,
+                                          ),
                                         ],
                                       ),
                                     ),
@@ -857,13 +912,13 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                             arguments: lead);
                                       } else {
                                         Fluttertoast.showToast(
-                                            msg:
-                                                "Claim this lead to see notes!",
-                                            toastLength: Toast.LENGTH_SHORT,
-                                            gravity: ToastGravity.BOTTOM,
-                                            backgroundColor: Colors.grey[600],
-                                            textColor: Colors.white,
-                                            fontSize: 16.0);
+                                          msg: "Claim this lead to see notes!",
+                                          toastLength: Toast.LENGTH_SHORT,
+                                          gravity: ToastGravity.BOTTOM,
+                                          backgroundColor: Colors.grey[600],
+                                          textColor: Colors.white,
+                                          fontSize: 16.0,
+                                        );
                                       }
                                     },
                                     child: Container(
@@ -874,8 +929,10 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                             MainAxisAlignment.spaceBetween,
                                         children: <Widget>[
                                           Text('Notes'),
-                                          Icon(Icons.arrow_forward_ios,
-                                              size: 14),
+                                          Icon(
+                                            Icons.arrow_forward_ios,
+                                            size: 14,
+                                          ),
                                         ],
                                       ),
                                     ),
@@ -895,8 +952,10 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                 onTap: () {
                                   if (!isStale) {
                                     Navigator.pushNamed(
-                                        context, "/statementuploads",
-                                        arguments: lead);
+                                      context,
+                                      "/statementuploads",
+                                      arguments: lead,
+                                    );
                                   } else {
                                     Fluttertoast.showToast(
                                         msg:
@@ -918,12 +977,16 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                       Row(
                                         children: <Widget>[
                                           statementComplete
-                                              ? Icon(Icons.done,
-                                                  color: Colors.green)
+                                              ? Icon(
+                                                  Icons.done,
+                                                  color: Colors.green,
+                                                )
                                               : Text(""),
                                           statementDirty
-                                              ? Icon(Icons.error,
-                                                  color: Colors.red)
+                                              ? Icon(
+                                                  Icons.error,
+                                                  color: Colors.red,
+                                                )
                                               : Text(""),
                                           Text('Statements'),
                                         ],
@@ -937,8 +1000,9 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                           ),
                         ),
                         Padding(
-                            child: Container(),
-                            padding: EdgeInsets.only(bottom: 80))
+                          child: Container(),
+                          padding: EdgeInsets.only(bottom: 80),
+                        )
                       ],
                     ),
                   ),

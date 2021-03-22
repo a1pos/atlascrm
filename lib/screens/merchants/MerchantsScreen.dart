@@ -3,7 +3,6 @@ import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CustomDrawer.dart';
-import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/services/UserService.dart';
@@ -18,16 +17,18 @@ class MerchantsScreen extends StatefulWidget {
 }
 
 class _MerchantsScreenState extends State<MerchantsScreen> {
+  bool isSearching = false;
+  bool isFiltering = false;
+  bool isLoading = true;
+  bool isEmpty = true;
+
+  ScrollController _scrollController = ScrollController();
+  TextEditingController _searchController = TextEditingController();
+
   var merchants = [];
   var employees = [];
   var employeesFull = [];
   var columns = [];
-
-  var isLoading = true;
-  var isEmpty = true;
-
-  bool isSearching = false;
-  bool isFiltering = false;
 
   var dropdownVal = "2";
 
@@ -40,8 +41,6 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
     "merchantbusinessname: asc"
   ];
   var sortQuery = "merchantbusinessname: asc";
-  ScrollController _scrollController = ScrollController();
-  TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -112,12 +111,13 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
           }
         } else {
           Fluttertoast.showToast(
-              msg: result.exception.toString(),
-              toastLength: Toast.LENGTH_LONG,
-              gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.grey[600],
-              textColor: Colors.white,
-              fontSize: 16.0);
+            msg: result.exception.toString(),
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0,
+          );
         }
       }
       setState(() {
@@ -138,33 +138,15 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
       var params;
       var searchParams =
           '	_or: [{merchantbusinessname: {_ilike: "%$currentSearch%"}}, {merchantemailaddress: {_ilike: "%$currentSearch%"}}, {merchantfirstname: {_ilike: "%$currentSearch%"}}, {merchantlastname: {_ilike: "%$currentSearch%"}}, {merchantdbaname: {_ilike: "%$currentSearch%"}}, {merchantphonenumber: {_ilike: "%$currentSearch%"}},]';
-      // if (UserService.isAdmin) {
       params =
           "offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where:{_and:[{is_active:{_eq: true}}]}";
       if (isSearching) {
         params =
             'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where:{_and:[{is_active:{_eq: true}},{$searchParams}]}';
       }
-      // EMPLOYEE FILTERING
-      // if (isFiltering) {
-      //   params =
-      //       'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "$filterEmployee"}}';
-      // }
-      // if (isSearching && isFiltering) {
-      //   params =
-      //       'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "$filterEmployee"}, $searchParams}';
-      // }
 
-      //isadmin
-      // } else if (isSearching) {
-      //   params =
-      //       'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "${UserService.employee.employee}"}, $searchParams}';
-      // } else {
-      //   params =
-      //       'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "${UserService.employee.employee}"}}';
-      // }
-
-      QueryOptions options = QueryOptions(documentNode: gql("""
+      QueryOptions options = QueryOptions(
+        documentNode: gql("""
           query GET_V_MERCHANTS {
             v_merchant($params) {
               updated_at
@@ -177,7 +159,9 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
               merchantphonenumber
             }
           }
-      """), fetchPolicy: FetchPolicy.networkOnly);
+      """),
+        fetchPolicy: FetchPolicy.networkOnly,
+      );
 
       final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
@@ -194,13 +178,15 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
                 pageNum++;
               });
             } else {
-              setState(() {
-                if (pageNum == 0) {
-                  isEmpty = true;
-                  merchantsArr = [];
-                }
-                isLoading = false;
-              });
+              setState(
+                () {
+                  if (pageNum == 0) {
+                    isEmpty = true;
+                    merchantsArr = [];
+                  }
+                  isLoading = false;
+                },
+              );
             }
           }
         }
@@ -215,13 +201,15 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
   }
 
   Future<void> searchMerchants(searchString) async {
-    setState(() {
-      currentSearch = searchString;
-      pageNum = 0;
-      isSearching = true;
-      merchants = [];
-      onScroll();
-    });
+    setState(
+      () {
+        currentSearch = searchString;
+        pageNum = 0;
+        isSearching = true;
+        merchants = [];
+        onScroll();
+      },
+    );
   }
 
   Future<void> filterByEmployee(employeeId) async {
@@ -236,32 +224,39 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
 
   Future<void> clearFilter() async {
     if (isFiltering) {
-      setState(() {
-        filterEmployee = "";
-        pageNum = 0;
-        isFiltering = false;
-        merchants = [];
-      });
+      setState(
+        () {
+          filterEmployee = "";
+          pageNum = 0;
+          isFiltering = false;
+          merchants = [];
+        },
+      );
       onScroll();
     }
   }
 
   Future<void> clearSearch() async {
     if (isSearching) {
-      setState(() {
-        pageNum = 0;
-        currentSearch = "";
-        isSearching = false;
-        _searchController.clear();
-        merchants = [];
-      });
+      setState(
+        () {
+          pageNum = 0;
+          currentSearch = "";
+          isSearching = false;
+          _searchController.clear();
+          merchants = [];
+        },
+      );
       onScroll();
     }
   }
 
   void openMerchant(merchant) {
-    Navigator.pushNamed(context, "/viewmerchant",
-        arguments: merchant["merchant"]);
+    Navigator.pushNamed(
+      context,
+      "/viewmerchant",
+      arguments: merchant["merchant"],
+    );
   }
 
   @override
@@ -275,41 +270,46 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
         backgroundColor: UniversalStyles.backgroundColor,
         drawer: CustomDrawer(),
         appBar: CustomAppBar(
-            key: Key("merchantsScreenAppBar"),
-            title: Text("Merchants"),
-            action: <Widget>[
-              Row(
-                children: <Widget>[
-                  Theme(
-                      data: Theme.of(context).copyWith(
-                        canvasColor: Colors.grey.shade900,
-                      ),
-                      child: DropdownButton(
-                          value: dropdownVal,
-                          items: [
-                            {'value': '0', 'text': 'Newest'},
-                            {'value': '1', 'text': 'Oldest'},
-                            {'value': '2', 'text': 'Alphabetical'}
-                          ].map<DropdownMenuItem<String>>((item) {
-                            return DropdownMenuItem<String>(
-                              value: item['value'],
-                              child: Text(item['text'],
-                                  style: TextStyle(color: Colors.white)),
-                            );
-                          }).toList(),
-                          onChanged: (newVal) {
-                            setState(() {
-                              dropdownVal = newVal;
-                              sortQuery = sortQueries[int.parse(dropdownVal)];
-                              clearSearch();
-                              pageNum = 0;
-                              merchants = [];
-                              onScroll();
-                            });
-                          })),
-                ],
-              )
-            ]),
+          key: Key("merchantsScreenAppBar"),
+          title: Text("Merchants"),
+          action: <Widget>[
+            Row(
+              children: <Widget>[
+                Theme(
+                  data: Theme.of(context).copyWith(
+                    canvasColor: Colors.grey.shade900,
+                  ),
+                  child: DropdownButton(
+                    value: dropdownVal,
+                    items: [
+                      {'value': '0', 'text': 'Newest'},
+                      {'value': '1', 'text': 'Oldest'},
+                      {'value': '2', 'text': 'Alphabetical'}
+                    ].map<DropdownMenuItem<String>>((item) {
+                      return DropdownMenuItem<String>(
+                        value: item['value'],
+                        child: Text(item['text'],
+                            style: TextStyle(color: Colors.white)),
+                      );
+                    }).toList(),
+                    onChanged: (newVal) {
+                      setState(
+                        () {
+                          dropdownVal = newVal;
+                          sortQuery = sortQueries[int.parse(dropdownVal)];
+                          clearSearch();
+                          pageNum = 0;
+                          merchants = [];
+                          onScroll();
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            )
+          ],
+        ),
         body: isLoading
             ? CenteredLoadingSpinner()
             : Container(
@@ -368,19 +368,6 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
                     ),
             ],
           ),
-          //EMPLOYEE DROPDOWN FILTER
-          // Padding(
-          //   padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
-          //   child: UserService.isAdmin
-          //       ? EmployeeDropDown(callback: (val) {
-          //           if (val != null) {
-          //             filterByEmployee(val);
-          //           } else {
-          //             clearFilter();
-          //           }
-          //         })
-          //       : Container(),
-          // ),
           isEmpty
               ? Padding(
                   padding: const EdgeInsets.fromLTRB(0, 45, 0, 0),
@@ -390,159 +377,146 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
                   flex: 6,
                   child: ListView(
                     controller: _scrollController,
-                    children: merchants.map((merchant) {
-                      var employeeName = "";
+                    children: merchants.map(
+                      (merchant) {
+                        var fullName = "";
+                        var businessName = "";
+                        var dbaName = "";
+                        var email = "";
+                        var phone = "";
 
-                      if (UserService.isAdmin) {
-                        if (merchant["employeefullname"] != null) {
-                          employeeName = merchant["employeefullname"];
-                        } else {
-                          employeeName = "Not Found";
+                        if (merchant["merchantfirstname"] != null &&
+                            merchant["merchantlastname"] != null) {
+                          fullName = merchant["merchantfirstname"] +
+                              " " +
+                              merchant["merchantlastname"];
+                        } else if (merchant["merchantfirstname"] != null) {
+                          fullName = merchant["merchantfirstname"];
                         }
-                      }
-                      var fullName = "";
-                      var businessName = "";
-                      var dbaName = "";
-                      var email = "";
-                      var phone = "";
+                        if (merchant["merchantbusinessname"] != null) {
+                          businessName = merchant["merchantbusinessname"];
+                        }
+                        if (merchant["merchantdbaname"] != null) {
+                          dbaName = merchant["merchantdbaname"];
+                        }
+                        if (merchant["merchantemailaddress"] != null) {
+                          email = merchant["merchantemailaddress"];
+                        }
+                        if (merchant["merchantphonenumber"] != null) {
+                          phone = merchant["merchantphonenumber"];
+                        }
 
-                      if (merchant["merchantfirstname"] != null &&
-                          merchant["merchantlastname"] != null) {
-                        fullName = merchant["merchantfirstname"] +
-                            " " +
-                            merchant["merchantlastname"];
-                      } else if (merchant["merchantfirstname"] != null) {
-                        fullName = merchant["merchantfirstname"];
-                      }
-                      if (merchant["merchantbusinessname"] != null) {
-                        businessName = merchant["merchantbusinessname"];
-                      }
-                      if (merchant["merchantdbaname"] != null) {
-                        dbaName = merchant["merchantdbaname"];
-                      }
-                      if (merchant["merchantemailaddress"] != null) {
-                        email = merchant["merchantemailaddress"];
-                      }
-                      if (merchant["merchantphonenumber"] != null) {
-                        phone = merchant["merchantphonenumber"];
-                      }
-
-                      return GestureDetector(
-                        onTap: () {
-                          openMerchant(merchant);
-                        },
-                        child: CustomCard(
-                          title: businessName,
-                          icon: Icons.arrow_forward_ios,
-                          child: Column(
-                            children: <Widget>[
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: <Widget>[
-                                  Column(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: <Widget>[
-                                      Padding(
-                                        padding: EdgeInsets.all(5),
-                                        child: Text(
-                                          'DBA:',
-                                          style: TextStyle(
-                                            fontSize: 15,
-                                          ),
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: EdgeInsets.all(5),
-                                        child: Text(
-                                          'Full Name:',
-                                          style: TextStyle(
-                                            fontSize: 15,
-                                          ),
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: EdgeInsets.all(5),
-                                        child: Text(
-                                          'Email:',
-                                          style: TextStyle(
-                                            fontSize: 15,
-                                          ),
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: EdgeInsets.all(5),
-                                        child: Text(
-                                          'Phone:',
-                                          style: TextStyle(
-                                            fontSize: 15,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Expanded(
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.end,
+                        return GestureDetector(
+                          onTap: () {
+                            openMerchant(merchant);
+                          },
+                          child: CustomCard(
+                            title: businessName,
+                            icon: Icons.arrow_forward_ios,
+                            child: Column(
+                              children: <Widget>[
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: <Widget>[
+                                    Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
                                       crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                          CrossAxisAlignment.end,
                                       children: <Widget>[
                                         Padding(
                                           padding: EdgeInsets.all(5),
                                           child: Text(
-                                            dbaName,
+                                            'DBA:',
                                             style: TextStyle(
-                                              fontSize: 14,
+                                              fontSize: 15,
                                             ),
                                           ),
                                         ),
                                         Padding(
                                           padding: EdgeInsets.all(5),
                                           child: Text(
-                                            '$fullName',
+                                            'Full Name:',
                                             style: TextStyle(
-                                              fontSize: 14,
+                                              fontSize: 15,
                                             ),
                                           ),
                                         ),
                                         Padding(
                                           padding: EdgeInsets.all(5),
                                           child: Text(
-                                            '$email',
+                                            'Email:',
                                             style: TextStyle(
-                                              fontSize: 14,
+                                              fontSize: 15,
                                             ),
                                           ),
                                         ),
                                         Padding(
                                           padding: EdgeInsets.all(5),
                                           child: Text(
-                                            '$phone',
+                                            'Phone:',
                                             style: TextStyle(
-                                              fontSize: 14,
+                                              fontSize: 15,
                                             ),
                                           ),
                                         ),
                                       ],
                                     ),
-                                  ),
-                                ],
-                              ),
-                              //INCLUDE EMPLOYEE NAME ON CARDS
-                              // UserService.isAdmin
-                              //     ? Divider(thickness: 2)
-                              //     : Container(),
-                              // UserService.isAdmin
-                              //     ? Text("Employee: " + employeeName,
-                              //         style: TextStyle(),
-                              //         textAlign: TextAlign.right)
-                              //     : Container(),
-                            ],
+                                    Expanded(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.end,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: <Widget>[
+                                          Padding(
+                                            padding: EdgeInsets.all(5),
+                                            child: Text(
+                                              dbaName,
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: EdgeInsets.all(5),
+                                            child: Text(
+                                              '$fullName',
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: EdgeInsets.all(5),
+                                            child: Text(
+                                              '$email',
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: EdgeInsets.all(5),
+                                            child: Text(
+                                              '$phone',
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      );
-                    }).toList(),
+                        );
+                      },
+                    ).toList(),
                   ),
                 ),
         ],

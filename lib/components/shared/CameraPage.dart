@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:camera/camera.dart';
@@ -21,17 +20,15 @@ class _CameraPageState extends State<CameraPage> {
   static const platform = const MethodChannel('com.ces.atlascrm.channel');
 
   bool isLoading = true;
+  bool isPreviewReady = false;
 
   Image currentPreviewImage;
+  Image preview;
 
   String tempImageFilePath;
   String finalImageFilePath;
 
   CameraController cameraController;
-
-  Image preview;
-
-  bool isPreviewReady = false;
 
   @override
   void initState() {

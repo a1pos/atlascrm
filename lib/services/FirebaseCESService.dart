@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:dio/dio.dart';
@@ -8,19 +6,15 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/services.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'dart:async';
-import 'package:http_parser/http_parser.dart';
-
-import 'package:dio/dio.dart';
 
 enum FirebaseCMType { launch, resume, backgroundMessage, message }
 
 class FirebaseCESService {
   static final FirebaseCESService _singleton = FirebaseCESService._internal();
+  static final ApiService apiService = new ApiService();
+  static final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
   static const platform = const MethodChannel('com.ces.atlascrm.channel');
 
-  static final ApiService apiService = new ApiService();
-
-  static final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
   static String _token;
   static bool _initialized = false;
 
@@ -85,7 +79,7 @@ class FirebaseCESService {
         return null;
         break;
       case "CAMERA_LINK":
-        print("OPEN THE FUCKING CAMERA");
+        print("OPEN THE CAMERA");
         var result = await platform.invokeMethod("openCamera");
         print("FILE URI: $result");
 

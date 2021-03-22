@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
-
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/DeviceDropdown.dart';
@@ -24,32 +23,33 @@ class EmployeeMapHistoryScreen extends StatefulWidget {
 }
 
 class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
-  var isLoading = true;
-
-  Completer<GoogleMapController> _fullScreenMapController2 = Completer();
-
   final Set<Marker> _markers = new Set<Marker>();
   final Set<Polyline> _polyline = new Set<Polyline>();
+  final List<LatLng> markerLatLngs = [];
 
-  var employeeName = "";
+  bool isLoading = true;
 
+  Completer<GoogleMapController> _fullScreenMapController2 = Completer();
   DateTime _startDate = DateTime.now().toUtc();
   DateTime _endDate = DateTime.now().toUtc();
-  var numberStops = 0;
-  var currentDate = DateTime.now();
   CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(40.907569, -79.923725),
     zoom: 13.0,
   );
   TextEditingController deviceIdController = TextEditingController();
-  final List<LatLng> markerLatLngs = [];
+
+  var employeeName = "";
+  var numberStops = 0;
+  var currentDate = DateTime.now();
 
   @override
   void initState() {
     super.initState();
-    setState(() {
-      isLoading = false;
-    });
+    setState(
+      () {
+        isLoading = false;
+      },
+    );
   }
 
   LatLngBounds boundsFromLatLngList(List<LatLng> list) {
@@ -71,11 +71,13 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
 
   Future<void> loadMarkerHistory(DateTime startDate) async {
     var endDate;
-    setState(() {
-      isLoading = true;
-      _markers.clear();
-      _polyline.clear();
-    });
+    setState(
+      () {
+        isLoading = true;
+        _markers.clear();
+        _polyline.clear();
+      },
+    );
 
     var homeIcon = await BitmapDescriptor.fromAssetImage(
         ImageConfiguration(size: Size(5, 5)), 'assets/home.png');
@@ -134,7 +136,6 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
         var latLngs = List<LatLng>();
 
         if (locationDataArray.length > 0) {
-          // var previousLocation;
           for (var location in locationDataArray) {
             var employeeDocument = location["employee_document"];
 
@@ -147,14 +148,16 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
             );
             latLngs.add(latLng);
 
-            setState(() {
-              if (_kGooglePlex == null) {
-                _kGooglePlex = CameraPosition(
-                  target: latLng,
-                  zoom: 13.0,
-                );
-              }
-            });
+            setState(
+              () {
+                if (_kGooglePlex == null) {
+                  _kGooglePlex = CameraPosition(
+                    target: latLng,
+                    zoom: 13.0,
+                  );
+                }
+              },
+            );
           }
 
           setState(() {
@@ -170,7 +173,8 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
           });
         }
 
-        QueryOptions options = QueryOptions(documentNode: gql("""
+        QueryOptions options = QueryOptions(
+          documentNode: gql("""
           query GET_STOP_COUNT(
             \$device_id: String
             \$date: timestamptz
@@ -194,11 +198,14 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
               created_at
             }
           }
-      """), variables: {
-          "device_id": deviceIdController.text,
-          "date": startDate.toString(),
-          "next_day": endDate.toString()
-        });
+      """),
+          fetchPolicy: FetchPolicy.networkOnly,
+          variables: {
+            "device_id": deviceIdController.text,
+            "date": startDate.toString(),
+            "next_day": endDate.toString()
+          },
+        );
 
         final QueryResult countResult =
             await GqlClientFactory().authGqlquery(options);
@@ -223,18 +230,22 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
                     position: LatLng(stop["location_document"]["latitude"],
                         stop["location_document"]["longitude"]),
                     markerId: MarkerId(UniqueKey().toString()),
-                    // markerId: MarkerId(location["location_id"]),
                     infoWindow: InfoWindow(
-                        title: stopTime, snippet: "Duration: " + stop["delta"]),
+                      title: stopTime,
+                      snippet: "Duration: " + stop["delta"],
+                    ),
                   ),
                 );
               } else {
                 markers.add(
                   Marker(
-                    position: LatLng(stop["location_document"]["latitude"],
-                        stop["location_document"]["longitude"]),
-                    markerId: MarkerId(UniqueKey().toString()),
-                    // markerId: MarkerId(location["location_id"]),
+                    position: LatLng(
+                      stop["location_document"]["latitude"],
+                      stop["location_document"]["longitude"],
+                    ),
+                    markerId: MarkerId(
+                      UniqueKey().toString(),
+                    ),
                     infoWindow: InfoWindow(
                         title: stopTime, snippet: "Duration: " + stop["delta"]),
                   ),
@@ -246,10 +257,12 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
               );
               markerLatLngs.add(markerLatLng);
             }
-            setState(() {
-              numberStops = count.length;
-              _markers.addAll(markers);
-            });
+            setState(
+              () {
+                numberStops = count.length;
+                _markers.addAll(markers);
+              },
+            );
           }
         }
       } else {
@@ -270,11 +283,13 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
         infoWindow: InfoWindow(title: "Home Base"),
       ),
     );
-    setState(() {
-      _startDate = startDate;
-      _endDate = endDate;
-      isLoading = false;
-    });
+    setState(
+      () {
+        _startDate = startDate;
+        _endDate = endDate;
+        isLoading = false;
+      },
+    );
   }
 
   @override
@@ -298,14 +313,17 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
                   child: DeviceDropDown(
-                      value: deviceIdController.text,
-                      employee: this.widget.employee["employee"],
-                      callback: (newValue) async {
-                        setState(() {
+                    value: deviceIdController.text,
+                    employee: this.widget.employee["employee"],
+                    callback: (newValue) async {
+                      setState(
+                        () {
                           deviceIdController.text = newValue;
-                        });
-                        await loadMarkerHistory(currentDate);
-                      }),
+                        },
+                      );
+                      await loadMarkerHistory(currentDate);
+                    },
+                  ),
                 ),
                 Expanded(
                   flex: 2,
@@ -335,7 +353,6 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
-                            // Text('Date: $startDateFmt'),
                             Text('Number of Stops: ${numberStops.toString()}'),
                           ],
                         ),
@@ -397,7 +414,7 @@ Future<BitmapDescriptor> getMarkerImageFromCache(pictureUrl) async {
       return BitmapDescriptor.fromBytes(resizedMarkerImageBytes);
     }
   } catch (e) {
-    var blah = e;
+    print(e);
   }
 
   return await BitmapDescriptor.fromAssetImage(

@@ -5,8 +5,6 @@ import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/components/task/TaskPriorityDropDown.dart';
 import 'package:atlascrm/components/task/TaskTypeDropDown.dart';
-import 'package:atlascrm/services/StorageService.dart';
-import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
@@ -15,8 +13,6 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:intl/intl.dart';
 
 class ViewTaskScreen extends StatefulWidget {
-  final StorageService storageService = new StorageService();
-
   final String taskId;
 
   ViewTaskScreen(this.taskId);
@@ -26,23 +22,24 @@ class ViewTaskScreen extends StatefulWidget {
 }
 
 class ViewTaskScreenState extends State<ViewTaskScreen> {
-  var isLoading = true;
+  bool isChanged = false;
+  bool submitted = false;
+  bool isLoading = true;
+  DateTime initDate;
+  TimeOfDay initTime;
 
   var taskTitleController = TextEditingController();
   var taskDateController = TextEditingController();
   var taskDescController = TextEditingController();
 
   var task;
-  bool isChanged = false;
   var employeeDropdownValue;
   var taskTypeDropdownValue;
   var taskPriorityDropdownValue;
   var leadDropdownValue;
-  DateTime initDate;
-  TimeOfDay initTime;
   var closedStatus;
   var viewDate;
-  bool submitted = false;
+
   @override
   void initState() {
     super.initState();
@@ -63,14 +60,14 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
 
   Future<void> loadClosedStatus() async {
     QueryOptions options = QueryOptions(documentNode: gql("""
-      query TaskStatus {
+      query TASK_STATUS {
         task_status {
           task_status
           document
           title
         }
       }
-    """));
+    """), fetchPolicy: FetchPolicy.networkOnly);
 
     final QueryResult result0 = await GqlClientFactory().authGqlquery(options);
 
@@ -84,7 +81,6 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
       }
     } else {
       print(new Error());
-      throw new Error();
     }
   }
 
@@ -106,7 +102,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
           created_at
         }
       }
-            """), fetchPolicy: FetchPolicy.networkOnly);
+      """), fetchPolicy: FetchPolicy.networkOnly);
 
     final QueryResult result = await GqlClientFactory().authGqlquery(options);
     if (result.hasException == false) {
@@ -182,7 +178,6 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
         "date": taskDateController.text
       };
 
-      print(data);
       MutationOptions options;
 
       options = MutationOptions(documentNode: gql("""
@@ -203,7 +198,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
             created_at
           }
         }
-            """), variables: {"data": data});
+        """), variables: {"data": data});
 
       final QueryResult result =
           await GqlClientFactory().authGqlmutate(options);
@@ -226,7 +221,6 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
                   textColor: Colors.white,
                   fontSize: 16.0);
           Navigator.pop(context);
-          // Navigator.pushNamed(context, "/tasks");
         }
       } else {
         Fluttertoast.showToast(
@@ -295,19 +289,6 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
       appBar: CustomAppBar(
         key: Key("viewTasksAppBar"),
         title: Text(isLoading ? "Loading..." : task['document']['title']),
-        // action: <Widget>[
-        //   Padding(
-        //     padding: const EdgeInsets.fromLTRB(5, 8, 10, 8),
-        //     child: UserService.isAdmin
-        //         ? IconButton(
-        //             onPressed: () {
-        //               deleteCheck();
-        //             },
-        //             icon: Icon(Icons.delete, color: Colors.white),
-        //           )
-        //         : Container(),
-        //   )
-        // ],
       ),
       body: isLoading
           ? CenteredClearLoadingScreen()
@@ -320,7 +301,6 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
                     TextFormField(
                       decoration: InputDecoration(labelText: "Title"),
                       controller: taskTitleController,
-                      // validator: validate,
                     ),
                     Divider(
                       color: Colors.white,
@@ -383,10 +363,6 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
                               employeeId: employeeDropdownValue,
                               disabled: true),
                         ),
-                        // Expanded(
-                        //   flex: 2,
-                        //   child: Text('asdf'),
-                        // ),
                       ],
                     ),
                     DateTimeField(

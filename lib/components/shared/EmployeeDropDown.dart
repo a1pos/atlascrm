@@ -4,6 +4,14 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:searchable_dropdown/searchable_dropdown.dart';
 
 class EmployeeDropDown extends StatefulWidget {
+  final bool disabled;
+  final bool displayClear;
+  final Function callback;
+  final String role;
+  final String employeeId;
+  final String value;
+  final String caption;
+
   EmployeeDropDown(
       {this.employeeId,
       this.callback,
@@ -12,14 +20,6 @@ class EmployeeDropDown extends StatefulWidget {
       this.disabled = false,
       this.displayClear = true,
       this.caption = "Employee"});
-
-  final String employeeId;
-  final String value;
-  final Function callback;
-  final String role;
-  final bool disabled;
-  final bool displayClear;
-  final String caption;
 
   @override
   _EmployeeDropDownState createState() => _EmployeeDropDownState();
@@ -40,14 +40,17 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
   Future<void> initEmployees() async {
     QueryOptions options;
 
-    options = QueryOptions(documentNode: gql("""
+    options = QueryOptions(
+      documentNode: gql("""
         query GET_EMPLOYEES {
-          employee {
+          employee (where: {is_active: {_eq: true}}) {
             employee
             displayName: document(path: "displayName")
           }
         }
-      """));
+      """),
+      fetchPolicy: FetchPolicy.networkOnly,
+    );
 
     final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
@@ -56,9 +59,11 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
         var employeeArrDecoded = result.data["employee"];
         if (employeeArrDecoded != null) {
           if (this.mounted) {
-            employeeArrDecoded.sort((a, b) => a["displayName"]
-                .toString()
-                .compareTo(b["displayName"].toString()));
+            employeeArrDecoded.sort(
+              (a, b) => a["displayName"]
+                  .toString()
+                  .compareTo(b["displayName"].toString()),
+            );
 
             setState(() {
               employees = employeeArrDecoded;
@@ -97,7 +102,6 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
           hint: "Please choose one",
           searchHint: null,
           isExpanded: true,
-          // menuConstraints: BoxConstraints.tight(Size.fromHeight(350)),
           items: employees.map<DropdownMenuItem<String>>((dynamic item) {
             var employeeName;
             if (item["displayName"]?.isEmpty ?? true) {
@@ -123,10 +127,6 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
                       for (var employee in employees) {
                         if (newValue == employee["displayName"]) {
                           setVal = employee["employee"];
-                          // {
-                          //   "name": employee["title"],
-                          //   "employee": employee["employee"]
-                          // };
                         }
                       }
                     }

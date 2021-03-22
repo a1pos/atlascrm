@@ -1,7 +1,6 @@
 import 'dart:developer';
 import 'package:atlascrm/components/inventory/InventoryLocationDropDown.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
-import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
@@ -23,18 +22,20 @@ class InventoryScreen extends StatefulWidget {
 }
 
 class _InventoryScreenState extends State<InventoryScreen> {
+  bool isSearching = false;
+  bool isFiltering = false;
+  bool isLocFiltering = false;
+  bool isLoading = true;
+  bool isEmpty = true;
+
+  ScrollController _scrollController = ScrollController();
+  TextEditingController _searchController = TextEditingController();
+
   var inventory = [];
   var inventoryFull = [];
   var employees = [];
   var employeesFull = [];
   var columns = [];
-
-  var isLoading = true;
-  var isEmpty = true;
-
-  bool isSearching = false;
-  bool isFiltering = false;
-  bool isLocFiltering = false;
 
   var currentSearch = "";
   var pageNum = 0;
@@ -48,14 +49,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
   var initParams = "offset: 0, limit: 10, order_by: {updated_at: asc}";
   var sortQuery = "updated_at: asc";
 
-  ScrollController _scrollController = ScrollController();
-  TextEditingController _searchController = TextEditingController();
-
   @override
   void initState() {
     super.initState();
-
-    // initEmployeeData();
 
     initInventoryData();
 
@@ -75,8 +71,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
   Future<void> initInventoryData() async {
     try {
-      QueryOptions options = QueryOptions(documentNode: gql("""
-        query Inventory {
+      QueryOptions options = QueryOptions(
+        documentNode: gql("""
+        query INVENTORY {
           inventory($initParams) {
             inventory
             merchantByMerchant {
@@ -99,11 +96,12 @@ class _InventoryScreenState extends State<InventoryScreen> {
             created_at
           }
         }
-      """), pollInterval: 5);
+      """),
+        fetchPolicy: FetchPolicy.networkOnly,
+        pollInterval: 5,
+      );
 
       final QueryResult result = await GqlClientFactory().authGqlquery(options);
-      // var endpoint = "/inventory?page=$pageNum&size=10&$sortQuery";
-      // var resp = await this.widget.apiService.authGet(context, endpoint);
 
       if (result != null) {
         if (result.hasException == false) {
@@ -111,30 +109,36 @@ class _InventoryScreenState extends State<InventoryScreen> {
           if (inventoryArrDecoded != null) {
             var inventoryArr = List.from(inventoryArrDecoded);
             if (inventoryArr.length > 0) {
-              setState(() {
-                isEmpty = false;
-                isLoading = false;
-                inventory += inventoryArr;
-                inventoryFull += inventoryArr;
-                pageNum++;
-              });
+              setState(
+                () {
+                  isEmpty = false;
+                  isLoading = false;
+                  inventory += inventoryArr;
+                  inventoryFull += inventoryArr;
+                  pageNum++;
+                },
+              );
             } else {
-              setState(() {
-                if (pageNum == 0) {
-                  isEmpty = true;
-                  inventoryArr = [];
-                  inventoryFull = [];
-                }
-                isLoading = false;
-              });
+              setState(
+                () {
+                  if (pageNum == 0) {
+                    isEmpty = true;
+                    inventoryArr = [];
+                    inventoryFull = [];
+                  }
+                  isLoading = false;
+                },
+              );
             }
           }
         }
       }
 
-      setState(() {
-        isLoading = false;
-      });
+      setState(
+        () {
+          isLoading = false;
+        },
+      );
     } catch (err) {
       log(err);
     }
@@ -146,7 +150,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
       var limitAmount = 10;
       var params =
           'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}';
-      // var searchParams = '	_or: [{serial: {_eq: "%$currentSearch%"}},]';
 
       if (isSearching) {
         params =
@@ -166,8 +169,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
             'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "$filterEmployee"}, _and: {inventory_location: {_eq: "$filterLocation"}}}';
       }
 
-      QueryOptions options = QueryOptions(documentNode: gql("""
-        query Inventory {
+      QueryOptions options = QueryOptions(
+        documentNode: gql("""
+        query INVENTORY {
           inventory($params) {
             inventory
             merchantByMerchant {
@@ -190,7 +194,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
             created_at
           }
         }
-      """), fetchPolicy: FetchPolicy.networkOnly);
+      """),
+        fetchPolicy: FetchPolicy.networkOnly,
+      );
 
       final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
@@ -202,111 +208,46 @@ class _InventoryScreenState extends State<InventoryScreen> {
             if (inventoryArr.length > 0) {
               if (isSearching) {
                 var sendable = {"id": inventoryArr[0]["inventory"]};
-                Navigator.pushNamed(context, "/viewinventory",
-                    arguments: sendable);
+                Navigator.pushNamed(
+                  context,
+                  "/viewinventory",
+                  arguments: sendable,
+                );
               }
-              setState(() {
-                isEmpty = false;
-                isLoading = false;
-                inventory += inventoryArr;
-                inventoryFull += inventoryArr;
-                pageNum++;
-              });
+              setState(
+                () {
+                  isEmpty = false;
+                  isLoading = false;
+                  inventory += inventoryArr;
+                  inventoryFull += inventoryArr;
+                  pageNum++;
+                },
+              );
             } else {
-              setState(() {
-                if (pageNum == 0) {
-                  isEmpty = true;
-                  inventoryArr = [];
-                  inventoryFull = [];
-                }
-                isLoading = false;
-              });
+              setState(
+                () {
+                  if (pageNum == 0) {
+                    isEmpty = true;
+                    inventoryArr = [];
+                    inventoryFull = [];
+                  }
+                  isLoading = false;
+                },
+              );
             }
           }
         }
       }
 
-      setState(() {
-        isLoading = false;
-      });
+      setState(
+        () {
+          isLoading = false;
+        },
+      );
     } catch (err) {
       log(err);
     }
   }
-
-  // Future<void> onScrollOld() async {
-  //   try {
-  //     var endpoint;
-  //     endpoint = "/inventory?page=$pageNum&size=10&$sortQuery";
-  //     if (isSearching) {
-  //       endpoint =
-  //           "/inventory?searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
-  //     }
-  //     if (isFiltering) {
-  //       endpoint =
-  //           "/inventory?searchEmployee=$filterEmployee&page=$pageNum&size=10&$sortQuery";
-  //     }
-  //     if (isLocFiltering) {
-  //       endpoint =
-  //           "/inventory?searchLocation=$filterLocation&page=$pageNum&size=10&$sortQuery";
-  //     }
-  //     if (isSearching && isFiltering) {
-  //       endpoint =
-  //           "/inventory?searchEmployee=$filterEmployee&searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
-  //     }
-  //     if (isSearching && isLocFiltering) {
-  //       endpoint =
-  //           "/inventory?searchLocatation=$filterLocation&searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
-  //     }
-  //     if (isFiltering && isLocFiltering) {
-  //       endpoint =
-  //           "/inventory?searchLocation=$filterLocation&searchEmployee=$filterEmployee&page=$pageNum&size=10&$sortQuery";
-  //     }
-  //     if (isSearching && isFiltering && isLocFiltering) {
-  //       endpoint =
-  //           "/inventory?searchLocation=$filterLocation&searchEmployee=$filterEmployee&searchString=$currentSearch&page=$pageNum&size=10&$sortQuery";
-  //     }
-
-  //     var resp = await this.widget.apiService.authGet(context, endpoint);
-  //     if (resp != null) {
-  //       if (resp.statusCode == 200) {
-  //         var inventoryArrDecoded = resp.data["data"];
-  //         if (inventoryArrDecoded != null) {
-  //           var inventoryArr = List.from(inventoryArrDecoded);
-  //           if (inventoryArr.length > 0) {
-  //             if (isSearching) {
-  //               var sendable = {"id": inventoryArr[0]["inventory"]};
-  //               Navigator.pushNamed(context, "/viewinventory",
-  //                   arguments: sendable);
-  //             }
-  //             setState(() {
-  //               isEmpty = false;
-  //               isLoading = false;
-  //               inventory += inventoryArr;
-  //               inventoryFull += inventoryArr;
-  //               pageNum++;
-  //             });
-  //           } else {
-  //             setState(() {
-  //               if (pageNum == 1) {
-  //                 isEmpty = true;
-  //                 inventoryArr = [];
-  //                 inventoryFull = [];
-  //               }
-  //               isLoading = false;
-  //             });
-  //           }
-  //         }
-  //       }
-  //     }
-
-  //     setState(() {
-  //       isLoading = false;
-  //     });
-  //   } catch (err) {
-  //     log(err);
-  //   }
-  // }
 
   Future<void> scanBarcode() async {
     RegExp searchPat = RegExp(r"^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$");
@@ -317,8 +258,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
         "flash_off": "flash off",
       });
       var result = await BarcodeScanner.scan(options: options);
-
-      print(result.rawContent);
 
       if (result.type != ResultType.Cancelled) {
         bool isMac = searchPat.hasMatch(result.rawContent.toString());
@@ -416,10 +355,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
   Future<void> initEmployeeData() async {
     try {
-      var endpoint = "/employee";
       var resp;
-      //REPLACE WITH GRAPHQL
-      // var resp = await this.widget.apiService.authGet(context, endpoint);
       if (resp != null) {
         if (resp.statusCode == 200) {
           var employeesArrDecoded = resp.data;
@@ -475,14 +411,15 @@ class _InventoryScreenState extends State<InventoryScreen> {
             child: ListBody(
               children: <Widget>[
                 InventoryLocationDropDown(
-                    value: filterLocation,
-                    callback: (newVal) {
-                      if (newVal != null) {
-                        filterByLocation(newVal);
-                      } else {
-                        clearLocFilter();
-                      }
-                    })
+                  value: filterLocation,
+                  callback: (newVal) {
+                    if (newVal != null) {
+                      filterByLocation(newVal);
+                    } else {
+                      clearLocFilter();
+                    }
+                  },
+                )
               ],
             ),
           ),
@@ -588,16 +525,17 @@ class _InventoryScreenState extends State<InventoryScreen> {
             ],
           ),
           Padding(
-              padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
-              child: EmployeeDropDown(
-                  callback: (val) {
-                    if (val != null) {
-                      filterByEmployee(val);
-                    } else {
-                      clearFilter();
-                    }
-                  },
-                  role: "tech")),
+            padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
+            child: EmployeeDropDown(
+                callback: (val) {
+                  if (val != null) {
+                    filterByEmployee(val);
+                  } else {
+                    clearFilter();
+                  }
+                },
+                role: "tech"),
+          ),
           isEmpty
               ? Padding(
                   padding: const EdgeInsets.fromLTRB(8, 200, 8, 0),
@@ -611,19 +549,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
                       var employeeName = item["employee"] == null
                           ? ""
                           : item["employee"]["document"]["displayName"];
-                      // var nameIndex;
                       var merchantName = "";
                       var itemName;
                       var location;
                       var setIcon;
-
-                      // nameIndex = employees
-                      //     .indexWhere((e) => e["employee"] == item["employee"]);
-                      // if (nameIndex != -1) {
-                      //   employeeName = employees[nameIndex]["title"];
-                      // } else {
-                      //   employeeName = null;
-                      // }
                       var invDate;
                       if (item['created_at'] != null) {
                         invDate = DateFormat("EEE, MMM d, ''yy")
