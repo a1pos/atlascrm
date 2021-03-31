@@ -1,8 +1,10 @@
 import 'dart:developer';
+import 'dart:async';
 import 'package:atlascrm/components/shared/ProcessorDropDown.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/components/shared/AddressSearch.dart';
 import 'package:flutter/foundation.dart';
@@ -59,6 +61,11 @@ class LeadStepperState extends State<LeadStepper> {
   var stepsLength = 3;
   var businessTypes = [];
   var locationValue;
+  var businessName = "";
+  var address = "";
+  var address2 = "";
+  var phoneNumb = "";
+  var leadID;
 
   @override
   void initState() {
@@ -69,63 +76,105 @@ class LeadStepperState extends State<LeadStepper> {
   }
 
   Future<void> addressCheck(addressObj) async {
-    var address = addressObj["address"]["address"];
-    var address2;
-    var businessName = "";
+    address = addressObj["address"]["address"];
+    address2 = addressObj["address2"];
+
+    if (address == null) {
+      address = "";
+    }
 
     if (address2Controller.text != null && address2Controller.text != "") {
       address2 = address2Controller.text;
     }
 
+    if (address2 == null) {
+      address2 = "";
+    }
+
     if (addressObj["place"] != null) {
       businessName = addressObj["place"].name;
+      if (addressObj["place"].formattedPhoneNumber != null &&
+          addressObj["place"].formattedPhoneNumber != "") {
+        phoneNumb = addressObj["place"]
+            .formattedPhoneNumber
+            .replaceAll(RegExp("[^0-9]"), "");
+      }
+    }
+
+    if (phoneNumberController.text != null &&
+        phoneNumberController.text != "") {
+      phoneNumb = phoneNumberController.text;
+    }
+
+    if (phoneNumb == null) {
+      phoneNumb = "";
+    }
+
+    if (businessNameController.text != null &&
+        businessNameController.text != "") {
+      businessName = businessNameController.text;
+    }
+
+    if (businessName == null) {
+      businessName = "";
     }
 
     try {
-      QueryOptions options;
-      if (address2 == null) {
-        options = QueryOptions(
-          documentNode: gql("""
-        query CHECK_LEAD_ADDRESS {
-          lead(where: {document: {_contains: {address: "$address"}}, _and: {document: {_contains: {businessName: "$businessName"}}}}) {
-            lead
-            document
-          }
-        }
-      """),
-          fetchPolicy: FetchPolicy.networkOnly,
-        );
-      } else {
-        options = QueryOptions(
-          documentNode: gql("""
-        query CHECK_LEAD_ADDRESS {
-  lead(where: {document: {_contains: {address: "$address"}}, _and: {document: {_contains: {businessName: "$businessName"}}, _and: {document: {_contains: {address2 :"$address2"}}}}}) {
-            lead
-            document
-          }
-        }
-      """),
-          fetchPolicy: FetchPolicy.networkOnly,
-        );
-      }
+      QueryOptions options = QueryOptions(
+        documentNode: gql("""
+            query GET_EXISTING_LEADS(
+              \$address1: String!
+              \$address2: String!
+              \$phoneNumber: String!
+              \$businessName: String!
+            ) {
+              lead_exist(
+                address1: \$address1
+                address2: \$address2
+                phoneNumber: \$phoneNumber
+                businessName: \$businessName
+              ){
+                isMerchant
+                isLead
+                isStale
+                message
+              }
+            }
+        """),
+        fetchPolicy: FetchPolicy.networkOnly,
+        variables: {
+          "address1": address,
+          "address2": address2,
+          "phoneNumber": phoneNumb,
+          "businessName": businessName
+        },
+      );
 
       final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
       if (result != null) {
         if (result.hasException == false) {
-          if (result.data["lead"].length > 0) {
+          var resp = result.data["lead_exist"];
+
+          bool isLead = resp["isLead"];
+          bool isMerchant = resp["isMerchant"];
+          String message = resp["message"];
+
+          if (isMerchant == true || isLead == true) {
             setState(() {
               isAddress = false;
               businessNameController.clear();
             });
-            dupeLead();
+
+            dupeLead(message);
           } else {
             if (addressObj["place"] != null) {
               if (addressObj["place"].formattedPhoneNumber != null &&
                   addressObj["place"].formattedPhoneNumber != "") {
-                var phoneNumb = addressObj["place"]
+                phoneNumb = addressObj["place"]
                     .formattedPhoneNumber
                     .replaceAll(RegExp("[^0-9]"), "");
+
                 setState(
                   () {
                     phoneNumberController.updateText(phoneNumb);
@@ -143,7 +192,7 @@ class LeadStepperState extends State<LeadStepper> {
             } else {
               setState(
                 () {
-                  locationValue = addressObj["formattedaddr"];
+                  locationValue = addressObj["formattedAddress"];
                   businessNameController.clear();
                   phoneNumberController.clear();
                   businessAddress = addressObj["address"];
@@ -159,6 +208,96 @@ class LeadStepperState extends State<LeadStepper> {
     }
   }
 
+  Future<void> checkBusinessName(name) async {
+    var originalBusinessame = name;
+
+    var capitalizedName = capitalizeBusinessName(originalBusinessame);
+
+    try {
+      QueryOptions options = QueryOptions(
+        documentNode: gql("""
+        query GET_LEAD_ADDRESS(\$businessName: String) {
+          v_lead(where: {leadbusinessname: {_eq: \$businessName} }) {
+            lead
+            leadbusinessname
+          }
+        }
+      """),
+        fetchPolicy: FetchPolicy.networkOnly,
+        variables: {"businessName": capitalizedName},
+      );
+
+      final QueryResult result = await GqlClientFactory().authGqlquery(options);
+
+      if (result != null) {
+        if (result.hasException == false) {
+          if (result.data["v_lead"].length > 0) {
+            var leadUuid = result.data["v_lead"][0]["lead"];
+
+            try {
+              QueryOptions options = QueryOptions(
+                documentNode: gql("""
+                 query GET_BUSINESS_DOC(\$lead: uuid) {
+                   lead(where: {lead: {_eq: \$lead } }) {
+                     document
+                   }
+                 }
+                """),
+                fetchPolicy: FetchPolicy.networkOnly,
+                variables: {"lead": leadUuid},
+              );
+
+              final QueryResult checkBusinessLead =
+                  await GqlClientFactory().authGqlquery(options);
+
+              if (checkBusinessLead.data["lead"].length > 0) {
+                if (checkBusinessLead.data["lead"][0]["document"]["address"] ==
+                    businessAddress["address"]) {
+                  dupeLead("Lead already exists!");
+                } else if (checkBusinessLead.data["lead"][0]["document"]
+                            ["city"] ==
+                        businessAddress["city"] &&
+                    checkBusinessLead.data["lead"][0]["document"]["state"] ==
+                        businessAddress["state"]) {
+                  dupeLead("Lead already exists!");
+                } else {
+                  nextStep();
+                }
+              }
+            } catch (err) {
+              log(err);
+            }
+          } else {
+            nextStep();
+          }
+        }
+      }
+    } catch (err) {
+      log(err);
+    }
+  }
+
+  String capitalizeBusinessName(String name) {
+    if (name == null) {
+      return null;
+    }
+
+    if (name.length <= 1) {
+      return name.toUpperCase();
+    }
+
+    final List<String> names = name.split(' ');
+
+    final capitalizedNames = names.map((bizName) {
+      final String firstLetterinName = bizName.substring(0, 1).toUpperCase();
+      final String remainingLettersinName = bizName.substring(1);
+
+      return '$firstLetterinName$remainingLettersinName';
+    });
+
+    return capitalizedNames.join(' ');
+  }
+
   Future<void> nearbySelect(addressObj) async {
     return showDialog<void>(
       context: context,
@@ -167,7 +306,17 @@ class LeadStepperState extends State<LeadStepper> {
           addressSearchObj: addressObj,
           onPlaceSelect: (val) {
             if (val != null) {
-              addressCheck(val);
+              if (val["place"] == null) {
+                setState(() {
+                  locationValue = addressObj["formattedaddr"];
+                  businessNameController.clear();
+                  phoneNumberController.clear();
+                  businessAddress = addressObj["address"];
+                  isAddress = true;
+                });
+              } else {
+                addressCheck(val);
+              }
             }
           },
         );
@@ -175,7 +324,7 @@ class LeadStepperState extends State<LeadStepper> {
     );
   }
 
-  Future<void> dupeLead() async {
+  Future<void> dupeLead(message) async {
     return showDialog<void>(
       context: context,
       builder: (BuildContext context) {
@@ -184,7 +333,7 @@ class LeadStepperState extends State<LeadStepper> {
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text('A lead with this name already exists at this address!'),
+                Text(message),
               ],
             ),
           ),
@@ -206,7 +355,7 @@ class LeadStepperState extends State<LeadStepper> {
       String rawNumber = phoneNumberController.text;
       var filteredNumber = rawNumber.replaceAll(RegExp("[^0-9]"), "");
 
-      var lead = {
+      var leadInfo = {
         "employee": UserService.employee.employee,
         "is_active": true,
         "processor": processorDropdownValue,
@@ -235,7 +384,7 @@ class LeadStepperState extends State<LeadStepper> {
           }
         }
       """),
-        variables: {"objects": lead},
+        variables: {"objects": leadInfo},
       );
 
       final QueryResult result =
@@ -266,6 +415,14 @@ class LeadStepperState extends State<LeadStepper> {
       log(err);
     }
     isSaveDisabled = false;
+  }
+
+  void nextStep() {
+    setState(
+      () {
+        _currentStep < stepsLength - 1 ? _currentStep += 1 : null;
+      },
+    );
   }
 
   @override
@@ -302,15 +459,13 @@ class LeadStepperState extends State<LeadStepper> {
                       );
                     }
                   },
-                  onStepContinue: () {
+                  onStepContinue: () async {
                     if (_formKeys[_currentStep].currentState.validate()) {
-                      setState(
-                        () {
-                          _currentStep < stepsLength - 1
-                              ? _currentStep += 1
-                              : null;
-                        },
-                      );
+                      if (_currentStep == 0) {
+                        checkBusinessName(businessName);
+                      } else {
+                        nextStep();
+                      }
                     }
                   },
                   onStepCancel: () {
@@ -372,16 +527,12 @@ class LeadStepperState extends State<LeadStepper> {
                                         labelText: "Business Name"),
                                     controller: businessNameController,
                                     validator: (value) {
+                                      businessName = value;
                                       if (value.isEmpty) {
                                         return 'Please enter a business name';
                                       }
                                       return null;
                                     },
-                                  ),
-                                  TextFormField(
-                                    decoration: InputDecoration(
-                                        labelText: "Doing Business As"),
-                                    controller: dbaNameController,
                                   ),
                                   Padding(
                                     padding: const EdgeInsets.only(top: 8.0),
@@ -393,6 +544,16 @@ class LeadStepperState extends State<LeadStepper> {
                                         });
                                       }),
                                     ),
+                                  ),
+                                  TextFormField(
+                                    decoration: InputDecoration(
+                                        labelText: "Doing Business As"),
+                                    controller: dbaNameController,
+                                  ),
+                                  TextFormField(
+                                    decoration: InputDecoration(
+                                        labelText: "Phone Number"),
+                                    controller: phoneNumberController,
                                   ),
                                   // DropdownButton<String>(
                                   //   items: businessTypes.map((value) {
@@ -452,11 +613,6 @@ class LeadStepperState extends State<LeadStepper> {
                                 }
                                 return null;
                               },
-                            ),
-                            TextFormField(
-                              decoration:
-                                  InputDecoration(labelText: "Phone Number"),
-                              controller: phoneNumberController,
                             ),
                           ],
                         ),

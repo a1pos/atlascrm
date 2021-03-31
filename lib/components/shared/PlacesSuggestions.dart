@@ -79,9 +79,9 @@ class _PlacesSuggestionsState extends State<PlacesSuggestions> {
           }
         });
       });
-      if (addressInfo["address2"] != "") {
-        addressInfo["address"] += " #" + addressInfo["address2"];
-        shortAddress["address"] += " #" + addressInfo["address2"];
+      if (addressInfo["address2"] != "" && addressInfo["address2"] != null) {
+        addressInfo["address"] += " " + addressInfo["address2"];
+        shortAddress["address"] += " " + addressInfo["address2"];
       }
       Map mixedReply = {
         "address": addressInfo,
