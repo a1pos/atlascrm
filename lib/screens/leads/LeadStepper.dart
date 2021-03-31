@@ -29,6 +29,7 @@ class LeadStepperState extends State<LeadStepper> {
   bool isSaveDisabled;
   bool isAddress = false;
   bool isLoading = false;
+  bool nextButtonDisabled = false;
 
   List<GlobalKey<FormState>> _formKeys = [
     GlobalKey<FormState>(),
@@ -64,6 +65,7 @@ class LeadStepperState extends State<LeadStepper> {
   var businessName = "";
   var address = "";
   var address2 = "";
+  var shortAddress = "";
   var phoneNumb = "";
   var leadID;
 
@@ -77,14 +79,13 @@ class LeadStepperState extends State<LeadStepper> {
 
   Future<void> addressCheck(addressObj) async {
     address = addressObj["address"]["address"];
-    address2 = addressObj["address2"];
+    address2 = addressObj["address"]["address2"];
+    shortAddress = addressObj["address"]["shortAddress"];
 
-    if (address == null) {
+    if (address == null && shortAddress == null) {
       address = "";
-    }
-
-    if (address2Controller.text != null && address2Controller.text != "") {
-      address2 = address2Controller.text;
+    } else if (address == null && shortAddress != null) {
+      address = shortAddress;
     }
 
     if (address2 == null) {
@@ -101,23 +102,18 @@ class LeadStepperState extends State<LeadStepper> {
       }
     }
 
-    if (phoneNumberController.text != null &&
-        phoneNumberController.text != "") {
-      phoneNumb = phoneNumberController.text;
-    }
-
     if (phoneNumb == null) {
       phoneNumb = "";
-    }
-
-    if (businessNameController.text != null &&
-        businessNameController.text != "") {
-      businessName = businessNameController.text;
     }
 
     if (businessName == null) {
       businessName = "";
     }
+
+    // print(address);
+    // print(address2);
+    // print(phoneNumb);
+    // print(businessName);
 
     try {
       QueryOptions options = QueryOptions(
@@ -186,6 +182,7 @@ class LeadStepperState extends State<LeadStepper> {
                   businessNameController.text = addressObj["place"].name;
                   locationValue = addressObj["place"].formattedAddress;
                   businessAddress = addressObj["address"];
+                  address2Controller.text = addressObj["address"]["address2"];
                   isAddress = true;
                 },
               );
@@ -261,6 +258,7 @@ class LeadStepperState extends State<LeadStepper> {
                         businessAddress["state"]) {
                   dupeLead("Lead already exists!");
                 } else {
+                  nextButtonDisabled = true;
                   nextStep();
                 }
               }
@@ -268,6 +266,7 @@ class LeadStepperState extends State<LeadStepper> {
               log(err);
             }
           } else {
+            nextButtonDisabled = true;
             nextStep();
           }
         }
@@ -352,6 +351,8 @@ class LeadStepperState extends State<LeadStepper> {
 
   Future<void> addLead() async {
     try {
+      String businessNameTrim = businessNameController.text.trim();
+
       String rawNumber = phoneNumberController.text;
       var filteredNumber = rawNumber.replaceAll(RegExp("[^0-9]"), "");
 
@@ -364,7 +365,7 @@ class LeadStepperState extends State<LeadStepper> {
           "lastName": lastNameController.text,
           "emailAddr": emailAddrController.text,
           "phoneNumber": filteredNumber,
-          "businessName": businessNameController.text,
+          "businessName": businessNameTrim,
           "dbaName": dbaNameController.text,
           "address": businessAddress["address"],
           "address2": businessAddress["address2"],
@@ -418,11 +419,13 @@ class LeadStepperState extends State<LeadStepper> {
   }
 
   void nextStep() {
-    setState(
-      () {
-        _currentStep < stepsLength - 1 ? _currentStep += 1 : null;
-      },
-    );
+    if (nextButtonDisabled == false) {
+      setState(
+        () {
+          _currentStep < stepsLength - 1 ? _currentStep += 1 : null;
+        },
+      );
+    }
   }
 
   @override

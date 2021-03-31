@@ -136,8 +136,7 @@ class _AddressSearchState extends State<AddressSearch> {
       });
       if (nearbyCheck) {
         if (addressInfo["address2"] != "") {
-          addressInfo["address"] += " #" + addressInfo["address2"];
-          shortAddress["address"] += " #" + addressInfo["address2"];
+          shortAddress["address"] += " " + addressInfo["address2"];
         }
         Map mixedReply = {
           "formattedaddr": detail.result.formattedAddress,
