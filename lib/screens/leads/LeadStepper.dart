@@ -257,7 +257,9 @@ class LeadStepperState extends State<LeadStepper> {
                   nextButtonDisabled = true;
                 } else {
                   nextButtonDisabled = false;
-                  nextStep();
+                  if (checkLeadAddress() == true) {
+                    nextStep();
+                  } else {}
                 }
               }
             } catch (err) {
@@ -359,6 +361,19 @@ class LeadStepperState extends State<LeadStepper> {
     );
   }
 
+  bool checkLeadAddress() {
+    if (businessAddress["address"] == "" ||
+        businessAddress["address"] == null) {
+      nextButtonDisabled = true;
+      isAddress = true;
+      return true;
+    } else {
+      isAddress = true;
+      nextButtonDisabled = false;
+      return false;
+    }
+  }
+
   Future<void> addLead() async {
     try {
       String businessNameTrim = businessNameController.text.trim();
@@ -374,7 +389,7 @@ class LeadStepperState extends State<LeadStepper> {
       firstNameCap = nameCap.split(", ")[0];
 
       if (lastName != "" && lastName != null) {
-        lastNameCap = nameCap.split(" ")[1];
+        lastNameCap = nameCap.split(", ")[1];
       } else {
         lastNameCap = "";
       }

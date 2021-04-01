@@ -54,7 +54,10 @@ class _AddressSearchState extends State<AddressSearch> {
     return GestureDetector(
       onTap: () async {
         Prediction p = await PlacesAutocomplete.show(
-            context: context, apiKey: kGoogleApiKey, mode: Mode.overlay);
+          context: context,
+          apiKey: kGoogleApiKey,
+          mode: Mode.overlay,
+        );
         displayPrediction(p);
       },
       child: Container(

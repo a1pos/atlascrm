@@ -132,30 +132,34 @@ class _PlacesSuggestionsState extends State<PlacesSuggestions> {
                               .addressSearchObj["nearbyResults"]
                               .map<Widget>((PlacesSearchResult place) {
                             return GestureDetector(
-                                onTap: () {
-                                  getPlaceById(place.placeId);
-                                  setState(() {
-                                    isLoading = true;
-                                  });
-                                },
-                                child: Card(
-                                  child: ListTile(
-                                    title: Row(
-                                      children: <Widget>[
-                                        Padding(
-                                          padding: const EdgeInsets.fromLTRB(
-                                              0, 0, 10, 0),
-                                          child: Icon(Icons.business),
+                              onTap: () {
+                                getPlaceById(place.placeId);
+                                setState(() {
+                                  isLoading = true;
+                                });
+                              },
+                              child: Card(
+                                child: place.types.contains('establishment')
+                                    ? ListTile(
+                                        title: Row(
+                                          children: <Widget>[
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.fromLTRB(
+                                                      0, 0, 10, 0),
+                                              child: Icon(Icons.business),
+                                            ),
+                                            Expanded(
+                                              child: Text(
+                                                place.name,
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                        Expanded(
-                                          child: Text(
-                                            place.name,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ));
+                                      )
+                                    : null,
+                              ),
+                            );
                           }).toList(),
                         ),
                         GestureDetector(
