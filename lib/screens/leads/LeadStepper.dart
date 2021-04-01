@@ -110,11 +110,6 @@ class LeadStepperState extends State<LeadStepper> {
       businessName = "";
     }
 
-    // print(address);
-    // print(address2);
-    // print(phoneNumb);
-    // print(businessName);
-
     try {
       QueryOptions options = QueryOptions(
         documentNode: gql("""
@@ -163,6 +158,7 @@ class LeadStepperState extends State<LeadStepper> {
             });
 
             dupeLead(message);
+            nextButtonDisabled = true;
           } else {
             if (addressObj["place"] != null) {
               if (addressObj["place"].formattedPhoneNumber != null &&
@@ -251,14 +247,16 @@ class LeadStepperState extends State<LeadStepper> {
                 if (checkBusinessLead.data["lead"][0]["document"]["address"] ==
                     businessAddress["address"]) {
                   dupeLead("Lead already exists!");
+                  nextButtonDisabled = true;
                 } else if (checkBusinessLead.data["lead"][0]["document"]
                             ["city"] ==
                         businessAddress["city"] &&
                     checkBusinessLead.data["lead"][0]["document"]["state"] ==
                         businessAddress["state"]) {
                   dupeLead("Lead already exists!");
-                } else {
                   nextButtonDisabled = true;
+                } else {
+                  nextButtonDisabled = false;
                   nextStep();
                 }
               }
@@ -266,7 +264,7 @@ class LeadStepperState extends State<LeadStepper> {
               log(err);
             }
           } else {
-            nextButtonDisabled = true;
+            nextButtonDisabled = false;
             nextStep();
           }
         }
@@ -295,6 +293,18 @@ class LeadStepperState extends State<LeadStepper> {
     });
 
     return capitalizedNames.join(' ');
+  }
+
+  String capitalizeContactName(String first, String last) {
+    if (last != "" && last != null) {
+      first = first[0].toUpperCase() + first.substring(1);
+      last = last[0].toUpperCase() + last.substring(1);
+
+      var name = first + ", " + last;
+      return name.trim();
+    } else {
+      return first[0].toUpperCase() + first.substring(1);
+    }
   }
 
   Future<void> nearbySelect(addressObj) async {
@@ -352,17 +362,30 @@ class LeadStepperState extends State<LeadStepper> {
   Future<void> addLead() async {
     try {
       String businessNameTrim = businessNameController.text.trim();
+      String firstName = firstNameController.text;
+      String lastName = lastNameController.text;
 
       String rawNumber = phoneNumberController.text;
       var filteredNumber = rawNumber.replaceAll(RegExp("[^0-9]"), "");
+
+      var nameCap = capitalizeContactName(firstName, lastName);
+      var firstNameCap, lastNameCap;
+
+      firstNameCap = nameCap.split(", ")[0];
+
+      if (lastName != "" && lastName != null) {
+        lastNameCap = nameCap.split(" ")[1];
+      } else {
+        lastNameCap = "";
+      }
 
       var leadInfo = {
         "employee": UserService.employee.employee,
         "is_active": true,
         "processor": processorDropdownValue,
         "document": {
-          "firstName": firstNameController.text,
-          "lastName": lastNameController.text,
+          "firstName": firstNameCap,
+          "lastName": lastNameCap,
           "emailAddr": emailAddrController.text,
           "phoneNumber": filteredNumber,
           "businessName": businessNameTrim,
