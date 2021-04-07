@@ -57,7 +57,7 @@ class LeadStepperState extends State<LeadStepper> {
   var address2Controller = TextEditingController();
   var processorDropdownValue;
 
-  var _selectedBusinessType;
+  //var _selectedBusinessType;
   var _currentStep = 0;
   var stepsLength = 3;
   var businessTypes = [];
@@ -74,7 +74,7 @@ class LeadStepperState extends State<LeadStepper> {
     super.initState();
     isSaveDisabled = false;
     _currentStep = 0;
-    _selectedBusinessType = null;
+    //_selectedBusinessType = null;
   }
 
   Future<void> addressCheck(addressObj) async {

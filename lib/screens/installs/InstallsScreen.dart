@@ -24,7 +24,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
   bool myTickets = false;
 
   ScrollController _scrollController = ScrollController();
-  TextEditingController _searchController = TextEditingController();
+  //TextEditingController _searchController = TextEditingController();
 
   var installs = [];
   var installsFull = [];

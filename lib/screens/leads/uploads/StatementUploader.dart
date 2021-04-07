@@ -16,7 +16,7 @@ import 'package:intl/intl.dart';
 import 'package:multi_image_picker/multi_image_picker.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:file_picker/file_picker.dart';
+//import 'package:file_picker/file_picker.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
@@ -1018,19 +1018,20 @@ class _StatementUploaderState extends State<StatementUploader> {
                             onPressed: uploadsComplete
                                 ? () {}
                                 : () async {
-                                    var result = await FilePicker.getFilePath(
-                                        type: FileType.custom,
-                                        allowedExtensions: ['pdf']);
-                                    if (UserService.isAdmin ||
-                                        UserService.isSalesManager) {
-                                      if (imageDLList.length == 0) {
-                                        adminUploadCheck(result);
-                                      } else {
-                                        addImage(result);
-                                      }
-                                    } else {
-                                      addImage(result);
-                                    }
+                                    // var result = await FilePicker.platform
+                                    //     .pickFiles(
+                                    //         type: FileType.custom,
+                                    //         allowedExtensions: ['pdf']);
+                                    // if (UserService.isAdmin ||
+                                    //     UserService.isSalesManager) {
+                                    //   if (imageDLList.length == 0) {
+                                    //     adminUploadCheck(result);
+                                    //   } else {
+                                    //     addImage(result);
+                                    //   }
+                                    // } else {
+                                    //   addImage(result);
+                                    // }
                                   },
                             child: Padding(
                               padding: const EdgeInsets.all(8.0),

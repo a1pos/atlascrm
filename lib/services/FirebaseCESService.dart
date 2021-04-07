@@ -12,7 +12,8 @@ enum FirebaseCMType { launch, resume, backgroundMessage, message }
 class FirebaseCESService {
   static final FirebaseCESService _singleton = FirebaseCESService._internal();
   static final ApiService apiService = new ApiService();
-  static final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
+  static final FirebaseMessaging _firebaseMessaging =
+      FirebaseMessaging.instance;
   static const platform = const MethodChannel('com.ces.atlascrm.channel');
 
   static String _token;
@@ -29,18 +30,30 @@ class FirebaseCESService {
 
     if (!_initialized) {
       // For iOS request permission first.
-      _firebaseMessaging.configure(
-          onBackgroundMessage: myBackgroundMessageHandler,
-          //onMessage hit when app is open
-          onMessage: (Map<String, dynamic> message) async {
-            handleFirebaseMessage(FirebaseCMType.message, message);
-          },
-          onLaunch: (Map<String, dynamic> message) async {
-            handleFirebaseMessage(FirebaseCMType.launch, message);
-          },
-          onResume: (Map<String, dynamic> message) async {
-            handleFirebaseMessage(FirebaseCMType.resume, message);
-          });
+      FirebaseMessaging.onBackgroundMessage((RemoteMessage message) async {
+        myBackgroundMessageHandler(message);
+      });
+
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+        handleFirebaseMessage(message);
+      });
+
+      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+        handleFirebaseMessage(message);
+      });
+
+      // _firebaseMessaging.configure(
+      //     onBackgroundMessage: myBackgroundMessageHandler,
+      //     //onMessage hit when app is open
+      //     onMessage: (Map<String, dynamic> message) async {
+      //       handleFirebaseMessage(FirebaseCMType.message, message);
+      //     },
+      //     onLaunch: (Map<String, dynamic> message) async {
+      //       handleFirebaseMessage(FirebaseCMType.launch, message);
+      //     },
+      //     onResume: (Map<String, dynamic> message) async {
+      //       handleFirebaseMessage(FirebaseCMType.resume, message);
+      //     });
 
       // For testing purposes print the Firebase Messaging token
       String token = await _firebaseMessaging.getToken();
@@ -54,19 +67,17 @@ class FirebaseCESService {
     return _token;
   }
 
-  static Future<dynamic> myBackgroundMessageHandler(
-      Map<String, dynamic> message) async {
-    handleFirebaseMessage(FirebaseCMType.backgroundMessage, message);
+  static Future<dynamic> myBackgroundMessageHandler(message) async {
+    handleFirebaseMessage(message);
   }
 
-  static Future<void> handleFirebaseMessage(
-      FirebaseCMType type, Map<String, dynamic> message) async {
-    print("$type: $message");
+  static Future<void> handleFirebaseMessage(message) async {
+    print("$message");
 
     if (message == null) return null;
     print("has a message");
 
-    var messageData = message["data"];
+    var messageData = message.data;
     if (messageData == null) return null;
     print("has messageData: $messageData");
 
