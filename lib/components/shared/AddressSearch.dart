@@ -92,7 +92,7 @@ class _AddressSearchState extends State<AddressSearch> {
         PlacesSearchResponse respo = await _places.searchNearbyWithRadius(
             new Location(detail.result.geometry.location.lat,
                 detail.result.geometry.location.lng),
-            200);
+            100);
         nearbyResults = respo.results;
       }
       Map addressInfo = {
