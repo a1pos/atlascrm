@@ -33,7 +33,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
   Future<void> getEmployees() async {
     QueryOptions options;
     if (UserService.isSalesManager) {
-      options = QueryOptions(documentNode: gql("""
+      options = QueryOptions(document: gql("""
        query GET_EMPLOYEES {
         employee(where: {_or: [{roleByRole: {title: {_eq: "sales"}}},{roleByRole: {title: {_eq: "salesmanager"}}}]}) {
           employee
@@ -43,7 +43,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
       }
       """), fetchPolicy: FetchPolicy.networkOnly);
     } else {
-      options = QueryOptions(documentNode: gql("""
+      options = QueryOptions(document: gql("""
         query GET_EMPLOYEES{
           employee{
             employee

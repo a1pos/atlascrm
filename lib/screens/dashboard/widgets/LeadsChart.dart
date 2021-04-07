@@ -17,9 +17,10 @@ class _LeadsChartState extends State<LeadsChart> {
 
   bool isLoading = true;
 
+  List statementData = [];
+  List agreementData = [];
+
   var seriesList;
-  var statementData = List<LeaderboardData>();
-  var agreementData = List<LeaderboardData>();
   var statements;
   var label = "Leads";
 
@@ -70,8 +71,9 @@ class _LeadsChartState extends State<LeadsChart> {
     if (from == null) from = weekStart;
     if (to == null) to = today;
 
-    Operation leadOptions =
-        Operation(operationName: "GET_LEAD_COUNT", documentNode: gql("""
+    SubscriptionOptions leadOptions = SubscriptionOptions(
+      operationName: "GET_LEAD_COUNT",
+      document: gql("""
     subscription GET_LEAD_COUNT(\$from: timestamptz) {
       employee(
         where: {
@@ -91,7 +93,9 @@ class _LeadsChartState extends State<LeadsChart> {
       }
     }
 
-    """), variables: {"from": from});
+    """),
+      variables: {"from": from},
+    );
 
     subscription =
         await GqlClientFactory().authGqlsubscribe(leadOptions, (data) {
@@ -146,7 +150,7 @@ class _LeadsChartState extends State<LeadsChart> {
     itemTotal = 0;
     if (graphList != null) {
       if (graphList.length > 0) {
-        var temp1 = List<LeaderboardData>();
+        List temp1 = [];
 
         for (var item in graphList) {
           var count = 0;

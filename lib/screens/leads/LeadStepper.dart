@@ -112,7 +112,7 @@ class LeadStepperState extends State<LeadStepper> {
 
     try {
       QueryOptions options = QueryOptions(
-        documentNode: gql("""
+        document: gql("""
             query GET_EXISTING_LEADS(
               \$address1: String!
               \$address2: String!
@@ -208,7 +208,7 @@ class LeadStepperState extends State<LeadStepper> {
 
     try {
       QueryOptions options = QueryOptions(
-        documentNode: gql("""
+        document: gql("""
         query GET_LEAD_ADDRESS(\$businessName: String) {
           v_lead(where: {leadbusinessname: {_eq: \$businessName} }) {
             lead
@@ -229,7 +229,7 @@ class LeadStepperState extends State<LeadStepper> {
 
             try {
               QueryOptions options = QueryOptions(
-                documentNode: gql("""
+                document: gql("""
                  query GET_BUSINESS_DOC(\$lead: uuid) {
                    lead(where: {lead: {_eq: \$lead } }) {
                      document
@@ -349,7 +349,7 @@ class LeadStepperState extends State<LeadStepper> {
             ),
           ),
           actions: <Widget>[
-            FlatButton(
+            TextButton(
               child: Text('Try again', style: TextStyle(fontSize: 17)),
               onPressed: () {
                 Navigator.of(context).pop();
@@ -414,7 +414,7 @@ class LeadStepperState extends State<LeadStepper> {
       };
 
       MutationOptions mutateOptions = MutationOptions(
-        documentNode: gql("""
+        document: gql("""
         mutation INSERT_LEADS(\$objects: [lead_insert_input!]!) {
           insert_lead(objects: \$objects) {
             returning {
@@ -690,7 +690,7 @@ class LeadStepperState extends State<LeadStepper> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: <Widget>[
                     _currentStep > 0
-                        ? RaisedButton.icon(
+                        ? ElevatedButton.icon(
                             onPressed: () {
                               Stepper stepper = _stepperKey.currentWidget;
                               stepper.onStepCancel();
@@ -703,7 +703,7 @@ class LeadStepperState extends State<LeadStepper> {
                           )
                         : Container(),
                     !isSaveDisabled
-                        ? RaisedButton.icon(
+                        ? ElevatedButton.icon(
                             onPressed: () {
                               if (_currentStep == stepsLength - 1 &&
                                   _formKeys[_currentStep]

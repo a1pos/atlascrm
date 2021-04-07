@@ -34,7 +34,7 @@ class _UniversalDropDownState extends State<UniversalDropDown> {
   }
 
   Future<void> initRoles() async {
-    QueryOptions options = QueryOptions(documentNode: gql("""
+    QueryOptions options = QueryOptions(document: gql("""
       query GET_ROLES {
         role{
           role

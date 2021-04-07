@@ -1,11 +1,11 @@
-import 'package:camera/camera.dart';
+//import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:atlascrm/services/UserService.dart';
-import 'package:atlascrm/components/shared/CameraPage.dart';
+//import 'package:atlascrm/components/shared/CameraPage.dart';
 import 'package:atlascrm/components/shared/LoadingScreen.dart';
 import 'package:atlascrm/components/shared/SlideRightRoute.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
@@ -32,14 +32,14 @@ import 'package:atlascrm/screens/merchants/ViewMerchantScreen.dart';
 import 'package:atlascrm/screens/tasks/ViewTaskScreen.dart';
 import 'package:atlascrm/screens/leads/uploads/StatementUploader.dart';
 
-List<CameraDescription> cameras;
+//List<CameraDescription> cameras;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await FirebaseCESService().init();
 
-  cameras = await availableCameras();
+  //cameras = await availableCameras();
 
   runApp(AtlasCRM());
 }
@@ -225,12 +225,12 @@ class _AtlasCRMState extends State<AtlasCRM> {
                   page: ViewTaskScreen(settings.arguments),
                 );
                 break;
-              case '/camera':
-                return SlideRightRoute(
-                  page: CameraPage(
-                      cameras: cameras, callback: settings.arguments),
-                );
-                break;
+              // case '/camera':
+              //   return SlideRightRoute(
+              //     page: CameraPage(
+              //         cameras: cameras, callback: settings.arguments),
+              //   );
+              //   break;
               case '/mileage':
                 return MaterialPageRoute(builder: (context) => MileageScreen());
                 break;

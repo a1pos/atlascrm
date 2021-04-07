@@ -71,7 +71,7 @@ class _StatementUploaderState extends State<StatementUploader> {
 
     try {
       QueryOptions options = QueryOptions(
-        documentNode: gql("""
+        document: gql("""
         query GET_STATEMENT {
           statement(where: {lead: {_eq: "${lead["lead"]}"}}) {
             employee
@@ -89,7 +89,7 @@ class _StatementUploaderState extends State<StatementUploader> {
       final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
       if (result.hasException == false) {
-        if (result.data != null && result.data != "") {
+        if (result.data != null) {
           setState(
             () {
               statementEmployee = result.data["statement"][0]["employee"];
@@ -130,7 +130,7 @@ class _StatementUploaderState extends State<StatementUploader> {
     var rateReviewType;
 
     QueryOptions openStatusOptions = QueryOptions(
-      documentNode: gql("""
+      document: gql("""
       query TASK_STATUS {
         task_status {
           task_status
@@ -143,7 +143,7 @@ class _StatementUploaderState extends State<StatementUploader> {
     );
 
     QueryOptions rateReviewTypeOptions = QueryOptions(
-      documentNode: gql("""
+      document: gql("""
       query TASK_TYPES(\$title: String) {
         task_type(where: {title: {_eq: \$title}}) {
           task_type
@@ -195,7 +195,7 @@ class _StatementUploaderState extends State<StatementUploader> {
 
     try {
       MutationOptions options = MutationOptions(
-        documentNode: gql("""
+        document: gql("""
         mutation INSERT_TASK(\$data: [task_insert_input!]! = {}) {
           insert_task(objects: \$data) {
             returning {
@@ -295,7 +295,7 @@ class _StatementUploaderState extends State<StatementUploader> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: <Widget>[
-                          FlatButton(
+                          TextButton(
                             child: Text('Submit',
                                 style: TextStyle(
                                     color: Colors.green, fontSize: 17)),
@@ -321,7 +321,7 @@ class _StatementUploaderState extends State<StatementUploader> {
                               }
                             },
                           ),
-                          FlatButton(
+                          TextButton(
                             child: Text('Leave',
                                 style:
                                     TextStyle(color: Colors.red, fontSize: 17)),
@@ -383,7 +383,7 @@ class _StatementUploaderState extends State<StatementUploader> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: <Widget>[
-                          FlatButton(
+                          TextButton(
                             child: Text(
                               'Assign',
                               style:
@@ -394,7 +394,7 @@ class _StatementUploaderState extends State<StatementUploader> {
                               Navigator.pop(context);
                             },
                           ),
-                          FlatButton(
+                          TextButton(
                             child: Text(
                               'Cancel',
                               style: TextStyle(color: Colors.red, fontSize: 17),
@@ -714,14 +714,14 @@ class _StatementUploaderState extends State<StatementUploader> {
             ),
           ),
           actions: <Widget>[
-            FlatButton(
+            TextButton(
               child: Text('Delete',
                   style: TextStyle(fontSize: 17, color: Colors.red)),
               onPressed: () {
                 deleteImage(asset);
               },
             ),
-            FlatButton(
+            TextButton(
               child: Text('Cancel'),
               onPressed: () {
                 Navigator.of(context).pop();
@@ -739,7 +739,7 @@ class _StatementUploaderState extends State<StatementUploader> {
   Future<void> loadImages() async {
     try {
       QueryOptions options = QueryOptions(
-        documentNode: gql("""
+        document: gql("""
       query LEAD_PHOTOS(\$lead: uuid!) {
         lead_photos(lead: \$lead){
           photos
@@ -755,7 +755,7 @@ class _StatementUploaderState extends State<StatementUploader> {
       final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
       if (result.hasException == false) {
-        if (result.data != null && result.data != "") {
+        if (result.data != null) {
           for (var imgUrl in result.data["lead_photos"]["photos"]) {
             var url =
                 "${ConfigSettings.HOOK_API_URL}/uploads/statement/$imgUrl";
@@ -795,7 +795,7 @@ class _StatementUploaderState extends State<StatementUploader> {
       );
 
       MutationOptions mutateOptions = MutationOptions(
-        documentNode: gql("""
+        document: gql("""
         mutation SEND_EMAIL(\$to:[String]!, \$subject:String!, \$html:String!, \$type:String!, \$statement:String!){
           email_statement(to:\$to, subject:\$subject, html:\$html, type:\$type, statement:\$statement){
             email_status
@@ -821,7 +821,7 @@ class _StatementUploaderState extends State<StatementUploader> {
           await GqlClientFactory().authGqlmutate(mutateOptions);
 
       if (result.hasException == false) {
-        if (result.data != null && result.data != "") {
+        if (result.data != null) {
           if (!UserService.isAdmin || !UserService.isSalesManager) {
             createTask();
           }

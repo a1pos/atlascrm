@@ -62,8 +62,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
 
   Future<void> initInstallsData() async {
     try {
-      var endpoint =
-          "/ticket?page=$pageNum&size=10&searchString=&installView=true&closedTickets=false";
+      // var endpoint = "/ticket?page=$pageNum&size=10&searchString=&installView=true&closedTickets=false";
       var resp;
       if (resp != null) {
         if (resp.statusCode == 200) {

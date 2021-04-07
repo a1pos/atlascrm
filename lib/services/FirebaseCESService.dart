@@ -84,7 +84,7 @@ class FirebaseCESService {
         print("FILE URI: $result");
 
         var options = MutationOptions(
-            documentNode: gql("""
+            document: gql("""
           mutation REMOVE_PHONE_LINK(\$phone_link_stream: uuid!) {
             update_phone_link_stream_by_pk(pk_columns: {phone_link_stream: \$phone_link_stream},_set:{completed:true}){
               phone_link_stream

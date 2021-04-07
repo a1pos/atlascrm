@@ -63,8 +63,9 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
   }
 
   Future<void> loadDevices() async {
-    Operation options =
-        Operation(operationName: "SUB_EMPLOYEE_DEVICES", documentNode: gql("""
+    SubscriptionOptions options = SubscriptionOptions(
+      operationName: "SUB_EMPLOYEE_DEVICES",
+      document: gql("""
         subscription SUB_EMPLOYEE_DEVICES(\$employee: uuid!) {
           employee_device(where: {employee: {_eq: \$employee}}) {
             employee_device
@@ -72,7 +73,10 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
             device_id
           }
         }
-    """), variables: {"employee": "${this.widget.employeeId}"});
+    """),
+      variables: {"employee": "${this.widget.employeeId}"},
+    );
+
     subscription = await GqlClientFactory().authGqlsubscribe(
       options,
       (data) {
@@ -99,7 +103,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
   }
 
   Future<void> loadEmployeeData() async {
-    QueryOptions options = QueryOptions(documentNode: gql("""
+    QueryOptions options = QueryOptions(document: gql("""
       query GET_EMPLOYEE{
         employee_by_pk(employee: "${this.widget.employeeId}"){
           employee
@@ -131,7 +135,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
 
   Future<void> updateRole(role) async {
     MutationOptions mutateOptions = MutationOptions(
-      documentNode: gql("""
+      document: gql("""
       mutation UPDATE_ROLE (\$employee: uuid!, \$role: uuid!){
         update_employee_by_pk(pk_columns: {employee: \$employee}, _set: {role: \$role}){
           roleByRole{
@@ -237,7 +241,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                   };
                   //LOGIC TO MUTATE ADD DEVICE
                   MutationOptions mutateOptions =
-                      MutationOptions(documentNode: gql("""
+                      MutationOptions(document: gql("""
                         mutation INSERT_ONE_EMPLOYEE_DEVICE (\$object: employee_device_insert_input!){
                           insert_employee_device_one(object: \$object){
                           employee_device
@@ -299,7 +303,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
               onPressed: () async {
                 //LOGIC TO MUTATE DELETE A DEVICE
                 MutationOptions mutateOptions = MutationOptions(
-                  documentNode: gql("""
+                  document: gql("""
                       mutation INSERT_ONE_EMPLOYEE_DEVICE(\$employee_device: uuid!) {
                         delete_employee_device_by_pk(employee_device: \$employee_device){
                           employee_device

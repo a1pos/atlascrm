@@ -70,7 +70,7 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
             'offset: 0, limit: 10, order_by: {merchantbusinessname: asc}';
       }
 
-      QueryOptions options = QueryOptions(documentNode: gql("""
+      QueryOptions options = QueryOptions(document: gql("""
           query GET_MERCHANTS {
             v_merchant($initParams) {
               updated_at
@@ -146,7 +146,7 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
       }
 
       QueryOptions options = QueryOptions(
-        documentNode: gql("""
+        document: gql("""
           query GET_V_MERCHANTS {
             v_merchant($params) {
               updated_at

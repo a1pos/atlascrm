@@ -69,7 +69,7 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
   Future initSubListener() async {
     Operation options = Operation(
       operationName: "GET_EMPLOYEE_LOCATIONS",
-      documentNode: gql("""
+      document: gql("""
         subscription GET_EMPLOYEE_LOCATIONS {
           employee_device {
             device_id
@@ -95,7 +95,7 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
           var stopCount;
           if (currentLocation["employee_locations"].length != 0) {
             QueryOptions options = QueryOptions(
-              documentNode: gql("""
+              document: gql("""
           query GET_STOP_COUNT(\$device_id: String, \$date: timestamptz) {
                       v_stop_count_aggregate(
                         where: {
@@ -225,7 +225,7 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
     //     for (var currentLocation in data.data["employee_device"]) {
     //       var stopCount;
     //       if (currentLocation["employee_locations"].length != 0) {
-    //         QueryOptions options = QueryOptions(documentNode: gql("""
+    //         QueryOptions options = QueryOptions(document: gql("""
     //       query GET_STOP_COUNT(\$device_id: String, \$date: timestamptz) {
     //                   v_stop_count_aggregate(
     //                     where: {

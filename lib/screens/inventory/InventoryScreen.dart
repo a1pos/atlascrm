@@ -12,7 +12,7 @@ import 'package:atlascrm/components/shared/CustomDrawer.dart';
 import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
 import 'package:flutter/material.dart';
-import 'package:barcode_scan/barcode_scan.dart';
+import 'package:dan_barcode_scan/dan_barcode_scan.dart';
 
 import 'InventoryAdd.dart';
 
@@ -72,7 +72,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
   Future<void> initInventoryData() async {
     try {
       QueryOptions options = QueryOptions(
-        documentNode: gql("""
+        document: gql("""
         query INVENTORY {
           inventory($initParams) {
             inventory
@@ -98,7 +98,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
         }
       """),
         fetchPolicy: FetchPolicy.networkOnly,
-        pollInterval: 5,
+        pollInterval: Duration(seconds: 5),
       );
 
       final QueryResult result = await GqlClientFactory().authGqlquery(options);
@@ -170,7 +170,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
       }
 
       QueryOptions options = QueryOptions(
-        documentNode: gql("""
+        document: gql("""
         query INVENTORY {
           inventory($params) {
             inventory

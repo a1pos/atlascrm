@@ -66,9 +66,9 @@ class _LeadNotesState extends State<LeadNotes> {
   Future<void> loadNotes(objectId, type) async {
     notesController.clear();
 
-    Operation options = Operation(
+    SubscriptionOptions options = SubscriptionOptions(
       operationName: "${typeUpper}_NOTE",
-      documentNode: gql("""
+      document: gql("""
           subscription ${typeUpper}_NOTE(\$id: uuid) {
             ${type}_note(where: {$type: {_eq: \$id}}){
               ${type}_note
@@ -120,7 +120,7 @@ class _LeadNotesState extends State<LeadNotes> {
     };
 
     MutationOptions mutateOptions = MutationOptions(
-      documentNode: gql("""
+      document: gql("""
      mutation INSERT_${typeUpper}_NOTE (\$object: ${type}_note_insert_input!){
       insert_${type}_note_one(object: \$object){
 		    ${type}_note

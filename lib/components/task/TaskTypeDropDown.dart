@@ -25,7 +25,7 @@ class _TaskTypeDropDownState extends State<TaskTypeDropDown> {
 
   Future<void> initTypes() async {
     QueryOptions options = QueryOptions(
-      documentNode: gql("""
+      document: gql("""
       query TASK_TYPES {
         task_type {
           task_type

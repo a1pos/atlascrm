@@ -80,7 +80,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
             ),
           ),
           actions: <Widget>[
-            FlatButton(
+            TextButton(
               child: Text(
                 'Yes',
                 style: TextStyle(fontSize: 17, color: Colors.green),
@@ -92,7 +92,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
                 };
 
                 MutationOptions mutateOptions = MutationOptions(
-                  documentNode: gql("""
+                  document: gql("""
                       mutation UPDATE_LEAD (\$data: lead_set_input){
                         update_lead_by_pk(pk_columns: {lead: "${lead["lead"]}"}, _set: \$data){
                           lead
@@ -124,7 +124,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
                 }
               },
             ),
-            FlatButton(
+            TextButton(
               child: Text(
                 'No',
                 style: TextStyle(fontSize: 17, color: Colors.red),
@@ -152,7 +152,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
         }
       }
 
-      QueryOptions options = QueryOptions(documentNode: gql("""
+      QueryOptions options = QueryOptions(document: gql("""
           query GET_LEADS {
             v_lead($initParams) {
               lead
@@ -261,7 +261,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
       }
 
       QueryOptions options = QueryOptions(
-        documentNode: gql("""
+        document: gql("""
           query GET_LEADS {
             v_lead($params) {
               lead

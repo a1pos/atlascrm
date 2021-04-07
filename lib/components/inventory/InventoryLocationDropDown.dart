@@ -37,7 +37,7 @@ class _InventoryLocationDropDownState extends State<InventoryLocationDropDown> {
   }
 
   Future<void> initLocations() async {
-    QueryOptions options = QueryOptions(documentNode: gql("""
+    QueryOptions options = QueryOptions(document: gql("""
         query GET_INVENTORY_LOCATIONS {
           inventory_location{
             inventory_location

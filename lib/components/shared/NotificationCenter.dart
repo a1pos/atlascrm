@@ -36,15 +36,18 @@ class _NotificationCenterState extends State<NotificationCenter> {
   }
 
   Future<void> initNotificationsSub() async {
-    Operation options =
-        Operation(operationName: "NOTIFICATION_SUB", documentNode: gql("""
+    SubscriptionOptions options = SubscriptionOptions(
+      operationName: "NOTIFICATION_SUB",
+      document: gql("""
           subscription NOTIFICATION_SUB(\$employee: uuid) {
             notification(where: {employee: {_eq: \$employee}, _and: {is_read: {_eq: false}}}){
               notification
               document
             }
           }
-            """), variables: {"employee": "${UserService.employee.employee}"});
+            """),
+      variables: {"employee": "${UserService.employee.employee}"},
+    );
 
     subscription = await GqlClientFactory().authGqlsubscribe(options, (data) {
       var notificationsArrDecoded = data.data["notification"];
@@ -66,7 +69,7 @@ class _NotificationCenterState extends State<NotificationCenter> {
   }
 
   Future<void> markOneAsRead(notification) async {
-    MutationOptions mutateOptions = MutationOptions(documentNode: gql("""
+    MutationOptions mutateOptions = MutationOptions(document: gql("""
           mutation UPDATE_NOTIFICATION (\$notification: uuid){
             update_notification(where: {notification: {_eq: \$notification}}, _set: {is_read: true}) {
               returning {
@@ -99,7 +102,7 @@ class _NotificationCenterState extends State<NotificationCenter> {
 
   Future<void> markAllAsRead() async {
     MutationOptions mutateOptions = MutationOptions(
-      documentNode: gql("""
+      document: gql("""
           mutation UPDATE_NOTIFICATIONS (\$employee: uuid){
             update_notification(where: {employee: {_eq: \$employee}, _and: {is_read: {_eq: false}}}, _set: {is_read: true}) {
               returning {

@@ -128,7 +128,7 @@ class _TaskScreenState extends State<TaskScreen> {
       calendarController: _calendarController,
       headerStyle: HeaderStyle(formatButtonShowsNext: false),
       calendarStyle: CalendarStyle(),
-      onDaySelected: (date, events) {
+      onDaySelected: (date, events, _) {
         setState(() {
           activeTasks = events;
           if (activeTasks.length == 0) {
@@ -142,9 +142,9 @@ class _TaskScreenState extends State<TaskScreen> {
   }
 
   Future<void> initTasks() async {
-    Operation options = Operation(
+    SubscriptionOptions options = SubscriptionOptions(
       operationName: "EMPLOYEE_TASKS",
-      documentNode: gql("""
+      document: gql("""
           subscription EMPLOYEE_TASKS(\$employee: uuid!) {
             employee_by_pk(employee: \$employee) {
               tasks(where: {taskStatusByTaskStatus: {title: {_eq: "Open"}}}, order_by: {date: asc}) {
@@ -202,7 +202,7 @@ class _TaskScreenState extends State<TaskScreen> {
 
     var openStatus;
 
-    QueryOptions options = QueryOptions(documentNode: gql("""
+    QueryOptions options = QueryOptions(document: gql("""
       query TASK_STATUS {
         task_status {
           task_status
@@ -244,7 +244,7 @@ class _TaskScreenState extends State<TaskScreen> {
     };
 
     try {
-      MutationOptions options = MutationOptions(documentNode: gql("""
+      MutationOptions options = MutationOptions(document: gql("""
         mutation INSERT_TASK(\$data: [task_insert_input!]! = {}) {
           insert_task(objects: \$data) {
             returning {

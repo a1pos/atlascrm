@@ -1,6 +1,7 @@
 import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:http/http.dart';
 import 'dart:async';
 import 'package:intl/intl.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
@@ -58,16 +59,20 @@ class _NotesState extends State<Notes> {
   Future<void> loadNotes(objectId, type) async {
     notesController.clear();
 
-    Operation options =
-        Operation(operationName: "${typeUpper}_NOTE", documentNode: gql("""
-          subscription ${typeUpper}_NOTE(\$id: uuid) {
-            ${type}_note(where: {$type: {_eq: \$id}}){
-              ${type}_note
-              note_text
-              created_at
-            }
-          }
-    """), variables: {"id": "$objectId"});
+    SubscriptionOptions options = SubscriptionOptions(
+      operationName: "${typeUpper}_NOTE",
+      document: gql("""
+      subscription ${typeUpper}_NOTE(\$id: uuid) {
+        ${type}_note(where: {$type: {_eq: \$id}}){
+          ${type}_note
+          note_text
+          created_at
+        }
+      }
+    """),
+      variables: {"id": "$objectId"},
+    );
+
     subscription = await GqlClientFactory().authGqlsubscribe(options, (data) {
       var notesArrDecoded = data.data["${type}_note"];
       if (notesArrDecoded != null) {
@@ -95,7 +100,7 @@ class _NotesState extends State<Notes> {
       "note_text": newNote,
     };
 
-    MutationOptions mutateOptions = MutationOptions(documentNode: gql("""
+    MutationOptions mutateOptions = MutationOptions(document: gql("""
      mutation INSERT_${typeUpper}_NOTE (\$object: ${type}_note_insert_input!){
       insert_${type}_note_one(object: \$object){
 		    ${type}_note
