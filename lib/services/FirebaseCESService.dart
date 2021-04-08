@@ -42,19 +42,6 @@ class FirebaseCESService {
         handleFirebaseMessage(message);
       });
 
-      // _firebaseMessaging.configure(
-      //     onBackgroundMessage: myBackgroundMessageHandler,
-      //     //onMessage hit when app is open
-      //     onMessage: (Map<String, dynamic> message) async {
-      //       handleFirebaseMessage(FirebaseCMType.message, message);
-      //     },
-      //     onLaunch: (Map<String, dynamic> message) async {
-      //       handleFirebaseMessage(FirebaseCMType.launch, message);
-      //     },
-      //     onResume: (Map<String, dynamic> message) async {
-      //       handleFirebaseMessage(FirebaseCMType.resume, message);
-      //     });
-
       // For testing purposes print the Firebase Messaging token
       String token = await _firebaseMessaging.getToken();
       _token = token;
