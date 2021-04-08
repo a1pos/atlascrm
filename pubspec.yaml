@@ -61,7 +61,7 @@ dependencies:
 
 dependency_overrides:
   http: ^0.13.1
-  rxdart: ^0.23.1
+  rxdart: ^0.26.0
   json_annotation: ^3.0.0
   path_provider: ^2.0.0
 

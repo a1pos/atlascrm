@@ -30,9 +30,9 @@ class FirebaseCESService {
 
     if (!_initialized) {
       // For iOS request permission first.
-      FirebaseMessaging.onBackgroundMessage((RemoteMessage message) async {
-        myBackgroundMessageHandler(message);
-      });
+      // FirebaseMessaging.onBackgroundMessage((RemoteMessage message) async {
+      //   myBackgroundMessageHandler(message);
+      // });
 
       FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
         handleFirebaseMessage(message);

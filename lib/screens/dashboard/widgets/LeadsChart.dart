@@ -17,8 +17,8 @@ class _LeadsChartState extends State<LeadsChart> {
 
   bool isLoading = true;
 
-  List statementData = [];
-  List agreementData = [];
+  List<LeaderboardData> statementData = [];
+  List<LeaderboardData> agreementData = [];
 
   var seriesList;
   var statements;
@@ -150,7 +150,7 @@ class _LeadsChartState extends State<LeadsChart> {
     itemTotal = 0;
     if (graphList != null) {
       if (graphList.length > 0) {
-        List temp1 = [];
+        List<LeaderboardData> temp1 = [];
 
         for (var item in graphList) {
           var count = 0;
@@ -172,9 +172,11 @@ class _LeadsChartState extends State<LeadsChart> {
     }
 
     List<charts.Series<LeaderboardData, String>> _displayData() {
+      //
       statements = statementData;
       return [
         new charts.Series<LeaderboardData, String>(
+          //
           id: '$label: $itemTotal',
           domainFn: (LeaderboardData sales, _) => sales.person,
           measureFn: (LeaderboardData sales, _) => sales.count,

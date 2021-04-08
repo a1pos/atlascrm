@@ -43,7 +43,7 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
 
   var employee;
 
-  List childButtons = [];
+  List<UnicornButton> childButtons = [];
 
   void initState() {
     super.initState();
@@ -51,7 +51,8 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
   }
 
   Future<void> initStatus() async {
-    List<UnicornButton> childButtons = [];
+    childButtons = <UnicornButton>[];
+
     if (inventory["is_installed"] == true) {
       deviceStatus = "Installed";
       deviceIcon = Icons.done;
@@ -623,7 +624,7 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
             parentButtonBackground: UniversalStyles.actionColor,
             orientation: UnicornOrientation.VERTICAL,
             parentButton: Icon(Icons.menu),
-            childButtons: childButtons),
+            childButtons: childButtons.toList()),
       ),
     );
   }

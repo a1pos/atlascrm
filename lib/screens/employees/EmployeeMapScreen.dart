@@ -67,7 +67,7 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
   }
 
   Future initSubListener() async {
-    Operation options = Operation(
+    SubscriptionOptions options = SubscriptionOptions(
       operationName: "GET_EMPLOYEE_LOCATIONS",
       document: gql("""
         subscription GET_EMPLOYEE_LOCATIONS {

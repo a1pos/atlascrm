@@ -81,8 +81,8 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
   }
 
   Future initSub() async {
-    Operation options =
-        Operation(operationName: "GET_CARD_LEADERBOARD_COUNT", document: gql("""
+    SubscriptionOptions options = SubscriptionOptions(
+        operationName: "GET_CARD_LEADERBOARD_COUNT", document: gql("""
           subscription GET_CARD_LEADERBOARD_COUNT {
             v_leaderboard {
               employee

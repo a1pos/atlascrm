@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-//import 'package:google_maps_webservice/places.dart';
+import 'package:google_maps_webservice/places.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 
 const kGoogleApiKey = "AIzaSyB-rMAdwtIjM7s_4Lb8SdRXAfhbiLTVl7s";
 
-//GoogleMapsPlaces _places = GoogleMapsPlaces(apiKey: kGoogleApiKey);
+GoogleMapsPlaces _places = GoogleMapsPlaces(apiKey: kGoogleApiKey);
 
 class PlacesSuggestions extends StatefulWidget {
   final String locationValue;
@@ -40,9 +40,9 @@ class _PlacesSuggestionsState extends State<PlacesSuggestions> {
 
   Future<void> getPlaceById(placeId) async {
     if (placeId != null && placeId != "") {
-      //PlacesDetailsResponse respo = await _places.getDetailsByPlaceId(placeId);
-      //PlaceDetails placeDetails = respo.result;
-      // List placeAddress = placeDetails.addressComponents;
+      PlacesDetailsResponse respo = await _places.getDetailsByPlaceId(placeId);
+      PlaceDetails placeDetails = respo.result;
+      List placeAddress = placeDetails.addressComponents;
 
       Map addressInfo = {
         "address": "",
@@ -53,42 +53,42 @@ class _PlacesSuggestionsState extends State<PlacesSuggestions> {
       };
       Map shortAddress = {"address": ""};
 
-      // placeAddress.forEach((element) {
-      //   element.types.forEach((type) {
-      //     switch (type) {
-      //       case "street_number":
-      //         addressInfo["address"] = element.shortName;
-      //         shortAddress["address"] = element.shortName;
-      //         break;
-      //       case "route":
-      //         addressInfo["address"] += " " + element.longName;
-      //         shortAddress["address"] += " " + element.shortName;
-      //         break;
-      //       case "subpremise":
-      //         addressInfo["address2"] = element.shortName;
-      //         break;
-      //       case "locality":
-      //         addressInfo["city"] = element.shortName;
-      //         break;
-      //       case "administrative_area_level_1":
-      //         addressInfo["state"] = element.shortName;
-      //         break;
-      //       case "postal_code":
-      //         addressInfo["zipcode"] = element.shortName;
-      //         break;
-      //     }
-      //   });
-      // });
+      placeAddress.forEach((element) {
+        element.types.forEach((type) {
+          switch (type) {
+            case "street_number":
+              addressInfo["address"] = element.shortName;
+              shortAddress["address"] = element.shortName;
+              break;
+            case "route":
+              addressInfo["address"] += " " + element.longName;
+              shortAddress["address"] += " " + element.shortName;
+              break;
+            case "subpremise":
+              addressInfo["address2"] = element.shortName;
+              break;
+            case "locality":
+              addressInfo["city"] = element.shortName;
+              break;
+            case "administrative_area_level_1":
+              addressInfo["state"] = element.shortName;
+              break;
+            case "postal_code":
+              addressInfo["zipcode"] = element.shortName;
+              break;
+          }
+        });
+      });
       if (addressInfo["address2"] != "" && addressInfo["address2"] != null) {
         shortAddress["address"] += " " + addressInfo["address2"];
       }
-      // Map mixedReply = {
-      //   "address": addressInfo,
-      //   "place": placeDetails,
-      //   "shortaddress": shortAddress
-      // };
+      Map mixedReply = {
+        "address": addressInfo,
+        "place": placeDetails,
+        "shortaddress": shortAddress
+      };
 
-      //this.widget.onPlaceSelect(mixedReply);
+      this.widget.onPlaceSelect(mixedReply);
     } else {
       Fluttertoast.showToast(
           msg: "Couldn't find place id!",
@@ -126,42 +126,42 @@ class _PlacesSuggestionsState extends State<PlacesSuggestions> {
                           ),
                         ),
                         Divider(),
-                        // Column(
-                        //   children: this
-                        //       .widget
-                        //       .addressSearchObj["nearbyResults"]
-                        //       .map<Widget>((PlacesSearchResult place) {
-                        //     return GestureDetector(
-                        //       onTap: () {
-                        //         getPlaceById(place.placeId);
-                        //         setState(() {
-                        //           isLoading = true;
-                        //         });
-                        //       },
-                        //       child: Card(
-                        //         child: place.types.contains('establishment')
-                        //             ? ListTile(
-                        //                 title: Row(
-                        //                   children: <Widget>[
-                        //                     Padding(
-                        //                       padding:
-                        //                           const EdgeInsets.fromLTRB(
-                        //                               0, 0, 10, 0),
-                        //                       child: Icon(Icons.business),
-                        //                     ),
-                        //                     Expanded(
-                        //                       child: Text(
-                        //                         place.name,
-                        //                       ),
-                        //                     ),
-                        //                   ],
-                        //                 ),
-                        //               )
-                        //             : null,
-                        //       ),
-                        //     );
-                        //   }).toList(),
-                        // ),
+                        Column(
+                          children: this
+                              .widget
+                              .addressSearchObj["nearbyResults"]
+                              .map<Widget>((PlacesSearchResult place) {
+                            return GestureDetector(
+                              onTap: () {
+                                getPlaceById(place.placeId);
+                                setState(() {
+                                  isLoading = true;
+                                });
+                              },
+                              child: Card(
+                                child: place.types.contains('establishment')
+                                    ? ListTile(
+                                        title: Row(
+                                          children: <Widget>[
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.fromLTRB(
+                                                      0, 0, 10, 0),
+                                              child: Icon(Icons.business),
+                                            ),
+                                            Expanded(
+                                              child: Text(
+                                                place.name,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                    : null,
+                              ),
+                            );
+                          }).toList(),
+                        ),
                         GestureDetector(
                           onTap: () {
                             notListed(this.widget.addressSearchObj);
