@@ -34,9 +34,9 @@ class _TaskScreenState extends State<TaskScreen> {
   CalendarController _calendarController;
   Map<DateTime, List<dynamic>> _calendarEvents;
 
-  var tasks = [];
-  var tasksFull = [];
-  var activeTasks = [];
+  List tasks = [];
+  List tasksFull = [];
+  List activeTasks = [];
 
   var taskTitleController = TextEditingController();
   var taskDescController = TextEditingController();
@@ -555,16 +555,27 @@ class _TaskScreenState extends State<TaskScreen> {
               labelText: "Search Tasks",
             ),
             onChanged: (value) {
-              var filtered = tasksFull.where((e) {
-                String title = e["document"]["title"];
-                String notes = e["document"]["notes"];
-                return title.toLowerCase().contains(value.toLowerCase()) ||
-                    notes.toLowerCase().contains(value.toLowerCase());
-              }).toList();
+              if (value.isNotEmpty) {
+                var filtered = tasksFull.where((e) {
+                  String title = e["document"]["title"];
+                  String notes = e["document"]["notes"];
 
-              setState(() {
-                activeTasks = filtered.toList();
-              });
+                  return (title != null || title != ""
+                      ? title.toLowerCase().contains(value.toLowerCase()) ||
+                          notes.toLowerCase().contains(value.toLowerCase())
+                      : false);
+                }).toList();
+
+                setState(() {
+                  activeTasks = filtered.toList();
+                  isEmpty = false;
+                });
+              } else {
+                setState(() {
+                  activeTasks = [];
+                  isEmpty = true;
+                });
+              }
             },
           ),
           _buildCalendar(),
@@ -608,16 +619,27 @@ class _TaskScreenState extends State<TaskScreen> {
               labelText: "Search Tasks",
             ),
             onChanged: (value) {
-              var filtered = tasksFull.where((e) {
-                String title = e["document"]["title"];
-                String notes = e["document"]["notes"];
-                return title.toLowerCase().contains(value.toLowerCase()) ||
-                    notes.toLowerCase().contains(value.toLowerCase());
-              }).toList();
+              if (value.isNotEmpty) {
+                var filtered = tasksFull.where((e) {
+                  String title = e["document"]["title"];
+                  String notes = e["document"]["notes"];
 
-              setState(() {
-                activeTasks = filtered.toList();
-              });
+                  return (title != null || title != ""
+                      ? title.toLowerCase().contains(value.toLowerCase()) ||
+                          notes.toLowerCase().contains(value.toLowerCase())
+                      : false);
+                }).toList();
+
+                setState(() {
+                  activeTasks = filtered.toList();
+                  isEmpty = false;
+                });
+              } else {
+                setState(() {
+                  activeTasks = [];
+                  isEmpty = true;
+                });
+              }
             },
           ),
           _buildCalendar(),

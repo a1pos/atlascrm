@@ -16,8 +16,8 @@ class _TasksState extends State<Tasks> {
   bool isLoading = true;
   bool isEmpty = true;
 
-  var tasks = [];
-  var activeTasks = [];
+  List tasks = [];
+  List activeTasks = [];
   var subscription;
 
   @override

@@ -94,11 +94,13 @@ class _LeadNotesState extends State<LeadNotes> {
             );
           }
         }
-        _scrollController.animateTo(
-          0.0,
-          curve: Curves.easeOut,
-          duration: const Duration(milliseconds: 300),
-        );
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            0.0,
+            curve: Curves.easeOut,
+            duration: const Duration(milliseconds: 300),
+          );
+        }
       },
       (error) {},
       () => refreshSub(),

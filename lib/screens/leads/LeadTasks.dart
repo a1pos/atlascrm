@@ -543,24 +543,27 @@ class _LeadTasksState extends State<LeadTasks> {
               labelText: "Search Tasks",
             ),
             onChanged: (value) {
-              var filtered = tasksFull.where(
-                (e) {
+              if (value.isNotEmpty) {
+                var filtered = tasksFull.where((e) {
                   String title = e["document"]["title"];
                   String notes = e["document"]["notes"];
-                  return title.toLowerCase().contains(
-                            value.toLowerCase(),
-                          ) ||
-                      notes.toLowerCase().contains(
-                            value.toLowerCase(),
-                          );
-                },
-              ).toList();
 
-              setState(
-                () {
+                  return (title != null || title != ""
+                      ? title.toLowerCase().contains(value.toLowerCase()) ||
+                          notes.toLowerCase().contains(value.toLowerCase())
+                      : false);
+                }).toList();
+
+                setState(() {
                   activeTasks = filtered.toList();
-                },
-              );
+                  isEmpty = false;
+                });
+              } else {
+                setState(() {
+                  activeTasks = [];
+                  isEmpty = true;
+                });
+              }
             },
           ),
           _buildCalendar(),
@@ -607,20 +610,27 @@ class _LeadTasksState extends State<LeadTasks> {
               labelText: "Search Tasks",
             ),
             onChanged: (value) {
-              var filtered = tasksFull.where(
-                (e) {
+              if (value.isNotEmpty) {
+                var filtered = tasksFull.where((e) {
                   String title = e["document"]["title"];
                   String notes = e["document"]["notes"];
-                  return title.toLowerCase().contains(value.toLowerCase()) ||
-                      notes.toLowerCase().contains(value.toLowerCase());
-                },
-              ).toList();
 
-              setState(
-                () {
+                  return (title != null || title != ""
+                      ? title.toLowerCase().contains(value.toLowerCase()) ||
+                          notes.toLowerCase().contains(value.toLowerCase())
+                      : false);
+                }).toList();
+
+                setState(() {
                   activeTasks = filtered.toList();
-                },
-              );
+                  isEmpty = false;
+                });
+              } else {
+                setState(() {
+                  activeTasks = [];
+                  isEmpty = true;
+                });
+              }
             },
           ),
           _buildCalendar(),
