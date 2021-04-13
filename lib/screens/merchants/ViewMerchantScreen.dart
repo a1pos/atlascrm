@@ -37,6 +37,8 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
   Map businessAddress = {"address": "", "city": "", "state": "", "zipcode": ""};
   String addressText;
 
+  List merchantInfoEntries = [];
+
   var firstNameController = TextEditingController();
   var lastNameController = TextEditingController();
   var emailAddrController = TextEditingController();
@@ -46,8 +48,6 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
   var businessAddressController = TextEditingController();
   var notesController = TextEditingController();
   var merchantSourceController = TextEditingController();
-
-  var merchantInfoEntries = List<MerchantInfoEntry>();
 
   var merchant;
   var merchantDocument;
@@ -73,7 +73,7 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
 
   Future<void> loadMerchantData(merchantId) async {
     QueryOptions options = QueryOptions(
-      documentNode: gql("""
+      document: gql("""
       query GET_MERCHANT(\$merchant: uuid!){
         merchant_by_pk(merchant: \$merchant){
           merchant
@@ -187,8 +187,8 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
       isLoading = false;
     });
 
-    Operation deviceOptions =
-        Operation(operationName: "GET_MERCHANT_DEVICES", documentNode: gql("""
+    SubscriptionOptions deviceOptions = SubscriptionOptions(
+        operationName: "GET_MERCHANT_DEVICES", document: gql("""
           subscription GET_MERCHANT_DEVICES(\$merchant: uuid!) {
             inventory(where: {merchant: {_eq: \$merchant}}){
               serial
@@ -318,8 +318,10 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                 children: <Widget>[
                                   SizedBox(
                                     width: 95,
-                                    child: RaisedButton(
-                                      color: UniversalStyles.actionColor,
+                                    child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        primary: UniversalStyles.actionColor,
+                                      ),
                                       child: Row(
                                         children: <Widget>[
                                           Icon(Icons.mail, color: Colors.white),
@@ -355,8 +357,10 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                   ),
                                   SizedBox(
                                     width: 95,
-                                    child: RaisedButton(
-                                      color: UniversalStyles.actionColor,
+                                    child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        primary: UniversalStyles.actionColor,
+                                      ),
                                       child: Row(
                                         children: <Widget>[
                                           Icon(Icons.call, color: Colors.white),
@@ -390,8 +394,10 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                   ),
                                   SizedBox(
                                     width: 95,
-                                    child: RaisedButton(
-                                      color: UniversalStyles.actionColor,
+                                    child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        primary: UniversalStyles.actionColor,
+                                      ),
                                       child: Row(
                                         children: <Widget>[
                                           Icon(Icons.map, color: Colors.white),

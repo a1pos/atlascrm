@@ -81,8 +81,8 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
   }
 
   Future initSub() async {
-    Operation options = Operation(
-        operationName: "GET_CARD_LEADERBOARD_COUNT", documentNode: gql("""
+    SubscriptionOptions options = SubscriptionOptions(
+        operationName: "GET_CARD_LEADERBOARD_COUNT", document: gql("""
           subscription GET_CARD_LEADERBOARD_COUNT {
             v_leaderboard {
               employee
@@ -191,7 +191,7 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
             padding: const EdgeInsets.all(15.0),
             child: Stack(
               alignment: Alignment.center,
-              overflow: Overflow.visible,
+              clipBehavior: Clip.none,
               children: <Widget>[
                 Center(
                   child: Container(

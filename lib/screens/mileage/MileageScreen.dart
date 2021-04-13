@@ -98,7 +98,7 @@ class _MileageScreenState extends State<MileageScreen> {
               ),
             ),
             actions: <Widget>[
-              FlatButton(
+              TextButton(
                 child: Text(
                   'Not a Merchant?',
                   style: TextStyle(fontSize: 17, color: Colors.green),
@@ -193,7 +193,7 @@ class _MileageScreenState extends State<MileageScreen> {
               ),
             ),
             actions: <Widget>[
-              FlatButton(
+              TextButton(
                 child: Text(
                   'Merchant?',
                   style: TextStyle(fontSize: 17, color: Colors.green),
@@ -258,7 +258,7 @@ class _MileageScreenState extends State<MileageScreen> {
       }
       if (status) {
         MutationOptions mutateOptions = MutationOptions(
-          documentNode: gql("""
+          document: gql("""
           mutation INSERT_TRIP (\$started_at: timestamptz, \$merchant: uuid, \$employee: uuid, \$document: jsonb){
             insert_trip_one(object: {started_at: \$started_at, merchant: \$merchant, employee: \$employee, document: \$document}) {
               trip
@@ -298,7 +298,7 @@ class _MileageScreenState extends State<MileageScreen> {
         var trip = await this.widget.storageService.read("techTripId");
         if (trip != "" && trip != "null") {
           MutationOptions mutateOptions = MutationOptions(
-            documentNode: gql("""
+            document: gql("""
            mutation UPDATE_TRIP_COMPLETE (\$completed_at: timestamptz, \$trip: uuid!) {
             update_trip_by_pk(pk_columns: {trip: \$trip}, _set: {is_completed: true, completed_at: \$completed_at}) {
               trip

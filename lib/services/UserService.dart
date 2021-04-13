@@ -88,7 +88,7 @@ class UserService {
 
     var user = firebaseAuth.currentUser;
     print(user);
-    MutationOptions mutateOptions = MutationOptions(documentNode: gql("""
+    MutationOptions mutateOptions = MutationOptions(document: gql("""
         mutation ACTION_LINK(\$uid: String!, \$email: String!) {
           link_google_account(uid: \$uid, email: \$email) {
               employee
@@ -133,7 +133,7 @@ class UserService {
       }
       GqlClientFactory.setPrivateGraphQLClient(idTokenResult);
       String companyId = empDecoded["company"];
-      QueryOptions companyQueryOptions = QueryOptions(documentNode: gql("""
+      QueryOptions companyQueryOptions = QueryOptions(document: gql("""
         query GET_COMPANY {
           company_by_pk(company: "$companyId") {
             company
@@ -152,7 +152,7 @@ class UserService {
       var registrationToken = FirebaseCESService.getToken();
 
       MutationOptions notificationRegistrationMutateOptions =
-          MutationOptions(documentNode: gql("""
+          MutationOptions(document: gql("""
         mutation REGISTER_NOTIFICATION_TOKEN(\$uid: String!, \$registration_token: String!) {
           register_notification_token(uid: \$uid, registration_token: \$registration_token) {
               message
@@ -186,7 +186,7 @@ class UserService {
   }
 
   Future<bool> exchangeRefreshToken() async {
-    MutationOptions mutateOptions = MutationOptions(documentNode: gql("""
+    MutationOptions mutateOptions = MutationOptions(document: gql("""
      mutation REFRESH_TOKEN(\$token: String!, \$refreshToken: String!) {
         refresh_token(token: \$token, refreshToken: \$refreshToken) {
             token

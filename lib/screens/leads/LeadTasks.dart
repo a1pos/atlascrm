@@ -139,7 +139,7 @@ class _LeadTasksState extends State<LeadTasks> {
       calendarController: _calendarController,
       headerStyle: HeaderStyle(formatButtonShowsNext: false),
       calendarStyle: CalendarStyle(),
-      onDaySelected: (date, events) {
+      onDaySelected: (date, events, _) {
         setState(
           () {
             activeTasks = events;
@@ -155,9 +155,9 @@ class _LeadTasksState extends State<LeadTasks> {
   }
 
   Future<void> initTasks() async {
-    Operation options = Operation(
+    SubscriptionOptions options = SubscriptionOptions(
       operationName: "LEAD_TASKS",
-      documentNode: gql("""
+      document: gql("""
           subscription LEAD_TASKS (\$lead: uuid!){
             task(where: {lead: {_eq: \$lead}, _and: {taskStatusByTaskStatus: {title: {_eq: "Open"}}}}, order_by: {date: asc}) {
               task
@@ -212,7 +212,7 @@ class _LeadTasksState extends State<LeadTasks> {
     var openStatus;
 
     QueryOptions options = QueryOptions(
-      documentNode: gql("""
+      document: gql("""
       query GET_TASK_STATUS {
         task_status {
           task_status
@@ -257,7 +257,7 @@ class _LeadTasksState extends State<LeadTasks> {
 
     try {
       MutationOptions options = MutationOptions(
-        documentNode: gql("""
+        document: gql("""
         mutation INSERT_TASK(\$data: [task_insert_input!]! = {}) {
           insert_task(objects: \$data) {
             returning {
@@ -543,24 +543,27 @@ class _LeadTasksState extends State<LeadTasks> {
               labelText: "Search Tasks",
             ),
             onChanged: (value) {
-              var filtered = tasksFull.where(
-                (e) {
+              if (value.isNotEmpty) {
+                var filtered = tasksFull.where((e) {
                   String title = e["document"]["title"];
                   String notes = e["document"]["notes"];
-                  return title.toLowerCase().contains(
-                            value.toLowerCase(),
-                          ) ||
-                      notes.toLowerCase().contains(
-                            value.toLowerCase(),
-                          );
-                },
-              ).toList();
 
-              setState(
-                () {
+                  return (title != null || title != ""
+                      ? title.toLowerCase().contains(value.toLowerCase()) ||
+                          notes.toLowerCase().contains(value.toLowerCase())
+                      : false);
+                }).toList();
+
+                setState(() {
                   activeTasks = filtered.toList();
-                },
-              );
+                  isEmpty = false;
+                });
+              } else {
+                setState(() {
+                  activeTasks = [];
+                  isEmpty = true;
+                });
+              }
             },
           ),
           _buildCalendar(),
@@ -607,20 +610,27 @@ class _LeadTasksState extends State<LeadTasks> {
               labelText: "Search Tasks",
             ),
             onChanged: (value) {
-              var filtered = tasksFull.where(
-                (e) {
+              if (value.isNotEmpty) {
+                var filtered = tasksFull.where((e) {
                   String title = e["document"]["title"];
                   String notes = e["document"]["notes"];
-                  return title.toLowerCase().contains(value.toLowerCase()) ||
-                      notes.toLowerCase().contains(value.toLowerCase());
-                },
-              ).toList();
 
-              setState(
-                () {
+                  return (title != null || title != ""
+                      ? title.toLowerCase().contains(value.toLowerCase()) ||
+                          notes.toLowerCase().contains(value.toLowerCase())
+                      : false);
+                }).toList();
+
+                setState(() {
                   activeTasks = filtered.toList();
-                },
-              );
+                  isEmpty = false;
+                });
+              } else {
+                setState(() {
+                  activeTasks = [];
+                  isEmpty = true;
+                });
+              }
             },
           ),
           _buildCalendar(),

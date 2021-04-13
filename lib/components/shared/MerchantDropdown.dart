@@ -36,7 +36,7 @@ class _MerchantDropDownState extends State<MerchantDropDown> {
 
   Future<void> initMerchants(e) async {
     QueryOptions options = QueryOptions(
-      documentNode: gql("""
+      document: gql("""
       query GET_MERCHANTS {
         merchant(where: {is_active: {_eq: true}}) {
           merchant

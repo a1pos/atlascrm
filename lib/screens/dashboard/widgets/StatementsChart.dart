@@ -14,7 +14,7 @@ class _StatementsChartState extends State<StatementsChart> {
   bool isLoading = true;
 
   var seriesList;
-  var statsData = List<SalesPerson>();
+  List statsData = [];
 
   @override
   void initState() {
@@ -26,7 +26,7 @@ class _StatementsChartState extends State<StatementsChart> {
   @override
   Widget build(BuildContext context) {
     if (this.widget.data.length > 0) {
-      var temp = List<SalesPerson>();
+      List temp = [];
       for (var item in this.widget.data) {
         temp.add(
           SalesPerson(

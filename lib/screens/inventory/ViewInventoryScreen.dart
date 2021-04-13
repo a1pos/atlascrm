@@ -43,7 +43,7 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
 
   var employee;
 
-  var childButtons = List<UnicornButton>();
+  List<UnicornButton> childButtons = [];
 
   void initState() {
     super.initState();
@@ -51,7 +51,8 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
   }
 
   Future<void> initStatus() async {
-    childButtons = List<UnicornButton>();
+    childButtons = <UnicornButton>[];
+
     if (inventory["is_installed"] == true) {
       deviceStatus = "Installed";
       deviceIcon = Icons.done;
@@ -131,7 +132,7 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
 
   Future<void> loadInventoryData() async {
     QueryOptions options = QueryOptions(
-      documentNode: gql("""
+      document: gql("""
         query GET_INVENTORY{inventory_by_pk(inventory: "${this.widget.incoming["id"]}"){
           inventory
           merchantByMerchant{
@@ -258,7 +259,7 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
     }
 
     MutationOptions mutateOptions = MutationOptions(
-      documentNode: gql("""
+      document: gql("""
       mutation UPDATE_INVENTORY (\$data: inventory_set_input){
         update_inventory_by_pk(pk_columns: {inventory: "${this.widget.incoming["id"]}"}, _set:\$data){
           inventory
@@ -326,7 +327,7 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
             ),
           ),
           actions: <Widget>[
-            FlatButton(
+            TextButton(
               child: Text('Checkout',
                   style: TextStyle(fontSize: 17, color: Colors.green)),
               onPressed: () {
@@ -365,7 +366,7 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
             ),
           ),
           actions: <Widget>[
-            FlatButton(
+            TextButton(
               child: Text(
                 'Cancel',
                 style: TextStyle(fontSize: 17),
@@ -374,7 +375,7 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
                 Navigator.of(context).pop();
               },
             ),
-            FlatButton(
+            TextButton(
               child: Text(
                 'Delete',
                 style: TextStyle(fontSize: 17, color: Colors.red),
@@ -393,7 +394,7 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
 
   Future<void> deleteDevice() async {
     MutationOptions mutateOptions = MutationOptions(
-      documentNode: gql("""
+      document: gql("""
      mutation DELETE_INVENTORY (\$inventory: uuid!){
       delete_inventory_by_pk(inventory: \$inventory){
         serial
@@ -427,7 +428,7 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
 
   getEmployee(employeeId) async {
     QueryOptions options = QueryOptions(
-      documentNode: gql("""
+      document: gql("""
       query GET_EMPLOYEE_BY_PK {
         employee_by_pk(employee: "$employeeId"){
           displayName: document(path: "displayName")
@@ -623,7 +624,7 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
             parentButtonBackground: UniversalStyles.actionColor,
             orientation: UnicornOrientation.VERTICAL,
             parentButton: Icon(Icons.menu),
-            childButtons: childButtons),
+            childButtons: childButtons.toList()),
       ),
     );
   }

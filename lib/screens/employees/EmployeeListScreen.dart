@@ -20,8 +20,8 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
   bool isLoading = true;
   bool isEmpty = true;
 
-  var employees = [];
-  var employeesFull = [];
+  List employees = [];
+  List employeesFull = [];
 
   @override
   void initState() {
@@ -33,7 +33,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
   Future<void> getEmployees() async {
     QueryOptions options;
     if (UserService.isSalesManager) {
-      options = QueryOptions(documentNode: gql("""
+      options = QueryOptions(document: gql("""
        query GET_EMPLOYEES {
         employee(where: {_or: [{roleByRole: {title: {_eq: "sales"}}},{roleByRole: {title: {_eq: "salesmanager"}}}]}) {
           employee
@@ -43,7 +43,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
       }
       """), fetchPolicy: FetchPolicy.networkOnly);
     } else {
-      options = QueryOptions(documentNode: gql("""
+      options = QueryOptions(document: gql("""
         query GET_EMPLOYEES{
           employee{
             employee
@@ -106,11 +106,11 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
         ? Container(
             child: isEmpty
                 ? Empty("No employees")
-                : Column(
-                    children: <Widget>[
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Expanded(
+                : Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      children: <Widget>[
+                        Expanded(
                           flex: 1,
                           child: TextField(
                             decoration: InputDecoration(
@@ -119,9 +119,12 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
                             onChanged: (value) {
                               var filtered = employeesFull.where((e) {
                                 String name = e["document"]["displayName"];
-                                return name.toLowerCase().contains(
-                                      value.toLowerCase(),
-                                    );
+
+                                return (name != null
+                                    ? name
+                                        .toLowerCase()
+                                        .contains(value.toLowerCase())
+                                    : false);
                               }).toList();
 
                               setState(() {
@@ -130,14 +133,13 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
                             },
                           ),
                         ),
-                      ),
-                      Expanded(
-                        flex: 6,
-                        child: getListView(),
-                      ),
-                    ],
-                  ),
-          )
+                        Expanded(
+                          flex: 6,
+                          child: getListView(),
+                        ),
+                      ],
+                    ),
+                  ))
         : Container(
             height: 300,
             child: isEmpty ? Empty("No employees") : getListView(),

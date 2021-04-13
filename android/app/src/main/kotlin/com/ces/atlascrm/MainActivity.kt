@@ -60,7 +60,7 @@ class MainActivity : FlutterActivity() {
                             val photoFile: File? = try {
                                 // Create an image file name
                                 val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
-                                val storageDir: File = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+                                val storageDir: File? = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
                                 File.createTempFile(
                                         "JPEG_${timeStamp}_", /* prefix */
                                         ".jpg", /* suffix */
@@ -157,14 +157,14 @@ class MainActivity : FlutterActivity() {
         }
     }
 
-    fun getRealPathFromURI(context: Context, contentUri: Uri?): String? {
+    fun getRealPathFromURI(context: Context, contentUri: Uri): String? {
         var cursor: Cursor? = null
         return try {
             val proj = arrayOf(MediaStore.Images.Media.DATA)
             cursor = context.contentResolver.query(contentUri, proj, null, null, null)
-            val columnIndex: Int = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
-            cursor.moveToFirst()
-            cursor.getString(columnIndex)
+            val columnIndex: Int = cursor!!.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
+            cursor?.moveToFirst()
+            cursor?.getString(columnIndex)
         } finally {
             cursor?.close()
         }

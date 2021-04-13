@@ -47,7 +47,7 @@ class _LeadDropDownState extends State<LeadDropDown> {
       return;
     } else {
       options = QueryOptions(
-        documentNode: gql("""
+        document: gql("""
             query EMPLOYEE_LEADS {
               employee_by_pk(employee: "${this.widget.employeeId}") {
                 leads {

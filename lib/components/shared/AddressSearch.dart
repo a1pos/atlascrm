@@ -57,6 +57,10 @@ class _AddressSearchState extends State<AddressSearch> {
           context: context,
           apiKey: kGoogleApiKey,
           mode: Mode.overlay,
+          types: [],
+          language: "en",
+          components: [Component(Component.country, "us")],
+          strictbounds: false,
         );
         displayPrediction(p);
       },
@@ -85,14 +89,17 @@ class _AddressSearchState extends State<AddressSearch> {
       nearbyCheck = true;
     }
     List nearbyResults;
+
     if (p != null) {
       PlacesDetailsResponse detail =
           await _places.getDetailsByPlaceId(p.placeId);
       if (nearbyCheck) {
         PlacesSearchResponse respo = await _places.searchNearbyWithRadius(
-            new Location(detail.result.geometry.location.lat,
-                detail.result.geometry.location.lng),
-            100);
+          new Location(
+              lat: detail.result.geometry.location.lat,
+              lng: detail.result.geometry.location.lng),
+          100,
+        );
         nearbyResults = respo.results;
       }
       Map addressInfo = {

@@ -59,7 +59,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
   }
 
   Future<void> loadClosedStatus() async {
-    QueryOptions options = QueryOptions(documentNode: gql("""
+    QueryOptions options = QueryOptions(document: gql("""
       query TASK_STATUS {
         task_status {
           task_status
@@ -85,7 +85,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
   }
 
   Future<void> loadTaskData() async {
-    QueryOptions options = QueryOptions(documentNode: gql("""
+    QueryOptions options = QueryOptions(document: gql("""
       query GET_TASK{
         task_by_pk(task: "${this.widget.taskId}"){
           task
@@ -180,7 +180,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
 
       MutationOptions options;
 
-      options = MutationOptions(documentNode: gql("""
+      options = MutationOptions(document: gql("""
         mutation UPDATE_TASK(\$data: task_set_input = {}) {
           update_task_by_pk (pk_columns: {task: "${this.widget.taskId}"}, _set: \$data) {
             priority
@@ -251,7 +251,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
             ),
           ),
           actions: <Widget>[
-            FlatButton(
+            TextButton(
               child: Text('Delete',
                   style: TextStyle(fontSize: 17, color: Colors.red)),
               onPressed: () {
@@ -260,7 +260,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
                 Navigator.of(context).pop();
               },
             ),
-            FlatButton(
+            TextButton(
               child: Text('Cancel', style: TextStyle(fontSize: 17)),
               onPressed: () {
                 Navigator.of(context).pop();

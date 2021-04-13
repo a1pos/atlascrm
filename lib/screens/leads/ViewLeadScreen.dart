@@ -57,7 +57,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
   bool statementDirty = false;
   bool statementComplete = false;
   bool isStale = false;
-  List leadInfoEntries = List<LeadInfoEntry>();
+  List<LeadInfoEntry> leadInfoEntries = [];
 
   var lead;
   var leadDocument;
@@ -119,7 +119,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
             ),
           ),
           actions: <Widget>[
-            FlatButton(
+            TextButton(
               child: Text('Yes',
                   style: TextStyle(fontSize: 17, color: Colors.green)),
               onPressed: () async {
@@ -129,7 +129,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                 };
 
                 MutationOptions mutateOptions = MutationOptions(
-                  documentNode: gql("""
+                  document: gql("""
                       mutation UPDATE_LEAD (\$data: lead_set_input){
                         update_lead_by_pk(pk_columns: {lead: "${lead["lead"]}"}, _set: \$data){
                           lead
@@ -161,7 +161,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                 }
               },
             ),
-            FlatButton(
+            TextButton(
               child: Text(
                 'No',
                 style: TextStyle(fontSize: 17, color: Colors.red),
@@ -181,7 +181,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
 
     try {
       QueryOptions options = QueryOptions(
-        documentNode: gql("""
+        document: gql("""
         query GET_STATEMENT {
           statement(where: {lead: {_eq: "${this.widget.leadId}"}}) {
             statement
@@ -198,7 +198,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
       final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
       if (result.hasException == false) {
-        if (result.data != null && result.data != "") {
+        if (result.data != null) {
           if (result.data["statement"][0]["document"] != null) {
             if (result.data["statement"][0]["document"]["emailSent"] != null) {
               setState(
@@ -232,7 +232,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
 
   Future<void> loadLeadData(leadId) async {
     QueryOptions options = QueryOptions(
-      documentNode: gql("""
+      document: gql("""
         query GET_LEAD(\$lead: uuid!) {
           lead_by_pk(lead: \$lead) {
             lead
@@ -332,7 +332,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
     };
 
     MutationOptions mutateOptions = MutationOptions(
-      documentNode: gql("""
+      document: gql("""
         mutation UPDATE_LEAD (\$data: lead_set_input){
           update_lead_by_pk(pk_columns: {lead: "$leadId"}, _set: \$data){
             lead
@@ -380,7 +380,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
             ),
           ),
           actions: <Widget>[
-            FlatButton(
+            TextButton(
               child: Text(
                 'Cancel',
                 style: TextStyle(fontSize: 17),
@@ -389,7 +389,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                 Navigator.of(context).pop();
               },
             ),
-            FlatButton(
+            TextButton(
               child: Text(
                 'Delete',
                 style: TextStyle(fontSize: 17, color: Colors.red),
@@ -444,7 +444,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
             ),
           ),
           actions: <Widget>[
-            FlatButton(
+            TextButton(
               child: Text(
                 'Close',
                 style: TextStyle(color: Colors.red),
@@ -709,7 +709,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                       children: <Widget>[
                                         Padding(
                                           padding: const EdgeInsets.all(8.0),
-                                          child: RaisedButton(
+                                          child: ElevatedButton(
                                             child: Row(
                                               children: <Widget>[
                                                 Icon(Icons.mail,
@@ -748,7 +748,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                         ),
                                         Padding(
                                           padding: const EdgeInsets.all(8.0),
-                                          child: RaisedButton(
+                                          child: ElevatedButton(
                                             child: Row(
                                               children: <Widget>[
                                                 Icon(Icons.call,
@@ -788,7 +788,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                         ),
                                         Padding(
                                           padding: const EdgeInsets.all(8.0),
-                                          child: RaisedButton(
+                                          child: ElevatedButton(
                                             child: Row(
                                               children: <Widget>[
                                                 Icon(Icons.map,

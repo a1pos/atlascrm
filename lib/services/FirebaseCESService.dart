@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'dart:async';
 
@@ -12,7 +13,8 @@ enum FirebaseCMType { launch, resume, backgroundMessage, message }
 class FirebaseCESService {
   static final FirebaseCESService _singleton = FirebaseCESService._internal();
   static final ApiService apiService = new ApiService();
-  static final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
+  static final FirebaseMessaging _firebaseMessaging =
+      FirebaseMessaging.instance;
   static const platform = const MethodChannel('com.ces.atlascrm.channel');
 
   static String _token;
@@ -24,30 +26,37 @@ class FirebaseCESService {
 
   FirebaseCESService._internal();
 
-  Future<void> init() async {
+  Future<dynamic> init() async {
+    WidgetsFlutterBinding.ensureInitialized();
     await Firebase.initializeApp();
 
-    if (!_initialized) {
-      // For iOS request permission first.
-      _firebaseMessaging.configure(
-          onBackgroundMessage: myBackgroundMessageHandler,
-          //onMessage hit when app is open
-          onMessage: (Map<String, dynamic> message) async {
-            handleFirebaseMessage(FirebaseCMType.message, message);
-          },
-          onLaunch: (Map<String, dynamic> message) async {
-            handleFirebaseMessage(FirebaseCMType.launch, message);
-          },
-          onResume: (Map<String, dynamic> message) async {
-            handleFirebaseMessage(FirebaseCMType.resume, message);
-          });
+    // FirebaseMessaging.onBackgroundMessage((RemoteMessage message) async {
+    //   myBackgroundMessageHandler(message);
+    // });
 
-      // For testing purposes print the Firebase Messaging token
-      String token = await _firebaseMessaging.getToken();
-      _token = token;
+    await _firebaseMessaging.setForegroundNotificationPresentationOptions(
+      alert: true,
+      badge: true,
+      sound: false,
+    );
 
-      _initialized = true;
-    }
+    // if (!_initialized) {
+    //   // For iOS request permission first.
+
+    //   FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+    //     handleFirebaseMessage(message);
+    //   });
+
+    //   FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+    //     handleFirebaseMessage(message);
+    //   });
+
+    // For testing purposes print the Firebase Messaging token
+    String token = await _firebaseMessaging.getToken();
+    _token = token;
+
+    _initialized = true;
+    // }
   }
 
   static String getToken() {
@@ -55,22 +64,23 @@ class FirebaseCESService {
   }
 
   static Future<dynamic> myBackgroundMessageHandler(
-      Map<String, dynamic> message) async {
-    handleFirebaseMessage(FirebaseCMType.backgroundMessage, message);
+      RemoteMessage message) async {
+    await Firebase.initializeApp();
+    print("Handling a background message ${message.messageId}");
   }
 
-  static Future<void> handleFirebaseMessage(
-      FirebaseCMType type, Map<String, dynamic> message) async {
-    print("$type: $message");
+  static Future<void> handleFirebaseMessage(message) async {
+    print("$message");
 
     if (message == null) return null;
     print("has a message");
 
-    var messageData = message["data"];
+    var messageData = message.notification;
     if (messageData == null) return null;
-    print("has messageData: $messageData");
+    print("has messageData: $messageData.body");
 
-    var messageActionType = messageData["type"];
+    //var messageActionType = messageData["type"];
+    var messageActionType = "IGNORE";
     if (messageActionType == null) return null;
     print("has messageActionType: $messageActionType");
 
@@ -84,7 +94,7 @@ class FirebaseCESService {
         print("FILE URI: $result");
 
         var options = MutationOptions(
-            documentNode: gql("""
+            document: gql("""
           mutation REMOVE_PHONE_LINK(\$phone_link_stream: uuid!) {
             update_phone_link_stream_by_pk(pk_columns: {phone_link_stream: \$phone_link_stream},_set:{completed:true}){
               phone_link_stream
