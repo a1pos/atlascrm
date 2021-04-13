@@ -8,10 +8,10 @@ import 'UserService.dart';
 class GqlClientFactory {
   static GraphQLClient client;
   static HttpLink _httpLink = HttpLink(
-    uri: ConfigSettings.HASURA_URL,
+    ConfigSettings.HASURA_URL,
   );
-  static InMemoryCache cache = InMemoryCache();
-  static InMemoryCache cache2 = InMemoryCache();
+  static GraphQLCache cache = GraphQLCache();
+  static GraphQLCache cache2 = GraphQLCache();
   static bool isRefreshing = false;
 
   UserService userService = UserService();
@@ -72,12 +72,12 @@ class GqlClientFactory {
     }
   }
 
-  Future<StreamSubscription<FetchResult>> authGqlsubscribe(
+  Future<StreamSubscription> authGqlsubscribe(
       options, Function onData, Function onError, Function refresh) async {
     try {
       var result = client.subscribe(options);
 
-      StreamSubscription<FetchResult> subscription = result.listen(
+      StreamSubscription subscription = result.listen(
         (data) async {
           onData(data);
         },
@@ -136,21 +136,27 @@ class GqlClientFactory {
     );
 
     WebSocketLink _wsLink = WebSocketLink(
-        url: ConfigSettings.HASURA_WEBSOCKET,
-        config: SocketClientConfig(
-          autoReconnect: true,
-          inactivityTimeout: Duration(seconds: 30),
-          initPayload: () {
-            return {
-              'headers': {'Authorization': 'Bearer ${UserService.token}'}
-            };
-          },
-        ));
+      ConfigSettings.HASURA_WEBSOCKET,
+      config: SocketClientConfig(
+        autoReconnect: true,
+        inactivityTimeout: Duration(seconds: 30),
+        initialPayload: () {
+          return {
+            'headers': {'Authorization': 'Bearer ${UserService.token}'}
+          };
+        },
+      ),
+    );
 
     //WITHOUT ERRORLINK
     link = _authLink.concat(_httpLink);
     authws = _wsLink.concat(_authLink);
     link = link.concat(authws);
+    link = Link.split(
+      (request) => request.isSubscription,
+      _wsLink,
+      link,
+    );
 
     final GraphQLClient aCLient = GraphQLClient(link: link, cache: cache);
 

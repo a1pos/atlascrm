@@ -36,7 +36,7 @@ class _DeviceDropDownState extends State<DeviceDropDown> {
 
   Future<void> initDevices() async {
     QueryOptions options = QueryOptions(
-        documentNode: gql("""
+        document: gql("""
       query GET_DEVICES (\$employee: uuid!){
         employee_device(where: {employee: {_eq: \$employee}}){
           employee_device

@@ -95,7 +95,7 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
     }
 
     QueryOptions options = QueryOptions(
-        documentNode: gql("""
+        document: gql("""
           query GET_EMPLOYEE_ROUTE(
             \$device_id: String
             \$date: timestamptz
@@ -132,8 +132,8 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
       if (result.hasException == false) {
         var locationDataDecoded = result.data["v_employee_route"];
         var locationDataArray = List.from(locationDataDecoded);
-        var markers = List<Marker>();
-        var latLngs = List<LatLng>();
+        List<Marker> markers = [];
+        List latLngs = [];
 
         if (locationDataArray.length > 0) {
           for (var location in locationDataArray) {
@@ -174,7 +174,7 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
         }
 
         QueryOptions options = QueryOptions(
-          documentNode: gql("""
+          document: gql("""
           query GET_STOP_COUNT(
             \$device_id: String
             \$date: timestamptz

@@ -7,7 +7,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
-import 'package:barcode_scan/barcode_scan.dart';
+import 'package:dan_barcode_scan/dan_barcode_scan.dart';
 import 'package:atlascrm/components/inventory/InventoryLocationDropDown.dart';
 import 'package:atlascrm/components/inventory/InventoryPriceTierDropDown.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
@@ -137,7 +137,7 @@ class InventoryAddState extends State<InventoryAdd> {
         var data = device;
 
         MutationOptions options = MutationOptions(
-          documentNode: gql("""
+          document: gql("""
         mutation INSERT_DEVICES (\$objects: [inventory_insert_input!]!) {
           insert_inventory(objects: \$objects){
             affected_rows
@@ -451,7 +451,7 @@ class InventoryAddState extends State<InventoryAdd> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: <Widget>[
                     _currentStep > 0
-                        ? RaisedButton.icon(
+                        ? ElevatedButton.icon(
                             onPressed: () {
                               Stepper stepper = _stepperKey.currentWidget;
                               stepper.onStepCancel();
@@ -464,7 +464,7 @@ class InventoryAddState extends State<InventoryAdd> {
                           )
                         : Container(),
                     !isSaveDisabled
-                        ? RaisedButton.icon(
+                        ? ElevatedButton.icon(
                             onPressed: () {
                               if (_currentStep == stepsLength - 1) {
                                 added

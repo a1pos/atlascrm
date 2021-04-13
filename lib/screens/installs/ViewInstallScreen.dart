@@ -5,8 +5,8 @@ import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/services/StorageService.dart';
-import 'package:barcode_scan/barcode_scan.dart';
-import 'package:barcode_scan/model/scan_options.dart';
+import 'package:dan_barcode_scan/dan_barcode_scan.dart';
+import 'package:dan_barcode_scan/model/scan_options.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/services/UserService.dart';
@@ -257,14 +257,14 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
               ),
             ),
             actions: <Widget>[
-              FlatButton(
+              TextButton(
                 child: Text('Cancel',
                     style: TextStyle(fontSize: 17, color: Colors.red)),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
               ),
-              FlatButton(
+              TextButton(
                 child: Text('Complete',
                     style: TextStyle(fontSize: 17, color: Colors.green)),
                 onPressed: () {
@@ -290,7 +290,7 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
               ),
             ),
             actions: <Widget>[
-              FlatButton(
+              TextButton(
                 child: Text('Close',
                     style: TextStyle(fontSize: 17, color: Colors.red)),
                 onPressed: () {

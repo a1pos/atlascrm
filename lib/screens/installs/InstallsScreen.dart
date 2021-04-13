@@ -24,7 +24,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
   bool myTickets = false;
 
   ScrollController _scrollController = ScrollController();
-  TextEditingController _searchController = TextEditingController();
+  //TextEditingController _searchController = TextEditingController();
 
   var installs = [];
   var installsFull = [];
@@ -67,7 +67,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
   Future<void> initTicketData() async {
     try {
       QueryOptions options = QueryOptions(
-        documentNode: gql("""
+        document: gql("""
         query GET_INSTALL_TICKETS {
           ticket_category(where: {title: {_eq: "Installation"}}) {
             tickets ($initParams){
@@ -139,7 +139,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
       }
 
       QueryOptions options = QueryOptions(
-        documentNode: gql("""
+        document: gql("""
         query GET_INSTALL_TICKETS {
           ticket_category(where: {title: {_eq: "Installation"}}) {
             tickets ($params){

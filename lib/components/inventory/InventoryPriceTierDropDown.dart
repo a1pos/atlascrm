@@ -39,7 +39,7 @@ class _InventoryPriceTierDropDownState
 
   Future<void> initPriceTiers() async {
     QueryOptions options = QueryOptions(
-      documentNode: gql("""
+      document: gql("""
         query GET_PRICE_TIERS {
           inventory_price_tier{
             inventory_price_tier

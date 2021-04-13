@@ -41,7 +41,7 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
     QueryOptions options;
 
     options = QueryOptions(
-      documentNode: gql("""
+      document: gql("""
         query GET_EMPLOYEES {
           employee (where: {is_active: {_eq: true}}) {
             employee

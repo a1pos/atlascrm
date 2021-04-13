@@ -19,8 +19,8 @@ class _TasksState extends State<Tasks> {
   bool isLoading = true;
   bool isEmpty = true;
 
-  var tasks = [];
-  var activeTasks = [];
+  List tasks = [];
+  List activeTasks = [];
   var subscription;
 
   @override
@@ -40,9 +40,9 @@ class _TasksState extends State<Tasks> {
   }
 
   Future<void> initTasks() async {
-    Operation options = Operation(
+    SubscriptionOptions options = SubscriptionOptions(
       operationName: "EMPLOYEE_TASKS",
-      documentNode: gql("""
+      document: gql("""
           subscription EMPLOYEE_TASKS(\$employee: uuid!) {
             employee_by_pk(employee: \$employee) {
               tasks (where: {taskStatusByTaskStatus: {title: {_eq: "Open"}}}){

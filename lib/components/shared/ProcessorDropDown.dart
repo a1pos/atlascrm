@@ -46,7 +46,7 @@ class _ProcessorDropDownState extends State<ProcessorDropDown> {
 
   Future<void> initProcessors() async {
     QueryOptions options = QueryOptions(
-      documentNode: gql("""
+      document: gql("""
       query GET_PROCESSORS {
         processor {
           processor

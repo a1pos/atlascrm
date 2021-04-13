@@ -93,10 +93,12 @@ class _AuthScreenState extends State<AuthScreen> {
                               Padding(
                                 padding:
                                     const EdgeInsets.fromLTRB(0, 40, 0, 20),
-                                child: OutlineButton(
-                                  splashColor: Colors.green,
+                                child: OutlinedButton(
+                                  style: OutlinedButton.styleFrom(
+                                    primary: Colors.green,
+                                  ),
                                   onPressed: handleLogin,
-                                  highlightElevation: 0,
+                                  //highlightElevation: 0,
                                   child: Padding(
                                     padding: EdgeInsets.fromLTRB(0, 10, 0, 10),
                                     child: Row(
