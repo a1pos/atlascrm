@@ -133,7 +133,7 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
         var locationDataDecoded = result.data["v_employee_route"];
         var locationDataArray = List.from(locationDataDecoded);
         List<Marker> markers = [];
-        List latLngs = [];
+        List<LatLng> latLngs = [];
 
         if (locationDataArray.length > 0) {
           for (var location in locationDataArray) {
