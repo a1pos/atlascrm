@@ -38,3 +38,6 @@ test/widget_test.dart
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 android/debug-key.properties
 android/key.properties
+
+#FVM
+.fvm/
