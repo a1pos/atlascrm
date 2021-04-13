@@ -29,7 +29,8 @@ class LeadStepperState extends State<LeadStepper> {
   bool isSaveDisabled;
   bool isAddress = false;
   bool isLoading = false;
-  bool nextButtonDisabled = false;
+  bool nextButtonDisabled = true;
+  bool placeSelect = false;
 
   List<GlobalKey<FormState>> _formKeys = [
     GlobalKey<FormState>(),
@@ -44,6 +45,20 @@ class LeadStepperState extends State<LeadStepper> {
     "state": "",
     "zipcode": ""
   };
+
+  Map addressInfoCheck = {
+    "address": "",
+    "address2": "",
+    "city": "",
+    "state": "",
+    "zipcode": ""
+  };
+
+  Map mixedReplyCheck = {"address": "", "place": "", "shortAddress": ""};
+
+  String formattedAddressCheck;
+  String businessNameCapitalized;
+  var shortAddressCheck;
 
   var firstNameController = TextEditingController();
   var lastNameController = TextEditingController();
@@ -100,6 +115,10 @@ class LeadStepperState extends State<LeadStepper> {
             .formattedPhoneNumber
             .replaceAll(RegExp("[^0-9]"), "");
       }
+    } else {
+      businessName = businessNameController.text;
+      businessName = capitalizeBusinessName(businessName);
+      phoneNumb = phoneNumberController.text;
     }
 
     if (phoneNumb == null) {
@@ -153,12 +172,11 @@ class LeadStepperState extends State<LeadStepper> {
 
           if (isMerchant == true || isLead == true) {
             setState(() {
-              isAddress = false;
+              nextButtonDisabled = true;
               businessNameController.clear();
             });
 
             dupeLead(message);
-            nextButtonDisabled = true;
           } else {
             if (addressObj["place"] != null) {
               if (addressObj["place"].formattedPhoneNumber != null &&
@@ -180,94 +198,27 @@ class LeadStepperState extends State<LeadStepper> {
                   businessAddress = addressObj["address"];
                   address2Controller.text = addressObj["address"]["address2"];
                   isAddress = true;
+                  nextButtonDisabled = false;
                 },
               );
             } else {
               setState(
                 () {
-                  locationValue = addressObj["formattedAddress"];
-                  businessNameController.clear();
-                  phoneNumberController.clear();
-                  businessAddress = addressObj["address"];
+                  locationValue = addressInfoCheck["formattedaddr"];
+                  businessNameController.text = businessName;
+
+                  if (phoneNumb != "" && phoneNumb != null) {
+                    phoneNumb = phoneNumb.replaceAll(RegExp("[^0-9]"), "");
+                    phoneNumberController.updateText(phoneNumb);
+                  }
+
                   isAddress = true;
+                  nextButtonDisabled = false;
+
+                  nextStep();
                 },
               );
             }
-          }
-        }
-      }
-    } catch (err) {
-      log(err);
-    }
-  }
-
-  Future<void> checkBusinessName(name) async {
-    var originalBusinessame = name;
-
-    var capitalizedName = capitalizeBusinessName(originalBusinessame);
-
-    try {
-      QueryOptions options = QueryOptions(
-        document: gql("""
-        query GET_LEAD_ADDRESS(\$businessName: String) {
-          v_lead(where: {leadbusinessname: {_eq: \$businessName} }) {
-            lead
-            leadbusinessname
-          }
-        }
-      """),
-        fetchPolicy: FetchPolicy.networkOnly,
-        variables: {"businessName": capitalizedName},
-      );
-
-      final QueryResult result = await GqlClientFactory().authGqlquery(options);
-
-      if (result != null) {
-        if (result.hasException == false) {
-          if (result.data["v_lead"].length > 0) {
-            var leadUuid = result.data["v_lead"][0]["lead"];
-
-            try {
-              QueryOptions options = QueryOptions(
-                document: gql("""
-                 query GET_BUSINESS_DOC(\$lead: uuid) {
-                   lead(where: {lead: {_eq: \$lead } }) {
-                     document
-                   }
-                 }
-                """),
-                fetchPolicy: FetchPolicy.networkOnly,
-                variables: {"lead": leadUuid},
-              );
-
-              final QueryResult checkBusinessLead =
-                  await GqlClientFactory().authGqlquery(options);
-
-              if (checkBusinessLead.data["lead"].length > 0) {
-                if (checkBusinessLead.data["lead"][0]["document"]["address"] ==
-                    businessAddress["address"]) {
-                  dupeLead("Lead already exists!");
-                  nextButtonDisabled = true;
-                } else if (checkBusinessLead.data["lead"][0]["document"]
-                            ["city"] ==
-                        businessAddress["city"] &&
-                    checkBusinessLead.data["lead"][0]["document"]["state"] ==
-                        businessAddress["state"]) {
-                  dupeLead("Lead already exists!");
-                  nextButtonDisabled = true;
-                } else {
-                  nextButtonDisabled = false;
-                  if (checkLeadAddress() == true) {
-                    nextStep();
-                  } else {}
-                }
-              }
-            } catch (err) {
-              log(err);
-            }
-          } else {
-            nextButtonDisabled = false;
-            nextStep();
           }
         }
       }
@@ -319,13 +270,32 @@ class LeadStepperState extends State<LeadStepper> {
             if (val != null) {
               if (val["place"] == null) {
                 setState(() {
+                  formattedAddressCheck = val["formattedaddr"];
+                  addressInfoCheck = {
+                    "address": val["address"]["address"],
+                    "city": val["address"]["city"],
+                    "state": val["address"]["state"],
+                    "zipcode": val["address"]["zipcode"],
+                    "address2": val["address"]["address2"]
+                  };
+                  shortAddressCheck = val["shortaddress"];
+
+                  mixedReplyCheck = {
+                    "address": addressInfoCheck,
+                    "place": null,
+                    "shortAddress": shortAddressCheck
+                  };
+
                   locationValue = addressObj["formattedaddr"];
                   businessNameController.clear();
                   phoneNumberController.clear();
                   businessAddress = addressObj["address"];
+                  placeSelect = false;
                   isAddress = true;
+                  nextButtonDisabled = false;
                 });
               } else {
+                placeSelect = true;
                 addressCheck(val);
               }
             }
@@ -359,19 +329,6 @@ class LeadStepperState extends State<LeadStepper> {
         );
       },
     );
-  }
-
-  bool checkLeadAddress() {
-    if (businessAddress["address"] == "" ||
-        businessAddress["address"] == null) {
-      nextButtonDisabled = true;
-      isAddress = true;
-      return true;
-    } else {
-      isAddress = true;
-      nextButtonDisabled = false;
-      return false;
-    }
   }
 
   Future<void> addLead() async {
@@ -503,7 +460,11 @@ class LeadStepperState extends State<LeadStepper> {
                   onStepContinue: () async {
                     if (_formKeys[_currentStep].currentState.validate()) {
                       if (_currentStep == 0) {
-                        checkBusinessName(businessName);
+                        if (placeSelect == false) {
+                          addressCheck(mixedReplyCheck);
+                        } else {
+                          nextStep();
+                        }
                       } else {
                         nextStep();
                       }

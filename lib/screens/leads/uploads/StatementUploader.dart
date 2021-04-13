@@ -16,7 +16,7 @@ import 'package:intl/intl.dart';
 import 'package:multi_image_picker/multi_image_picker.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:path_provider/path_provider.dart';
-//import 'package:file_picker/file_picker.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
@@ -495,7 +495,7 @@ class _StatementUploaderState extends State<StatementUploader> {
   }
 
   Future<Uint8List> fetchPost(getUrl) async {
-    final response = await http.get(getUrl);
+    final response = await http.get(Uri.parse(getUrl));
     final responseJson = response.bodyBytes;
 
     return responseJson;
@@ -804,10 +804,10 @@ class _StatementUploaderState extends State<StatementUploader> {
         """),
         variables: {
           "to": [
-            "nick.kalich@butlerbizsys.com",
-            "jerrod.lumley@a1pos.com",
-            "john.deluga@butlerbizsys.com",
-            "ahrindo@gmail.com"
+            // "nick.kalich@butlerbizsys.com",
+            // "jerrod.lumley@a1pos.com",
+            // "john.deluga@butlerbizsys.com",
+            // "ahrindo@gmail.com"
           ],
           "subject":
               "New Statement For Review: ${this.widget.lead["document"]["businessName"]} - ${this.widget.lead["document"]["address"]}",
@@ -1018,20 +1018,21 @@ class _StatementUploaderState extends State<StatementUploader> {
                             onPressed: uploadsComplete
                                 ? () {}
                                 : () async {
-                                    // var result = await FilePicker.platform
-                                    //     .pickFiles(
-                                    //         type: FileType.custom,
-                                    //         allowedExtensions: ['pdf']);
-                                    // if (UserService.isAdmin ||
-                                    //     UserService.isSalesManager) {
-                                    //   if (imageDLList.length == 0) {
-                                    //     adminUploadCheck(result);
-                                    //   } else {
-                                    //     addImage(result);
-                                    //   }
-                                    // } else {
-                                    //   addImage(result);
-                                    // }
+                                    var result = await FilePicker.platform
+                                        .pickFiles(
+                                            type: FileType.custom,
+                                            allowMultiple: false,
+                                            allowedExtensions: ['pdf']);
+                                    if (UserService.isAdmin ||
+                                        UserService.isSalesManager) {
+                                      if (imageDLList.length == 0) {
+                                        adminUploadCheck(result.files[0].path);
+                                      } else {
+                                        addImage(result.files[0].path);
+                                      }
+                                    } else {
+                                      addImage(result.files[0].path);
+                                    }
                                   },
                             child: Padding(
                               padding: const EdgeInsets.all(8.0),

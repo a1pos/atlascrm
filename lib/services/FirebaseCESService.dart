@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'dart:async';
 
@@ -25,37 +26,47 @@ class FirebaseCESService {
 
   FirebaseCESService._internal();
 
-  Future<void> init() async {
+  Future<dynamic> init() async {
+    WidgetsFlutterBinding.ensureInitialized();
     await Firebase.initializeApp();
 
-    if (!_initialized) {
-      // For iOS request permission first.
-      // FirebaseMessaging.onBackgroundMessage((RemoteMessage message) async {
-      //   myBackgroundMessageHandler(message);
-      // });
+    // FirebaseMessaging.onBackgroundMessage((RemoteMessage message) async {
+    //   myBackgroundMessageHandler(message);
+    // });
 
-      FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-        handleFirebaseMessage(message);
-      });
+    await _firebaseMessaging.setForegroundNotificationPresentationOptions(
+      alert: true,
+      badge: true,
+      sound: false,
+    );
 
-      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-        handleFirebaseMessage(message);
-      });
+    // if (!_initialized) {
+    //   // For iOS request permission first.
 
-      // For testing purposes print the Firebase Messaging token
-      String token = await _firebaseMessaging.getToken();
-      _token = token;
+    //   FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+    //     handleFirebaseMessage(message);
+    //   });
 
-      _initialized = true;
-    }
+    //   FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+    //     handleFirebaseMessage(message);
+    //   });
+
+    // For testing purposes print the Firebase Messaging token
+    String token = await _firebaseMessaging.getToken();
+    _token = token;
+
+    _initialized = true;
+    // }
   }
 
   static String getToken() {
     return _token;
   }
 
-  static Future<dynamic> myBackgroundMessageHandler(message) async {
-    handleFirebaseMessage(message);
+  static Future<dynamic> myBackgroundMessageHandler(
+      RemoteMessage message) async {
+    await Firebase.initializeApp();
+    print("Handling a background message ${message.messageId}");
   }
 
   static Future<void> handleFirebaseMessage(message) async {
@@ -64,11 +75,12 @@ class FirebaseCESService {
     if (message == null) return null;
     print("has a message");
 
-    var messageData = message.data;
+    var messageData = message.notification;
     if (messageData == null) return null;
-    print("has messageData: $messageData");
+    print("has messageData: $messageData.body");
 
-    var messageActionType = messageData["type"];
+    //var messageActionType = messageData["type"];
+    var messageActionType = "IGNORE";
     if (messageActionType == null) return null;
     print("has messageActionType: $messageActionType");
 
