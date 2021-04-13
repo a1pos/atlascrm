@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
+import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
@@ -710,6 +711,9 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                         Padding(
                                           padding: const EdgeInsets.all(8.0),
                                           child: ElevatedButton(
+                                            style: ElevatedButton.styleFrom(
+                                                primary: UniversalStyles
+                                                    .actionColor),
                                             child: Row(
                                               children: <Widget>[
                                                 Icon(Icons.mail,
@@ -749,6 +753,9 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                         Padding(
                                           padding: const EdgeInsets.all(8.0),
                                           child: ElevatedButton(
+                                            style: ElevatedButton.styleFrom(
+                                                primary: UniversalStyles
+                                                    .actionColor),
                                             child: Row(
                                               children: <Widget>[
                                                 Icon(Icons.call,
@@ -789,6 +796,9 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                         Padding(
                                           padding: const EdgeInsets.all(8.0),
                                           child: ElevatedButton(
+                                            style: ElevatedButton.styleFrom(
+                                                primary: UniversalStyles
+                                                    .actionColor),
                                             child: Row(
                                               children: <Widget>[
                                                 Icon(Icons.map,

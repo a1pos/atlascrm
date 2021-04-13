@@ -175,27 +175,29 @@ class _StatementUploaderState extends State<StatementUploader> {
     } else {
       print(new Error());
     }
-    var saveDate = DateTime.parse(taskDateController.text).toUtc();
-    var saveDateFormat = DateFormat("yyyy-MM-dd HH:mm").format(saveDate);
 
-    Map data = {
-      "task_status": openStatus,
-      "task_type": rateReviewType,
-      "priority": 2,
-      "lead": lead["lead"],
-      "employee": taskEmployee,
-      "document": {
-        "notes":
-            "This is an automatically generated task for your rate review presentation at " +
-                lead["document"]["businessName"],
-        "title": "Present at " + lead["document"]["businessName"],
-      },
-      "date": saveDateFormat
-    };
+    if (!UserService.isAdmin && !UserService.isSalesManager) {
+      var saveDate = DateTime.parse(taskDateController.text).toUtc();
+      var saveDateFormat = DateFormat("yyyy-MM-dd HH:mm").format(saveDate);
 
-    try {
-      MutationOptions options = MutationOptions(
-        document: gql("""
+      Map data = {
+        "task_status": openStatus,
+        "task_type": rateReviewType,
+        "priority": 2,
+        "lead": lead["lead"],
+        "employee": taskEmployee,
+        "document": {
+          "notes":
+              "This is an automatically generated task for your rate review presentation at " +
+                  lead["document"]["businessName"],
+          "title": "Present at " + lead["document"]["businessName"],
+        },
+        "date": saveDateFormat
+      };
+
+      try {
+        MutationOptions options = MutationOptions(
+          document: gql("""
         mutation INSERT_TASK(\$data: [task_insert_input!]! = {}) {
           insert_task(objects: \$data) {
             returning {
@@ -204,34 +206,35 @@ class _StatementUploaderState extends State<StatementUploader> {
           }
         }
             """),
-        variables: {"data": data},
-      );
+          variables: {"data": data},
+        );
 
-      final QueryResult result =
-          await GqlClientFactory().authGqlmutate(options);
+        final QueryResult result =
+            await GqlClientFactory().authGqlmutate(options);
 
-      if (result != null) {
-        if (result.hasException == false) {
-          Fluttertoast.showToast(
-              msg: successMsg,
-              toastLength: msgLength,
-              gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.grey[600],
-              textColor: Colors.white,
-              fontSize: 16.0);
+        if (result != null) {
+          if (result.hasException == false) {
+            Fluttertoast.showToast(
+                msg: successMsg,
+                toastLength: msgLength,
+                gravity: ToastGravity.BOTTOM,
+                backgroundColor: Colors.grey[600],
+                textColor: Colors.white,
+                fontSize: 16.0);
+          }
+        } else {
+          print(new Error());
         }
-      } else {
-        print(new Error());
+      } catch (err) {
+        print(err);
+        Fluttertoast.showToast(
+            msg: "Failed to create task for employee!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0);
       }
-    } catch (err) {
-      print(err);
-      Fluttertoast.showToast(
-          msg: "Failed to create task for employee!",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.grey[600],
-          textColor: Colors.white,
-          fontSize: 16.0);
     }
   }
 
@@ -808,6 +811,7 @@ class _StatementUploaderState extends State<StatementUploader> {
             // "jerrod.lumley@a1pos.com",
             // "john.deluga@butlerbizsys.com",
             // "ahrindo@gmail.com"
+            "joe.pounds@a1pos.com"
           ],
           "subject":
               "New Statement For Review: ${this.widget.lead["document"]["businessName"]} - ${this.widget.lead["document"]["address"]}",
