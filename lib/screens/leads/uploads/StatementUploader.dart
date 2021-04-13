@@ -807,11 +807,10 @@ class _StatementUploaderState extends State<StatementUploader> {
         """),
         variables: {
           "to": [
-            // "nick.kalich@butlerbizsys.com",
-            // "jerrod.lumley@a1pos.com",
-            // "john.deluga@butlerbizsys.com",
-            // "ahrindo@gmail.com"
-            "joe.pounds@a1pos.com"
+            "nick.kalich@butlerbizsys.com",
+            "jerrod.lumley@a1pos.com",
+            "john.deluga@butlerbizsys.com",
+            "ahrindo@gmail.com"
           ],
           "subject":
               "New Statement For Review: ${this.widget.lead["document"]["businessName"]} - ${this.widget.lead["document"]["address"]}",
