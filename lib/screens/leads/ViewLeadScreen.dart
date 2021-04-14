@@ -618,9 +618,6 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                 },
                                 editable: !isStale,
                               ),
-                              getInfoRow("Doing Business As",
-                                  leadDocument["dbaName"], dbaController,
-                                  editable: !isStale),
                               Container(
                                 child: Padding(
                                   padding: EdgeInsets.all(15),

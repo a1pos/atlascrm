@@ -131,33 +131,38 @@ class _PlacesSuggestionsState extends State<PlacesSuggestions> {
                               .widget
                               .addressSearchObj["nearbyResults"]
                               .map<Widget>((PlacesSearchResult place) {
-                            return GestureDetector(
-                              onTap: () {
-                                getPlaceById(place.placeId);
-                                setState(() {
-                                  isLoading = true;
-                                });
+                            return WillPopScope(
+                              onWillPop: () async {
+                                return false;
                               },
-                              child: Card(
-                                child: place.types.contains('establishment')
-                                    ? ListTile(
-                                        title: Row(
-                                          children: <Widget>[
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.fromLTRB(
-                                                      0, 0, 10, 0),
-                                              child: Icon(Icons.business),
-                                            ),
-                                            Expanded(
-                                              child: Text(
-                                                place.name,
+                              child: GestureDetector(
+                                onTap: () {
+                                  getPlaceById(place.placeId);
+                                  setState(() {
+                                    isLoading = true;
+                                  });
+                                },
+                                child: Card(
+                                  child: place.types.contains('establishment')
+                                      ? ListTile(
+                                          title: Row(
+                                            children: <Widget>[
+                                              Padding(
+                                                padding:
+                                                    const EdgeInsets.fromLTRB(
+                                                        0, 0, 10, 0),
+                                                child: Icon(Icons.business),
                                               ),
-                                            ),
-                                          ],
-                                        ),
-                                      )
-                                    : null,
+                                              Expanded(
+                                                child: Text(
+                                                  place.name,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        )
+                                      : null,
+                                ),
                               ),
                             );
                           }).toList(),
