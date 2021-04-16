@@ -198,7 +198,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
             created_at
           }
         }
-        """), variables: {"data": data});
+        """), fetchPolicy: FetchPolicy.networkOnly, variables: {"data": data});
 
       final QueryResult result =
           await GqlClientFactory().authGqlmutate(options);

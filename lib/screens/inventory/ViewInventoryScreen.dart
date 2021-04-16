@@ -267,6 +267,7 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
         }
       }
       """),
+      fetchPolicy: FetchPolicy.networkOnly,
       variables: {"data": data},
     );
     final QueryResult result =
@@ -401,6 +402,7 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
       }
     }
           """),
+      fetchPolicy: FetchPolicy.networkOnly,
       variables: {"inventory": inventory["inventory"]},
     );
     final QueryResult result =

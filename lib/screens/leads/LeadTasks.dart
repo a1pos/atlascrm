@@ -178,6 +178,7 @@ class _LeadTasksState extends State<LeadTasks> {
             }
           }
         """),
+      fetchPolicy: FetchPolicy.networkOnly,
       variables: {"lead": "${this.widget.lead["lead"]}"},
     );
 
@@ -266,6 +267,7 @@ class _LeadTasksState extends State<LeadTasks> {
           }
         }
         """),
+        fetchPolicy: FetchPolicy.networkOnly,
         variables: {"data": data},
       );
 

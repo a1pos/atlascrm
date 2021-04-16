@@ -206,6 +206,7 @@ class _StatementUploaderState extends State<StatementUploader> {
           }
         }
             """),
+          fetchPolicy: FetchPolicy.networkOnly,
           variables: {"data": data},
         );
 
@@ -819,6 +820,7 @@ class _StatementUploaderState extends State<StatementUploader> {
           "type": "STATEMENT",
           "statement": statementId
         },
+        fetchPolicy: FetchPolicy.networkOnly,
       );
       final QueryResult result =
           await GqlClientFactory().authGqlmutate(mutateOptions);

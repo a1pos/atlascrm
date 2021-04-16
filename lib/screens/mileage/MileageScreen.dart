@@ -265,6 +265,7 @@ class _MileageScreenState extends State<MileageScreen> {
             }
           }
         """),
+          fetchPolicy: FetchPolicy.networkOnly,
           variables: {
             "started_at": currentTime,
             "merchant": sendMerchant,
@@ -305,6 +306,7 @@ class _MileageScreenState extends State<MileageScreen> {
             }
           }
            """),
+            fetchPolicy: FetchPolicy.networkOnly,
             variables: {"completed_at": currentTime, "trip": trip},
           );
 

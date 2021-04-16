@@ -96,7 +96,7 @@ class UserService {
               refreshToken
           }
         }
-    """), variables: {
+    """), fetchPolicy: FetchPolicy.networkOnly, variables: {
       "email": user.email,
       "uid": user.uid,
     });
@@ -158,7 +158,7 @@ class UserService {
               message
           }
         }
-    """), variables: {
+    """), fetchPolicy: FetchPolicy.networkOnly, variables: {
         "registration_token": registrationToken,
         "uid": user.uid,
       });
@@ -186,13 +186,16 @@ class UserService {
   }
 
   Future<bool> exchangeRefreshToken() async {
-    MutationOptions mutateOptions = MutationOptions(document: gql("""
+    MutationOptions mutateOptions = MutationOptions(
+        document: gql("""
      mutation REFRESH_TOKEN(\$token: String!, \$refreshToken: String!) {
         refresh_token(token: \$token, refreshToken: \$refreshToken) {
             token
           }
         }
-  """), variables: {"token": token, "refreshToken": rToken});
+  """),
+        fetchPolicy: FetchPolicy.networkOnly,
+        variables: {"token": token, "refreshToken": rToken});
     final QueryResult result =
         await GqlClientFactory().authGqlmutate(mutateOptions);
     if (result.hasException == true) {

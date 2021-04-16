@@ -77,6 +77,7 @@ class _LeadNotesState extends State<LeadNotes> {
             }
           }
     """),
+      fetchPolicy: FetchPolicy.networkOnly,
       variables: {"id": "$objectId"},
     );
 
@@ -129,6 +130,7 @@ class _LeadNotesState extends State<LeadNotes> {
       }
     }
       """),
+      fetchPolicy: FetchPolicy.networkOnly,
       variables: {"object": sendNote},
     );
 

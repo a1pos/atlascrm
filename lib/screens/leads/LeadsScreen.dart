@@ -99,6 +99,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
                         }
                       }
                   """),
+                  fetchPolicy: FetchPolicy.networkOnly,
                   variables: {"data": data},
                 );
                 final QueryResult result =

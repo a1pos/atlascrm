@@ -188,7 +188,8 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
     });
 
     SubscriptionOptions deviceOptions = SubscriptionOptions(
-        operationName: "GET_MERCHANT_DEVICES", document: gql("""
+        operationName: "GET_MERCHANT_DEVICES",
+        document: gql("""
           subscription GET_MERCHANT_DEVICES(\$merchant: uuid!) {
             inventory(where: {merchant: {_eq: \$merchant}}){
               serial
@@ -202,7 +203,9 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
               }
             }
           }
-            """), variables: {"merchant": "${this.widget.merchantId}"});
+            """),
+        fetchPolicy: FetchPolicy.networkOnly,
+        variables: {"merchant": "${this.widget.merchantId}"});
 
     subscription =
         await GqlClientFactory().authGqlsubscribe(deviceOptions, (data) {

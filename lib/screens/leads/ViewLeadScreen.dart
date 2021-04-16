@@ -137,6 +137,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                         }
                       }
                   """),
+                  fetchPolicy: FetchPolicy.networkOnly,
                   variables: {"data": data},
                 );
                 final QueryResult result =
@@ -340,6 +341,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
           }
         }
       """),
+      fetchPolicy: FetchPolicy.networkOnly,
       variables: {"data": data},
     );
 
