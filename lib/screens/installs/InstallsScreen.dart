@@ -82,7 +82,6 @@ class _InstallsScreenState extends State<InstallsScreen> {
           }
         }
       """),
-        fetchPolicy: FetchPolicy.networkOnly,
       );
 
       final QueryResult result = await GqlClientFactory().authGqlquery(options);
@@ -154,7 +153,6 @@ class _InstallsScreenState extends State<InstallsScreen> {
           }
         }
       """),
-        fetchPolicy: FetchPolicy.networkOnly,
       );
 
       final QueryResult result = await GqlClientFactory().authGqlquery(options);

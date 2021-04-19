@@ -103,7 +103,8 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
   }
 
   Future<void> loadEmployeeData() async {
-    QueryOptions options = QueryOptions(document: gql("""
+    QueryOptions options = QueryOptions(
+      document: gql("""
       query GET_EMPLOYEE{
         employee_by_pk(employee: "${this.widget.employeeId}"){
           employee
@@ -111,7 +112,8 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
           role
         }
       }
-    """), fetchPolicy: FetchPolicy.networkOnly);
+    """),
+    );
 
     final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
@@ -240,14 +242,16 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                     "document": {"deviceName": deviceNameController.text}
                   };
                   //LOGIC TO MUTATE ADD DEVICE
-                  MutationOptions mutateOptions =
-                      MutationOptions(document: gql("""
+                  MutationOptions mutateOptions = MutationOptions(
+                    document: gql("""
                         mutation INSERT_ONE_EMPLOYEE_DEVICE (\$object: employee_device_insert_input!){
                           insert_employee_device_one(object: \$object){
                           employee_device
                         }
                       }
-                  """), variables: {"object": newDevice});
+                  """),
+                    variables: {"object": newDevice},
+                  );
 
                   final QueryResult result =
                       await GqlClientFactory().authGqlmutate(mutateOptions);

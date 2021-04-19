@@ -44,7 +44,6 @@ class _RoleDropDownState extends State<RoleDropDown> {
         }
       }
       """),
-      fetchPolicy: FetchPolicy.networkOnly,
     );
 
     final QueryResult rolesResp =

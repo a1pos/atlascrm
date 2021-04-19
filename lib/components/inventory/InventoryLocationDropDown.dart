@@ -37,14 +37,16 @@ class _InventoryLocationDropDownState extends State<InventoryLocationDropDown> {
   }
 
   Future<void> initLocations() async {
-    QueryOptions options = QueryOptions(document: gql("""
+    QueryOptions options = QueryOptions(
+      document: gql("""
         query GET_INVENTORY_LOCATIONS {
           inventory_location{
             inventory_location
             name
           }
         }
-      """), fetchPolicy: FetchPolicy.networkOnly);
+      """),
+    );
 
     final QueryResult result = await GqlClientFactory().authGqlquery(options);
 

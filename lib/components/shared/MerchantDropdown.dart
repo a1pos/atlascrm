@@ -44,7 +44,6 @@ class _MerchantDropDownState extends State<MerchantDropDown> {
         }
       }
       """),
-      fetchPolicy: FetchPolicy.networkOnly,
     );
 
     final QueryResult result = await GqlClientFactory().authGqlquery(options);

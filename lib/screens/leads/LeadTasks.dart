@@ -184,7 +184,7 @@ class _LeadTasksState extends State<LeadTasks> {
     subscription =
         await GqlClientFactory().authGqlsubscribe(options, (data) async {
       var tasksArrDecoded = data.data["task"];
-      if (tasksArrDecoded != null) {
+      if (tasksArrDecoded != null && this.mounted) {
         setState(() {
           tasks = tasksArrDecoded;
           tasksFull = tasks;
@@ -221,7 +221,6 @@ class _LeadTasksState extends State<LeadTasks> {
         }
       }
     """),
-      fetchPolicy: FetchPolicy.networkOnly,
     );
 
     final QueryResult result0 = await GqlClientFactory().authGqlquery(options);

@@ -193,7 +193,6 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
           }
         }
       """),
-        fetchPolicy: FetchPolicy.networkOnly,
       );
 
       final QueryResult result = await GqlClientFactory().authGqlquery(options);
@@ -246,7 +245,6 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
           }
         }
     """),
-      fetchPolicy: FetchPolicy.networkOnly,
       variables: {"lead": this.widget.leadId},
     );
 

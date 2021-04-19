@@ -97,7 +97,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
           }
         }
       """),
-        fetchPolicy: FetchPolicy.networkOnly,
         pollInterval: Duration(seconds: 5),
       );
 
@@ -195,7 +194,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
           }
         }
       """),
-        fetchPolicy: FetchPolicy.networkOnly,
       );
 
       final QueryResult result = await GqlClientFactory().authGqlquery(options);

@@ -133,14 +133,16 @@ class UserService {
       }
       GqlClientFactory.setPrivateGraphQLClient(idTokenResult);
       String companyId = empDecoded["company"];
-      QueryOptions companyQueryOptions = QueryOptions(document: gql("""
+      QueryOptions companyQueryOptions = QueryOptions(
+        document: gql("""
         query GET_COMPANY {
           company_by_pk(company: "$companyId") {
             company
             title
           }
         }
-      """), fetchPolicy: FetchPolicy.networkOnly);
+      """),
+      );
 
       final QueryResult companyResult =
           await GqlClientFactory().authGqlquery(companyQueryOptions);
@@ -186,13 +188,17 @@ class UserService {
   }
 
   Future<bool> exchangeRefreshToken() async {
-    MutationOptions mutateOptions = MutationOptions(document: gql("""
+    MutationOptions mutateOptions = MutationOptions(
+      document: gql("""
      mutation REFRESH_TOKEN(\$token: String!, \$refreshToken: String!) {
         refresh_token(token: \$token, refreshToken: \$refreshToken) {
             token
           }
         }
-  """), variables: {"token": token, "refreshToken": rToken});
+  """),
+      variables: {"token": token, "refreshToken": rToken},
+    );
+
     final QueryResult result =
         await GqlClientFactory().authGqlmutate(mutateOptions);
     if (result.hasException == true) {

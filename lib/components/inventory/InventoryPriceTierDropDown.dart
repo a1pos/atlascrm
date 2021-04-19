@@ -47,7 +47,6 @@ class _InventoryPriceTierDropDownState
           }
         }
       """),
-      fetchPolicy: FetchPolicy.networkOnly,
     );
 
     final QueryResult locationsResp =

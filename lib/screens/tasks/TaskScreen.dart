@@ -173,7 +173,7 @@ class _TaskScreenState extends State<TaskScreen> {
     subscription =
         await GqlClientFactory().authGqlsubscribe(options, (data) async {
       var tasksArrDecoded = data.data["employee_by_pk"]["tasks"];
-      if (tasksArrDecoded != null) {
+      if (tasksArrDecoded != null && this.mounted) {
         setState(() {
           tasks = tasksArrDecoded;
           tasksFull = tasks;
@@ -202,7 +202,8 @@ class _TaskScreenState extends State<TaskScreen> {
 
     var openStatus;
 
-    QueryOptions options = QueryOptions(document: gql("""
+    QueryOptions options = QueryOptions(
+      document: gql("""
       query TASK_STATUS {
         task_status {
           task_status
@@ -210,7 +211,8 @@ class _TaskScreenState extends State<TaskScreen> {
           title
         }
       }
-    """), fetchPolicy: FetchPolicy.networkOnly);
+    """),
+    );
 
     final QueryResult result0 = await GqlClientFactory().authGqlquery(options);
 

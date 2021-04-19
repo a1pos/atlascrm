@@ -83,7 +83,6 @@ class _StatementUploaderState extends State<StatementUploader> {
           }
         }
       """),
-        fetchPolicy: FetchPolicy.networkOnly,
       );
 
       final QueryResult result = await GqlClientFactory().authGqlquery(options);
@@ -139,7 +138,6 @@ class _StatementUploaderState extends State<StatementUploader> {
         }
       }
     """),
-      fetchPolicy: FetchPolicy.networkOnly,
     );
 
     QueryOptions rateReviewTypeOptions = QueryOptions(
@@ -151,7 +149,6 @@ class _StatementUploaderState extends State<StatementUploader> {
         }
       }
     """),
-      fetchPolicy: FetchPolicy.networkOnly,
       variables: {"title": "Rate Review Presentation"},
     );
 
@@ -749,7 +746,6 @@ class _StatementUploaderState extends State<StatementUploader> {
         }
       }
       """),
-        fetchPolicy: FetchPolicy.networkOnly,
         variables: {
           "lead": lead["lead"],
         },

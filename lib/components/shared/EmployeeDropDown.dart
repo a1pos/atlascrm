@@ -49,7 +49,6 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
           }
         }
       """),
-      fetchPolicy: FetchPolicy.networkOnly,
     );
 
     final QueryResult result = await GqlClientFactory().authGqlquery(options);

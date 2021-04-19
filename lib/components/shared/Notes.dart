@@ -1,7 +1,6 @@
 import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-import 'package:http/http.dart';
 import 'dart:async';
 import 'package:intl/intl.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
@@ -100,13 +99,16 @@ class _NotesState extends State<Notes> {
       "note_text": newNote,
     };
 
-    MutationOptions mutateOptions = MutationOptions(document: gql("""
+    MutationOptions mutateOptions = MutationOptions(
+      document: gql("""
      mutation INSERT_${typeUpper}_NOTE (\$object: ${type}_note_insert_input!){
       insert_${type}_note_one(object: \$object){
 		    ${type}_note
       }
     }
-      """), variables: {"object": sendNote});
+      """),
+      variables: {"object": sendNote},
+    );
     final QueryResult result =
         await GqlClientFactory().authGqlmutate(mutateOptions);
     if (result.hasException == true) {

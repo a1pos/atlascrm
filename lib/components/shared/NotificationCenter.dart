@@ -69,7 +69,8 @@ class _NotificationCenterState extends State<NotificationCenter> {
   }
 
   Future<void> markOneAsRead(notification) async {
-    MutationOptions mutateOptions = MutationOptions(document: gql("""
+    MutationOptions mutateOptions = MutationOptions(
+      document: gql("""
           mutation UPDATE_NOTIFICATION (\$notification: uuid){
             update_notification(where: {notification: {_eq: \$notification}}, _set: {is_read: true}) {
               returning {
@@ -77,7 +78,9 @@ class _NotificationCenterState extends State<NotificationCenter> {
               }
             }
           }
-      """), variables: {"notification": notification});
+      """),
+      variables: {"notification": notification},
+    );
     final QueryResult result =
         await GqlClientFactory().authGqlmutate(mutateOptions);
 

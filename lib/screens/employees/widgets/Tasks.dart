@@ -72,7 +72,7 @@ class _TasksState extends State<Tasks> {
       options,
       (data) {
         var tasksArrDecoded = data.data["employee_by_pk"]["tasks"];
-        if (tasksArrDecoded != null) {
+        if (tasksArrDecoded != null && this.mounted) {
           setState(() {
             tasks = tasksArrDecoded;
             activeTasks = tasks;

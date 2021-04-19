@@ -135,6 +135,10 @@ class GqlClientFactory {
       getToken: () async => 'Bearer ${UserService.token}',
     );
 
+    final policies = Policies(
+      fetch: FetchPolicy.networkOnly,
+    );
+
     WebSocketLink _wsLink = WebSocketLink(
       ConfigSettings.HASURA_WEBSOCKET,
       config: SocketClientConfig(
@@ -158,13 +162,35 @@ class GqlClientFactory {
       link,
     );
 
-    final GraphQLClient aCLient = GraphQLClient(link: link, cache: cache);
+    final GraphQLClient aCLient = GraphQLClient(
+      link: link,
+      cache: cache,
+      defaultPolicies: DefaultPolicies(
+        subscribe: policies,
+        watchQuery: policies,
+        query: policies,
+        mutate: policies,
+      ),
+    );
 
     client = aCLient;
   }
 
   static void setPublicGraphQLClient() {
-    final GraphQLClient aCLient = GraphQLClient(link: _httpLink, cache: cache);
+    final policies = Policies(
+      fetch: FetchPolicy.networkOnly,
+    );
+
+    final GraphQLClient aCLient = GraphQLClient(
+      link: _httpLink,
+      cache: cache,
+      defaultPolicies: DefaultPolicies(
+        subscribe: policies,
+        watchQuery: policies,
+        query: policies,
+        mutate: policies,
+      ),
+    );
     client = aCLient;
   }
 }

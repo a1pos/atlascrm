@@ -34,7 +34,8 @@ class _UniversalDropDownState extends State<UniversalDropDown> {
   }
 
   Future<void> initRoles() async {
-    QueryOptions options = QueryOptions(document: gql("""
+    QueryOptions options = QueryOptions(
+      document: gql("""
       query GET_ROLES {
         role{
           role
@@ -42,7 +43,8 @@ class _UniversalDropDownState extends State<UniversalDropDown> {
           document
         }
       }
-      """), fetchPolicy: FetchPolicy.networkOnly);
+      """),
+    );
 
     final QueryResult rolesResp =
         await GqlClientFactory().authGqlquery(options);

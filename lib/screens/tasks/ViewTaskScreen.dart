@@ -59,7 +59,8 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
   }
 
   Future<void> loadClosedStatus() async {
-    QueryOptions options = QueryOptions(document: gql("""
+    QueryOptions options = QueryOptions(
+      document: gql("""
       query TASK_STATUS {
         task_status {
           task_status
@@ -67,7 +68,8 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
           title
         }
       }
-    """), fetchPolicy: FetchPolicy.networkOnly);
+    """),
+    );
 
     final QueryResult result0 = await GqlClientFactory().authGqlquery(options);
 
@@ -85,7 +87,8 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
   }
 
   Future<void> loadTaskData() async {
-    QueryOptions options = QueryOptions(document: gql("""
+    QueryOptions options = QueryOptions(
+      document: gql("""
       query GET_TASK{
         task_by_pk(task: "${this.widget.taskId}"){
           task
@@ -102,7 +105,8 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
           created_at
         }
       }
-      """), fetchPolicy: FetchPolicy.networkOnly);
+      """),
+    );
 
     final QueryResult result = await GqlClientFactory().authGqlquery(options);
     if (result.hasException == false) {

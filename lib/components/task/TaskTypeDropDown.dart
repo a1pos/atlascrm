@@ -35,7 +35,6 @@ class _TaskTypeDropDownState extends State<TaskTypeDropDown> {
         }
       }
     """),
-      fetchPolicy: FetchPolicy.networkOnly,
     );
 
     final QueryResult result = await GqlClientFactory().authGqlquery(options);

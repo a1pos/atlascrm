@@ -54,7 +54,6 @@ class _ProcessorDropDownState extends State<ProcessorDropDown> {
         }
       }
     """),
-      fetchPolicy: FetchPolicy.networkOnly,
     );
 
     final QueryResult result = await GqlClientFactory().authGqlquery(options);

@@ -152,7 +152,8 @@ class _LeadsScreenState extends State<LeadsScreen> {
         }
       }
 
-      QueryOptions options = QueryOptions(document: gql("""
+      QueryOptions options = QueryOptions(
+        document: gql("""
           query GET_LEADS {
             v_lead($initParams) {
               lead
@@ -165,7 +166,8 @@ class _LeadsScreenState extends State<LeadsScreen> {
               stale
             }
           }
-      """), fetchPolicy: FetchPolicy.networkOnly);
+      """),
+      );
 
       final result = await GqlClientFactory().authGqlquery(options);
 
@@ -275,7 +277,6 @@ class _LeadsScreenState extends State<LeadsScreen> {
             }
           }
       """),
-        fetchPolicy: FetchPolicy.networkOnly,
       );
 
       final QueryResult result = await GqlClientFactory().authGqlquery(options);

@@ -93,7 +93,6 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
 		    }
       }
     """),
-      fetchPolicy: FetchPolicy.networkOnly,
       variables: {"merchant": merchantId},
     );
 
@@ -207,7 +206,7 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
     subscription =
         await GqlClientFactory().authGqlsubscribe(deviceOptions, (data) {
       var devicesArrDecoded = data.data["inventory"];
-      if (devicesArrDecoded != null) {
+      if (devicesArrDecoded != null && this.mounted) {
         setState(() {
           devices = devicesArrDecoded;
         });

@@ -151,7 +151,6 @@ class LeadStepperState extends State<LeadStepper> {
               }
             }
         """),
-        fetchPolicy: FetchPolicy.networkOnly,
         variables: {
           "address1": address,
           "address2": address2,

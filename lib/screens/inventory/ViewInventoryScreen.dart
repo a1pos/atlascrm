@@ -175,7 +175,6 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
           }
         }}
             """),
-      fetchPolicy: FetchPolicy.networkOnly,
     );
 
     final QueryResult result = await GqlClientFactory().authGqlquery(options);
@@ -435,7 +434,6 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
         }
       }
     """),
-      fetchPolicy: FetchPolicy.networkOnly,
     );
 
     final QueryResult result = await GqlClientFactory().authGqlquery(options);

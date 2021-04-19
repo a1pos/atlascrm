@@ -95,7 +95,7 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
     }
 
     QueryOptions options = QueryOptions(
-        document: gql("""
+      document: gql("""
           query GET_EMPLOYEE_ROUTE(
             \$device_id: String
             \$date: timestamptz
@@ -120,12 +120,12 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
             }
           }
       """),
-        variables: {
-          "device_id": deviceIdController.text,
-          "date": startDate.toString(),
-          "next_day": endDate.toString()
-        },
-        fetchPolicy: FetchPolicy.networkOnly);
+      variables: {
+        "device_id": deviceIdController.text,
+        "date": startDate.toString(),
+        "next_day": endDate.toString()
+      },
+    );
 
     final QueryResult result = await GqlClientFactory().authGqlquery(options);
     if (result != null) {
@@ -199,7 +199,6 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
             }
           }
       """),
-          fetchPolicy: FetchPolicy.networkOnly,
           variables: {
             "device_id": deviceIdController.text,
             "date": startDate.toString(),

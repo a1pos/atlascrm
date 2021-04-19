@@ -111,7 +111,6 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
                       }
                     }
               """),
-              fetchPolicy: FetchPolicy.networkOnly,
               variables: {
                 "device_id": currentLocation["device_id"],
                 "date": today

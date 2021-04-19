@@ -57,7 +57,6 @@ class _LeadDropDownState extends State<LeadDropDown> {
               }
             }
             """),
-        fetchPolicy: FetchPolicy.networkOnly,
       );
     }
     if (this.widget.employeeId != null) {

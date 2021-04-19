@@ -70,7 +70,8 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
             'offset: 0, limit: 10, order_by: {merchantbusinessname: asc}';
       }
 
-      QueryOptions options = QueryOptions(document: gql("""
+      QueryOptions options = QueryOptions(
+        document: gql("""
           query GET_MERCHANTS {
             v_merchant($initParams) {
               updated_at
@@ -83,7 +84,8 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
               merchantphonenumber
             }
           }
-      """), fetchPolicy: FetchPolicy.networkOnly);
+      """),
+      );
 
       final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
@@ -160,7 +162,6 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
             }
           }
       """),
-        fetchPolicy: FetchPolicy.networkOnly,
       );
 
       final QueryResult result = await GqlClientFactory().authGqlquery(options);

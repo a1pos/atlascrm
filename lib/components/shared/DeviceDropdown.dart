@@ -36,7 +36,7 @@ class _DeviceDropDownState extends State<DeviceDropDown> {
 
   Future<void> initDevices() async {
     QueryOptions options = QueryOptions(
-        document: gql("""
+      document: gql("""
       query GET_DEVICES (\$employee: uuid!){
         employee_device(where: {employee: {_eq: \$employee}}){
           employee_device
@@ -45,8 +45,8 @@ class _DeviceDropDownState extends State<DeviceDropDown> {
           }
         }
       """),
-        variables: {"employee": this.widget.employee},
-        fetchPolicy: FetchPolicy.networkOnly);
+      variables: {"employee": this.widget.employee},
+    );
 
     final QueryResult devicesResp =
         await GqlClientFactory().authGqlquery(options);
