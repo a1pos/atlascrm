@@ -3,9 +3,11 @@ import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:async';
 
 enum FirebaseCMType { launch, resume, backgroundMessage, message }
@@ -20,6 +22,16 @@ class FirebaseCESService {
   static String _token;
   static bool _initialized = false;
 
+  final AndroidNotificationChannel channel = AndroidNotificationChannel(
+    'high_importance_channel', // id
+    'High Importance Notifications', // title
+    'This channel is used for important notifications.', // description
+    importance: Importance.high,
+  );
+
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+
   factory FirebaseCESService() {
     return _singleton;
   }
@@ -30,41 +42,67 @@ class FirebaseCESService {
     WidgetsFlutterBinding.ensureInitialized();
     await Firebase.initializeApp();
 
-    // FirebaseMessaging.onBackgroundMessage((RemoteMessage message) async {
-    //   myBackgroundMessageHandler(message);
-    // });
+    if (!_initialized) {
+      // For iOS request permission first.
+      FirebaseMessaging.onBackgroundMessage(myBackgroundMessageHandler);
 
-    await _firebaseMessaging.setForegroundNotificationPresentationOptions(
-      alert: true,
-      badge: true,
-      sound: false,
-    );
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        RemoteNotification notification = message.notification;
+        AndroidNotification android = message.notification?.android;
 
-    // if (!_initialized) {
-    //   // For iOS request permission first.
+        if (notification != null && android != null) {
+          flutterLocalNotificationsPlugin.show(
+            notification.hashCode,
+            notification.title,
+            notification.body,
+            NotificationDetails(
+              android: AndroidNotificationDetails(
+                channel.id,
+                channel.name,
+                channel.description,
+                icon: "@drawable/ic_notification",
+              ),
+            ),
+          );
+        }
+      });
 
-    //   FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-    //     handleFirebaseMessage(message);
-    //   });
+      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+        print('A new onMessageOpenedApp event was published');
+        RemoteNotification notification = message.notification;
+        AndroidNotification android = message.notification?.android;
 
-    //   FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-    //     handleFirebaseMessage(message);
-    //   });
+        if (notification != null && android != null) {
+          flutterLocalNotificationsPlugin.show(
+            notification.hashCode,
+            notification.title,
+            notification.body,
+            NotificationDetails(
+              android: AndroidNotificationDetails(
+                channel.id,
+                channel.name,
+                channel.description,
+                icon: "@drawable/ic_notification",
+                color: Color.fromARGB(1, 58, 179, 171),
+              ),
+            ),
+          );
+        }
+      });
 
-    // For testing purposes print the Firebase Messaging token
-    String token = await _firebaseMessaging.getToken();
-    _token = token;
+      // For testing purposes print the Firebase Messaging token
+      String token = await _firebaseMessaging.getToken();
+      _token = token;
 
-    _initialized = true;
-    // }
+      _initialized = true;
+    }
   }
 
   static String getToken() {
     return _token;
   }
 
-  static Future<dynamic> myBackgroundMessageHandler(
-      RemoteMessage message) async {
+  static Future<void> myBackgroundMessageHandler(RemoteMessage message) async {
     await Firebase.initializeApp();
     print("Handling a background message ${message.messageId}");
   }
@@ -73,16 +111,10 @@ class FirebaseCESService {
     print("$message");
 
     if (message == null) return null;
-    print("has a message");
+    print(message.body);
 
-    var messageData = message.notification;
-    if (messageData == null) return null;
-    print("has messageData: $messageData.body");
-
-    //var messageActionType = messageData["type"];
     var messageActionType = "IGNORE";
     if (messageActionType == null) return null;
-    print("has messageActionType: $messageActionType");
 
     switch (messageActionType) {
       case "IGNORE":
@@ -101,7 +133,7 @@ class FirebaseCESService {
             }
           }
           """),
-            variables: {"phone_link_stream": messageData["phone_link_stream"]},
+            variables: {"phone_link_stream": message["phone_link_stream"]},
             fetchPolicy: FetchPolicy.networkOnly);
 
         if (result == null) {
@@ -111,8 +143,8 @@ class FirebaseCESService {
 
         try {
           var formData = FormData.fromMap({
-            "agreementBuilder": messageData["agreementBuilder"],
-            messageData["uploadType"]: await MultipartFile.fromFile(result)
+            "agreementBuilder": message["agreementBuilder"],
+            message["uploadType"]: await MultipartFile.fromFile(result)
           });
 
           var resp = await apiService.authFilePostWithFormData(

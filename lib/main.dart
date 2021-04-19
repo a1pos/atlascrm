@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/components/shared/LoadingScreen.dart';

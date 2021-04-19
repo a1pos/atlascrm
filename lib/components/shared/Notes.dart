@@ -1,7 +1,6 @@
 import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-import 'package:http/http.dart' as http;
 import 'dart:async';
 import 'package:intl/intl.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
@@ -73,6 +72,31 @@ class _NotesState extends State<Notes> {
       fetchPolicy: FetchPolicy.networkOnly,
       variables: {"id": "$objectId"},
     );
+
+    // QueryOptions optionsQuery = QueryOptions(
+    //   operationName: "GET_LEAD_NOTES",
+    //   document: gql("""
+    //   query GET_LEAD_NOTES(\$lead: uuid!) {
+    //     lead_note(
+    //       where: {lead: {_eq: \$lead}}
+    //       order_by: {created_at: desc}
+    //     ){
+    //       lead_note
+    //       lead
+    //       note_text
+    //       document
+    //       created_by
+    //       created_at
+    //       employee
+    //       employeeByEmployee{
+    //         displayName: document(path: "displayName")
+    //       }
+    //     }
+    //   }
+    // """),
+    //   fetchPolicy: FetchPolicy.networkOnly,
+    //   variables: {"lead": "$objectId"},
+    // );
 
     subscription = await GqlClientFactory().authGqlsubscribe(options, (data) {
       var notesArrDecoded = data.data["${type}_note"];

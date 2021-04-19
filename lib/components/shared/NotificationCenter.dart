@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:simple_moment/simple_moment.dart';
 
 class NotificationCenter extends StatefulWidget {
   final ApiService apiService = new ApiService();
@@ -24,6 +25,7 @@ class _NotificationCenterState extends State<NotificationCenter> {
   @override
   void initState() {
     super.initState();
+    initNotificationsSub();
   }
 
   @override
@@ -37,39 +39,55 @@ class _NotificationCenterState extends State<NotificationCenter> {
 
   Future<void> initNotificationsSub() async {
     SubscriptionOptions options = SubscriptionOptions(
-      operationName: "NOTIFICATION_SUB",
+      operationName: "SUBSCRIPTION_NOTIFICATIONS",
       document: gql("""
-          subscription NOTIFICATION_SUB(\$employee: uuid) {
-            notification(where: {employee: {_eq: \$employee}, _and: {is_read: {_eq: false}}}){
+          subscription SUBSCRIPTION_NOTIFICATIONS(\$employee: uuid!){
+              notification(
+              order_by: {created_at: desc},
+              where: {
+                _and: [
+                  {employee: {_eq: \$employee}}
+                  {is_read: {_eq: false}}
+                ]
+              }
+            ){
               notification
+              is_read
               document
+              created_at
             }
           }
             """),
+      fetchPolicy: FetchPolicy.networkOnly,
       variables: {"employee": "${UserService.employee.employee}"},
     );
 
-    subscription = await GqlClientFactory().authGqlsubscribe(options, (data) {
-      var notificationsArrDecoded = data.data["notification"];
-      if (notificationsArrDecoded != null && this.mounted) {
-        setState(() {
-          notifCount = notificationsArrDecoded.length;
-          notifications = notificationsArrDecoded;
-        });
-      }
-    }, (error) {}, () => refreshSub());
+    subscription = await GqlClientFactory().authGqlsubscribe(
+      options,
+      (data) {
+        var notificationsArrDecoded = data.data["notification"];
+        if (notificationsArrDecoded != null && this.mounted) {
+          setState(() {
+            notifCount = notificationsArrDecoded.length;
+            notifications = notificationsArrDecoded;
+          });
+        }
+      },
+      (error) {},
+      () => refreshSub(),
+    );
   }
 
   Future refreshSub() async {
     if (subscription != null) {
       await subscription.cancel();
       subscription = null;
-      initNotificationsSub();
     }
   }
 
   Future<void> markOneAsRead(notification) async {
-    MutationOptions mutateOptions = MutationOptions(document: gql("""
+    MutationOptions mutateOptions = MutationOptions(
+      document: gql("""
           mutation UPDATE_NOTIFICATION (\$notification: uuid){
             update_notification(where: {notification: {_eq: \$notification}}, _set: {is_read: true}) {
               returning {
@@ -77,7 +95,10 @@ class _NotificationCenterState extends State<NotificationCenter> {
               }
             }
           }
-      """), variables: {"notification": notification});
+      """),
+      fetchPolicy: FetchPolicy.networkOnly,
+      variables: {"notification": notification},
+    );
     final QueryResult result =
         await GqlClientFactory().authGqlmutate(mutateOptions);
 
@@ -100,7 +121,7 @@ class _NotificationCenterState extends State<NotificationCenter> {
     }
   }
 
-  Future<void> markAllAsRead() async {
+  Future<void> dismissAll() async {
     MutationOptions mutateOptions = MutationOptions(
       document: gql("""
           mutation UPDATE_NOTIFICATIONS (\$employee: uuid){
@@ -111,6 +132,7 @@ class _NotificationCenterState extends State<NotificationCenter> {
             }
           }
       """),
+      fetchPolicy: FetchPolicy.networkOnly,
       variables: {"employee": UserService.employee.employee},
     );
     final QueryResult result =
@@ -124,6 +146,7 @@ class _NotificationCenterState extends State<NotificationCenter> {
           backgroundColor: Colors.grey[600],
           textColor: Colors.white,
           fontSize: 16.0);
+      Navigator.of(context).pop();
     } else {
       Fluttertoast.showToast(
           msg: "Failed to update Notifications!",
@@ -139,65 +162,167 @@ class _NotificationCenterState extends State<NotificationCenter> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('New Notifications: ${notifCount.toString()}'),
-          content: Column(
-            children: <Widget>[
-              Container(width: 300, height: 400, child: buildNotifList()),
-            ],
-          ),
-          actions: <Widget>[
-            MaterialButton(
-              padding: EdgeInsets.all(5),
-              color: UniversalStyles.actionColor,
-              onPressed: () async {
-                markAllAsRead();
-                Navigator.pop(context);
-              },
-              child: Row(
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return AlertDialog(
+              title: Text(
+                'Notifications: ${notifCount.toString()}',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              content: Column(
                 children: <Widget>[
-                  Text(
-                    'Mark all as read',
-                    style: TextStyle(
-                      color: Colors.white,
+                  Expanded(
+                    child: Container(
+                      padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
+                      width: 300,
+                      height: 400,
+                      child: buildNotifList(),
                     ),
-                  ),
+                  )
                 ],
               ),
-            ),
-          ],
+              actions: <Widget>[
+                MaterialButton(
+                  padding: EdgeInsets.all(5),
+                  color: UniversalStyles.actionColor,
+                  onPressed: () async {
+                    return showDialog<void>(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Text('Dismiss Notifications'),
+                          content: SingleChildScrollView(
+                            child: ListBody(
+                              children: <Widget>[
+                                Text("Dismiss all notifications?"),
+                              ],
+                            ),
+                          ),
+                          actions: <Widget>[
+                            TextButton(
+                              child: Text(
+                                'Yes',
+                                style: TextStyle(fontSize: 17),
+                              ),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                                dismissAll();
+                              },
+                            ),
+                            TextButton(
+                                child: Text(
+                                  'No',
+                                  style: TextStyle(fontSize: 17),
+                                ),
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                })
+                          ],
+                        );
+                      },
+                    );
+                  },
+                  child: Row(
+                    children: <Widget>[
+                      Text(
+                        'Dismiss All',
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          },
         );
       },
     );
   }
 
   Widget buildNotifList() {
-    return ListView(
-      shrinkWrap: true,
-      children: List.generate(
-        notifications.length,
-        (index) {
-          var notification = notifications[index];
-          return GestureDetector(
-            onTap: () {
-              // markOneAsRead(notification["notification"]);
-              // Navigator.pop(context);
-            },
-            child: Card(
-              shape: new RoundedRectangleBorder(
-                  side: new BorderSide(color: Colors.white, width: 2.0),
-                  borderRadius: BorderRadius.circular(4.0)),
-              child: ListTile(
-                title: Text(notification["document"]["title"]),
-                subtitle: Text(notification["document"]["body"]),
-                leading: IconButton(
-                  icon: Icon(Icons.lens, color: Colors.red, size: 15),
-                  onPressed: () {},
+    return Padding(
+      padding: EdgeInsets.only(left: 0),
+      child: ListView(
+        shrinkWrap: true,
+        children: List.generate(
+          notifications.length,
+          (index) {
+            var notification = notifications[index];
+            var createdAt = DateTime.parse(notification["created_at"]);
+            var moment = Moment.now();
+
+            return GestureDetector(
+              onTap: () {
+                // markOneAsRead(notification["notification"]);
+                // Navigator.pop(context);
+              },
+              child: Card(
+                elevation: 3,
+                shape: new RoundedRectangleBorder(
+                  side: new BorderSide(color: Colors.black26, width: .5),
+                  borderRadius: BorderRadius.circular(4.0),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(5, 0, 2.5, 0),
+                      child: ListTile(
+                        contentPadding: EdgeInsets.only(top: 1),
+                        leading: Transform.translate(
+                          offset: Offset(-10, 0),
+                          child: IconButton(
+                            alignment: Alignment.topCenter,
+                            padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
+                            icon: Icon(Icons.lens,
+                                color: Colors.blue.shade300, size: 15),
+                            onPressed: () {},
+                          ),
+                        ),
+                        title: Padding(
+                          padding: EdgeInsets.only(right: 0),
+                          child: Transform.translate(
+                            offset: Offset(-35, 0),
+                            child: Text(
+                              notification["document"]["title"],
+                              softWrap: true,
+                              textAlign: TextAlign.left,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                        subtitle: Transform.translate(
+                          offset: Offset(-35, 0),
+                          child: Text(
+                            moment.from(createdAt),
+                            textAlign: TextAlign.left,
+                          ),
+                        ),
+                        trailing: Container(
+                          width: 30,
+                          padding: EdgeInsets.all(0),
+                          child: IconButton(
+                            padding: EdgeInsets.all(0),
+                            alignment: Alignment.centerLeft,
+                            icon: Icon(Icons.clear,
+                                color: Colors.black26, size: 20),
+                            onPressed: () {
+                              markOneAsRead(notification["notification"]);
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
@@ -207,7 +332,11 @@ class _NotificationCenterState extends State<NotificationCenter> {
     return GestureDetector(
         child: Stack(
           children: <Widget>[
-            Icon(Icons.notifications, color: Colors.white, size: 35),
+            Icon(
+              Icons.notifications,
+              color: Colors.white,
+              size: 35,
+            ),
             Positioned(
               right: 0,
               top: 2,
@@ -219,17 +348,17 @@ class _NotificationCenterState extends State<NotificationCenter> {
                         borderRadius: BorderRadius.circular(10),
                       ),
                       constraints: BoxConstraints(
-                        minWidth: 18,
-                        minHeight: 18,
+                        minWidth: 14,
+                        minHeight: 14,
                       ),
-                      child: Text(
-                        '${notifCount.toString()}',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
+                      // child: Text(
+                      //   '${notifCount.toString()}',
+                      //   style: TextStyle(
+                      //     color: Colors.white,
+                      //     fontSize: 12,
+                      //   ),
+                      //   textAlign: TextAlign.center,
+                      // ),
                     )
                   : Container(),
             ),
