@@ -82,7 +82,8 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
 
   Future initSub() async {
     SubscriptionOptions options = SubscriptionOptions(
-        operationName: "GET_CARD_LEADERBOARD_COUNT", document: gql("""
+      operationName: "GET_CARD_LEADERBOARD_COUNT",
+      document: gql("""
           subscription GET_CARD_LEADERBOARD_COUNT {
             v_leaderboard {
               employee
@@ -95,7 +96,9 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
               photourl
             }
           }
-        """));
+        """),
+      fetchPolicy: FetchPolicy.networkOnly,
+    );
 
     subscription = await GqlClientFactory().authGqlsubscribe(
       options,

@@ -167,6 +167,7 @@ class _TaskScreenState extends State<TaskScreen> {
             }
           }
         """),
+      fetchPolicy: FetchPolicy.networkOnly,
       variables: {"employee": "${UserService.employee.employee}"},
     );
 

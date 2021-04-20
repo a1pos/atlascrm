@@ -136,6 +136,7 @@ class GqlClientFactory {
     );
 
     final policies = Policies(
+      cacheReread: CacheRereadPolicy.ignoreAll,
       fetch: FetchPolicy.networkOnly,
     );
 
@@ -178,6 +179,7 @@ class GqlClientFactory {
 
   static void setPublicGraphQLClient() {
     final policies = Policies(
+      cacheReread: CacheRereadPolicy.ignoreAll,
       fetch: FetchPolicy.networkOnly,
     );
 
@@ -186,7 +188,6 @@ class GqlClientFactory {
       cache: cache,
       defaultPolicies: DefaultPolicies(
         subscribe: policies,
-        watchQuery: policies,
         query: policies,
         mutate: policies,
       ),

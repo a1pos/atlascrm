@@ -69,6 +69,7 @@ class _NotesState extends State<Notes> {
         }
       }
     """),
+      fetchPolicy: FetchPolicy.networkOnly,
       variables: {"id": "$objectId"},
     );
 

@@ -62,6 +62,7 @@ class _TasksState extends State<Tasks> {
             }
           }
             """),
+      fetchPolicy: FetchPolicy.networkOnly,
       variables: {"employee": "${UserService.employee.employee}"},
     );
 

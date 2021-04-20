@@ -24,13 +24,12 @@ bool isFocused = false;
 bool isLoading = false;
 bool notesEmpty = true;
 
-List notes;
-List notesDisplay;
+List notes = [];
+List notesDisplay = [];
 
 var notesController = TextEditingController();
 var typeUpper;
 var type = "lead";
-var subscription;
 
 ScrollController _scrollController = ScrollController();
 
@@ -42,17 +41,18 @@ class _LeadNotesState extends State<LeadNotes> {
     super.initState();
     typeUpper = type.toUpperCase();
     notesController.clear();
-    loadNotes(this.widget.object[type], type);
+    loadNotes(this.widget.object[type]);
+
     _focus.addListener(_onFocusChange);
   }
 
   @override
   void dispose() async {
     super.dispose();
-    if (subscription != null) {
-      await subscription.cancel();
-      subscription = null;
-    }
+    isLoading = false;
+
+    notesEmpty = true;
+    notes = [];
   }
 
   void _onFocusChange() {
@@ -63,55 +63,53 @@ class _LeadNotesState extends State<LeadNotes> {
     );
   }
 
-  Future<void> loadNotes(objectId, type) async {
+  Future<void> loadNotes(objectId) async {
     notesController.clear();
 
-    SubscriptionOptions options = SubscriptionOptions(
-      operationName: "${typeUpper}_NOTE",
+    QueryOptions options = QueryOptions(
       document: gql("""
-          subscription ${typeUpper}_NOTE(\$id: uuid) {
-            ${type}_note(where: {$type: {_eq: \$id}}){
-              ${type}_note
-              note_text
-              created_at
+      query GET_LEADS_NOTES (\$id: uuid!) {
+        lead_note(
+          where: {lead: {_eq: \$id}}
+          order_by: {created_at: desc}
+          ) {
+            lead_note
+            lead
+            note_text
+            document
+            created_by
+            created_at
+            employee
+            employeeByEmployee{
+              displayName: document(path: "displayName")
             }
           }
-    """),
-      variables: {"id": "$objectId"},
+      }
+      """),
+      fetchPolicy: FetchPolicy.networkOnly,
+      cacheRereadPolicy: CacheRereadPolicy.ignoreAll,
+      variables: {"id": objectId},
     );
 
-    subscription = await GqlClientFactory().authGqlsubscribe(
-      options,
-      (data) {
-        var notesArrDecoded = data.data["${type}_note"];
+    final result = await GqlClientFactory().authGqlquery(options);
+
+    if (result != null) {
+      isLoading = true;
+      if (result.hasException == false) {
+        var notesArrDecoded = result.data["lead_note"];
         if (notesArrDecoded != null) {
-          if (this.mounted) {
+          var notesArr = List.from(notesArrDecoded);
+          if (notesArr.length > 0) {
             setState(
               () {
-                notes = notesArrDecoded.toList();
+                isLoading = false;
                 notesEmpty = false;
+                notes = notesArr;
               },
             );
           }
         }
-        if (_scrollController.hasClients) {
-          _scrollController.animateTo(
-            0.0,
-            curve: Curves.easeOut,
-            duration: const Duration(milliseconds: 300),
-          );
-        }
-      },
-      (error) {},
-      () => refreshSub(),
-    );
-  }
-
-  Future refreshSub() async {
-    if (subscription != null) {
-      await subscription.cancel();
-      subscription = null;
-      loadNotes(this.widget.object[type], type);
+      }
     }
   }
 
@@ -129,6 +127,7 @@ class _LeadNotesState extends State<LeadNotes> {
       }
     }
       """),
+      fetchPolicy: FetchPolicy.networkOnly,
       variables: {"object": sendNote},
     );
 
@@ -143,6 +142,7 @@ class _LeadNotesState extends State<LeadNotes> {
           textColor: Colors.white,
           fontSize: 16.0);
     }
+    loadNotes(this.widget.object[type]);
   }
 
   @override
@@ -295,7 +295,12 @@ class _LeadNotesState extends State<LeadNotes> {
                             ),
                           ),
                         )
-                      : Empty("no notes"),
+                      : Padding(
+                          padding: EdgeInsets.only(top: 10),
+                          child: Container(
+                            child: Empty("No Notes"),
+                          ),
+                        )
                 ],
               ),
       ),

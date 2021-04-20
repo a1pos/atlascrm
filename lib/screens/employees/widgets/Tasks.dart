@@ -65,6 +65,7 @@ class _TasksState extends State<Tasks> {
             }
           }
             """),
+      fetchPolicy: FetchPolicy.networkOnly,
       variables: {"employee": "${this.widget.employee}"},
     );
 

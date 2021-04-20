@@ -46,6 +46,7 @@ class _NotificationCenterState extends State<NotificationCenter> {
             }
           }
             """),
+      fetchPolicy: FetchPolicy.networkOnly,
       variables: {"employee": "${UserService.employee.employee}"},
     );
 

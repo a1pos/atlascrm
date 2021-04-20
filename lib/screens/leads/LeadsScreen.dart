@@ -167,6 +167,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
             }
           }
       """),
+        fetchPolicy: FetchPolicy.networkOnly,
       );
 
       final result = await GqlClientFactory().authGqlquery(options);
@@ -277,6 +278,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
             }
           }
       """),
+        fetchPolicy: FetchPolicy.networkOnly,
       );
 
       final QueryResult result = await GqlClientFactory().authGqlquery(options);

@@ -74,6 +74,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
           }
         }
     """),
+      fetchPolicy: FetchPolicy.networkOnly,
       variables: {"employee": "${this.widget.employeeId}"},
     );
 

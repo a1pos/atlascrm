@@ -87,6 +87,7 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
           }
         }
     """),
+      fetchPolicy: FetchPolicy.networkOnly,
     );
     subscription = await GqlClientFactory().authGqlsubscribe(
       options,
