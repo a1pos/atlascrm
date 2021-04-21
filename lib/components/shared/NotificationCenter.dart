@@ -1,4 +1,5 @@
 import 'package:atlascrm/components/style/UniversalStyles.dart';
+import 'package:atlascrm/screens/leads/LeadNotes.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:atlascrm/services/ApiService.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:simple_moment/simple_moment.dart';
+import 'package:atlascrm/components/shared/Empty.dart';
 
 class NotificationCenter extends StatefulWidget {
   final ApiService apiService = new ApiService();
@@ -18,6 +20,8 @@ class NotificationCenter extends StatefulWidget {
 }
 
 class _NotificationCenterState extends State<NotificationCenter> {
+  bool notesEmpty = true;
+  var notifCountIcon = 0;
   var notifCount = 0;
   var notifications = [];
   var subscription;
@@ -26,6 +30,7 @@ class _NotificationCenterState extends State<NotificationCenter> {
   void initState() {
     super.initState();
     initNotificationsSub();
+    getNotifications();
   }
 
   @override
@@ -52,13 +57,9 @@ class _NotificationCenterState extends State<NotificationCenter> {
               }
             ){
               notification
-              is_read
-              document
-              created_at
             }
           }
             """),
-      fetchPolicy: FetchPolicy.networkOnly,
       variables: {"employee": "${UserService.employee.employee}"},
     );
 
@@ -68,8 +69,7 @@ class _NotificationCenterState extends State<NotificationCenter> {
         var notificationsArrDecoded = data.data["notification"];
         if (notificationsArrDecoded != null && this.mounted) {
           setState(() {
-            notifCount = notificationsArrDecoded.length;
-            notifications = notificationsArrDecoded;
+            notifCountIcon = notificationsArrDecoded.length;
           });
         }
       },
@@ -82,6 +82,52 @@ class _NotificationCenterState extends State<NotificationCenter> {
     if (subscription != null) {
       await subscription.cancel();
       subscription = null;
+    }
+  }
+
+  Future<void> getNotifications() async {
+    QueryOptions options = QueryOptions(
+      document: gql("""
+      query GET_NOTIFICATIONS(\$employee: uuid!) {
+        notification(
+          order_by: {created_at: desc},
+          where: {
+            _and: [
+              {employee: {_eq: \$employee}}
+              {is_read: {_eq: false}}
+            ]
+          }
+        ){
+          notification
+          is_read
+          document
+          created_at
+        }
+      }
+    """),
+      fetchPolicy: FetchPolicy.networkOnly,
+      cacheRereadPolicy: CacheRereadPolicy.ignoreAll,
+      variables: {"employee": "${UserService.employee.employee}"},
+    );
+
+    final result = await GqlClientFactory().authGqlquery(options);
+
+    if (result != null) {
+      if (result.hasException == false) {
+        var notificationsArrDecoded1 = result.data["notification"];
+        if (notificationsArrDecoded1 != null) {
+          var notificationsArr = List.from(notificationsArrDecoded1);
+          if (notificationsArr.length > 0) {
+            setState(
+              () {
+                notesEmpty = false;
+                notifications = notificationsArr;
+                notifCount = notificationsArr.length;
+              },
+            );
+          }
+        }
+      }
     }
   }
 
@@ -119,6 +165,7 @@ class _NotificationCenterState extends State<NotificationCenter> {
           textColor: Colors.white,
           fontSize: 16.0);
     }
+    buildNotifList();
   }
 
   Future<void> dismissAll() async {
@@ -156,92 +203,95 @@ class _NotificationCenterState extends State<NotificationCenter> {
           textColor: Colors.white,
           fontSize: 16.0);
     }
+    getNotifications();
   }
 
   void openNotificationPanel() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return AlertDialog(
-              title: Text(
-                'Notifications: ${notifCount.toString()}',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              content: Column(
-                children: <Widget>[
-                  Expanded(
-                    child: Container(
-                      padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
-                      width: 300,
-                      height: 400,
-                      child: buildNotifList(),
-                    ),
-                  )
-                ],
-              ),
-              actions: <Widget>[
-                MaterialButton(
-                  padding: EdgeInsets.all(5),
-                  color: UniversalStyles.actionColor,
-                  onPressed: () async {
-                    return showDialog<void>(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: Text('Dismiss Notifications'),
-                          content: SingleChildScrollView(
-                            child: ListBody(
-                              children: <Widget>[
-                                Text("Dismiss all notifications?"),
-                              ],
-                            ),
-                          ),
-                          actions: <Widget>[
-                            TextButton(
-                              child: Text(
-                                'Yes',
-                                style: TextStyle(fontSize: 17),
-                              ),
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                                dismissAll();
-                              },
-                            ),
-                            TextButton(
-                                child: Text(
-                                  'No',
-                                  style: TextStyle(fontSize: 17),
-                                ),
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                })
-                          ],
-                        );
-                      },
-                    );
-                  },
-                  child: Row(
+        return AlertDialog(
+          title: Text(
+            'Notifications: ${notifCount.toString()}',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+            return notesEmpty
+                ? Empty("No notifcations to display")
+                : Column(
                     children: <Widget>[
-                      Text(
-                        'Dismiss All',
-                        style: TextStyle(
-                          color: Colors.white,
+                      Expanded(
+                        child: Container(
+                          padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
+                          width: 300,
+                          height: 400,
+                          child: buildNotifList(),
+                        ),
+                      )
+                    ],
+                  );
+          }),
+          actions: <Widget>[
+            MaterialButton(
+              padding: EdgeInsets.all(5),
+              color: UniversalStyles.actionColor,
+              onPressed: () async {
+                return showDialog<void>(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: Text('Dismiss Notifications'),
+                      content: SingleChildScrollView(
+                        child: ListBody(
+                          children: <Widget>[
+                            Text("Dismiss all notifications?"),
+                          ],
                         ),
                       ),
-                    ],
+                      actions: <Widget>[
+                        TextButton(
+                          child: Text(
+                            'Yes',
+                            style: TextStyle(fontSize: 17),
+                          ),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                            dismissAll();
+                          },
+                        ),
+                        TextButton(
+                            child: Text(
+                              'No',
+                              style: TextStyle(fontSize: 17),
+                            ),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            })
+                      ],
+                    );
+                  },
+                );
+              },
+              child: Row(
+                children: <Widget>[
+                  Text(
+                    'Dismiss All',
+                    style: TextStyle(
+                      color: Colors.white,
+                    ),
                   ),
-                ),
-              ],
-            );
-          },
+                ],
+              ),
+            ),
+          ],
         );
       },
     );
   }
 
   Widget buildNotifList() {
+    getNotifications();
     return Padding(
       padding: EdgeInsets.only(left: 0),
       child: ListView(
@@ -340,7 +390,7 @@ class _NotificationCenterState extends State<NotificationCenter> {
             Positioned(
               right: 0,
               top: 2,
-              child: notifCount > 0
+              child: notifCountIcon > 0
                   ? Container(
                       padding: EdgeInsets.all(2),
                       decoration: new BoxDecoration(
@@ -351,14 +401,14 @@ class _NotificationCenterState extends State<NotificationCenter> {
                         minWidth: 14,
                         minHeight: 14,
                       ),
-                      // child: Text(
-                      //   '${notifCount.toString()}',
-                      //   style: TextStyle(
-                      //     color: Colors.white,
-                      //     fontSize: 12,
-                      //   ),
-                      //   textAlign: TextAlign.center,
-                      // ),
+                      child: Text(
+                        '${notifCountIcon.toString()}',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     )
                   : Container(),
             ),
