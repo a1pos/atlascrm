@@ -148,6 +148,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
         }
       }
           """),
+      fetchPolicy: FetchPolicy.networkOnly,
       variables: {"employee": this.widget.employeeId, "role": role},
     );
     final QueryResult result =
@@ -244,15 +245,15 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                   };
                   //LOGIC TO MUTATE ADD DEVICE
                   MutationOptions mutateOptions = MutationOptions(
-                    document: gql("""
+                      document: gql("""
                         mutation INSERT_ONE_EMPLOYEE_DEVICE (\$object: employee_device_insert_input!){
                           insert_employee_device_one(object: \$object){
                           employee_device
                         }
                       }
                   """),
-                    variables: {"object": newDevice},
-                  );
+                      fetchPolicy: FetchPolicy.networkOnly,
+                      variables: {"object": newDevice});
 
                   final QueryResult result =
                       await GqlClientFactory().authGqlmutate(mutateOptions);
@@ -315,6 +316,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                         }
                       }
                   """),
+                  fetchPolicy: FetchPolicy.networkOnly,
                   variables: {"employee_device": deviceId},
                 );
 

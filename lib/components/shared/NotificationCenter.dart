@@ -1,4 +1,3 @@
-import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
@@ -6,6 +5,7 @@ import 'dart:async';
 import 'package:atlascrm/services/ApiService.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:atlascrm/components/shared/BuildNotifList.dart';
 
 class NotificationCenter extends StatefulWidget {
   final ApiService apiService = new ApiService();
@@ -17,13 +17,18 @@ class NotificationCenter extends StatefulWidget {
 }
 
 class _NotificationCenterState extends State<NotificationCenter> {
+  bool notesEmpty = true;
+  bool isLoading = false;
+  var notifCountIcon = 0;
   var notifCount = 0;
   var notifications = [];
+  var notificationsDisplay = [];
   var subscription;
 
   @override
   void initState() {
     super.initState();
+    initNotificationsSub();
   }
 
   @override
@@ -37,12 +42,19 @@ class _NotificationCenterState extends State<NotificationCenter> {
 
   Future<void> initNotificationsSub() async {
     SubscriptionOptions options = SubscriptionOptions(
-      operationName: "NOTIFICATION_SUB",
+      operationName: "SUBSCRIPTION_NOTIFICATIONS",
       document: gql("""
-          subscription NOTIFICATION_SUB(\$employee: uuid) {
-            notification(where: {employee: {_eq: \$employee}, _and: {is_read: {_eq: false}}}){
+          subscription SUBSCRIPTION_NOTIFICATIONS(\$employee: uuid!){
+              notification(
+              order_by: {created_at: desc},
+              where: {
+                _and: [
+                  {employee: {_eq: \$employee}}
+                  {is_read: {_eq: false}}
+                ]
+              }
+            ){
               notification
-              document
             }
           }
             """),
@@ -50,61 +62,29 @@ class _NotificationCenterState extends State<NotificationCenter> {
       variables: {"employee": "${UserService.employee.employee}"},
     );
 
-    subscription = await GqlClientFactory().authGqlsubscribe(options, (data) {
-      var notificationsArrDecoded = data.data["notification"];
-      if (notificationsArrDecoded != null && this.mounted) {
-        setState(() {
-          notifCount = notificationsArrDecoded.length;
-          notifications = notificationsArrDecoded;
-        });
-      }
-    }, (error) {}, () => refreshSub());
+    subscription = await GqlClientFactory().authGqlsubscribe(
+      options,
+      (data) {
+        var notificationsArrDecoded = data.data["notification"];
+        if (notificationsArrDecoded != null && this.mounted) {
+          setState(() {
+            notifCountIcon = notificationsArrDecoded.length;
+          });
+        }
+      },
+      (error) {},
+      () => refreshSub(),
+    );
   }
 
   Future refreshSub() async {
     if (subscription != null) {
       await subscription.cancel();
       subscription = null;
-      initNotificationsSub();
     }
   }
 
-  Future<void> markOneAsRead(notification) async {
-    MutationOptions mutateOptions = MutationOptions(
-      document: gql("""
-          mutation UPDATE_NOTIFICATION (\$notification: uuid){
-            update_notification(where: {notification: {_eq: \$notification}}, _set: {is_read: true}) {
-              returning {
-                notification
-              }
-            }
-          }
-      """),
-      variables: {"notification": notification},
-    );
-    final QueryResult result =
-        await GqlClientFactory().authGqlmutate(mutateOptions);
-
-    if (result.hasException == false) {
-      Fluttertoast.showToast(
-          msg: "Notification Marked as Read!",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.grey[600],
-          textColor: Colors.white,
-          fontSize: 16.0);
-    } else {
-      Fluttertoast.showToast(
-          msg: "Failed to update Notifications!",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.grey[600],
-          textColor: Colors.white,
-          fontSize: 16.0);
-    }
-  }
-
-  Future<void> markAllAsRead() async {
+  Future<void> dismissAll() async {
     MutationOptions mutateOptions = MutationOptions(
       document: gql("""
           mutation UPDATE_NOTIFICATIONS (\$employee: uuid){
@@ -115,6 +95,7 @@ class _NotificationCenterState extends State<NotificationCenter> {
             }
           }
       """),
+      fetchPolicy: FetchPolicy.networkOnly,
       variables: {"employee": UserService.employee.employee},
     );
     final QueryResult result =
@@ -128,6 +109,7 @@ class _NotificationCenterState extends State<NotificationCenter> {
           backgroundColor: Colors.grey[600],
           textColor: Colors.white,
           fontSize: 16.0);
+      Navigator.of(context).pop();
     } else {
       Fluttertoast.showToast(
           msg: "Failed to update Notifications!",
@@ -143,66 +125,8 @@ class _NotificationCenterState extends State<NotificationCenter> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('New Notifications: ${notifCount.toString()}'),
-          content: Column(
-            children: <Widget>[
-              Container(width: 300, height: 400, child: buildNotifList()),
-            ],
-          ),
-          actions: <Widget>[
-            MaterialButton(
-              padding: EdgeInsets.all(5),
-              color: UniversalStyles.actionColor,
-              onPressed: () async {
-                markAllAsRead();
-                Navigator.pop(context);
-              },
-              child: Row(
-                children: <Widget>[
-                  Text(
-                    'Mark all as read',
-                    style: TextStyle(
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        );
+        return BuildNotifList();
       },
-    );
-  }
-
-  Widget buildNotifList() {
-    return ListView(
-      shrinkWrap: true,
-      children: List.generate(
-        notifications.length,
-        (index) {
-          var notification = notifications[index];
-          return GestureDetector(
-            onTap: () {
-              // markOneAsRead(notification["notification"]);
-              // Navigator.pop(context);
-            },
-            child: Card(
-              shape: new RoundedRectangleBorder(
-                  side: new BorderSide(color: Colors.white, width: 2.0),
-                  borderRadius: BorderRadius.circular(4.0)),
-              child: ListTile(
-                title: Text(notification["document"]["title"]),
-                subtitle: Text(notification["document"]["body"]),
-                leading: IconButton(
-                  icon: Icon(Icons.lens, color: Colors.red, size: 15),
-                  onPressed: () {},
-                ),
-              ),
-            ),
-          );
-        },
-      ),
     );
   }
 
@@ -211,11 +135,15 @@ class _NotificationCenterState extends State<NotificationCenter> {
     return GestureDetector(
         child: Stack(
           children: <Widget>[
-            Icon(Icons.notifications, color: Colors.white, size: 35),
+            Icon(
+              Icons.notifications,
+              color: Colors.white,
+              size: 35,
+            ),
             Positioned(
               right: 0,
               top: 2,
-              child: notifCount > 0
+              child: notifCountIcon > 0
                   ? Container(
                       padding: EdgeInsets.all(2),
                       decoration: new BoxDecoration(
@@ -223,14 +151,14 @@ class _NotificationCenterState extends State<NotificationCenter> {
                         borderRadius: BorderRadius.circular(10),
                       ),
                       constraints: BoxConstraints(
-                        minWidth: 18,
-                        minHeight: 18,
+                        minWidth: 14,
+                        minHeight: 14,
                       ),
                       child: Text(
-                        '${notifCount.toString()}',
+                        '${notifCountIcon.toString()}',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 12,
+                          fontSize: 10,
                         ),
                         textAlign: TextAlign.center,
                       ),

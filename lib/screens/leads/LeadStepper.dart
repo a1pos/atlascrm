@@ -379,6 +379,7 @@ class LeadStepperState extends State<LeadStepper> {
           }
         }
       """),
+        fetchPolicy: FetchPolicy.networkOnly,
         variables: {"objects": leadInfo},
       );
 

@@ -247,7 +247,8 @@ class _TaskScreenState extends State<TaskScreen> {
     };
 
     try {
-      MutationOptions options = MutationOptions(document: gql("""
+      MutationOptions options = MutationOptions(
+          document: gql("""
         mutation INSERT_TASK(\$data: [task_insert_input!]! = {}) {
           insert_task(objects: \$data) {
             returning {
@@ -255,7 +256,9 @@ class _TaskScreenState extends State<TaskScreen> {
             }
           }
         }
-            """), variables: {"data": data});
+            """),
+          fetchPolicy: FetchPolicy.networkOnly,
+          variables: {"data": data});
 
       final QueryResult result =
           await GqlClientFactory().authGqlmutate(options);

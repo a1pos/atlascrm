@@ -96,7 +96,7 @@ class UserService {
               refreshToken
           }
         }
-    """), variables: {
+    """), fetchPolicy: FetchPolicy.networkOnly, variables: {
       "email": user.email,
       "uid": user.uid,
     });
@@ -160,7 +160,7 @@ class UserService {
               message
           }
         }
-    """), variables: {
+    """), fetchPolicy: FetchPolicy.networkOnly, variables: {
         "registration_token": registrationToken,
         "uid": user.uid,
       });

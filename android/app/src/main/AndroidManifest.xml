@@ -11,12 +11,14 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
 
+    <!--android:icon="@mipmap/launcher_icon"-->
     <application
         tools:replace="android:label"
         android:name=".Application"
-        android:icon="@mipmap/launcher_icon"
         android:label="Atlas CRM"
-        android:usesCleartextTraffic="true">
+        android:usesCleartextTraffic="true"
+        android:icon="@mipmap/launcher_icon"
+        >
 
 
         <activity
@@ -48,6 +50,13 @@
             android:value="AIzaSyB-rMAdwtIjM7s_4Lb8SdRXAfhbiLTVl7s"/>
         <meta-data android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="@string/default_notification_channel_id"/>
+        <!-- Add custom icon to the notifications -->
+        <meta-data
+        android:name="com.google.firebase.messaging.default_notification_icon"
+        android:resource="@drawable/ic_notification" />
+        <meta-data
+        android:name="com.google.firebase.messaging.default_notification_color"
+        android:resource="@color/colorNotif" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -58,5 +67,6 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
+
     </application>
 </manifest>

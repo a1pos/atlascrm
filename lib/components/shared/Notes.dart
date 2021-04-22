@@ -73,6 +73,31 @@ class _NotesState extends State<Notes> {
       variables: {"id": "$objectId"},
     );
 
+    // QueryOptions optionsQuery = QueryOptions(
+    //   operationName: "GET_LEAD_NOTES",
+    //   document: gql("""
+    //   query GET_LEAD_NOTES(\$lead: uuid!) {
+    //     lead_note(
+    //       where: {lead: {_eq: \$lead}}
+    //       order_by: {created_at: desc}
+    //     ){
+    //       lead_note
+    //       lead
+    //       note_text
+    //       document
+    //       created_by
+    //       created_at
+    //       employee
+    //       employeeByEmployee{
+    //         displayName: document(path: "displayName")
+    //       }
+    //     }
+    //   }
+    // """),
+    //   fetchPolicy: FetchPolicy.networkOnly,
+    //   variables: {"lead": "$objectId"},
+    // );
+
     subscription = await GqlClientFactory().authGqlsubscribe(options, (data) {
       var notesArrDecoded = data.data["${type}_note"];
       if (notesArrDecoded != null) {
@@ -101,15 +126,15 @@ class _NotesState extends State<Notes> {
     };
 
     MutationOptions mutateOptions = MutationOptions(
-      document: gql("""
+        document: gql("""
      mutation INSERT_${typeUpper}_NOTE (\$object: ${type}_note_insert_input!){
       insert_${type}_note_one(object: \$object){
 		    ${type}_note
       }
     }
       """),
-      variables: {"object": sendNote},
-    );
+        fetchPolicy: FetchPolicy.networkOnly,
+        variables: {"object": sendNote});
     final QueryResult result =
         await GqlClientFactory().authGqlmutate(mutateOptions);
     if (result.hasException == true) {

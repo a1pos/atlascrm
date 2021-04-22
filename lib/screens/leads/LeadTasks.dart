@@ -266,6 +266,7 @@ class _LeadTasksState extends State<LeadTasks> {
           }
         }
         """),
+        fetchPolicy: FetchPolicy.networkOnly,
         variables: {"data": data},
       );
 
