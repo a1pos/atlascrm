@@ -1,3 +1,4 @@
+import 'package:atlascrm/components/shared/AppVersion.dart';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CustomDrawer.dart';
@@ -166,6 +167,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         child: LeadsChart(),
                       ),
                     ),
+                    Align(alignment: Alignment.center, child: AppVersion()),
                   ],
                 )
               ],
