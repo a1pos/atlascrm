@@ -84,9 +84,11 @@ class _LeadNotesState extends State<LeadNotes> {
               displayName: document(path: "displayName")
             }
           }
-    """),
+      }
+      """),
       fetchPolicy: FetchPolicy.networkOnly,
-      variables: {"id": "$objectId"},
+      cacheRereadPolicy: CacheRereadPolicy.ignoreAll,
+      variables: {"id": objectId},
     );
 
     final result = await GqlClientFactory().authGqlquery(options);
