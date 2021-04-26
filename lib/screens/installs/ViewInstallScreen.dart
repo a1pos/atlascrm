@@ -602,7 +602,7 @@ class ViewInstallScreenState extends State<ViewInstallScreen> {
                             ? CustomCard(
                                 key: Key("install3"),
                                 icon: Icons.directions,
-                                title: "Mileage",
+                                title: "Tripsmileage",
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   crossAxisAlignment: CrossAxisAlignment.center,

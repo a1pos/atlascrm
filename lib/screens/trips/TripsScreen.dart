@@ -372,7 +372,7 @@ class _MileageScreenState extends State<MileageScreen> {
         drawer: CustomDrawer(),
         appBar: CustomAppBar(
           key: Key("mileageCustomAppBar"),
-          title: Text("Mileage"),
+          title: Text("Trips"),
         ),
         body: isLoading
             ? LoadingScreen()

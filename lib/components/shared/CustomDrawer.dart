@@ -154,17 +154,34 @@ class _CustomDrawerState extends State<CustomDrawer> {
             UserService.isTech || UserService.isAdmin
                 ? ListTile(
                     leading: Icon(
-                      Icons.drive_eta,
+                      Icons.build,
                       color: Colors.white,
                     ),
                     title: Text(
-                      'Mileage',
+                      'Installs',
                       style: TextStyle(
                         color: Colors.white,
                       ),
                     ),
                     onTap: () {
-                      Navigator.pushReplacementNamed(context, "/mileage");
+                      Navigator.popAndPushNamed(context, "/installs");
+                    },
+                  )
+                : Text(""),
+            UserService.isTech || UserService.isAdmin
+                ? ListTile(
+                    leading: Icon(
+                      Icons.drive_eta,
+                      color: Colors.white,
+                    ),
+                    title: Text(
+                      'Trips',
+                      style: TextStyle(
+                        color: Colors.white,
+                      ),
+                    ),
+                    onTap: () {
+                      Navigator.pushReplacementNamed(context, "/trips");
                     },
                   )
                 : Container(),
