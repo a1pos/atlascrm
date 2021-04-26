@@ -11,8 +11,8 @@ import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:atlascrm/screens/leads/LeadStepper.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 
@@ -22,11 +22,17 @@ class InstallsScreen extends StatefulWidget {
 }
 
 class _InstallsScreenState extends State<InstallsScreen> {
+  final _formKey = GlobalKey<FormState>();
+
   bool isSearching = false;
   bool isFiltering = false;
   bool isLocFiltering = false;
   bool isLoading = true;
   bool isEmpty = true;
+  bool isSaveDisabled;
+
+  TimeOfDay initTime;
+  DateTime initDate;
 
   CalendarController _calendarController;
   Map<DateTime, List<dynamic>> _calendarEvents;
@@ -35,14 +41,16 @@ class _InstallsScreenState extends State<InstallsScreen> {
   List installsFull = [];
   List activeInstalls = [];
 
-  final _key = GlobalKey<FormState>();
-
+  var installDateController = TextEditingController();
   var subscription;
   var filterEmployee = "";
+  var employeeDropdownValue;
+  var viewDate;
 
   @override
   void initState() {
     super.initState();
+    isSaveDisabled = false;
     _calendarController = CalendarController();
     _calendarEvents = {};
     initInstallData();
@@ -137,7 +145,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
       operationName: "SUBSCRIBE_V_INSTALL",
       document: gql("""
           subscription SUBSCRIBE_V_INSTALL{
-            v_install {
+            v_install (order_by: {date: asc}) {
               install
               merchant
               merchantbusinessname
@@ -225,26 +233,122 @@ class _InstallsScreenState extends State<InstallsScreen> {
                   children: activeInstalls.map((i) {
                     var iDate;
 
-                    if (i['Date'] != null) {
+                    if (i['date'] != null) {
                       iDate = DateFormat("EEE, MMM d, ''yy")
                           .add_jm()
                           .format(DateTime.parse(i['date']).toLocal());
+                      initDate = DateTime.parse(i['date']).toLocal();
+                      initTime = TimeOfDay.fromDateTime(initDate);
+                      // viewDate =
+                      //     DateFormat("yyyy-MM-dd HH:mm").format(initDate);
+                      // setState(() {
+                      //   installDateController.text = viewDate;
+                      // });
                     } else {
-                      iDate = "";
+                      iDate = "TBD";
+                      initDate = DateTime.now();
+                      initTime = TimeOfDay.fromDateTime(initDate);
                     }
 
                     return GestureDetector(
                       onTap: () {
-                        print("Tapped");
-                        AlertDialog(
-                          title: Text(
-                            i["merchantbusinessname"],
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          content: null,
-                        );
-                        // Navigator.pushNamed(context, "/viewinstall",
-                        //     arguments: i["install"]);
+                        showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                actions: <Widget>[
+                                  MaterialButton(
+                                    child: Text('Cancel'),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                  !isSaveDisabled
+                                      ? MaterialButton(
+                                          child: Text(
+                                            'Update',
+                                            style:
+                                                TextStyle(color: Colors.white),
+                                          ),
+                                          color: UniversalStyles.actionColor,
+                                          onPressed: () async {
+                                            if (_formKey.currentState
+                                                .validate()) {
+                                              setState(() {
+                                                isSaveDisabled = true;
+                                              });
+                                              //await updateInstall();
+                                            }
+                                          },
+                                        )
+                                      : Container(),
+                                ],
+                                title: Text(
+                                  i["merchantbusinessname"],
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                content: Form(
+                                  key: _formKey,
+                                  child: SingleChildScrollView(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: <Widget>[
+                                        Container(
+                                          child: EmployeeDropDown(
+                                            value: i["employee"] ??
+                                                employeeDropdownValue,
+                                            callback: (val) {
+                                              setState(() {
+                                                employeeDropdownValue = val;
+                                              });
+                                            },
+                                          ),
+                                        ),
+                                        DateTimeField(
+                                          onEditingComplete: () =>
+                                              FocusScope.of(context)
+                                                  .nextFocus(),
+                                          validator: (DateTime dateTime) {
+                                            if (dateTime == null) {
+                                              return 'Please select a date';
+                                            }
+                                            return null;
+                                          },
+                                          decoration: InputDecoration(
+                                              labelText: "Install Date"),
+                                          format:
+                                              DateFormat("yyyy-MM-dd HH:mm"),
+                                          controller: installDateController,
+                                          onShowPicker:
+                                              (context, currentValue) async {
+                                            final date = await showDatePicker(
+                                              context: context,
+                                              initialDate:
+                                                  currentValue ?? viewDate[i],
+                                              firstDate: DateTime(1900),
+                                              lastDate: DateTime(2100),
+                                            );
+                                            if (date != null) {
+                                              final time = await showTimePicker(
+                                                  context: context,
+                                                  initialTime:
+                                                      TimeOfDay.fromDateTime(
+                                                          currentValue ??
+                                                              DateTime.now()));
+                                              return DateTimeField.combine(
+                                                  date, time);
+                                            } else {
+                                              return currentValue;
+                                            }
+                                          },
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            });
                       },
                       child: InstallItem(
                           merchant: i["merchantbusinessname"],
@@ -301,8 +405,18 @@ class _InstallsScreenState extends State<InstallsScreen> {
                       iDate = DateFormat("EEE, MMM d, ''yy")
                           .add_jm()
                           .format(DateTime.parse(i['date']).toLocal());
+                      initDate = DateTime.parse(i['date']).toLocal();
+                      initTime = TimeOfDay.fromDateTime(initDate);
+                      viewDate =
+                          DateFormat("yyyy-MM-dd HH:mm").format(initDate);
+                      print(viewDate);
+                      setState(() {
+                        installDateController.text = viewDate;
+                      });
                     } else {
                       iDate = "TBD";
+                      initDate = DateTime.now();
+                      initTime = TimeOfDay.fromDateTime(initDate);
                     }
                     return GestureDetector(
                       onTap: () {
@@ -310,34 +424,98 @@ class _InstallsScreenState extends State<InstallsScreen> {
                             context: context,
                             builder: (BuildContext context) {
                               return AlertDialog(
+                                actions: <Widget>[
+                                  MaterialButton(
+                                    child: Text('Cancel'),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                  !isSaveDisabled
+                                      ? MaterialButton(
+                                          child: Text(
+                                            'Update',
+                                            style:
+                                                TextStyle(color: Colors.white),
+                                          ),
+                                          color: UniversalStyles.actionColor,
+                                          onPressed: () async {
+                                            if (_formKey.currentState
+                                                .validate()) {
+                                              setState(() {
+                                                isSaveDisabled = true;
+                                              });
+                                              //await updateInstall();
+                                            }
+                                          },
+                                        )
+                                      : Container(),
+                                ],
                                 title: Text(
                                   i["merchantbusinessname"],
                                   style: TextStyle(fontWeight: FontWeight.bold),
                                 ),
-                                contentPadding: EdgeInsets.all(0),
-                                content: Container(
-                                  child: Form(
-                                    key: _key,
+                                content: Form(
+                                  key: _formKey,
+                                  child: SingleChildScrollView(
                                     child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
                                       children: <Widget>[
-                                        EmployeeDropDown(
+                                        Container(
+                                          child: EmployeeDropDown(
+                                            value: i["employee"] ??
+                                                employeeDropdownValue,
                                             callback: (val) {
-                                              if (val != null) {
-                                                filterByEmployee(val);
-                                              } else {
-                                                //clearFilter();
-                                              }
+                                              setState(() {
+                                                employeeDropdownValue = val;
+                                              });
                                             },
-                                            role: "tech")
+                                          ),
+                                        ),
+                                        DateTimeField(
+                                          onEditingComplete: () =>
+                                              FocusScope.of(context)
+                                                  .nextFocus(),
+                                          validator: (DateTime dateTime) {
+                                            if (dateTime == null) {
+                                              return 'Please select a date';
+                                            }
+                                            return null;
+                                          },
+                                          decoration: InputDecoration(
+                                              labelText: "Install Date"),
+                                          format:
+                                              DateFormat("yyyy-MM-dd HH:mm"),
+                                          controller: installDateController,
+                                          onShowPicker:
+                                              (context, currentValue) async {
+                                            final date = await showDatePicker(
+                                              context: context,
+                                              initialDate: currentValue,
+                                              firstDate: DateTime(1900),
+                                              lastDate: DateTime(2100),
+                                            );
+                                            if (date != null) {
+                                              final time = await showTimePicker(
+                                                  context: context,
+                                                  initialTime:
+                                                      TimeOfDay.fromDateTime(
+                                                          currentValue ??
+                                                              DateTime.now()));
+                                              return DateTimeField.combine(
+                                                  date, time);
+                                            } else {
+                                              return currentValue;
+                                            }
+                                          },
+                                        )
                                       ],
                                     ),
                                   ),
                                 ),
                               );
                             });
-
-                        // Navigator.pushNamed(context, "/viewinstall",
-                        //     arguments: i["install"]);
                       },
                       child: InstallItem(
                           merchant: i["merchantbusinessname"],
@@ -351,15 +529,6 @@ class _InstallsScreenState extends State<InstallsScreen> {
                 )
         ],
       ),
-    );
-  }
-
-  void openInstall(inventory) {
-    Map sendable = {"id": inventory["inventory"]};
-    Navigator.pushNamed(
-      context,
-      "/viewinventory",
-      arguments: sendable,
     );
   }
 

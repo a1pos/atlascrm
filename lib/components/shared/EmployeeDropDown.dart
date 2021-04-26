@@ -41,13 +41,20 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
     QueryOptions options;
 
     options = QueryOptions(
-      document: gql("""
+      document: this.widget.role == null ? gql("""
         query GET_EMPLOYEES {
           employee (where: {is_active: {_eq: true}}) {
             employee
             displayName: document(path: "displayName")
           }
         }
+      """) : gql("""
+      query GET_EMPLOYEES {
+        employee(where: {_and: [{is_active: {_eq: true}}, {roleByRole: {title: {_ilike: "${this.widget.role}"}}}]}) {
+          employee
+          displayName: document(path: "displayName")
+        }
+      }
       """),
     );
 
