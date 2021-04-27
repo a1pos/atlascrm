@@ -9,6 +9,7 @@ import 'package:atlascrm/components/shared/Empty.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
@@ -40,6 +41,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
   List installs = [];
   List installsFull = [];
   List activeInstalls = [];
+  List unscheduledInstallsList = [];
 
   var installDateController = TextEditingController();
   var subscription;
@@ -187,15 +189,6 @@ class _InstallsScreenState extends State<InstallsScreen> {
     }
   }
 
-  Future<void> filterByEmployee(employeeId) async {
-    setState(() {
-      filterEmployee = employeeId;
-      // pageNum = 0;
-      // isFiltering = true;
-      // onScroll();
-    });
-  }
-
   Widget installList() {
     return SingleChildScrollView(
       child: Column(
@@ -239,11 +232,6 @@ class _InstallsScreenState extends State<InstallsScreen> {
                           .format(DateTime.parse(i['date']).toLocal());
                       initDate = DateTime.parse(i['date']).toLocal();
                       initTime = TimeOfDay.fromDateTime(initDate);
-                      // viewDate =
-                      //     DateFormat("yyyy-MM-dd HH:mm").format(initDate);
-                      // setState(() {
-                      //   installDateController.text = viewDate;
-                      // });
                     } else {
                       iDate = "TBD";
                       initDate = DateTime.now();
@@ -265,11 +253,17 @@ class _InstallsScreenState extends State<InstallsScreen> {
                                   ),
                                   !isSaveDisabled
                                       ? MaterialButton(
-                                          child: Text(
-                                            'Update',
-                                            style:
-                                                TextStyle(color: Colors.white),
-                                          ),
+                                          child: i['date'] = null
+                                              ? Text(
+                                                  'Schedule',
+                                                  style: TextStyle(
+                                                      color: Colors.white),
+                                                )
+                                              : Text(
+                                                  'Update',
+                                                  style: TextStyle(
+                                                      color: Colors.white),
+                                                ),
                                           color: UniversalStyles.actionColor,
                                           onPressed: () async {
                                             if (_formKey.currentState
@@ -364,6 +358,160 @@ class _InstallsScreenState extends State<InstallsScreen> {
     );
   }
 
+  Widget unscheduledInstalls() {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          installs.length == 0
+              ? Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 100, 0, 0),
+                  child: Empty("No unscheduled installs"),
+                )
+              : Column(
+                  children: installs.map((i) {
+                    var iDate;
+                    if (i['date'] != null) {
+                      setState(() {
+                        iDate = DateFormat("EEE, MMM d, ''yy")
+                            .add_jm()
+                            .format(DateTime.parse(i['date']).toLocal());
+                        initDate = DateTime.parse(i['date']).toLocal();
+                        initTime = TimeOfDay.fromDateTime(initDate);
+                        viewDate =
+                            DateFormat("yyyy-MM-dd HH:mm").format(initDate);
+                      });
+                    } else {
+                      setState(() {
+                        iDate = "TBD";
+                        initDate = DateTime.now();
+                        initTime = TimeOfDay.fromDateTime(initDate);
+                      });
+                    }
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          installDateController.text =
+                              DateFormat("yyyy-MM-dd HH:mm")
+                                  .format(DateTime.parse(i['date']).toLocal());
+                        });
+                        showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                actions: <Widget>[
+                                  MaterialButton(
+                                    child: Text('Cancel'),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                  !isSaveDisabled
+                                      ? MaterialButton(
+                                          child: i['date'] != null
+                                              ? Text(
+                                                  'Update',
+                                                  style: TextStyle(
+                                                      color: Colors.white),
+                                                )
+                                              : Text(
+                                                  'Schedule',
+                                                  style: TextStyle(
+                                                      color: Colors.white),
+                                                ),
+                                          color: UniversalStyles.actionColor,
+                                          onPressed: () async {
+                                            if (_formKey.currentState
+                                                .validate()) {
+                                              setState(() {
+                                                isSaveDisabled = true;
+                                              });
+                                              //await updateInstall();
+                                            }
+                                          },
+                                        )
+                                      : Container(),
+                                ],
+                                title: Text(
+                                  i["merchantbusinessname"],
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                content: Form(
+                                  key: _formKey,
+                                  child: SingleChildScrollView(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: <Widget>[
+                                        Container(
+                                          child: EmployeeDropDown(
+                                            value: i["employee"] ??
+                                                employeeDropdownValue,
+                                            callback: (val) {
+                                              setState(() {
+                                                employeeDropdownValue = val;
+                                              });
+                                            },
+                                          ),
+                                        ),
+                                        DateTimeField(
+                                          onEditingComplete: () =>
+                                              FocusScope.of(context)
+                                                  .nextFocus(),
+                                          validator: (DateTime dateTime) {
+                                            if (dateTime == null) {
+                                              return 'Please select a date';
+                                            }
+                                            return null;
+                                          },
+                                          decoration: InputDecoration(
+                                              labelText: "Install Date"),
+                                          format:
+                                              DateFormat("yyyy-MM-dd HH:mm"),
+                                          controller: installDateController,
+                                          onShowPicker:
+                                              (context, currentValue) async {
+                                            final date = await showDatePicker(
+                                              context: context,
+                                              initialDate: currentValue,
+                                              firstDate: DateTime(1900),
+                                              lastDate: DateTime(2100),
+                                            );
+                                            if (date != null) {
+                                              final time = await showTimePicker(
+                                                  context: context,
+                                                  initialTime:
+                                                      TimeOfDay.fromDateTime(
+                                                          currentValue ??
+                                                              DateTime.now()));
+                                              return DateTimeField.combine(
+                                                  date, time);
+                                            } else {
+                                              return currentValue;
+                                            }
+                                          },
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            });
+                      },
+                      child: InstallItem(
+                          merchant: i["merchantbusinessname"],
+                          dateTime: iDate,
+                          merchantDevice: i["merchantdevice"] ?? "No Terminal",
+                          employeeFullName: i["employeefullname"] ?? "",
+                          location: i["location"]),
+                      // Install Item
+                    );
+                  }).toList(),
+                )
+        ],
+      ),
+    );
+  }
+
   Widget getInstalls() {
     return SingleChildScrollView(
       child: Column(
@@ -402,24 +550,29 @@ class _InstallsScreenState extends State<InstallsScreen> {
                   children: activeInstalls.map((i) {
                     var iDate;
                     if (i['date'] != null) {
-                      iDate = DateFormat("EEE, MMM d, ''yy")
-                          .add_jm()
-                          .format(DateTime.parse(i['date']).toLocal());
-                      initDate = DateTime.parse(i['date']).toLocal();
-                      initTime = TimeOfDay.fromDateTime(initDate);
-                      viewDate =
-                          DateFormat("yyyy-MM-dd HH:mm").format(initDate);
-                      print(viewDate);
                       setState(() {
-                        installDateController.text = viewDate;
+                        iDate = DateFormat("EEE, MMM d, ''yy")
+                            .add_jm()
+                            .format(DateTime.parse(i['date']).toLocal());
+                        initDate = DateTime.parse(i['date']).toLocal();
+                        initTime = TimeOfDay.fromDateTime(initDate);
+                        viewDate =
+                            DateFormat("yyyy-MM-dd HH:mm").format(initDate);
                       });
                     } else {
-                      iDate = "TBD";
-                      initDate = DateTime.now();
-                      initTime = TimeOfDay.fromDateTime(initDate);
+                      setState(() {
+                        iDate = "TBD";
+                        initDate = DateTime.now();
+                        initTime = TimeOfDay.fromDateTime(initDate);
+                      });
                     }
                     return GestureDetector(
                       onTap: () {
+                        setState(() {
+                          installDateController.text =
+                              DateFormat("yyyy-MM-dd HH:mm")
+                                  .format(DateTime.parse(i['date']).toLocal());
+                        });
                         showDialog(
                             context: context,
                             builder: (BuildContext context) {
@@ -433,11 +586,17 @@ class _InstallsScreenState extends State<InstallsScreen> {
                                   ),
                                   !isSaveDisabled
                                       ? MaterialButton(
-                                          child: Text(
-                                            'Update',
-                                            style:
-                                                TextStyle(color: Colors.white),
-                                          ),
+                                          child: i['date'] != null
+                                              ? Text(
+                                                  'Update',
+                                                  style: TextStyle(
+                                                      color: Colors.white),
+                                                )
+                                              : Text(
+                                                  'Schedule',
+                                                  style: TextStyle(
+                                                      color: Colors.white),
+                                                ),
                                           color: UniversalStyles.actionColor,
                                           onPressed: () async {
                                             if (_formKey.currentState
@@ -539,7 +698,44 @@ class _InstallsScreenState extends State<InstallsScreen> {
         Navigator.pushReplacementNamed(context, "/dashboard");
         return false;
       },
-      child: Scaffold(
+      child: DefaultTabController(
+        length: 2,
+        child: Scaffold(
+          appBar: AppBar(
+            bottom: TabBar(
+              tabs: [
+                Tab(
+                  icon: Icon(Icons.calendar_today),
+                ),
+                Tab(
+                  icon: Icon(Icons.schedule),
+                )
+              ],
+            ),
+            title: Text("Installs"),
+          ),
+          body: isLoading
+              ? CenteredLoadingSpinner()
+              : TabBarView(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(10),
+                      child: getInstalls(),
+                    ),
+                    Container(
+                      padding: EdgeInsets.all(10),
+                      child: unscheduledInstalls(),
+                    ),
+                  ],
+                  physics: NeverScrollableScrollPhysics(),
+                ),
+        ),
+      ),
+    );
+  }
+}
+
+/* Scaffold(
         backgroundColor: UniversalStyles.backgroundColor,
         drawer: CustomDrawer(),
         appBar: CustomAppBar(
@@ -550,7 +746,4 @@ class _InstallsScreenState extends State<InstallsScreen> {
         body: isLoading
             ? CenteredLoadingSpinner()
             : Container(padding: EdgeInsets.all(10), child: getInstalls()),
-      ),
-    );
-  }
-}
+      ), */
