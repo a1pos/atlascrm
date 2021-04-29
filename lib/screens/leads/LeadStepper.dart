@@ -173,6 +173,7 @@ class LeadStepperState extends State<LeadStepper> {
             setState(() {
               nextButtonDisabled = true;
               businessNameController.clear();
+              businessPhoneNumber.clear();
             });
 
             dupeLead(message);
@@ -294,8 +295,18 @@ class LeadStepperState extends State<LeadStepper> {
                   nextButtonDisabled = false;
                 });
               } else {
-                placeSelect = true;
-                addressCheck(val);
+                if (val["address"]["address"] == "") {
+                  Fluttertoast.showToast(
+                      msg: "Address cannot be blank!",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      backgroundColor: Colors.grey[600],
+                      textColor: Colors.white,
+                      fontSize: 16.0);
+                } else {
+                  placeSelect = true;
+                  addressCheck(val);
+                }
               }
             }
           },
@@ -594,7 +605,8 @@ class LeadStepperState extends State<LeadStepper> {
                                   InputDecoration(labelText: "First Name"),
                               controller: firstNameController,
                               validator: (value) {
-                                if (value.isEmpty) {
+                                if (value.isEmpty || value.trim() == "") {
+                                  firstNameController.clear();
                                   return 'Please enter a contact first name';
                                 }
                                 return null;

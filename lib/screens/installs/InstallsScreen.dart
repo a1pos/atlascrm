@@ -3,7 +3,6 @@ import 'package:atlascrm/components/install/InstallItem.dart';
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
-import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomDrawer.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
 import 'package:atlascrm/services/UserService.dart';
@@ -48,6 +47,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
   var filterEmployee = "";
   var employeeDropdownValue;
   var viewDate;
+  var iDate;
 
   @override
   void initState() {
@@ -172,9 +172,12 @@ class _InstallsScreenState extends State<InstallsScreen> {
       if (installsArrDecoded != null && this.mounted) {
         setState(() {
           installs = installsArrDecoded;
+          unscheduledInstallsList =
+              installs.where((element) => element['date'] == null).toList();
           installsFull = installs;
           isLoading = false;
         });
+
         await fillEvents();
       }
       isLoading = false;
@@ -187,6 +190,79 @@ class _InstallsScreenState extends State<InstallsScreen> {
       subscription = null;
       initInstallData();
     }
+  }
+
+  Future<void> updateInstall(i) async {
+    //if schedule vs update - create ticket on
+    var successMsg = "Install claimed and ticket created!";
+    var msgLength = Toast.LENGTH_SHORT;
+
+    var installEmployee = employeeDropdownValue;
+    var ticketStatus;
+    var merchantName = i['merchantbusinessname'];
+
+    Map data;
+
+    QueryOptions options = QueryOptions(
+      document: gql("""
+        query TICKET_STATUS {
+          ticket_status{
+            ticket_status
+            title
+          }
+        }
+      """),
+    );
+
+    final QueryResult result = await GqlClientFactory().authGqlquery(options);
+
+    if (result != null) {
+      if (result.hasException == false) {
+        result.data["ticket_status"].forEach((item) {
+          if (item["title"] == "Scheduled For Install") {
+            ticketStatus = item["title"];
+          }
+        });
+        await initInstallData();
+      } else {
+        print(new Error());
+      }
+    }
+    var installDate = DateTime.parse(installDateController.text).toUtc();
+    var installDateFormat = DateFormat("yyyy-MM-dd HH:mm").format(installDate);
+
+    if (i["date"] != null || i['employee'] != "") {
+      data = {
+        "ticket_status": ticketStatus,
+        "document": {
+          " title": "Installation: $merchantName",
+        },
+        "is_active": true,
+        "employee": installEmployee,
+        "date": installDateFormat
+      };
+    } else {
+      data = {
+        "ticket_status": ticketStatus,
+        "document": {
+          " title": "Installation: $merchantName",
+        },
+        "is_active": true,
+        "employee": null,
+        "date": null
+      };
+    }
+
+    print(data);
+
+    // Fluttertoast.showToast(
+    //     msg: successMsg,
+    //     toastLength: msgLength,
+    //     gravity: ToastGravity.BOTTOM,
+    //     backgroundColor: Colors.grey[600],
+    //     textColor: Colors.white,
+    //     fontSize: 16.0);
+    //     Navigator.of(context).pop();
   }
 
   Widget installList() {
@@ -224,133 +300,21 @@ class _InstallsScreenState extends State<InstallsScreen> {
               ? Empty("No installs today")
               : Column(
                   children: activeInstalls.map((i) {
-                    var iDate;
-
                     if (i['date'] != null) {
                       iDate = DateFormat("EEE, MMM d, ''yy")
                           .add_jm()
                           .format(DateTime.parse(i['date']).toLocal());
                       initDate = DateTime.parse(i['date']).toLocal();
                       initTime = TimeOfDay.fromDateTime(initDate);
+                      viewDate = DateFormat("yyyy-MM-dd HH:mm")
+                          .format(DateTime.parse(i['date']).toLocal());
                     } else {
                       iDate = "TBD";
                       initDate = DateTime.now();
                       initTime = TimeOfDay.fromDateTime(initDate);
+                      viewDate = "";
                     }
-
-                    return GestureDetector(
-                      onTap: () {
-                        showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                actions: <Widget>[
-                                  MaterialButton(
-                                    child: Text('Cancel'),
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                  ),
-                                  !isSaveDisabled
-                                      ? MaterialButton(
-                                          child: i['date'] = null
-                                              ? Text(
-                                                  'Schedule',
-                                                  style: TextStyle(
-                                                      color: Colors.white),
-                                                )
-                                              : Text(
-                                                  'Update',
-                                                  style: TextStyle(
-                                                      color: Colors.white),
-                                                ),
-                                          color: UniversalStyles.actionColor,
-                                          onPressed: () async {
-                                            if (_formKey.currentState
-                                                .validate()) {
-                                              setState(() {
-                                                isSaveDisabled = true;
-                                              });
-                                              //await updateInstall();
-                                            }
-                                          },
-                                        )
-                                      : Container(),
-                                ],
-                                title: Text(
-                                  i["merchantbusinessname"],
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                content: Form(
-                                  key: _formKey,
-                                  child: SingleChildScrollView(
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.start,
-                                      children: <Widget>[
-                                        Container(
-                                          child: EmployeeDropDown(
-                                            value: i["employee"] ??
-                                                employeeDropdownValue,
-                                            callback: (val) {
-                                              setState(() {
-                                                employeeDropdownValue = val;
-                                              });
-                                            },
-                                          ),
-                                        ),
-                                        DateTimeField(
-                                          onEditingComplete: () =>
-                                              FocusScope.of(context)
-                                                  .nextFocus(),
-                                          validator: (DateTime dateTime) {
-                                            if (dateTime == null) {
-                                              return 'Please select a date';
-                                            }
-                                            return null;
-                                          },
-                                          decoration: InputDecoration(
-                                              labelText: "Install Date"),
-                                          format:
-                                              DateFormat("yyyy-MM-dd HH:mm"),
-                                          controller: installDateController,
-                                          onShowPicker:
-                                              (context, currentValue) async {
-                                            final date = await showDatePicker(
-                                              context: context,
-                                              initialDate:
-                                                  currentValue ?? viewDate[i],
-                                              firstDate: DateTime(1900),
-                                              lastDate: DateTime(2100),
-                                            );
-                                            if (date != null) {
-                                              final time = await showTimePicker(
-                                                  context: context,
-                                                  initialTime:
-                                                      TimeOfDay.fromDateTime(
-                                                          currentValue ??
-                                                              DateTime.now()));
-                                              return DateTimeField.combine(
-                                                  date, time);
-                                            } else {
-                                              return currentValue;
-                                            }
-                                          },
-                                        )
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              );
-                            });
-                      },
-                      child: InstallItem(
-                          merchant: i["merchantbusinessname"],
-                          dateTime: iDate,
-                          merchantDevice: i["merchantdevice"] ?? "No Terminal",
-                          employeeFullName: i["employeefullname"] ?? "",
-                          location: i["location"]),
-                    );
+                    return installScheduleForm(i, viewDate);
                   }).toList(),
                 )
         ],
@@ -362,149 +326,20 @@ class _InstallsScreenState extends State<InstallsScreen> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          installs.length == 0
+          unscheduledInstallsList.length == 0
               ? Padding(
                   padding: const EdgeInsets.fromLTRB(0, 100, 0, 0),
                   child: Empty("No unscheduled installs"),
                 )
               : Column(
-                  children: installs.map((i) {
-                    var iDate;
-                    if (i['date'] != null) {
-                      setState(() {
-                        iDate = DateFormat("EEE, MMM d, ''yy")
-                            .add_jm()
-                            .format(DateTime.parse(i['date']).toLocal());
-                        initDate = DateTime.parse(i['date']).toLocal();
-                        initTime = TimeOfDay.fromDateTime(initDate);
-                        viewDate =
-                            DateFormat("yyyy-MM-dd HH:mm").format(initDate);
-                      });
-                    } else {
-                      setState(() {
-                        iDate = "TBD";
-                        initDate = DateTime.now();
-                        initTime = TimeOfDay.fromDateTime(initDate);
-                      });
-                    }
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          installDateController.text =
-                              DateFormat("yyyy-MM-dd HH:mm")
-                                  .format(DateTime.parse(i['date']).toLocal());
-                        });
-                        showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                actions: <Widget>[
-                                  MaterialButton(
-                                    child: Text('Cancel'),
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                  ),
-                                  !isSaveDisabled
-                                      ? MaterialButton(
-                                          child: i['date'] != null
-                                              ? Text(
-                                                  'Update',
-                                                  style: TextStyle(
-                                                      color: Colors.white),
-                                                )
-                                              : Text(
-                                                  'Schedule',
-                                                  style: TextStyle(
-                                                      color: Colors.white),
-                                                ),
-                                          color: UniversalStyles.actionColor,
-                                          onPressed: () async {
-                                            if (_formKey.currentState
-                                                .validate()) {
-                                              setState(() {
-                                                isSaveDisabled = true;
-                                              });
-                                              //await updateInstall();
-                                            }
-                                          },
-                                        )
-                                      : Container(),
-                                ],
-                                title: Text(
-                                  i["merchantbusinessname"],
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                content: Form(
-                                  key: _formKey,
-                                  child: SingleChildScrollView(
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.start,
-                                      children: <Widget>[
-                                        Container(
-                                          child: EmployeeDropDown(
-                                            value: i["employee"] ??
-                                                employeeDropdownValue,
-                                            callback: (val) {
-                                              setState(() {
-                                                employeeDropdownValue = val;
-                                              });
-                                            },
-                                          ),
-                                        ),
-                                        DateTimeField(
-                                          onEditingComplete: () =>
-                                              FocusScope.of(context)
-                                                  .nextFocus(),
-                                          validator: (DateTime dateTime) {
-                                            if (dateTime == null) {
-                                              return 'Please select a date';
-                                            }
-                                            return null;
-                                          },
-                                          decoration: InputDecoration(
-                                              labelText: "Install Date"),
-                                          format:
-                                              DateFormat("yyyy-MM-dd HH:mm"),
-                                          controller: installDateController,
-                                          onShowPicker:
-                                              (context, currentValue) async {
-                                            final date = await showDatePicker(
-                                              context: context,
-                                              initialDate: currentValue,
-                                              firstDate: DateTime(1900),
-                                              lastDate: DateTime(2100),
-                                            );
-                                            if (date != null) {
-                                              final time = await showTimePicker(
-                                                  context: context,
-                                                  initialTime:
-                                                      TimeOfDay.fromDateTime(
-                                                          currentValue ??
-                                                              DateTime.now()));
-                                              return DateTimeField.combine(
-                                                  date, time);
-                                            } else {
-                                              return currentValue;
-                                            }
-                                          },
-                                        )
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              );
-                            });
-                      },
-                      child: InstallItem(
-                          merchant: i["merchantbusinessname"],
-                          dateTime: iDate,
-                          merchantDevice: i["merchantdevice"] ?? "No Terminal",
-                          employeeFullName: i["employeefullname"] ?? "",
-                          location: i["location"]),
-                      // Install Item
-                    );
+                  children: unscheduledInstallsList.map((i) {
+                    setState(() {
+                      iDate = "TBD";
+                      initDate = DateTime.now();
+                      initTime = TimeOfDay.fromDateTime(initDate);
+                      viewDate = "";
+                    });
+                    return installScheduleForm(i, viewDate);
                   }).toList(),
                 )
         ],
@@ -548,7 +383,6 @@ class _InstallsScreenState extends State<InstallsScreen> {
                 )
               : Column(
                   children: activeInstalls.map((i) {
-                    var iDate;
                     if (i['date'] != null) {
                       setState(() {
                         iDate = DateFormat("EEE, MMM d, ''yy")
@@ -556,138 +390,130 @@ class _InstallsScreenState extends State<InstallsScreen> {
                             .format(DateTime.parse(i['date']).toLocal());
                         initDate = DateTime.parse(i['date']).toLocal();
                         initTime = TimeOfDay.fromDateTime(initDate);
-                        viewDate =
-                            DateFormat("yyyy-MM-dd HH:mm").format(initDate);
+                        viewDate = DateFormat("yyyy-MM-dd HH:mm")
+                            .format(DateTime.parse(i['date']).toLocal());
                       });
                     } else {
                       setState(() {
                         iDate = "TBD";
                         initDate = DateTime.now();
                         initTime = TimeOfDay.fromDateTime(initDate);
+                        viewDate = "";
                       });
                     }
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          installDateController.text =
-                              DateFormat("yyyy-MM-dd HH:mm")
-                                  .format(DateTime.parse(i['date']).toLocal());
-                        });
-                        showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                actions: <Widget>[
-                                  MaterialButton(
-                                    child: Text('Cancel'),
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                  ),
-                                  !isSaveDisabled
-                                      ? MaterialButton(
-                                          child: i['date'] != null
-                                              ? Text(
-                                                  'Update',
-                                                  style: TextStyle(
-                                                      color: Colors.white),
-                                                )
-                                              : Text(
-                                                  'Schedule',
-                                                  style: TextStyle(
-                                                      color: Colors.white),
-                                                ),
-                                          color: UniversalStyles.actionColor,
-                                          onPressed: () async {
-                                            if (_formKey.currentState
-                                                .validate()) {
-                                              setState(() {
-                                                isSaveDisabled = true;
-                                              });
-                                              //await updateInstall();
-                                            }
-                                          },
-                                        )
-                                      : Container(),
-                                ],
-                                title: Text(
-                                  i["merchantbusinessname"],
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                content: Form(
-                                  key: _formKey,
-                                  child: SingleChildScrollView(
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.start,
-                                      children: <Widget>[
-                                        Container(
-                                          child: EmployeeDropDown(
-                                            value: i["employee"] ??
-                                                employeeDropdownValue,
-                                            callback: (val) {
-                                              setState(() {
-                                                employeeDropdownValue = val;
-                                              });
-                                            },
-                                          ),
-                                        ),
-                                        DateTimeField(
-                                          onEditingComplete: () =>
-                                              FocusScope.of(context)
-                                                  .nextFocus(),
-                                          validator: (DateTime dateTime) {
-                                            if (dateTime == null) {
-                                              return 'Please select a date';
-                                            }
-                                            return null;
-                                          },
-                                          decoration: InputDecoration(
-                                              labelText: "Install Date"),
-                                          format:
-                                              DateFormat("yyyy-MM-dd HH:mm"),
-                                          controller: installDateController,
-                                          onShowPicker:
-                                              (context, currentValue) async {
-                                            final date = await showDatePicker(
-                                              context: context,
-                                              initialDate: currentValue,
-                                              firstDate: DateTime(1900),
-                                              lastDate: DateTime(2100),
-                                            );
-                                            if (date != null) {
-                                              final time = await showTimePicker(
-                                                  context: context,
-                                                  initialTime:
-                                                      TimeOfDay.fromDateTime(
-                                                          currentValue ??
-                                                              DateTime.now()));
-                                              return DateTimeField.combine(
-                                                  date, time);
-                                            } else {
-                                              return currentValue;
-                                            }
-                                          },
-                                        )
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              );
-                            });
-                      },
-                      child: InstallItem(
-                          merchant: i["merchantbusinessname"],
-                          dateTime: iDate,
-                          merchantDevice: i["merchantdevice"] ?? "No Terminal",
-                          employeeFullName: i["employeefullname"] ?? "",
-                          location: i["location"]),
-                      // Install Item
-                    );
+                    return installScheduleForm(i, viewDate);
                   }).toList(),
                 )
         ],
       ),
+    );
+  }
+
+  Widget installScheduleForm(i, viewDate) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          installDateController.text = viewDate ?? "";
+          employeeDropdownValue = i['employee'];
+        });
+        showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                actions: <Widget>[
+                  MaterialButton(
+                    child: Text('Cancel'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  MaterialButton(
+                    child: i['date'] != null
+                        ? Text(
+                            'Update',
+                            style: TextStyle(color: Colors.white),
+                          )
+                        : Text(
+                            'Schedule',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                    color: UniversalStyles.actionColor,
+                    onPressed: () async {
+                      if (_formKey.currentState.validate()) {
+                        setState(() {
+                          isSaveDisabled = true;
+                        });
+                        await updateInstall(i);
+                      }
+                    },
+                  )
+                ],
+                title: Text(
+                  i["merchantbusinessname"],
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                content: Form(
+                  key: _formKey,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: <Widget>[
+                        Container(
+                          child: EmployeeDropDown(
+                            value: i['employee'] ?? "",
+                            callback: (val) {
+                              setState(() {
+                                employeeDropdownValue = val;
+                              });
+                            },
+                          ),
+                        ),
+                        DateTimeField(
+                          onEditingComplete: () =>
+                              FocusScope.of(context).nextFocus(),
+                          validator: (DateTime dateTime) {
+                            if (dateTime == null) {
+                              return 'Please select a date';
+                            }
+                            return null;
+                          },
+                          decoration:
+                              InputDecoration(labelText: "Install Date"),
+                          format: DateFormat("yyyy-MM-dd HH:mm"),
+                          controller: installDateController,
+                          initialValue:
+                              viewDate != null ? DateTime.parse(viewDate) : "",
+                          onShowPicker: (context, currentValue) async {
+                            final date = await showDatePicker(
+                              context: context,
+                              initialDate: currentValue ?? viewDate ?? "",
+                              firstDate: DateTime(1900),
+                              lastDate: DateTime(2100),
+                            );
+                            if (date != null) {
+                              final time = await showTimePicker(
+                                  context: context,
+                                  initialTime: TimeOfDay.fromDateTime(
+                                      currentValue ?? DateTime.now()));
+                              return DateTimeField.combine(date, time);
+                            } else {
+                              return currentValue;
+                            }
+                          },
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            });
+      },
+      child: InstallItem(
+          merchant: i["merchantbusinessname"],
+          dateTime: iDate ?? "TBD",
+          merchantDevice: i["merchantdevice"] ?? "No Terminal",
+          employeeFullName: i["employeefullname"] ?? "",
+          location: i["location"]),
     );
   }
 
@@ -701,6 +527,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
       child: DefaultTabController(
         length: 2,
         child: Scaffold(
+          drawer: CustomDrawer(),
           appBar: AppBar(
             bottom: TabBar(
               tabs: [

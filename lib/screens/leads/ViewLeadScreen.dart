@@ -292,7 +292,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
           leadDocument["city"] +
           ", " +
           leadDocument["state"] +
-          ", " +
+          " " +
           leadDocument["zipCode"];
       businessAddress["address"] = leadDocument["address"];
       businessAddress["city"] = leadDocument["city"];

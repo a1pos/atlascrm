@@ -84,6 +84,7 @@ class _LeadNotesState extends State<LeadNotes> {
               displayName: document(path: "displayName")
             }
           }
+      }
     """),
       fetchPolicy: FetchPolicy.networkOnly,
       variables: {"id": "$objectId"},
