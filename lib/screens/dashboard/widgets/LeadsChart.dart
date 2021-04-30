@@ -113,30 +113,6 @@ class _LeadsChartState extends State<LeadsChart> {
 
   @override
   Widget build(BuildContext context) {
-    itemTotal = 0;
-    if (graphList != null) {
-      if (graphList.length > 0) {
-        List<LeaderboardData> temp1 = [];
-
-        for (var item in graphList) {
-          var count = 0;
-
-          if (item["leads_aggregate"] != null) {
-            count = item["leads_aggregate"]["aggregate"]["count"];
-          }
-
-          temp1.add(LeaderboardData(item["displayName"], count));
-          itemTotal += count;
-        }
-        temp1.sort((a, b) => b.count.compareTo(a.count));
-
-        setState(() {
-          statementData = temp1;
-          isLoading = false;
-        });
-      }
-    }
-
     List<charts.Series<LeaderboardData, String>> _displayData() {
       statements = statementData;
       return [
@@ -167,6 +143,27 @@ class _LeadsChartState extends State<LeadsChart> {
             if (result.data["employee"].length > 0) {
               isLoading = false;
               graphList = result.data["employee"];
+
+              itemTotal = 0;
+              if (graphList != null) {
+                if (graphList.length > 0) {
+                  List<LeaderboardData> temp1 = [];
+
+                  for (var item in graphList) {
+                    var count = 0;
+
+                    if (item["leads_aggregate"] != null) {
+                      count = item["leads_aggregate"]["aggregate"]["count"];
+                    }
+
+                    temp1.add(LeaderboardData(item["displayName"], count));
+                    itemTotal += count;
+                  }
+                  temp1.sort((a, b) => b.count.compareTo(a.count));
+                  statementData = temp1;
+                  isLoading = false;
+                }
+              }
             }
           } else {
             isLoading = false;
