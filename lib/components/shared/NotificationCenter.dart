@@ -17,72 +17,33 @@ class NotificationCenter extends StatefulWidget {
 }
 
 class _NotificationCenterState extends State<NotificationCenter> {
-  bool notesEmpty = true;
+  bool isEmpty = true;
   bool isLoading = false;
-  var notifCountIcon = 0;
+  var notifCountIcon;
   var notifCount = 0;
   var notifications = [];
   var notificationsDisplay = [];
-  var subscription;
 
   @override
   void initState() {
     super.initState();
-    initNotificationsSub();
   }
 
-  @override
-  void dispose() async {
-    super.dispose();
-    if (subscription != null) {
-      await subscription.cancel();
-      subscription = null;
+  final subscriptionDocument = gql("""
+  subscription SUBSCRIPTION_NOTIFICATIONS(\$employee: uuid!){
+      notification(
+      order_by: {created_at: desc},
+      where: {
+        _and: [
+          {employee: {_eq: \$employee}}
+          {is_read: {_eq: false}}
+        ]
+      }
+    ){
+      notification
     }
   }
-
-  Future<void> initNotificationsSub() async {
-    SubscriptionOptions options = SubscriptionOptions(
-      operationName: "SUBSCRIPTION_NOTIFICATIONS",
-      document: gql("""
-          subscription SUBSCRIPTION_NOTIFICATIONS(\$employee: uuid!){
-              notification(
-              order_by: {created_at: desc},
-              where: {
-                _and: [
-                  {employee: {_eq: \$employee}}
-                  {is_read: {_eq: false}}
-                ]
-              }
-            ){
-              notification
-            }
-          }
-            """),
-      fetchPolicy: FetchPolicy.networkOnly,
-      variables: {"employee": "${UserService.employee.employee}"},
-    );
-
-    subscription = await GqlClientFactory().authGqlsubscribe(
-      options,
-      (data) {
-        var notificationsArrDecoded = data.data["notification"];
-        if (notificationsArrDecoded != null && this.mounted) {
-          setState(() {
-            notifCountIcon = notificationsArrDecoded.length;
-          });
-        }
-      },
-      (error) {},
-      () => refreshSub(),
-    );
-  }
-
-  Future refreshSub() async {
-    if (subscription != null) {
-      await subscription.cancel();
-      subscription = null;
-    }
-  }
+    """);
 
   Future<void> dismissAll() async {
     MutationOptions mutateOptions = MutationOptions(
@@ -133,39 +94,61 @@ class _NotificationCenterState extends State<NotificationCenter> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-        child: Stack(
-          children: <Widget>[
-            Icon(
-              Icons.notifications,
-              color: Colors.white,
-              size: 35,
-            ),
-            Positioned(
-              right: 0,
-              top: 2,
-              child: notifCountIcon > 0
-                  ? Container(
-                      padding: EdgeInsets.all(2),
-                      decoration: new BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      constraints: BoxConstraints(
-                        minWidth: 14,
-                        minHeight: 14,
-                      ),
-                      child: Text(
-                        '${notifCountIcon.toString()}',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    )
-                  : Container(),
-            ),
-          ],
+        child: Subscription(
+          options: SubscriptionOptions(
+            operationName: "SUBSCRIPTION_NOTIFICATIONS",
+            document: subscriptionDocument,
+            variables: {"employee": "${UserService.employee.employee}"},
+            cacheRereadPolicy: CacheRereadPolicy.ignoreAll,
+            fetchPolicy: FetchPolicy.networkOnly,
+          ),
+          builder: (result) {
+            if (result.hasException) {
+              return Text(result.exception.toString());
+            }
+            if (result.data != null) {
+              if (result.data["notification"].length > 0) {
+                notifCountIcon = result.data["notification"].length;
+                isEmpty = false;
+              } else {
+                isEmpty = true;
+              }
+            }
+            return Stack(
+              children: <Widget>[
+                Icon(
+                  Icons.notifications,
+                  color: Colors.white,
+                  size: 35,
+                ),
+                Positioned(
+                  right: 0,
+                  top: 2,
+                  child: !isEmpty
+                      ? Container(
+                          padding: EdgeInsets.all(2),
+                          decoration: new BoxDecoration(
+                            color: Colors.red,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          constraints: BoxConstraints(
+                            minWidth: 14,
+                            minHeight: 14,
+                          ),
+                          child: Text(
+                            notifCountIcon.toString(),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        )
+                      : Container(),
+                ),
+              ],
+            );
+          },
         ),
         onTap: () {
           openNotificationPanel();

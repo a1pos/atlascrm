@@ -35,25 +35,19 @@ class _LeadsChartState extends State<LeadsChart> {
   @override
   void initState() {
     super.initState();
-
-    initSub(weekStart, null);
+    refreshTimeDropdown("week");
   }
 
   @override
   void dispose() async {
     super.dispose();
-    if (subscription != null) {
-      await subscription.cancel();
-      subscription = null;
-    }
   }
 
   int itemTotal = 0;
 
   var graphList;
 
-  var dateFrom;
-  var dateTo;
+  var from;
 
   final today = DateFormat('yyyy-MM-dd').format(DateTime.now()).toString();
   final weekStart = DateFormat('yyyy-MM-dd')
@@ -67,14 +61,8 @@ class _LeadsChartState extends State<LeadsChart> {
       .toString();
   var subscription;
 
-  Future initSub(from, to) async {
-    if (from == null) from = weekStart;
-    if (to == null) to = today;
-
-    SubscriptionOptions leadOptions = SubscriptionOptions(
-      operationName: "GET_LEAD_COUNT",
-      document: gql("""
-    subscription GET_LEAD_COUNT(\$from: timestamptz) {
+  final subscriptionDocument = gql("""
+     subscription GET_LEAD_COUNT(\$from: timestamptz) {
       employee(
         where: {
           _and: [
@@ -92,58 +80,35 @@ class _LeadsChartState extends State<LeadsChart> {
         }
       }
     }
+    """);
 
-    """),
-      fetchPolicy: FetchPolicy.networkOnly,
-      variables: {"from": from},
-    );
+  refreshTimeDropdown(timeDropdownValue) {
+    var fromVal = timeDropdownValue;
 
-    subscription =
-        await GqlClientFactory().authGqlsubscribe(leadOptions, (data) {
-      var incomingData = data.data["employee"];
-      if (incomingData != null) {
-        if (this.mounted) {
-          setState(() {
-            graphList = incomingData;
-            isLoading = false;
-          });
-        }
-      }
-    }, (error) {}, () => refreshSubscription());
-  }
-
-  refreshSubscription() async {
-    var from = timeDropdownValue;
-    var fromVal = today;
-    var toVal = today;
-    switch (from) {
+    switch (fromVal) {
       case "today":
         {
-          fromVal = today;
+          from = today;
         }
         break;
 
       case "week":
         {
-          fromVal = weekStart;
+          from = weekStart;
         }
         break;
       case "month":
         {
-          fromVal = monthStart;
+          from = monthStart;
         }
         break;
       case "year":
         {
-          fromVal = yearStart;
+          from = yearStart;
         }
         break;
     }
-    if (subscription != null) {
-      await subscription.cancel();
-      subscription = null;
-      initSub(fromVal, toVal);
-    }
+    return from;
   }
 
   @override
@@ -173,11 +138,9 @@ class _LeadsChartState extends State<LeadsChart> {
     }
 
     List<charts.Series<LeaderboardData, String>> _displayData() {
-      //
       statements = statementData;
       return [
         new charts.Series<LeaderboardData, String>(
-          //
           id: '$label: $itemTotal',
           domainFn: (LeaderboardData sales, _) => sales.person,
           measureFn: (LeaderboardData sales, _) => sales.count,
@@ -189,44 +152,64 @@ class _LeadsChartState extends State<LeadsChart> {
       ];
     }
 
-    return Column(
-      children: <Widget>[
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
-              child: DropdownButton<String>(
-                value: timeDropdownValue,
-                items: timeFilterItems.map((dynamic item) {
-                  return DropdownMenuItem<String>(
-                    value: item["value"],
-                    child: Text(item["text"]),
-                  );
-                }).toList(),
-                onChanged: (String newValue) {
-                  setState(() {
-                    isLoading = true;
-                    timeDropdownValue = newValue;
-                    refreshSubscription();
-                  });
-                },
-              ),
-            ),
-          ],
+    return Subscription(
+        options: SubscriptionOptions(
+          operationName: "GET_LEAD_COUNT",
+          document: subscriptionDocument,
+          cacheRereadPolicy: CacheRereadPolicy.ignoreAll,
+          variables: {"from": from},
         ),
-        isLoading
-            ? Expanded(
-                child: CenteredLoadingSpinner(),
-              )
-            : Expanded(
-                child: BarChart(
-                  _displayData(),
-                  animate: true,
-                ),
+        builder: (result) {
+          if (result.hasException) {
+            return Text(result.exception.toString());
+          }
+          if (result.data != null) {
+            if (result.data["employee"].length > 0) {
+              isLoading = false;
+              graphList = result.data["employee"];
+            }
+          } else {
+            isLoading = false;
+          }
+          return Column(
+            children: <Widget>[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
+                    child: DropdownButton<String>(
+                      value: timeDropdownValue,
+                      items: timeFilterItems.map((dynamic item) {
+                        return DropdownMenuItem<String>(
+                          value: item["value"],
+                          child: Text(item["text"]),
+                        );
+                      }).toList(),
+                      onChanged: (String newValue) {
+                        setState(() {
+                          isLoading = true;
+                          timeDropdownValue = newValue;
+                          refreshTimeDropdown(timeDropdownValue);
+                        });
+                      },
+                    ),
+                  ),
+                ],
               ),
-      ],
-    );
+              isLoading
+                  ? Expanded(
+                      child: CenteredLoadingSpinner(),
+                    )
+                  : Expanded(
+                      child: BarChart(
+                        _displayData(),
+                        animate: true,
+                      ),
+                    ),
+            ],
+          );
+        });
   }
 }
 

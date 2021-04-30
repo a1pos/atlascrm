@@ -130,7 +130,6 @@ class GqlClientFactory {
   static void setPrivateGraphQLClient(token) async {
     Link link;
     Link authws;
-
     final AuthLink _authLink = AuthLink(
       getToken: () async => 'Bearer ${UserService.token}',
     );
@@ -157,15 +156,11 @@ class GqlClientFactory {
     link = _authLink.concat(_httpLink);
     authws = _wsLink.concat(_authLink);
     link = link.concat(authws);
-    link = Link.split(
-      (request) => request.isSubscription,
-      _wsLink,
-      link,
-    );
+    link = Link.split((request) => request.isSubscription, _wsLink, link);
 
     final GraphQLClient aCLient = GraphQLClient(
       link: link,
-      cache: cache,
+      cache: GraphQLCache(),
       defaultPolicies: DefaultPolicies(
         subscribe: policies,
         watchQuery: policies,
@@ -180,12 +175,12 @@ class GqlClientFactory {
   static void setPublicGraphQLClient() {
     final policies = Policies(
       cacheReread: CacheRereadPolicy.ignoreAll,
-      fetch: FetchPolicy.networkOnly,
+      fetch: FetchPolicy.noCache,
     );
 
     final GraphQLClient aCLient = GraphQLClient(
       link: _httpLink,
-      cache: cache,
+      cache: GraphQLCache(),
       defaultPolicies: DefaultPolicies(
         subscribe: policies,
         query: policies,

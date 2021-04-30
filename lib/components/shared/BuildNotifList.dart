@@ -1,5 +1,4 @@
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
-import 'package:atlascrm/components/shared/NotificationCenter.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/services/GqlClientFactory.dart';
@@ -21,86 +20,39 @@ class BuildNotifList extends StatefulWidget {
 }
 
 class _BuildNotifListState extends State<BuildNotifList> {
-  bool notesEmpty = true;
+  bool isEmpty = true;
   bool isLoading = true;
   var notifCount = 0;
   var notifications = [];
-  var notificationsDisplay = [];
-  var subscription;
 
   @override
   void initState() {
     super.initState();
-    getNotifications();
   }
 
   @override
   void dispose() async {
     super.dispose();
-    if (subscription != null) {
-      await subscription.cancel();
-      subscription = null;
+  }
+
+  final subscriptionDocument = gql("""
+   subscription SUBSCRIPTION_NOTIFICATIONS(\$employee: uuid!){
+    notification(
+    order_by: {created_at: desc},
+    where: {
+      _and: [
+        {employee: {_eq: \$employee}}
+        {is_read: {_eq: false}}
+      ]
+    }
+    ){
+      notification
+      is_read
+      document
+      created_at
     }
   }
-
-  Future<void> getNotifications() async {
-    SubscriptionOptions options = SubscriptionOptions(
-      operationName: "SUBSCRIPTION_NOTIFICATIONS",
-      document: gql("""
-          subscription SUBSCRIPTION_NOTIFICATIONS(\$employee: uuid!){
-              notification(
-              order_by: {created_at: desc},
-              where: {
-                _and: [
-                  {employee: {_eq: \$employee}}
-                  {is_read: {_eq: false}}
-                ]
-              }
-            ){
-              notification
-              is_read
-              document
-              created_at
-            }
-          }
-            """),
-      variables: {"employee": "${UserService.employee.employee}"},
-    );
-
-    subscription = await GqlClientFactory().authGqlsubscribe(
-      options,
-      (data) {
-        var notificationsArrDecoded = data.data["notification"];
-        if (notificationsArrDecoded != null && this.mounted) {
-          setState(
-            () {
-              isLoading = false;
-              notifications = notificationsArrDecoded;
-              notifCount = notificationsArrDecoded.length;
-              notificationsDisplay = notifications;
-            },
-          );
-
-          if (notifCount > 0) {
-            setState(
-              () {
-                notesEmpty = false;
-              },
-            );
-          }
-        }
-      },
-      (error) {},
-      () => refreshSub(),
-    );
-  }
-
-  Future refreshSub() async {
-    if (subscription != null) {
-      await subscription.cancel();
-      subscription = null;
-    }
-  }
+  """);
 
   Future<void> markOneAsRead(notification) async {
     MutationOptions mutateOptions = MutationOptions(
@@ -127,7 +79,6 @@ class _BuildNotifListState extends State<BuildNotifList> {
           backgroundColor: Colors.grey[600],
           textColor: Colors.white,
           fontSize: 16.0);
-      getNotifications();
     } else {
       Fluttertoast.showToast(
           msg: "Failed to update Notifications!",
@@ -186,13 +137,13 @@ class _BuildNotifListState extends State<BuildNotifList> {
       padding: EdgeInsets.only(left: 0),
       child: isLoading
           ? CenteredLoadingSpinner()
-          : !notesEmpty
+          : !isEmpty
               ? ListView(
                   shrinkWrap: true,
                   children: List.generate(
-                    notificationsDisplay.length,
+                    notifications.length,
                     (index) {
-                      var notification = notificationsDisplay[index];
+                      var notification = notifications[index];
                       var createdAt =
                           DateTime.parse(notification["created_at"]);
                       var moment = Moment.now();
@@ -273,79 +224,103 @@ class _BuildNotifListState extends State<BuildNotifList> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(
-        'Notifications: ${notifCount.toString()}',
-        style: TextStyle(fontWeight: FontWeight.bold),
+    return Subscription(
+      options: SubscriptionOptions(
+        operationName: "SUBSCRIPTION_NOTIFICATIONS",
+        document: subscriptionDocument,
+        cacheRereadPolicy: CacheRereadPolicy.ignoreAll,
+        variables: {"employee": "${UserService.employee.employee}"},
       ),
-      content: StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-        return Column(
-          children: <Widget>[
-            Expanded(
-              child: Container(
-                padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
-                width: 300,
-                height: 400,
-                child: buildNotifList(),
-              ),
-            )
-          ],
-        );
-      }),
-      actions: <Widget>[
-        MaterialButton(
-          padding: EdgeInsets.all(5),
-          color: UniversalStyles.actionColor,
-          onPressed: () async {
-            return showDialog<void>(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  title: Text('Dismiss Notifications'),
-                  content: SingleChildScrollView(
-                    child: ListBody(
-                      children: <Widget>[
-                        Text("Dismiss all notifications?"),
-                      ],
-                    ),
+      builder: (result) {
+        if (result.hasException) {
+          return Text(result.exception.toString());
+        }
+        if (result.data != null) {
+          if (result.data["notification"].length > 0) {
+            isLoading = false;
+            isEmpty = false;
+            notifCount = result.data["notification"].length;
+            notifications = result.data["notification"];
+          } else {
+            isEmpty = true;
+            isLoading = false;
+          }
+        }
+        return AlertDialog(
+          title: Text(
+            'Notifications: ${notifCount.toString()}',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+            return Column(
+              children: <Widget>[
+                Expanded(
+                  child: Container(
+                    padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
+                    width: 300,
+                    height: 400,
+                    child: buildNotifList(),
                   ),
-                  actions: <Widget>[
-                    TextButton(
-                      child: Text(
-                        'Yes',
-                        style: TextStyle(fontSize: 17),
-                      ),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        dismissAll();
-                      },
-                    ),
-                    TextButton(
-                        child: Text(
-                          'No',
-                          style: TextStyle(fontSize: 17),
+                )
+              ],
+            );
+          }),
+          actions: <Widget>[
+            MaterialButton(
+              padding: EdgeInsets.all(5),
+              color: UniversalStyles.actionColor,
+              onPressed: () async {
+                return showDialog<void>(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: Text('Dismiss Notifications'),
+                      content: SingleChildScrollView(
+                        child: ListBody(
+                          children: <Widget>[
+                            Text("Dismiss all notifications?"),
+                          ],
                         ),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        })
-                  ],
+                      ),
+                      actions: <Widget>[
+                        TextButton(
+                            child: Text(
+                              'No',
+                              style: TextStyle(fontSize: 17),
+                            ),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            }),
+                        TextButton(
+                          child: Text(
+                            'Yes',
+                            style: TextStyle(fontSize: 17),
+                          ),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                            dismissAll();
+                          },
+                        ),
+                      ],
+                    );
+                  },
                 );
               },
-            );
-          },
-          child: Row(
-            children: <Widget>[
-              Text(
-                'Dismiss All',
-                style: TextStyle(
-                  color: Colors.white,
-                ),
+              child: Row(
+                children: <Widget>[
+                  Text(
+                    'Dismiss All',
+                    style: TextStyle(
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
-      ],
+            ),
+          ],
+        );
+      },
     );
   }
 }
