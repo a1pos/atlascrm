@@ -10,8 +10,7 @@ class GqlClientFactory {
   static HttpLink _httpLink = HttpLink(
     ConfigSettings.HASURA_URL,
   );
-  static GraphQLCache cache = GraphQLCache();
-  static GraphQLCache cache2 = GraphQLCache();
+
   static bool isRefreshing = false;
 
   UserService userService = UserService();
@@ -175,7 +174,7 @@ class GqlClientFactory {
   static void setPublicGraphQLClient() {
     final policies = Policies(
       cacheReread: CacheRereadPolicy.ignoreAll,
-      fetch: FetchPolicy.noCache,
+      fetch: FetchPolicy.networkOnly,
     );
 
     final GraphQLClient aCLient = GraphQLClient(

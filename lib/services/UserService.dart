@@ -109,7 +109,7 @@ class UserService {
       token = linkResult.data["link_google_account"]["token"];
       rToken = linkResult.data["link_google_account"]["refreshToken"];
       var idTokenResult = await user.getIdToken(true);
-      print(idTokenResult);
+      print("ID Token:" + idTokenResult);
       var empDecoded = linkResult.data["link_google_account"]["employee"];
 
       employee = Employee.fromJson(empDecoded);

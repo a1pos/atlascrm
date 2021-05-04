@@ -45,13 +45,11 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
   var label = "items";
   var timeDropdownValue = "week";
 
-  var graphList;
+  var graphList = [];
   var graphFinal = [];
 
   var dateFrom;
   var dateTo;
-
-  var subscription;
 
   var timeFilterItems = [
     {"text": "Today", "value": "today"},
@@ -68,80 +66,14 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
 
   @override
   void initState() {
-    //initSub();
     super.initState();
   }
 
   @override
   void dispose() {
     _pageController.dispose();
-    // subscription.cancel();
-    // subscription = null;
     super.dispose();
   }
-
-  final subscriptionDocument = gql("""
-  subscription GET_CARD_LEADERBOARD_COUNT{
-    v_leaderboard{
-      employee
-      name
-      agreements
-      statements
-      leads
-      stops
-      volume
-      photourl
-    }
-  }
-  """);
-
-  // Future initSub() async {
-  //   SubscriptionOptions options = SubscriptionOptions(
-  //     operationName: "GET_CARD_LEADERBOARD_COUNT",
-  //     document: gql("""
-  //         subscription GET_CARD_LEADERBOARD_COUNT {
-  //           v_leaderboard {
-  //             employee
-  //             name
-  //             agreements
-  //             statements
-  //             leads
-  //             stops
-  //             volume
-  //             photourl
-  //           }
-  //         }
-  //       """),
-  //     fetchPolicy: FetchPolicy.networkOnly,
-  //   );
-
-  //   subscription = await GqlClientFactory().authGqlsubscribe(
-  //     options,
-  //     (data) {
-  //       var incomingData = data.data["v_leaderboard"];
-  //       if (incomingData != null) {
-  //         if (this.mounted) {
-  //           setState(() {
-  //             graphList = incomingData;
-  //             isLoading = false;
-  //           });
-  //         }
-  //       }
-  //     },
-  //     (error) {
-  //       print("found error: " + error.toString() + " in front end");
-  //     },
-  //     () => refreshSub(),
-  //   );
-  // }
-
-  // Future refreshSub() async {
-  //   if (subscription != null) {
-  //     await subscription.cancel();
-  //     subscription = null;
-  //     initSub();
-  //   }
-  // }
 
   _builder(int index) {
     var employeeImage;
@@ -525,195 +457,203 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
     return Subscription(
       options: SubscriptionOptions(
         operationName: "GET_CARD_LEADERBOARD_COUNT",
-        document: subscriptionDocument,
-        cacheRereadPolicy: CacheRereadPolicy.ignoreAll,
+        document: gql("""
+          subscription GET_CARD_LEADERBOARD_COUNT {
+            v_leaderboard {
+              employee
+              name
+              agreements
+              statements
+              leads
+              stops
+              volume
+              photourl
+            }
+          }
+        """),
+        fetchPolicy: FetchPolicy.noCache,
       ),
       builder: (result) {
         if (result.hasException) {
+          var errMsg = result.exception.toString();
+          if (errMsg.contains("JWTExpired")) {
+            GqlClientFactory.refreshClient();
+          }
+          print(errMsg);
           return Text(result.exception.toString());
         }
-        if (result.data != null) {
-          if (result.data["v_leaderboard"].length > 0) {
-            isLoading = false;
+        if (result.isLoading) {
+          return Center(child: CircularProgressIndicator());
+        }
 
-            graphList = result.data["v_leaderboard"];
+        return ResultAccumulator(
+            latest: result.data,
+            builder: (context, {results}) {
+              if (results != null) {
+                if (results[0]["v_leaderboard"].length > 0) {
+                  isLoading = false;
 
-            var graphTemp = [];
-            graphFinal = [];
+                  graphList = results[0]["v_leaderboard"];
 
-            for (var employee in graphList) {
-              if (employee["agreements"] == null) employee["agreements"] = 0;
-              if (employee["volume"] == null) employee["volume"] = 0;
-              if (employee["statements"] == null) employee["statements"] = 0;
-              if (employee["leads"] == null) employee["leads"] = 0;
-              if (employee["stops"] == null) employee["stops"] = 0;
+                  var graphTemp = [];
+                  graphFinal = [];
 
-              graphTemp.add({
-                "volume": employee["volume"] / 12,
-                "name": employee["name"],
-                "photoURL": employee["photourl"],
-                "statements": employee["statements"],
-                "agreements": employee["agreements"],
-                "stops": employee["stops"],
-                "leads": employee["leads"]
-              });
-            }
-            if (graphTemp.length > 1) {
-              graphTemp.sort((a, b) =>
-                  a["name"].toLowerCase().compareTo(b["name"].toLowerCase()));
-              graphTemp.sort((a, b) => b["stops"].compareTo(a["stops"]));
-              graphTemp.sort((a, b) => b["leads"].compareTo(a["leads"]));
-              graphTemp
-                  .sort((a, b) => b["statements"].compareTo(a["statements"]));
-              graphTemp.sort((a, b) => b["volume"].compareTo(a["volume"]));
-              graphTemp
-                  .sort((a, b) => b["agreements"].compareTo(a["agreements"]));
+                  for (var employee in graphList) {
+                    if (employee["agreements"] == null)
+                      employee["agreements"] = 0;
+                    if (employee["volume"] == null) employee["volume"] = 0;
+                    if (employee["statements"] == null)
+                      employee["statements"] = 0;
+                    if (employee["leads"] == null) employee["leads"] = 0;
+                    if (employee["stops"] == null) employee["stops"] = 0;
 
-              bool checkTies = true;
+                    graphTemp.add({
+                      "volume": employee["volume"] / 12,
+                      "name": employee["name"],
+                      "photoURL": employee["photourl"],
+                      "statements": employee["statements"],
+                      "agreements": employee["agreements"],
+                      "stops": employee["stops"],
+                      "leads": employee["leads"]
+                    });
+                  }
+                  if (graphTemp.length > 1) {
+                    graphTemp.sort((a, b) => a["name"]
+                        .toLowerCase()
+                        .compareTo(b["name"].toLowerCase()));
+                    graphTemp.sort((a, b) => b["stops"].compareTo(a["stops"]));
+                    graphTemp.sort((a, b) => b["leads"].compareTo(a["leads"]));
+                    graphTemp.sort(
+                        (a, b) => b["statements"].compareTo(a["statements"]));
+                    graphTemp
+                        .sort((a, b) => b["volume"].compareTo(a["volume"]));
+                    graphTemp.sort(
+                        (a, b) => b["agreements"].compareTo(a["agreements"]));
 
-              for (var i = 0; i < graphTemp.length; i++) {
-                if (graphTemp[i]["agreements"] != 0 ||
-                    graphTemp[i]["volume"] != 0 ||
-                    graphTemp[i]["statements"] != 0 ||
-                    graphTemp[i]["leads"] != 0 ||
-                    graphTemp[i]["stops"] != 0) {
-                  if (i < 3) {
-                    if (i == 0) {
-                      if (graphTemp[i]["agreements"] ==
-                              graphTemp[i + 1]["agreements"] &&
-                          graphTemp[i]["volume"] ==
-                              graphTemp[i + 1]["volume"] &&
-                          graphTemp[i]["statements"] ==
-                              graphTemp[i + 1]["statements"] &&
-                          graphTemp[i]["leads"] == graphTemp[i + 1]["leads"] &&
-                          graphTemp[i]["stops"] == graphTemp[i + 1]["stops"]) {
-                        if (graphTemp[i]["name"]
-                                .compareTo(graphTemp[i + 1]["name"]) ==
-                            -1) {
-                          graphTemp[i]["tied"] = false;
-                        }
-                        if (graphTemp[i]["name"]
-                                .compareTo(graphTemp[i + 1]["name"]) ==
-                            1) {
-                          graphTemp[i]["tied"] = false;
-                        }
-                        graphTemp[i]["tied"] = true;
-                      }
-                    } else if (i == graphTemp.length - 1) {
-                      if (graphTemp.length != 1) {
-                        if (graphTemp[i]["agreements"] ==
-                                graphTemp[i - 1]["agreements"] &&
-                            graphTemp[i]["volume"] ==
-                                graphTemp[i - 1]["volume"] &&
-                            graphTemp[i]["statements"] ==
-                                graphTemp[i - 1]["statements"] &&
-                            graphTemp[i]["leads"] ==
-                                graphTemp[i - 1]["leads"] &&
-                            graphTemp[i]["stops"] ==
-                                graphTemp[i - 1]["stops"]) {
-                          if (graphTemp[i]["name"]
-                                  .compareTo(graphTemp[i - 1]["name"]) ==
-                              -1) {
-                            graphTemp[i]["tied"] = false;
+                    bool checkTies = true;
+
+                    for (var i = 0; i < graphTemp.length; i++) {
+                      if (graphTemp[i]["agreements"] != 0 ||
+                          graphTemp[i]["volume"] != 0 ||
+                          graphTemp[i]["statements"] != 0 ||
+                          graphTemp[i]["leads"] != 0 ||
+                          graphTemp[i]["stops"] != 0) {
+                        if (i < 3) {
+                          if (i == 0) {
+                            if (graphTemp[i]["agreements"] ==
+                                    graphTemp[i + 1]["agreements"] &&
+                                graphTemp[i]["volume"] ==
+                                    graphTemp[i + 1]["volume"] &&
+                                graphTemp[i]["statements"] ==
+                                    graphTemp[i + 1]["statements"] &&
+                                graphTemp[i]["leads"] ==
+                                    graphTemp[i + 1]["leads"] &&
+                                graphTemp[i]["stops"] ==
+                                    graphTemp[i + 1]["stops"]) {
+                              if (graphTemp[i]["agreements"] == 0 &&
+                                  graphTemp[i + 1]["agreements"] == 0) {
+                                graphTemp[i]["tied"] = false;
+                              } else {
+                                graphTemp[i]["tied"] = true;
+                              }
+                            }
+                          } else if (i == graphTemp.length - 1) {
+                            if (graphTemp.length != 1) {
+                              if (graphTemp[i]["agreements"] ==
+                                      graphTemp[i - 1]["agreements"] &&
+                                  graphTemp[i]["volume"] ==
+                                      graphTemp[i - 1]["volume"] &&
+                                  graphTemp[i]["statements"] ==
+                                      graphTemp[i - 1]["statements"] &&
+                                  graphTemp[i]["leads"] ==
+                                      graphTemp[i - 1]["leads"] &&
+                                  graphTemp[i]["stops"] ==
+                                      graphTemp[i - 1]["stops"]) {
+                                if (graphTemp[i]["agreements"] == 0 &&
+                                    graphTemp[i - 1]["agreements"] == 0) {
+                                  graphTemp[i]["tied"] = false;
+                                } else {
+                                  graphTemp[i]["tied"] = true;
+                                }
+                              }
+                            }
+                          } else {
+                            if (graphTemp[i]["agreements"] ==
+                                    graphTemp[i - 1]["agreements"] &&
+                                graphTemp[i]["volume"] ==
+                                    graphTemp[i - 1]["volume"] &&
+                                graphTemp[i]["statements"] ==
+                                    graphTemp[i - 1]["statements"] &&
+                                graphTemp[i]["leads"] ==
+                                    graphTemp[i - 1]["leads"] &&
+                                graphTemp[i]["stops"] ==
+                                    graphTemp[i - 1]["stops"]) {
+                              if (graphTemp[i]["agreements"] == 0 &&
+                                  graphTemp[i - 1]["agreements"] == 0) {
+                                graphTemp[i]["tied"] = false;
+                              } else {
+                                graphTemp[i]["tied"] = true;
+                              }
+                            }
+                            if (graphTemp[i]["agreements"] ==
+                                    graphTemp[i + 1]["agreements"] &&
+                                graphTemp[i]["volume"] ==
+                                    graphTemp[i + 1]["volume"] &&
+                                graphTemp[i]["statements"] ==
+                                    graphTemp[i + 1]["statements"] &&
+                                graphTemp[i]["leads"] ==
+                                    graphTemp[i + 1]["leads"] &&
+                                graphTemp[i]["stops"] ==
+                                    graphTemp[i + 1]["stops"]) {
+                              if (graphTemp[i]["agreements"] == 0 &&
+                                  graphTemp[i + 1]["agreements"] == 0) {
+                                graphTemp[i]["tied"] = false;
+                              } else {
+                                graphTemp[i]["tied"] = true;
+                              }
+                            }
                           }
-                          if (graphTemp[i]["name"]
-                                  .compareTo(graphTemp[i - 1]["name"]) ==
-                              1) {
-                            graphTemp[i]["tied"] = false;
+                        } else if (i > 2 && checkTies) {
+                          if (graphTemp[i]["agreements"] ==
+                                  graphTemp[i - 1]["agreements"] &&
+                              graphTemp[i]["volume"] ==
+                                  graphTemp[i - 1]["volume"] &&
+                              graphTemp[i]["statements"] ==
+                                  graphTemp[i - 1]["statements"] &&
+                              graphTemp[i]["leads"] ==
+                                  graphTemp[i - 1]["leads"] &&
+                              graphTemp[i]["stops"] ==
+                                  graphTemp[i - 1]["stops"]) {
+                            if (graphTemp[i]["agreements"] == 0 &&
+                                graphTemp[i - 1]["agreements"] == 0) {
+                              graphTemp[i]["tied"] = false;
+                            } else {
+                              graphTemp[i]["tied"] = true;
+                            }
+                          } else {
+                            checkTies = false;
                           }
-                          graphTemp[i]["tied"] = true;
                         }
                       }
-                    } else {
-                      if (graphTemp[i]["agreements"] ==
-                              graphTemp[i - 1]["agreements"] &&
-                          graphTemp[i]["volume"] ==
-                              graphTemp[i - 1]["volume"] &&
-                          graphTemp[i]["statements"] ==
-                              graphTemp[i - 1]["statements"] &&
-                          graphTemp[i]["leads"] == graphTemp[i - 1]["leads"] &&
-                          graphTemp[i]["stops"] == graphTemp[i - 1]["stops"]) {
-                        if (graphTemp[i]["name"]
-                                .compareTo(graphTemp[i - 1]["name"]) ==
-                            -1) {
-                          graphTemp[i]["tied"] = false;
-                        }
-                        if (graphTemp[i]["name"]
-                                .compareTo(graphTemp[i - 1]["name"]) ==
-                            1) {
-                          graphTemp[i]["tied"] = false;
-                        }
-                        graphTemp[i]["tied"] = true;
-                      }
-                      if (graphTemp[i]["agreements"] ==
-                              graphTemp[i + 1]["agreements"] &&
-                          graphTemp[i]["volume"] ==
-                              graphTemp[i + 1]["volume"] &&
-                          graphTemp[i]["statements"] ==
-                              graphTemp[i + 1]["statements"] &&
-                          graphTemp[i]["lead"] == graphTemp[i + 1]["leads"] &&
-                          graphTemp[i]["stops"] == graphTemp[i + 1]["stops"]) {
-                        if (graphTemp[i]["name"]
-                                .compareTo(graphTemp[i + 1]["name"]) ==
-                            -1) {
-                          graphTemp[i]["tied"] = false;
-                        }
-                        if (graphTemp[i]["name"]
-                                .compareTo(graphTemp[i + 1]["name"]) ==
-                            1) {
-                          graphTemp[i]["tied"] = false;
-                        }
-
-                        graphTemp[i]["tied"] = true;
-                      }
-                    }
-                  } else if (i > 2 && checkTies) {
-                    if (graphTemp[i]["agreements"] ==
-                            graphTemp[i - 1]["agreements"] &&
-                        graphTemp[i]["volume"] == graphTemp[i - 1]["volume"] &&
-                        graphTemp[i]["statements"] ==
-                            graphTemp[i - 1]["statements"] &&
-                        graphTemp[i]["leads"] == graphTemp[i - 1]["leads"] &&
-                        graphTemp[i]["stops"] == graphTemp[i - 1]["stops"]) {
-                      if (graphTemp[i]["name"]
-                              .compareTo(graphTemp[i - 1]["name"]) ==
-                          -1) {
-                        graphTemp[i]["tied"] = false;
-                      }
-                      if (graphTemp[i]["name"]
-                              .compareTo(graphTemp[i - 1]["name"]) ==
-                          1) {
-                        graphTemp[i]["tied"] = false;
-                      }
-                      graphTemp[i]["tied"] = true;
-                    } else {
-                      checkTies = false;
                     }
                   }
+
+                  graphFinal = graphTemp;
+                } else {
+                  isLoading = false;
                 }
               }
-            }
-
-            graphFinal = graphTemp;
-          } else {
-            isLoading = false;
-          }
-        }
-        return Column(children: <Widget>[
-          isLoading
-              ? Expanded(
-                  child: CenteredLoadingSpinner(),
-                )
-              : Expanded(child: buildDLGridView()),
-        ]);
+              return Column(
+                children: <Widget>[
+                  isLoading
+                      ? Expanded(
+                          child: CenteredLoadingSpinner(),
+                        )
+                      : Expanded(child: buildDLGridView()),
+                ],
+              );
+            });
       },
     );
-    // if (graphList != null) {
-    //   if (graphList.length > 0) {
-    //     setState(() {
-    //       isLoading = false;
-    //     });
-    //   }
-    // }
   }
 }
