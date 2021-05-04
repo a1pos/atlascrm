@@ -482,14 +482,11 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
           print(errMsg);
           return Text(result.exception.toString());
         }
-        if (result.isLoading) {
-          return Center(child: CircularProgressIndicator());
-        }
 
         return ResultAccumulator(
             latest: result.data,
             builder: (context, {results}) {
-              if (results != null) {
+              if (results.length > 0) {
                 if (results[0]["v_leaderboard"].length > 0) {
                   isLoading = false;
 

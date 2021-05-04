@@ -142,7 +142,7 @@ class GqlClientFactory {
       ConfigSettings.HASURA_WEBSOCKET,
       config: SocketClientConfig(
         autoReconnect: true,
-        inactivityTimeout: Duration(seconds: 30),
+        inactivityTimeout: Duration(seconds: 60),
         initialPayload: () {
           return {
             'headers': {'Authorization': 'Bearer ${UserService.token}'}
