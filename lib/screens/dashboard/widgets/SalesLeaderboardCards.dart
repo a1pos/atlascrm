@@ -614,7 +614,7 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
                       graphTemp[i]["volume"] == graphTemp[i + 1]["volume"] &&
                       graphTemp[i]["statements"] ==
                           graphTemp[i + 1]["statements"] &&
-                      graphTemp[i]["lead"] == graphTemp[i + 1]["leads"] &&
+                      graphTemp[i]["leads"] == graphTemp[i + 1]["leads"] &&
                       graphTemp[i]["stops"] == graphTemp[i + 1]["stops"]) {
                     if (graphTemp[i]["name"]
                             .compareTo(graphTemp[i + 1]["name"]) ==
