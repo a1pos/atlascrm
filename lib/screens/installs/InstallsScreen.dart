@@ -36,12 +36,14 @@ class _InstallsScreenState extends State<InstallsScreen> {
 
   CalendarController _calendarController;
   Map<DateTime, List<dynamic>> _calendarEvents;
+  Map data;
 
   List installs = [];
   List installsFull = [];
   List activeInstalls = [];
   List unscheduledInstallsList = [];
 
+  var unscheduledInstallCount = 0;
   var installDateController = TextEditingController();
   var subscription;
   var filterEmployee = "";
@@ -174,6 +176,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
           installs = installsArrDecoded;
           unscheduledInstallsList =
               installs.where((element) => element['date'] == null).toList();
+          unscheduledInstallCount = unscheduledInstallsList.length;
           installsFull = installs;
           isLoading = false;
         });
@@ -193,236 +196,183 @@ class _InstallsScreenState extends State<InstallsScreen> {
   }
 
   Future<void> changeInstall(i) async {
+    var installEmployee = employeeDropdownValue;
+    var install = i['install'];
+    var merchantName = i['merchantbusinessname'];
+    var merchant = i['merchant'];
+    var ticketStatus;
+    var ticketCategory;
+
+    var installDate = DateTime.parse(installDateController.text).toUtc();
+    var installDateFormat = DateFormat("yyyy-MM-dd HH:mm").format(installDate);
+
+    QueryOptions options = QueryOptions(
+      document: gql("""
+        query TICKET_STATUS {
+          ticket_status{
+            ticket_status
+            title
+          }
+        }
+      """),
+    );
+
+    final QueryResult ticketStatusResult =
+        await GqlClientFactory().authGqlquery(options);
+
+    if (ticketStatusResult != null) {
+      if (ticketStatusResult.hasException == false) {
+        ticketStatusResult.data["ticket_status"].forEach((item) {
+          if (item["title"] == "Scheduled For Install") {
+            ticketStatus = item["ticket_status"];
+          }
+        });
+      } else {
+        print(new Error());
+      }
+    }
+
+    QueryOptions ticketCategoryOptions = QueryOptions(
+      document: gql("""
+      query TICKET_CATEGORY{
+        ticket_category{
+          ticket_category
+          title
+        }
+      }
+    """),
+    );
+
+    final QueryResult ticketCategoryResult =
+        await GqlClientFactory().authGqlquery(ticketCategoryOptions);
+
+    if (ticketCategoryResult != null) {
+      if (ticketCategoryResult.hasException == false) {
+        ticketCategoryResult.data["ticket_category"].forEach((item) {
+          if (item["title"] == "Install") {
+            ticketCategory = item["ticket_category"];
+          }
+        });
+      } else {
+        print(new Error());
+      }
+    }
+
+    QueryOptions installDocumentOptions = QueryOptions(
+      document: gql("""
+      query GET_INSTALL_DOC(\$install: uuid!){
+        install(where: {install: {_eq: \$install}}) {
+          document
+        }
+      }
+    """),
+      variables: {
+        "install": install,
+      },
+    );
+
+    final QueryResult installDocumentResult =
+        await GqlClientFactory().authGqlquery(installDocumentOptions);
+
+    if (installDocumentResult != null) {
+      if (installDocumentResult.hasException == false) {
+        i["document"] = installDocumentResult.data["install"][0]["document"];
+      } else {
+        print(new Error());
+      }
+    }
+
+    if (i["date"] == null || i['employee'] == null) {
+      data = {
+        "ticket_status": ticketStatus,
+        "ticket_category": ticketCategory,
+        "document": {
+          "title": "Installation: $merchantName",
+        },
+        "is_active": true,
+        "employee": installEmployee,
+        "date": installDateFormat,
+        "merchant": merchant,
+        "install": install,
+      };
+
+      confirmInstall(data, i);
+    } else {
+      data = {
+        "install": install,
+        "employee": employeeDropdownValue,
+        "date": installDateFormat,
+      };
+      updateInstall(data);
+    }
+  }
+
+  void confirmInstall(data, i) async {
     var successMsg = "Install claimed and ticket created!";
     var msgLength = Toast.LENGTH_SHORT;
 
-    var installEmployee = employeeDropdownValue;
-    var install = i['install'];
-    var ticketStatus;
-    var ticketCategory;
-    var merchantName = i['merchantbusinessname'];
-    var merchant = i['merchant'];
-
-    var installDate = DateTime.parse(installDateController.text).toUtc();
-    var installDateFormat = DateFormat("yyyy-MM-dd HH:mm").format(installDate);
-
-    Map data;
-
-    QueryOptions options = QueryOptions(
+    MutationOptions updateInstallEmployeeByPKOptions = MutationOptions(
       document: gql("""
-        query TICKET_STATUS {
-          ticket_status{
-            ticket_status
-            title
-          }
-        }
-      """),
-    );
-
-    final QueryResult result = await GqlClientFactory().authGqlquery(options);
-
-    if (result != null) {
-      if (result.hasException == false) {
-        result.data["ticket_status"].forEach((item) {
-          if (item["title"] == "Scheduled For Install") {
-            ticketStatus = item["ticket_status"];
-          }
-        });
-      } else {
-        print(new Error());
-      }
-    }
-
-    QueryOptions ticketCategoryOptions = QueryOptions(
-      document: gql("""
-      query TICKET_CATEGORY{
-        ticket_category{
-          ticket_category
-          title
-        }
-      }
-    """),
-    );
-
-    final QueryResult ticketCategoryResult =
-        await GqlClientFactory().authGqlquery(ticketCategoryOptions);
-
-    if (ticketCategoryResult != null) {
-      if (ticketCategoryResult.hasException == false) {
-        ticketCategoryResult.data["ticket_category"].forEach((item) {
-          if (item["title"] == "Install") {
-            ticketCategory = item["ticket_category"];
-          }
-        });
-        await initInstallData();
-      } else {
-        print(new Error());
-      }
-    }
-
-    QueryOptions installDocumentOptions = QueryOptions(
-      document: gql("""
-      query GET_INSTALL_DOC(\$install: uuid!){
-        install(where: {install: {_eq: \$install}}) {
-          document
+      mutation UPDATE_INSTALL_EMPLOYEE_BY_PK(\$install: uuid!, \$employee: uuid!){
+        update_install_by_pk(
+          pk_columns: {install: \$install}
+          _set: {employee: \$employee}
+        ) {
+          install
         }
       }
     """),
       variables: {
-        "install": install,
+        "install": data["install"],
+        "employee": data["employee"],
       },
     );
 
-    final QueryResult installDocumentResult =
-        await GqlClientFactory().authGqlquery(installDocumentOptions);
+    final QueryResult updateInstallEmployeeByPKResult = await GqlClientFactory()
+        .authGqlmutate(updateInstallEmployeeByPKOptions);
 
-    if (installDocumentResult != null) {
-      if (installDocumentResult.hasException == false) {
-        i["document"] = installDocumentResult.data["install"][0]["document"];
-      } else {
-        print(new Error());
-      }
+    if (updateInstallEmployeeByPKResult.hasException) {
+      Fluttertoast.showToast(
+          msg: updateInstallEmployeeByPKResult.exception.toString(),
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0);
     }
 
-    if (i["date"] != null || i['employee'] != "") {
-      data = {
-        "ticket_status": ticketStatus,
-        "document": {
-          " title": "Installation: $merchantName",
-        },
-        "is_active": true,
-        "employee": installEmployee,
-        "date": installDateFormat
-      };
-
-      confirmInstall(i);
-    } else {
-      var successMsg = "Install ticket updated!";
-      var msgLength = Toast.LENGTH_SHORT;
-      data = {
-        "ticket_status": ticketStatus,
-        "document": {
-          " title": "Installation: $merchantName",
-        },
-        "is_active": true,
-        "employee": null,
-        "date": null
-      };
-
-      //updateInstall(i);
-    }
-
-    Fluttertoast.showToast(
-        msg: successMsg,
-        toastLength: msgLength,
-        gravity: ToastGravity.BOTTOM,
-        backgroundColor: Colors.grey[600],
-        textColor: Colors.white,
-        fontSize: 16.0);
-    Navigator.of(context).pop();
-  }
-
-  void confirmInstall(i) async {
-    var installEmployee = employeeDropdownValue;
-    var install = i['install'];
-    var ticketStatus;
-    var ticketCategory;
-    var merchantName = i['merchantbusinessname'];
-    var merchant = i['merchant'];
-
-    var installDate = DateTime.parse(installDateController.text).toUtc();
-    var installDateFormat = DateFormat("yyyy-MM-dd HH:mm").format(installDate);
-
-    Map data;
-
-    QueryOptions options = QueryOptions(
+    MutationOptions updateInstallDateByPKOptions = MutationOptions(
       document: gql("""
-        query TICKET_STATUS {
-          ticket_status{
-            ticket_status
-            title
-          }
-        }
-      """),
-    );
-
-    final QueryResult result = await GqlClientFactory().authGqlquery(options);
-
-    if (result != null) {
-      if (result.hasException == false) {
-        result.data["ticket_status"].forEach((item) {
-          if (item["title"] == "Scheduled For Install") {
-            ticketStatus = item["ticket_status"];
-          }
-        });
-      } else {
-        print(new Error());
-      }
-    }
-
-    QueryOptions ticketCategoryOptions = QueryOptions(
-      document: gql("""
-      query TICKET_CATEGORY{
-        ticket_category{
-          ticket_category
-          title
-        }
-      }
-    """),
-    );
-
-    final QueryResult ticketCategoryResult =
-        await GqlClientFactory().authGqlquery(ticketCategoryOptions);
-
-    if (ticketCategoryResult != null) {
-      if (ticketCategoryResult.hasException == false) {
-        ticketCategoryResult.data["ticket_category"].forEach((item) {
-          if (item["title"] == "Install") {
-            ticketCategory = item["ticket_category"];
-          }
-        });
-        await initInstallData();
-      } else {
-        print(new Error());
-      }
-    }
-
-    QueryOptions installDocumentOptions = QueryOptions(
-      document: gql("""
-      query GET_INSTALL_DOC(\$install: uuid!){
-        install(where: {install: {_eq: \$install}}) {
-          document
+      mutation UPDATE_INSTALL_DATE_BY_PK(\$install: uuid!, \$date: timestamptz!){
+        update_install_by_pk(
+          pk_columns: {install: \$install}
+          _set: {date: \$date}
+        ) {
+          install
         }
       }
     """),
       variables: {
-        "install": install,
+        "install": data["install"],
+        "date": data["date"],
       },
     );
 
-    final QueryResult installDocumentResult =
-        await GqlClientFactory().authGqlquery(installDocumentOptions);
+    final QueryResult updateInstallDateByPKResult =
+        await GqlClientFactory().authGqlmutate(updateInstallDateByPKOptions);
 
-    if (installDocumentResult != null) {
-      if (installDocumentResult.hasException == false) {
-        i["document"] = installDocumentResult.data["install"][0]["document"];
-      } else {
-        print(new Error());
-      }
+    if (updateInstallDateByPKResult.hasException) {
+      Fluttertoast.showToast(
+          msg: updateInstallDateByPKResult.exception.toString(),
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0);
     }
 
-    if (i["date"] != null || i['employee'] != "") {
-      data = {
-        "ticket_status": ticketStatus,
-        "document": {
-          " title": "Installation: $merchantName",
-        },
-        "is_active": true,
-        "employee": installEmployee,
-        "date": installDateFormat
-      };
-
-      MutationOptions mutateOptions = MutationOptions(document: gql("""
+    MutationOptions insertTicketOptions = MutationOptions(
+      document: gql("""
         mutation NEW_TICKET(
           \$document: jsonb!
           \$date: timestamptz!
@@ -433,6 +383,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
             objects: {
               date: \$date
               document: \$document
+              ticket_status: \$ticket_status
               is_active: \$is_active
             }
           ) {
@@ -441,32 +392,36 @@ class _InstallsScreenState extends State<InstallsScreen> {
             }
           }
         }
-        """), variables: {
+        """),
+      variables: {
         "document": data["document"],
         "date": data["date"],
         "ticket_status": data["ticket_status"],
         "is_active": data["is_active"],
-      });
+      },
+    );
 
-      final QueryResult result =
-          await GqlClientFactory().authGqlmutate(mutateOptions);
+    final QueryResult insertTicketResult =
+        await GqlClientFactory().authGqlmutate(insertTicketOptions);
 
-      if (result.hasException) {
-        Fluttertoast.showToast(
-            msg: result.exception.toString(),
-            toastLength: Toast.LENGTH_LONG,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.grey[600],
-            textColor: Colors.white,
-            fontSize: 16.0);
-      }
-      var ticket = result.data["insert_ticket"]["returning"][0]["ticket"];
+    if (insertTicketResult.hasException) {
+      Fluttertoast.showToast(
+          msg: insertTicketResult.exception.toString(),
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0);
+    }
 
-      MutationOptions insertAssigneeOptions = MutationOptions(
-        document: gql("""
+    var ticket =
+        insertTicketResult.data["insert_ticket"]["returning"][0]["ticket"];
+
+    MutationOptions insertAssigneeOptions = MutationOptions(
+      document: gql("""
           mutation INSERT_TICKET_ASSIGNEE(\$ticket: uuid!, \$employee: uuid!){
             insert_ticket_assignee(
-              objects: {ticket \$ticket, employee: \$employee}
+              objects: {ticket: \$ticket, employee: \$employee}
             ) {
               returning {
                 ticket_assignee
@@ -474,30 +429,27 @@ class _InstallsScreenState extends State<InstallsScreen> {
             }
           }
         """),
-        variables: {
-          "ticket": ticket,
-          "employee": data["employee"],
-        },
-      );
+      variables: {
+        "ticket": ticket,
+        "employee": data["employee"],
+      },
+    );
 
-      final QueryResult insertAssigneeResult =
-          await GqlClientFactory().authGqlmutate(insertAssigneeOptions);
+    final QueryResult insertAssigneeResult =
+        await GqlClientFactory().authGqlmutate(insertAssigneeOptions);
 
-      if (insertAssigneeResult.hasException) {
-        Fluttertoast.showToast(
-            msg: insertAssigneeResult.exception.toString(),
-            toastLength: Toast.LENGTH_LONG,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.grey[600],
-            textColor: Colors.white,
-            fontSize: 16.0);
-      }
+    if (insertAssigneeResult.hasException) {
+      Fluttertoast.showToast(
+          msg: insertAssigneeResult.exception.toString(),
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0);
+    }
 
-      var ticketAssignee = result.data["insert_ticket_assignee"]["returning"][0]
-          ["ticket_assignee"];
-
-      MutationOptions insertTicketMerchantOptions = MutationOptions(
-        document: gql("""
+    MutationOptions insertTicketMerchantOptions = MutationOptions(
+      document: gql("""
           mutation INSERT_TICKET_MERCHANT(\$merchant: uuid!, \$ticket: uuid!){
             insert_ticket_merchant(
               objects: {merchant: \$merchant, ticket: \$ticket}
@@ -508,30 +460,27 @@ class _InstallsScreenState extends State<InstallsScreen> {
             }
           }
       """),
-        variables: {
-          "ticket": ticket,
-          "merchant": merchant,
-        },
-      );
+      variables: {
+        "ticket": ticket,
+        "merchant": data["merchant"],
+      },
+    );
 
-      final QueryResult insertTicketMerchantResult =
-          await GqlClientFactory().authGqlmutate(insertTicketMerchantOptions);
+    final QueryResult insertTicketMerchantResult =
+        await GqlClientFactory().authGqlmutate(insertTicketMerchantOptions);
 
-      if (insertTicketMerchantResult.hasException) {
-        Fluttertoast.showToast(
-            msg: insertTicketMerchantResult.exception.toString(),
-            toastLength: Toast.LENGTH_LONG,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.grey[600],
-            textColor: Colors.white,
-            fontSize: 16.0);
-      }
+    if (insertTicketMerchantResult.hasException) {
+      Fluttertoast.showToast(
+          msg: insertTicketMerchantResult.exception.toString(),
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0);
+    }
 
-      var ticketMerchant = result.data["insert_ticket_merchant"]["returning"][0]
-          ["ticket_merchant"];
-
-      MutationOptions insertTicketLabelOptions = MutationOptions(
-        document: gql("""
+    MutationOptions insertTicketLabelOptions = MutationOptions(
+      document: gql("""
           mutation INSERT_TICKET_LABEL(\$ticket_category: uuid!, \$ticket: uuid!){
             insert_ticket_label(
               objects: {ticket_category: \$ticket_category, ticket: \$ticket}
@@ -542,30 +491,27 @@ class _InstallsScreenState extends State<InstallsScreen> {
             }
           }
         """),
-        variables: {
-          "ticket": ticket,
-          "ticket_category": ticketCategory,
-        },
-      );
+      variables: {
+        "ticket": ticket,
+        "ticket_category": data["ticket_category"],
+      },
+    );
 
-      final QueryResult insertTicketLabelResult =
-          await GqlClientFactory().authGqlmutate(insertTicketLabelOptions);
+    final QueryResult insertTicketLabelResult =
+        await GqlClientFactory().authGqlmutate(insertTicketLabelOptions);
 
-      if (insertTicketLabelResult.hasException) {
-        Fluttertoast.showToast(
-            msg: insertTicketMerchantResult.exception.toString(),
-            toastLength: Toast.LENGTH_LONG,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.grey[600],
-            textColor: Colors.white,
-            fontSize: 16.0);
-      }
+    if (insertTicketLabelResult.hasException) {
+      Fluttertoast.showToast(
+          msg: insertTicketMerchantResult.exception.toString(),
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0);
+    }
 
-      var ticketLabel =
-          result.data["insert_ticket_label"]["returning"][0]["ticket_label"];
-
-      MutationOptions updateInstallOptions = MutationOptions(
-        document: gql("""
+    MutationOptions updateInstallOptions = MutationOptions(
+      document: gql("""
           mutation UPDATE_INSTALL_BY_PK(\$install: uuid!, \$ticket: uuid!){
             update_install_by_pk(
               pk_columns: {install: \$install}
@@ -575,28 +521,28 @@ class _InstallsScreenState extends State<InstallsScreen> {
             }
           }
         """),
-        variables: {
-          "install": install,
-          "ticket": ticket,
-        },
-      );
+      variables: {
+        "install": data["install"],
+        "ticket": ticket,
+      },
+    );
 
-      final QueryResult updateInstallResult =
-          await GqlClientFactory().authGqlmutate(updateInstallOptions);
+    final QueryResult updateInstallResult =
+        await GqlClientFactory().authGqlmutate(updateInstallOptions);
 
-      if (updateInstallResult.hasException) {
-        Fluttertoast.showToast(
-            msg: updateInstallResult.exception.toString(),
-            toastLength: Toast.LENGTH_LONG,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.grey[600],
-            textColor: Colors.white,
-            fontSize: 16.0);
-      }
+    if (updateInstallResult.hasException) {
+      Fluttertoast.showToast(
+          msg: updateInstallResult.exception.toString(),
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0);
+    }
 
-      if (i['document'] != null) {
-        MutationOptions insertTicketCommentOptions =
-            MutationOptions(document: gql("""
+    if (i['document'] != null) {
+      MutationOptions insertTicketCommentOptions = MutationOptions(
+        document: gql("""
           mutation INSERT_TICKET_COMMENT(\$ticket: uuid!, \$document: jsonb!, \$initial_comment: Boolean!){
             insert_ticket_comment_one(
               object: {
@@ -608,27 +554,29 @@ class _InstallsScreenState extends State<InstallsScreen> {
               ticket_comment
             }
           }
-        """), variables: {
-          "document": i['document'],
+        """),
+        variables: {
+          "document": i["document"],
           "ticket": ticket,
           "initial_comment": true,
-        });
+        },
+      );
 
-        final QueryResult insertTicketCommentResult =
-            await GqlClientFactory().authGqlmutate(insertTicketCommentOptions);
+      final QueryResult insertTicketCommentResult =
+          await GqlClientFactory().authGqlmutate(insertTicketCommentOptions);
 
-        if (insertTicketCommentResult.hasException) {
-          Fluttertoast.showToast(
-              msg: updateInstallResult.exception.toString(),
-              toastLength: Toast.LENGTH_LONG,
-              gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.grey[600],
-              textColor: Colors.white,
-              fontSize: 16.0);
-        }
+      if (insertTicketCommentResult.hasException) {
+        Fluttertoast.showToast(
+            msg: updateInstallResult.exception.toString(),
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0);
+      }
 
-        MutationOptions updateInstallByPKOptions = MutationOptions(
-          document: gql("""
+      MutationOptions updateInstallByPKOptions = MutationOptions(
+        document: gql("""
           mutation UPDATE_INSTALL_BY_PK(\$install: uuid!, \$ticket_created: Boolean){
             update_install_by_pk (
               pk_columns: {install: \$install}
@@ -638,26 +586,107 @@ class _InstallsScreenState extends State<InstallsScreen> {
             }
           }
         """),
-          variables: {
-            "install": install,
-            "ticket_created": true,
-          },
-        );
+        variables: {
+          "install": data["install"],
+          "ticket_created": true,
+        },
+      );
 
-        final QueryResult updateInstallByPKResult =
-            await GqlClientFactory().authGqlmutate(updateInstallByPKOptions);
+      final QueryResult updateInstallByPKResult =
+          await GqlClientFactory().authGqlmutate(updateInstallByPKOptions);
 
-        if (updateInstallByPKResult.hasException) {
-          Fluttertoast.showToast(
-              msg: updateInstallResult.exception.toString(),
-              toastLength: Toast.LENGTH_LONG,
-              gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.grey[600],
-              textColor: Colors.white,
-              fontSize: 16.0);
-        }
+      if (updateInstallByPKResult.hasException) {
+        Fluttertoast.showToast(
+            msg: updateInstallResult.exception.toString(),
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0);
       }
     }
+    Fluttertoast.showToast(
+        msg: successMsg,
+        toastLength: msgLength,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.grey[600],
+        textColor: Colors.white,
+        fontSize: 16.0);
+
+    Navigator.of(context).pop();
+  }
+
+  void updateInstall(data) async {
+    var successMsg = "Install Ticket Updated!";
+    var msgLength = Toast.LENGTH_SHORT;
+
+    MutationOptions updateInstallDateByPKOptions = MutationOptions(
+      document: gql("""
+      mutation UPDATE_INSTALL_DATE_BY_PK(\$install: uuid!, \$date: timestamptz!){
+        update_install_by_pk(
+          pk_columns: {install: \$install}
+          _set: {date: \$date}
+        ) {
+          install
+        }
+      }
+    """),
+      variables: {
+        "install": data["install"],
+        "date": data["date"],
+      },
+    );
+
+    final QueryResult updateInstallDateByPKResult =
+        await GqlClientFactory().authGqlmutate(updateInstallDateByPKOptions);
+
+    if (updateInstallDateByPKResult.hasException) {
+      Fluttertoast.showToast(
+          msg: updateInstallDateByPKResult.exception.toString(),
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0);
+    }
+    MutationOptions updateInstallEmployeeByPKOptions = MutationOptions(
+      document: gql("""
+      mutation UPDATE_INSTALL_DATE_BY_PK(\$install: uuid!, \$date: timestamptz!){
+        update_install_by_pk(
+          pk_columns: {install: \$install}
+          _set: {date: \$date}
+        ) {
+          install
+        }
+      }
+    """),
+      variables: {
+        "install": data["install"],
+        "date": data["date"],
+      },
+    );
+
+    final QueryResult updateInstallEmployeeByPKResult = await GqlClientFactory()
+        .authGqlmutate(updateInstallEmployeeByPKOptions);
+
+    if (updateInstallEmployeeByPKResult.hasException) {
+      Fluttertoast.showToast(
+          msg: updateInstallEmployeeByPKResult.exception.toString(),
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0);
+    }
+
+    Fluttertoast.showToast(
+        msg: successMsg,
+        toastLength: msgLength,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.grey[600],
+        textColor: Colors.white,
+        fontSize: 16.0);
+    Navigator.of(context).pop();
   }
 
   Widget installList() {
@@ -931,10 +960,47 @@ class _InstallsScreenState extends State<InstallsScreen> {
             bottom: TabBar(
               tabs: [
                 Tab(
-                  icon: Icon(Icons.calendar_today),
+                  icon: Icon(
+                    Icons.calendar_today,
+                    color: Colors.white,
+                    size: 25,
+                  ),
                 ),
                 Tab(
-                  icon: Icon(Icons.schedule),
+                  child: Stack(
+                    children: <Widget>[
+                      Icon(
+                        Icons.schedule,
+                        color: Colors.white,
+                        size: 25,
+                      ),
+                      Positioned(
+                        right: 0,
+                        top: 2,
+                        child: unscheduledInstallCount > 0
+                            ? Container(
+                                padding: EdgeInsets.all(2),
+                                decoration: new BoxDecoration(
+                                  color: Colors.redAccent,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                constraints: BoxConstraints(
+                                  minWidth: 14,
+                                  minHeight: 14,
+                                ),
+                                child: Text(
+                                  '${unscheduledInstallCount.toString()}',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 8,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              )
+                            : Container(),
+                      ),
+                    ],
+                  ),
                 )
               ],
             ),
