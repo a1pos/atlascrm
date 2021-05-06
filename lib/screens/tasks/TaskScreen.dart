@@ -366,17 +366,18 @@ class _TaskScreenState extends State<TaskScreen> {
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 children: <Widget>[
                                   Container(
-                                      child: UserService.isAdmin == true
-                                          ? EmployeeDropDown(
-                                              value: employeeDropdownValue,
-                                              callback: ((val) {
-                                                setState(() {
-                                                  leadDropdownValue = null;
-                                                  employeeDropdownValue = val;
-                                                });
-                                              }),
-                                            )
-                                          : Container()),
+                                    child: UserService.isAdmin == true
+                                        ? EmployeeDropDown(
+                                            value: employeeDropdownValue,
+                                            callback: ((val) {
+                                              setState(() {
+                                                leadDropdownValue = null;
+                                                employeeDropdownValue = val;
+                                              });
+                                            }),
+                                          )
+                                        : Container(),
+                                  ),
                                   Divider(
                                     color: Colors.white,
                                   ),

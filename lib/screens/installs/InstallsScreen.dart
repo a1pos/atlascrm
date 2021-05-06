@@ -5,14 +5,11 @@ import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/components/shared/CustomDrawer.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
-import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-import 'package:intl/date_symbol_data_local.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 
@@ -131,6 +128,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
       calendarController: _calendarController,
       headerStyle: HeaderStyle(formatButtonShowsNext: false),
       calendarStyle: CalendarStyle(),
+      initialCalendarFormat: CalendarFormat.twoWeeks,
       onDaySelected: (date, events, _) {
         setState(() {
           activeInstalls = events;
@@ -164,7 +162,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
             }
           }
         """),
-      fetchPolicy: FetchPolicy.networkOnly,
+      fetchPolicy: FetchPolicy.noCache,
       cacheRereadPolicy: CacheRereadPolicy.ignoreAll,
     );
 
@@ -692,7 +690,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
   Widget installList() {
     return SingleChildScrollView(
       child: Column(
-        children: [
+        children: <Widget>[
           TextField(
             decoration: InputDecoration(
               labelText: "Search Installs",
@@ -740,7 +738,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
                     }
                     return installScheduleForm(i, viewDate);
                   }).toList(),
-                )
+                ),
         ],
       ),
     );
@@ -774,13 +772,15 @@ class _InstallsScreenState extends State<InstallsScreen> {
   Widget getInstalls() {
     return SingleChildScrollView(
       child: Column(
-        children: [
+        children: <Widget>[
           TextField(
             decoration: InputDecoration(labelText: "Search Installs"),
             onChanged: (value) {
               if (value.isNotEmpty) {
                 var filtered = installsFull.where((e) {
                   String merchant = e["merchantbusinessname"];
+                  //device
+                  //location
 
                   return (merchant != null
                       ? merchant.toLowerCase().contains(value.toLowerCase())
@@ -798,6 +798,19 @@ class _InstallsScreenState extends State<InstallsScreen> {
                 });
               }
             },
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
+            child: EmployeeDropDown(
+              value: employeeDropdownValue,
+              callback: (val) {
+                setState(() {
+                  if (val != null) {
+                    employeeDropdownValue = val;
+                  }
+                });
+              },
+            ),
           ),
           _buildCalendar(),
           isEmpty
@@ -976,7 +989,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
                       ),
                       Positioned(
                         right: 0,
-                        top: 2,
+                        top: 0,
                         child: unscheduledInstallCount > 0
                             ? Container(
                                 padding: EdgeInsets.all(2),

@@ -22,7 +22,6 @@ import 'package:atlascrm/screens/merchants/MerchantsScreen.dart';
 import 'package:atlascrm/screens/trips/TripsScreen.dart';
 import 'package:atlascrm/screens/tasks/TaskScreen.dart';
 import 'package:atlascrm/screens/employees/ViewEmployeeScreen.dart';
-import 'package:atlascrm/screens/installs/ViewInstallScreen.dart';
 import 'package:atlascrm/screens/inventory/ViewInventoryScreen.dart';
 import 'package:atlascrm/screens/leads/ViewLeadScreen.dart';
 import 'package:atlascrm/screens/merchants/ViewMerchantScreen.dart';
@@ -176,11 +175,6 @@ class _AtlasCRMState extends State<AtlasCRM> {
               case '/viewinventory':
                 return SlideRightRoute(
                   page: ViewInventoryScreen(settings.arguments),
-                );
-                break;
-              case '/viewinstall':
-                return SlideRightRoute(
-                  page: ViewInstallScreen(settings.arguments),
                 );
                 break;
               case '/employeemgmt':

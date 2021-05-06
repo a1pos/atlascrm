@@ -535,13 +535,15 @@ class _LeadsScreenState extends State<LeadsScreen> {
           Padding(
             padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
             child: UserService.isAdmin || UserService.isSalesManager
-                ? EmployeeDropDown(callback: (val) {
-                    if (val != null) {
-                      filterByEmployee(val);
-                    } else {
-                      clearFilter();
-                    }
-                  })
+                ? EmployeeDropDown(
+                    callback: (val) {
+                      if (val != null) {
+                        filterByEmployee(val);
+                      } else {
+                        clearFilter();
+                      }
+                    },
+                  )
                 : Row(
                     children: [
                       Switch(
