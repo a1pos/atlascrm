@@ -804,11 +804,22 @@ class _InstallsScreenState extends State<InstallsScreen> {
             child: EmployeeDropDown(
               value: employeeDropdownValue,
               callback: (val) {
-                setState(() {
-                  if (val != null) {
-                    employeeDropdownValue = val;
-                  }
-                });
+                if (val != null) {
+                  var eFiltered = installsFull.where((e) {
+                    String employee = e["employee"];
+                    return (employee != null
+                        ? employee.toLowerCase().contains(val.toLowerCase())
+                        : false);
+                  }).toList();
+
+                  setState(() {
+                    activeInstalls = eFiltered.toList();
+                    isEmpty = false;
+                  });
+                } else {
+                  activeInstalls = [];
+                  isEmpty = true;
+                }
               },
             ),
           ),
