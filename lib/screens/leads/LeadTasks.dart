@@ -563,6 +563,7 @@ class _LeadTasksState extends State<LeadTasks> {
                 setState(() {
                   activeTasks = [];
                   isEmpty = true;
+                  fillEvents();
                 });
               }
             },

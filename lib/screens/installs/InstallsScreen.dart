@@ -6,6 +6,7 @@ import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/components/shared/CustomDrawer.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
 import 'package:atlascrm/services/GqlClientFactory.dart';
+import 'package:atlascrm/services/UserService.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -26,6 +27,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
   bool isLocFiltering = false;
   bool isLoading = true;
   bool isEmpty = true;
+  bool installsIncludeAll = false;
   bool isSaveDisabled;
 
   TimeOfDay initTime;
@@ -36,7 +38,6 @@ class _InstallsScreenState extends State<InstallsScreen> {
   Map data;
 
   List installs = [];
-  List installsFull = [];
   List activeInstalls = [];
   List unscheduledInstallsList = [];
 
@@ -69,7 +70,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
   Future<void> fillEvents() async {
     setState(() {
       _calendarEvents = {};
-      for (var item in installs) {
+      for (var item in activeInstalls) {
         if (item["date"] != null) {
           var itemDate = DateTime.parse(item["date"]).toLocal();
           itemDate = DateTime(
@@ -146,8 +147,8 @@ class _InstallsScreenState extends State<InstallsScreen> {
     SubscriptionOptions options = SubscriptionOptions(
       operationName: "SUBSCRIBE_V_INSTALL",
       document: gql("""
-          subscription SUBSCRIBE_V_INSTALL{
-            v_install (order_by: {date: asc}) {
+          subscription SUBSCRIBE_V_INSTALL {
+            v_install_table (order_by: {date: asc}) {
               install
               merchant
               merchantbusinessname
@@ -158,9 +159,10 @@ class _InstallsScreenState extends State<InstallsScreen> {
               location
               cash_discounting
               ticket_created
-              ticket
+              ticket_open
             }
           }
+
         """),
       fetchPolicy: FetchPolicy.noCache,
       cacheRereadPolicy: CacheRereadPolicy.ignoreAll,
@@ -168,14 +170,14 @@ class _InstallsScreenState extends State<InstallsScreen> {
 
     subscription =
         await GqlClientFactory().authGqlsubscribe(options, (data) async {
-      var installsArrDecoded = data.data["v_install"];
+      var installsArrDecoded = data.data["v_install_table"];
       if (installsArrDecoded != null && this.mounted) {
         setState(() {
           installs = installsArrDecoded;
           unscheduledInstallsList =
               installs.where((element) => element['date'] == null).toList();
           unscheduledInstallCount = unscheduledInstallsList.length;
-          installsFull = installs;
+          activeInstalls = installs;
           isLoading = false;
         });
 
@@ -687,63 +689,6 @@ class _InstallsScreenState extends State<InstallsScreen> {
     Navigator.of(context).pop();
   }
 
-  Widget installList() {
-    return SingleChildScrollView(
-      child: Column(
-        children: <Widget>[
-          TextField(
-            decoration: InputDecoration(
-              labelText: "Search Installs",
-            ),
-            onChanged: (value) {
-              if (value.isNotEmpty) {
-                var filtered = installsFull.where((e) {
-                  String merchant = e["merchantbusinessname"];
-
-                  return (merchant != null
-                      ? merchant.toLowerCase().contains(value.toLowerCase())
-                      : false);
-                }).toList();
-
-                setState(() {
-                  activeInstalls = filtered.toList();
-                  isEmpty = false;
-                });
-              } else {
-                setState(() {
-                  activeInstalls = [];
-                  isEmpty = true;
-                });
-              }
-            },
-          ),
-          _buildCalendar(),
-          isEmpty
-              ? Empty("No installs today")
-              : Column(
-                  children: activeInstalls.map((i) {
-                    if (i['date'] != null) {
-                      iDate = DateFormat("EEE, MMM d, ''yy")
-                          .add_jm()
-                          .format(DateTime.parse(i['date']).toLocal());
-                      initDate = DateTime.parse(i['date']).toLocal();
-                      initTime = TimeOfDay.fromDateTime(initDate);
-                      viewDate = DateFormat("yyyy-MM-dd HH:mm")
-                          .format(DateTime.parse(i['date']).toLocal());
-                    } else {
-                      iDate = "TBD";
-                      initDate = DateTime.now();
-                      initTime = TimeOfDay.fromDateTime(initDate);
-                      viewDate = "";
-                    }
-                    return installScheduleForm(i, viewDate);
-                  }).toList(),
-                ),
-        ],
-      ),
-    );
-  }
-
   Widget unscheduledInstalls() {
     return SingleChildScrollView(
       child: Column(
@@ -754,15 +699,17 @@ class _InstallsScreenState extends State<InstallsScreen> {
                   child: Empty("No unscheduled installs"),
                 )
               : Column(
-                  children: unscheduledInstallsList.map((i) {
-                    setState(() {
-                      iDate = "TBD";
-                      initDate = DateTime.now();
-                      initTime = TimeOfDay.fromDateTime(initDate);
-                      viewDate = "";
-                    });
-                    return installScheduleForm(i, viewDate);
-                  }).toList(),
+                  children: unscheduledInstallsList.map(
+                    (i) {
+                      setState(() {
+                        iDate = "TBD";
+                        initDate = DateTime.now();
+                        initTime = TimeOfDay.fromDateTime(initDate);
+                        viewDate = "";
+                      });
+                      return installScheduleForm(i, viewDate);
+                    },
+                  ).toList(),
                 )
         ],
       ),
@@ -777,51 +724,82 @@ class _InstallsScreenState extends State<InstallsScreen> {
             decoration: InputDecoration(labelText: "Search Installs"),
             onChanged: (value) {
               if (value.isNotEmpty) {
-                var filtered = installsFull.where((e) {
+                var filtered = installs.where((e) {
                   String merchant = e["merchantbusinessname"];
-                  //device
-                  //location
+                  String location = e["location"];
 
-                  return (merchant != null
-                      ? merchant.toLowerCase().contains(value.toLowerCase())
+                  return (merchant != null || merchant != ""
+                      ? merchant.toLowerCase().contains(value.toLowerCase()) ||
+                          location.toLowerCase().contains(value)
                       : false);
                 }).toList();
 
                 setState(() {
                   activeInstalls = filtered.toList();
-                  isEmpty = false;
+
+                  if (activeInstalls.length > 0) {
+                    isEmpty = false;
+                  } else {
+                    isEmpty = true;
+                  }
                 });
               } else {
                 setState(() {
-                  activeInstalls = [];
+                  activeInstalls = installs;
                   isEmpty = true;
+                  fillEvents();
                 });
               }
             },
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
-            child: EmployeeDropDown(
-              value: employeeDropdownValue,
-              callback: (val) {
-                if (val != null) {
-                  var eFiltered = installsFull.where((e) {
-                    String employee = e["employee"];
-                    return (employee != null
-                        ? employee.toLowerCase().contains(val.toLowerCase())
-                        : false);
-                  }).toList();
+            child: UserService.isAdmin || UserService.isSalesManager
+                ? EmployeeDropDown(
+                    value: employeeDropdownValue,
+                    callback: (val) {
+                      if (val != null) {
+                        var eFiltered = installs.where((e) {
+                          String employee = e["employee"];
+                          return (employee != null
+                              ? employee
+                                  .toLowerCase()
+                                  .contains(val.toLowerCase())
+                              : false);
+                        }).toList();
 
-                  setState(() {
-                    activeInstalls = eFiltered.toList();
-                    isEmpty = false;
-                  });
-                } else {
-                  activeInstalls = [];
-                  isEmpty = true;
-                }
-              },
-            ),
+                        setState(() {
+                          activeInstalls = eFiltered.toList();
+                          isEmpty = false;
+                        });
+                      } else {
+                        setState(() {
+                          activeInstalls = installs;
+                          isEmpty = true;
+                        });
+                      }
+                      fillEvents();
+                    },
+                  )
+                : Row(
+                    children: [
+                      Switch(
+                        activeColor: UniversalStyles.themeColor,
+                        value: installsIncludeAll,
+                        onChanged: (value) {
+                          var iFiltered = installs.where((e) {
+                            String ticketOpen = e["ticket_open"];
+
+                            return false;
+                          }).toList();
+                          setState(() {
+                            installsIncludeAll = value;
+                          });
+                        },
+                      ),
+                      Text("Show all active Installs")
+                    ],
+                  ),
           ),
           _buildCalendar(),
           isEmpty
@@ -907,14 +885,17 @@ class _InstallsScreenState extends State<InstallsScreen> {
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: <Widget>[
                         Container(
-                          child: EmployeeDropDown(
-                            value: i['employee'] ?? "",
-                            callback: (val) {
-                              setState(() {
-                                employeeDropdownValue = val;
-                              });
-                            },
-                          ),
+                          child:
+                              UserService.isAdmin || UserService.isSalesManager
+                                  ? EmployeeDropDown(
+                                      value: i['employee'] ?? "",
+                                      callback: (val) {
+                                        setState(() {
+                                          employeeDropdownValue = val;
+                                        });
+                                      },
+                                    )
+                                  : Container(),
                         ),
                         DateTimeField(
                           onEditingComplete: () =>

@@ -547,11 +547,12 @@ class _LeadsScreenState extends State<LeadsScreen> {
                 : Row(
                     children: [
                       Switch(
-                          activeColor: UniversalStyles.themeColor,
-                          value: salesIncludeStale,
-                          onChanged: (value) {
-                            toggleStale(value);
-                          }),
+                        activeColor: UniversalStyles.themeColor,
+                        value: salesIncludeStale,
+                        onChanged: (value) {
+                          toggleStale(value);
+                        },
+                      ),
                       Text("Show all Stale leads")
                     ],
                   ),

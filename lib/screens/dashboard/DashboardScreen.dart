@@ -6,6 +6,7 @@ import 'package:atlascrm/components/shared/AppVersion.dart';
 import 'package:atlascrm/screens/dashboard/widgets/LeadsChart.dart';
 import 'package:atlascrm/screens/dashboard/widgets/SalesLeaderboardCards.dart';
 import 'package:atlascrm/screens/dashboard/widgets/Tasks.dart';
+import 'package:atlascrm/services/UserService.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -167,6 +168,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         child: LeadsChart(),
                       ),
                     ),
+                    UserService.isAdmin ||
+                            UserService.isTech ||
+                            UserService.isSalesManager
+                        ? CustomCard(
+                            key: Key("Installs"),
+                            title: "Installs",
+                            icon: Icons.devices,
+                            child: Container(
+                              height: 200,
+                              child: null,
+                            ))
+                        : Container(),
                     Align(alignment: Alignment.center, child: AppVersion()),
                   ],
                 )
