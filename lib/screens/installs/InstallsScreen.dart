@@ -202,6 +202,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
     var merchant = i['merchant'];
     var ticketStatus;
     var ticketCategory;
+    var ticket;
 
     var installDate = DateTime.parse(installDateController.text).toUtc();
     var installDateFormat = DateFormat("yyyy-MM-dd HH:mm").format(installDate);
@@ -263,6 +264,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
       query GET_INSTALL_DOC(\$install: uuid!){
         install(where: {install: {_eq: \$install}}) {
           document
+          ticket
         }
       }
     """),
@@ -277,6 +279,10 @@ class _InstallsScreenState extends State<InstallsScreen> {
     if (installDocumentResult != null) {
       if (installDocumentResult.hasException == false) {
         i["document"] = installDocumentResult.data["install"][0]["document"];
+
+        if (installDocumentResult.data["install"][0]["ticket"] != null) {
+          ticket = installDocumentResult.data["install"][0]["ticket"];
+        }
       } else {
         print(new Error());
       }
@@ -302,6 +308,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
         "install": install,
         "employee": employeeDropdownValue,
         "date": installDateFormat,
+        "ticket": ticket
       };
       updateInstall(data);
     }
@@ -310,6 +317,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
   void confirmInstall(data, i) async {
     var successMsg = "Install claimed and ticket created!";
     var msgLength = Toast.LENGTH_SHORT;
+    var ticket;
 
     MutationOptions updateInstallEmployeeByPKOptions = MutationOptions(
       document: gql("""
@@ -414,8 +422,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
           fontSize: 16.0);
     }
 
-    var ticket =
-        insertTicketResult.data["insert_ticket"]["returning"][0]["ticket"];
+    ticket = insertTicketResult.data["insert_ticket"]["returning"][0]["ticket"];
 
     MutationOptions insertAssigneeOptions = MutationOptions(
       document: gql("""
@@ -641,6 +648,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
         await GqlClientFactory().authGqlmutate(updateInstallDateByPKOptions);
 
     if (updateInstallDateByPKResult.hasException) {
+      print(updateInstallDateByPKResult);
       Fluttertoast.showToast(
           msg: updateInstallDateByPKResult.exception.toString(),
           toastLength: Toast.LENGTH_LONG,
@@ -649,12 +657,16 @@ class _InstallsScreenState extends State<InstallsScreen> {
           textColor: Colors.white,
           fontSize: 16.0);
     }
+
+    // data["ticket"] =
+    //     updateInstallDateByPKResult.data["update_install_by_pk"]["ticket"];
+
     MutationOptions updateInstallEmployeeByPKOptions = MutationOptions(
       document: gql("""
-      mutation UPDATE_INSTALL_DATE_BY_PK(\$install: uuid!, \$date: timestamptz!){
+      mutation UPDATE_INSTALL_DATE_BY_PK(\$install: uuid!, \$employee: uuid!){
         update_install_by_pk(
           pk_columns: {install: \$install}
-          _set: {date: \$date}
+          _set: {employee: \$employee}
         ) {
           install
         }
@@ -662,7 +674,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
     """),
       variables: {
         "install": data["install"],
-        "date": data["date"],
+        "employee": data["employee"],
       },
     );
 
@@ -679,6 +691,68 @@ class _InstallsScreenState extends State<InstallsScreen> {
           fontSize: 16.0);
     }
 
+    MutationOptions updateTicketDateByPKOptions = MutationOptions(
+      document: gql("""
+      mutation UPDATE_TICKET_DATE_BY_PK(\$ticket: uuid!, \$date: timestamptz!){
+        update_ticket_by_pk(
+          pk_columns: {ticket: \$ticket}
+          _set: {date: \$date}
+        ){
+          date
+        }
+      }
+    """),
+      variables: {
+        "ticket": data["ticket"],
+        "date": data["date"],
+      },
+    );
+
+    final QueryResult updateTicketDateByPKResult =
+        await GqlClientFactory().authGqlmutate(updateTicketDateByPKOptions);
+
+    if (updateTicketDateByPKResult.hasException) {
+      Fluttertoast.showToast(
+          msg: updateTicketDateByPKResult.exception.toString(),
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0);
+    }
+
+    MutationOptions updateTicketAssigneeOptions = MutationOptions(
+      document: gql("""
+      mutation UPDATE_TICKET_ASSIGNEE(\$ticket: uuid!, \$employee: uuid!) {
+        update_ticket_assignee(
+          where: { ticket: { _eq: \$ticket } }
+          _set: { employee: \$employee }
+        ) {
+          returning {
+            employee
+          }
+        }
+      }
+    """),
+      variables: {
+        "ticket": data["ticket"],
+        "employee": data["employee"],
+      },
+    );
+
+    final QueryResult updateTicketAssigneeResult =
+        await GqlClientFactory().authGqlmutate(updateTicketAssigneeOptions);
+
+    if (updateTicketAssigneeResult.hasException) {
+      Fluttertoast.showToast(
+          msg: updateTicketAssigneeResult.exception.toString(),
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0);
+    }
+
     Fluttertoast.showToast(
         msg: successMsg,
         toastLength: msgLength,
@@ -686,6 +760,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
         backgroundColor: Colors.grey[600],
         textColor: Colors.white,
         fontSize: 16.0);
+
     Navigator.of(context).pop();
   }
 
@@ -786,15 +861,22 @@ class _InstallsScreenState extends State<InstallsScreen> {
                       Switch(
                         activeColor: UniversalStyles.themeColor,
                         value: installsIncludeAll,
-                        onChanged: (value) {
-                          var iFiltered = installs.where((e) {
-                            String ticketOpen = e["ticket_open"];
-
-                            return false;
-                          }).toList();
-                          setState(() {
-                            installsIncludeAll = value;
-                          });
+                        onChanged: (bool value) {
+                          if (value) {
+                            var iFiltered = installs
+                                .where((e) => e["ticket_open"] == value)
+                                .toList();
+                            setState(() {
+                              activeInstalls = iFiltered;
+                              installsIncludeAll = value;
+                            });
+                          } else {
+                            setState(() {
+                              activeInstalls = installs;
+                              installsIncludeAll = value;
+                            });
+                          }
+                          fillEvents();
                         },
                       ),
                       Text("Show all active Installs")
@@ -840,7 +922,9 @@ class _InstallsScreenState extends State<InstallsScreen> {
       onTap: () {
         setState(() {
           installDateController.text = viewDate;
-          employeeDropdownValue = i['employee'];
+          employeeDropdownValue = UserService.isTech
+              ? UserService.employee.employee
+              : i['employee'];
         });
         showDialog(
             context: context,

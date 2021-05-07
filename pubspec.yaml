@@ -44,7 +44,13 @@ dependencies:
   google_maps_flutter: ^0.5.21+15
   google_maps_webservice: ^0.0.20-nullsafety.3
   google_sign_in: ^4.1.1
-  graphql_flutter: ^4.0.1
+  #graphql_flutter: ^4.0.1
+  graphql_flutter:
+    git: #!https://github.com/zino-app/graphql-flutter/issues/856
+      url: https://github.com/psrcek/graphql-flutter.git
+      ref: 821dd3c0433f8f41de8146311c3f889dfae5f50d
+      path: packages/graphql_flutter
+      publish_to: none
   http_parser: ^4.0.0
   image: ^3.0.1
   image_picker: ^0.7.4
