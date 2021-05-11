@@ -504,19 +504,19 @@ class _InventoryScreenState extends State<InventoryScreen> {
                   ],
                 ),
               ),
-        floatingActionButton: UnicornDialer(
-          backgroundColor: Color.fromRGBO(255, 255, 255, 0.0),
-          parentButtonBackground: UniversalStyles.actionColor,
-          orientation: UnicornOrientation.VERTICAL,
-          parentButton: Icon(Icons.menu),
-          childButtons: childButtons.toList(),
+        floatingActionButton: FloatingActionButton(
+          onPressed: openAddInventoryForm,
+          backgroundColor: UniversalStyles.actionColor,
+          foregroundColor: Colors.white,
+          child: Icon(Icons.add),
+          splashColor: Colors.white,
         ),
-        // FloatingActionButton(
-        //   onPressed: openAddInventoryForm,
-        //   backgroundColor: UniversalStyles.actionColor,
-        //   foregroundColor: Colors.white,
-        //   child: Icon(Icons.add),
-        //   splashColor: Colors.white,
+        // UnicornDialer(
+        //   backgroundColor: Color.fromRGBO(255, 255, 255, 0.0),
+        //   parentButtonBackground: UniversalStyles.actionColor,
+        //   orientation: UnicornOrientation.VERTICAL,
+        //   parentButton: Icon(Icons.menu),
+        //   childButtons: childButtons.toList(),
         // ),
       ),
     );

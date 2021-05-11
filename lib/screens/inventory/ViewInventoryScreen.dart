@@ -480,32 +480,48 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
           }
           var initDate = DateTime.parse(event["created_at"]).toLocal();
           var eventDate = DateFormat.yMd().add_jm().format(initDate);
+          var inventoryMerchant = event["merchant"];
+          var inventoryMerchantDoc = event["merchantByMerchant"];
+          var otherCompany = false;
 
-          return Card(
-            shape: new RoundedRectangleBorder(
-                side: new BorderSide(color: Colors.grey[200], width: 2.0),
-                borderRadius: BorderRadius.circular(4.0)),
-            child: ListTile(
-              isThreeLine: true,
-              title: Text(eventType == "Returned" || eventType == "Scanned In"
-                  ? event["inventoryLocationByInventoryLocation"]["name"]
-                  : event["merchantByMerchant"]["document"]["leadDocument"]
-                      ["businessName"]),
-              subtitle: Align(
-                alignment: Alignment.centerLeft,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
-                  child: eventEmployee,
-                ),
-              ),
-              trailing: Column(
-                children: <Widget>[
-                  Text(eventDate),
-                  Text(eventType),
-                ],
-              ),
-            ),
-          );
+          if (inventoryMerchantDoc == null && inventoryMerchant != null) {
+            otherCompany = true;
+          }
+
+          return !otherCompany
+              ? Card(
+                  shape: new RoundedRectangleBorder(
+                      side: new BorderSide(color: Colors.grey[200], width: 2.0),
+                      borderRadius: BorderRadius.circular(4.0)),
+                  child: ListTile(
+                    isThreeLine: true,
+                    title: Text(
+                      eventType == "Returned" || eventType == "Scanned In"
+                          ? event["inventoryLocationByInventoryLocation"]
+                              ["name"]
+                          : event["merchantByMerchant"]["document"]
+                              ["leadDocument"]["businessName"],
+                      style:
+                          eventType == "Returned" || eventType == "Scanned In"
+                              ? TextStyle(color: UniversalStyles.actionColor)
+                              : null,
+                    ),
+                    subtitle: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
+                        child: eventEmployee,
+                      ),
+                    ),
+                    trailing: Column(
+                      children: <Widget>[
+                        Text(eventDate),
+                        Text(eventType),
+                      ],
+                    ),
+                  ),
+                )
+              : Container();
         },
       ),
     );

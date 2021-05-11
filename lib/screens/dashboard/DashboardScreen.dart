@@ -3,6 +3,7 @@ import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CustomDrawer.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/components/shared/AppVersion.dart';
+import 'package:atlascrm/screens/dashboard/widgets/Installs.dart';
 import 'package:atlascrm/screens/dashboard/widgets/LeadsChart.dart';
 import 'package:atlascrm/screens/dashboard/widgets/SalesLeaderboardCards.dart';
 import 'package:atlascrm/screens/dashboard/widgets/Tasks.dart';
@@ -177,7 +178,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             icon: Icons.devices,
                             child: Container(
                               height: 200,
-                              child: null,
+                              child: Installs(),
                             ))
                         : Container(),
                     Align(alignment: Alignment.center, child: AppVersion()),
