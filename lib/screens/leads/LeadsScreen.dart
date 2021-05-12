@@ -393,10 +393,29 @@ class _LeadsScreenState extends State<LeadsScreen> {
 
   void openAddLeadForm() {
     showDialog(
+      barrierDismissible: false,
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Add New Lead'),
+          title: Padding(
+            padding: EdgeInsets.fromLTRB(0, 0, 0, 7.5),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Text('Add New Lead'),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Icon(
+                    Icons.close_rounded,
+                    color: Colors.grey[750],
+                    size: 30.0,
+                  ),
+                ),
+              ],
+            ),
+          ),
           contentPadding: EdgeInsets.all(0),
           content: Container(
             width: MediaQuery.of(context).size.width,

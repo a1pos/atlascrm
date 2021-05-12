@@ -1,4 +1,5 @@
 import 'package:atlascrm/components/install/InstallItem.dart';
+import 'package:atlascrm/components/install/InstallScheduleForm.dart';
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
 import 'package:atlascrm/services/GqlClientFactory.dart';
@@ -17,12 +18,14 @@ class _InstallsState extends State<Installs> {
 
   List installs = [];
   List activeInstalls = [];
+
   var subscription;
+  var iDate;
+  var viewDate;
 
   @override
   void initState() {
     super.initState();
-
     initInstalls();
   }
 
@@ -72,8 +75,13 @@ class _InstallsState extends State<Installs> {
                 .toList();
             isLoading = false;
           });
+
+          if (activeInstalls.length > 0) {
+            isEmpty = false;
+          } else {
+            isEmpty = true;
+          }
         }
-        isLoading = false;
       },
       (error) {},
       () => refreshSub(),
@@ -90,48 +98,37 @@ class _InstallsState extends State<Installs> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: isLoading
-          ? Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                CenteredLoadingSpinner(),
-              ],
-            )
-          : activeInstalls == null
-              ? Empty("No Active Installs found")
-              : buildDLGridView(context, activeInstalls),
-    );
-  }
-}
-
-Widget buildDLGridView(BuildContext context, list) {
-  return list.length == 0
-      ? Empty("No Active Installs found")
-      : ListView(
-          shrinkWrap: true,
-          children: List.generate(
-            list.length,
-            (index) {
-              var install = list[index];
-              var date = DateFormat("EEE, MMM d, ''yy")
-                  .add_jm()
-                  .format(DateTime.parse(install["date"]).toLocal());
-
-              return GestureDetector(
-                onTap: () {
-                  return null;
-                },
-                child: InstallItem(
-                  merchant: install["merchantbusinessname"],
-                  dateTime: date ?? "TBD",
-                  merchantDevice: install["merchantdevice"] ?? "No Terminal",
-                  employeeFullName: install["employeefullname"] ?? "",
-                  location: install["location"],
-                ),
+    return isLoading
+        ? CenteredLoadingSpinner()
+        : !isEmpty
+            ? ListView(
+                shrinkWrap: true,
+                children: activeInstalls.map((i) {
+                  if (i['date'] != null) {
+                    setState(() {
+                      iDate = DateFormat("EEE, MMM d, ''yy")
+                          .add_jm()
+                          .format(DateTime.parse(i['date']).toLocal());
+                      viewDate = DateFormat("yyyy-MM-dd HH:mm")
+                          .format(DateTime.parse(i['date']).toLocal());
+                    });
+                  } else {
+                    setState(() {
+                      iDate = "TBD";
+                      viewDate = "";
+                    });
+                  }
+                  return InstallScheduleForm(
+                    i,
+                    viewDate,
+                    iDate,
+                    unscheduled: false,
+                  );
+                }).toList(),
+              )
+            : Padding(
+                padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                child: Empty("No active Installs found"),
               );
-            },
-          ),
-        );
+  }
 }
