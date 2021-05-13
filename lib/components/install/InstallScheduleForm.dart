@@ -66,7 +66,7 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
                   ),
                   !isSaveDisabled
                       ? MaterialButton(
-                          child: this.widget.installList['date'] != null
+                          child: installList['date'] != null
                               ? Text(
                                   'Update',
                                   style: TextStyle(color: Colors.white),
@@ -81,14 +81,14 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
                               setState(() {
                                 isSaveDisabled = true;
                               });
-                              await changeInstall(this.widget.installList);
+                              await changeInstall(installList);
                             }
                           },
                         )
                       : Container(),
                 ],
                 title: Text(
-                  this.widget.installList["merchantbusinessname"],
+                  installList["merchantbusinessname"],
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 content: Form(
@@ -98,18 +98,17 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: <Widget>[
                         Container(
-                          child: UserService.isAdmin ||
-                                  UserService.isSalesManager
-                              ? EmployeeDropDown(
-                                  value:
-                                      this.widget.installList['employee'] ?? "",
-                                  callback: (val) {
-                                    setState(() {
-                                      employeeDropdownValue = val;
-                                    });
-                                  },
-                                )
-                              : Container(),
+                          child:
+                              UserService.isAdmin || UserService.isSalesManager
+                                  ? EmployeeDropDown(
+                                      value: installList['employee'] ?? "",
+                                      callback: (val) {
+                                        setState(() {
+                                          employeeDropdownValue = val;
+                                        });
+                                      },
+                                    )
+                                  : Container(),
                         ),
                         DateTimeField(
                           onEditingComplete: () =>
@@ -155,21 +154,20 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
             });
       },
       child: InstallItem(
-        merchant: this.widget.installList["merchantbusinessname"],
+        merchant: installList["merchantbusinessname"],
         dateTime: this.widget.iDate ?? "TBD",
-        merchantDevice:
-            this.widget.installList["merchantdevice"] ?? "No Terminal",
-        employeeFullName: this.widget.installList["employeefullname"] ?? "",
-        location: this.widget.installList["location"],
+        merchantDevice: installList["merchantdevice"] ?? "No Terminal",
+        employeeFullName: installList["employeefullname"] ?? "",
+        location: installList["location"],
       ),
     );
   }
 
-  Future<void> changeInstall(i) async {
+  Future<void> changeInstall(install) async {
     var installEmployee = employeeDropdownValue;
-    var merchantName = i['merchantbusinessname'];
-    var merchant = i['merchant'];
-    var install = i['install'];
+    var merchantName = install['merchantbusinessname'];
+    var merchant = install['merchant'];
+    var installID = install['install'];
     var ticketStatus;
     var ticketCategory;
     var ticket;
@@ -239,7 +237,7 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
       }
     """),
       variables: {
-        "install": install,
+        "install": installID,
       },
     );
 
@@ -248,7 +246,8 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
 
     if (installDocumentResult != null) {
       if (installDocumentResult.hasException == false) {
-        i["document"] = installDocumentResult.data["install"][0]["document"];
+        install["document"] =
+            installDocumentResult.data["install"][0]["document"];
 
         if (installDocumentResult.data["install"][0]["ticket"] != null) {
           ticket = installDocumentResult.data["install"][0]["ticket"];
@@ -258,7 +257,7 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
       }
     }
 
-    if (i["date"] == null || i['employee'] == null) {
+    if (install["date"] == null || install['employee'] == null) {
       data = {
         "ticket_status": ticketStatus,
         "ticket_category": ticketCategory,
@@ -269,13 +268,13 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
         "employee": installEmployee,
         "date": installDateFormat,
         "merchant": merchant,
-        "install": install,
+        "install": installID,
       };
 
-      confirmInstall(data, i);
+      confirmInstall(data, install);
     } else {
       data = {
-        "install": install,
+        "install": installID,
         "employee": employeeDropdownValue,
         "date": installDateFormat,
         "ticket": ticket
@@ -284,10 +283,20 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
     }
   }
 
-  void confirmInstall(data, i) async {
+  void confirmInstall(data, install) async {
     var successMsg = "Install claimed and ticket created!";
     var msgLength = Toast.LENGTH_SHORT;
     var ticket;
+
+    Map ticketComment = {
+      "text": {
+        "ops": [
+          {
+            "insert": install["document"]["text"],
+          }
+        ]
+      }
+    };
 
     MutationOptions updateInstallEmployeeByPKOptions = MutationOptions(
       document: gql("""
@@ -517,7 +526,7 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
           fontSize: 16.0);
     }
 
-    if (this.widget.installList['document'] != null) {
+    if (install['document'] != null) {
       MutationOptions insertTicketCommentOptions = MutationOptions(
         document: gql("""
           mutation INSERT_TICKET_COMMENT(\$ticket: uuid!, \$document: jsonb!, \$initial_comment: Boolean!){
@@ -533,7 +542,7 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
           }
         """),
         variables: {
-          "document": this.widget.installList["document"],
+          "document": ticketComment,
           "ticket": ticket,
           "initial_comment": true,
         },

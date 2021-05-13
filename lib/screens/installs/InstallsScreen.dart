@@ -253,9 +253,44 @@ class _InstallsScreenState extends State<InstallsScreen> {
             },
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
-            child: UserService.isAdmin || UserService.isSalesManager
-                ? EmployeeDropDown(
+            padding: EdgeInsets.fromLTRB(8, 8, 0, 5),
+            child: Row(
+              children: [
+                Padding(
+                  padding: EdgeInsets.fromLTRB(0, 15, 0, 0),
+                  child: Container(
+                    width: MediaQuery.of(context).size.width * 0.4,
+                    child: Row(
+                      children: [
+                        Switch(
+                          activeColor: UniversalStyles.themeColor,
+                          value: installsIncludeAll,
+                          onChanged: (bool value) {
+                            if (value) {
+                              var iFiltered = installs
+                                  .where((e) => e["ticket_open"] == value)
+                                  .toList();
+                              setState(() {
+                                activeInstalls = iFiltered.toList();
+                                installsIncludeAll = value;
+                              });
+                            } else {
+                              setState(() {
+                                activeInstalls = installs;
+                                installsIncludeAll = value;
+                              });
+                            }
+                            fillEvents();
+                          },
+                        ),
+                        Text("Active Installs"),
+                      ],
+                    ),
+                  ),
+                ),
+                Container(
+                  width: MediaQuery.of(context).size.width * 0.5,
+                  child: EmployeeDropDown(
                     value: employeeDropdownValue,
                     callback: (val) {
                       if (val != null) {
@@ -280,33 +315,10 @@ class _InstallsScreenState extends State<InstallsScreen> {
                       }
                       fillEvents();
                     },
-                  )
-                : Row(
-                    children: [
-                      Switch(
-                        activeColor: UniversalStyles.themeColor,
-                        value: installsIncludeAll,
-                        onChanged: (bool value) {
-                          if (value) {
-                            var iFiltered = installs
-                                .where((e) => e["ticket_open"] == value)
-                                .toList();
-                            setState(() {
-                              activeInstalls = iFiltered.toList();
-                              installsIncludeAll = value;
-                            });
-                          } else {
-                            setState(() {
-                              activeInstalls = installs;
-                              installsIncludeAll = value;
-                            });
-                          }
-                          fillEvents();
-                        },
-                      ),
-                      Text("Show all active Installs")
-                    ],
                   ),
+                ),
+              ],
+            ),
           ),
           _buildCalendar(),
           isEmpty
