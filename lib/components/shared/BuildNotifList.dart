@@ -1,5 +1,4 @@
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
-import 'package:atlascrm/components/shared/NotificationCenter.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/services/GqlClientFactory.dart';

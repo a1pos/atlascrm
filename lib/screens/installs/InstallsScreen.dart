@@ -1,14 +1,16 @@
-import 'dart:developer';
-import 'package:atlascrm/components/style/UniversalStyles.dart';
-import 'package:atlascrm/services/GqlClientFactory.dart';
-import 'package:graphql_flutter/graphql_flutter.dart';
+import 'dart:ui';
+import 'package:atlascrm/components/install/InstallScheduleForm.dart';
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
-import 'package:atlascrm/components/shared/CustomAppBar.dart';
-import 'package:atlascrm/components/shared/CustomCard.dart';
-import 'package:atlascrm/components/shared/CustomDrawer.dart';
 import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
+import 'package:atlascrm/components/style/UniversalStyles.dart';
+import 'package:atlascrm/components/shared/CustomDrawer.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
+import 'package:atlascrm/services/GqlClientFactory.dart';
+import 'package:atlascrm/services/UserService.dart';
 import 'package:flutter/material.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:table_calendar/table_calendar.dart';
+import 'package:intl/intl.dart';
 
 class InstallsScreen extends StatefulWidget {
   @override
@@ -16,353 +18,424 @@ class InstallsScreen extends StatefulWidget {
 }
 
 class _InstallsScreenState extends State<InstallsScreen> {
-  bool isSearching = false;
-  bool isFiltering = false;
-  bool isLocFiltering = false;
   bool isLoading = true;
   bool isEmpty = true;
-  bool myTickets = false;
+  bool installsIncludeAll = false;
 
-  ScrollController _scrollController = ScrollController();
-  //TextEditingController _searchController = TextEditingController();
+  TimeOfDay initTime;
+  DateTime initDate;
+  DateTime daySelected;
 
-  var installs = [];
-  var installsFull = [];
-  var columns = [];
+  CalendarController _calendarController;
+  Map<DateTime, List<dynamic>> _calendarEvents;
 
-  var currentSearch = "";
-  var pageNum = 0;
+  List installs = [];
+  List activeInstalls = [];
+  List unscheduledInstallsList = [];
+
+  var unscheduledInstallCount = 0;
+  var installDateController = TextEditingController();
+  var subscription;
   var filterEmployee = "";
-  var filterLocation = "";
-  var locationSearch = "Installs";
-  var sortQueries = [
-    "updated_at: desc",
-    "updated_at: asc",
-  ];
-  var initParams = "offset: 0, limit: 10, order_by: {updated_at: asc}";
-  var sortQuery = "updated_at: asc";
+  var employeeDropdownValue;
+  var viewDate;
+  var iDate;
 
   @override
   void initState() {
     super.initState();
-
-    initTicketData();
-
-    _scrollController.addListener(
-      () {
-        if (_scrollController.position.pixels ==
-            _scrollController.position.maxScrollExtent) {
-          onScroll();
-        }
-      },
-    );
+    _calendarController = CalendarController();
+    _calendarEvents = {};
+    initInstallData();
   }
 
   @override
   void dispose() {
-    _scrollController.dispose();
+    if (subscription != null) {
+      subscription.cancel();
+      subscription = null;
+    }
     super.dispose();
   }
 
-  Future<void> initTicketData() async {
-    try {
-      QueryOptions options = QueryOptions(
-        document: gql("""
-        query GET_INSTALL_TICKETS {
-          ticket_category(where: {title: {_eq: "Installation"}}) {
-            tickets ($initParams){
-              ticket
-              document
-              due_date
-              employeeByEmployee{
-                employee
-                displayName:document(path:"displayName")
-              }
-            }
+  Future<void> fillEvents() async {
+    setState(() {
+      _calendarEvents = {};
+      for (var item in activeInstalls) {
+        if (item["date"] != null) {
+          var itemDate = DateTime.parse(item["date"]).toLocal();
+          itemDate = DateTime(
+              itemDate.year, itemDate.month, itemDate.day, 12, 0, 0, 0, 0);
+          if (_calendarEvents[itemDate] == null) {
+            _calendarEvents[itemDate] = [item];
+          } else {
+            _calendarEvents[itemDate].add(item);
           }
+        } else {
+          continue;
         }
-      """),
-      );
+      }
+      if (_calendarController.selectedDay != null) {
+        DateTime currentDay = _calendarController.selectedDay;
+        setState(() {
+          isEmpty = true;
+        });
+        _calendarEvents.forEach((key, value) {
+          if (key.day == currentDay.day &&
+              key.month == currentDay.month &&
+              key.year == currentDay.year) {
+            activeInstalls = value;
 
-      final QueryResult result = await GqlClientFactory().authGqlquery(options);
+            setState(() {
+              isEmpty = false;
+            });
+          }
+        });
+      } else {
+        DateTime currentDay = DateTime.now();
+        setState(() {
+          isEmpty = true;
+        });
+        _calendarEvents.forEach(
+          (key, value) {
+            if (key.day == currentDay.day &&
+                key.month == currentDay.month &&
+                key.year == currentDay.year) {
+              activeInstalls = value;
 
-      if (result != null) {
-        if (result.hasException == false) {
-          var installsArrDecoded = result.data["ticket_category"][0]["tickets"];
-          if (installsArrDecoded != null) {
-            var installsArr = List.from(installsArrDecoded);
-            if (installsArr.length > 0) {
               setState(() {
                 isEmpty = false;
-                isLoading = false;
-                installs += installsArr;
-                installsFull += installsArr;
-                pageNum++;
               });
-            } else {
-              setState(
-                () {
-                  if (pageNum == 0) {
-                    isEmpty = true;
-                    installsArr = [];
-                    installsFull = [];
-                  }
-                  isLoading = false;
-                },
-              );
             }
-          }
-        }
+          },
+        );
       }
-
-      setState(
-        () {
-          isLoading = false;
-        },
-      );
-    } catch (err) {
-      log(err);
-    }
+    });
   }
 
-  Future<void> onScroll() async {
-    try {
-      var offsetAmount = pageNum * 10;
-      var limitAmount = 10;
-      var params =
-          'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}';
-
-      if (isFiltering) {
-        params =
-            'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "$filterEmployee"}}';
-      }
-
-      QueryOptions options = QueryOptions(
-        document: gql("""
-        query GET_INSTALL_TICKETS {
-          ticket_category(where: {title: {_eq: "Installation"}}) {
-            tickets ($params){
-              ticket
-              document
-              due_date
-              employeeByEmployee{
-                employee
-                displayName:document(path:"displayName")
-              }
-            }
+  Widget _buildCalendar() {
+    return TableCalendar(
+      initialSelectedDay: daySelected ?? DateTime.now(),
+      events: _calendarEvents,
+      calendarController: _calendarController,
+      headerStyle: HeaderStyle(formatButtonShowsNext: false),
+      calendarStyle: CalendarStyle(),
+      initialCalendarFormat: CalendarFormat.twoWeeks,
+      onDaySelected: (date, events, _) {
+        setState(() {
+          daySelected = date;
+          activeInstalls = events;
+          if (activeInstalls.length == 0) {
+            isEmpty = true;
+          } else {
+            isEmpty = false;
           }
-        }
-      """),
-      );
-
-      final QueryResult result = await GqlClientFactory().authGqlquery(options);
-
-      if (result != null) {
-        if (result.hasException == false) {
-          var installsArrDecoded = result.data["ticket_category"][0]["tickets"];
-          if (installsArrDecoded != null) {
-            var installsArr = List.from(installsArrDecoded);
-            if (installsArr.length > 0) {
-              setState(
-                () {
-                  isEmpty = false;
-                  isLoading = false;
-                  installs += installsArr;
-                  installsFull += installsArr;
-                  pageNum++;
-                },
-              );
-            } else {
-              setState(
-                () {
-                  if (pageNum == 0) {
-                    isEmpty = true;
-                    installsArr = [];
-                    installsFull = [];
-                  }
-                  isLoading = false;
-                },
-              );
-            }
-          }
-        }
-      }
-
-      setState(() {
-        isLoading = false;
-      });
-    } catch (err) {
-      log(err);
-    }
-  }
-
-  Future<void> filterByEmployee(employeeId) async {
-    setState(
-      () {
-        filterEmployee = employeeId;
-        pageNum = 0;
-        isFiltering = true;
-        installs = [];
-        installsFull = [];
-        onScroll();
+        });
       },
     );
   }
 
-  Future<void> clearFilter() async {
-    if (isFiltering) {
-      setState(
-        () {
-          filterEmployee = "";
-          pageNum = 0;
-          isFiltering = false;
-          installs = [];
-          installsFull = [];
-        },
-      );
-      onScroll();
+  Future<void> initInstallData() async {
+    SubscriptionOptions options = SubscriptionOptions(
+      operationName: "SUBSCRIBE_V_INSTALL",
+      document: gql("""
+          subscription SUBSCRIBE_V_INSTALL {
+            v_install_table (order_by: {date: asc}) {
+              install
+              merchant
+              merchantbusinessname
+              employee
+              employeefullname
+              merchantdevice
+              date
+              location
+              cash_discounting
+              ticket_created
+              ticket_open
+            }
+          }
+        """),
+      fetchPolicy: FetchPolicy.noCache,
+      cacheRereadPolicy: CacheRereadPolicy.ignoreAll,
+    );
+
+    subscription =
+        await GqlClientFactory().authGqlsubscribe(options, (data) async {
+      var installsArrDecoded = data.data["v_install_table"];
+      if (installsArrDecoded != null && this.mounted) {
+        setState(() {
+          installs = installsArrDecoded;
+          unscheduledInstallsList =
+              installs.where((element) => element['date'] == null).toList();
+          unscheduledInstallCount = unscheduledInstallsList.length;
+          activeInstalls = installs;
+          isLoading = false;
+        });
+
+        await fillEvents();
+      }
+      isLoading = false;
+    }, (error) {}, () => refreshSub());
+  }
+
+  Future refreshSub() async {
+    if (subscription != null) {
+      await subscription.cancel();
+      subscription = null;
+      initInstallData();
     }
   }
 
-  void openInstall(inventory) {
-    Map sendable = {"id": inventory["inventory"]};
-    Navigator.pushNamed(
-      context,
-      "/viewinventory",
-      arguments: sendable,
+  Widget unscheduledInstalls() {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          unscheduledInstallsList.length == 0
+              ? Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 100, 0, 0),
+                  child: Empty("No unscheduled installs"),
+                )
+              : Column(
+                  children: unscheduledInstallsList.map(
+                    (i) {
+                      setState(() {
+                        iDate = "TBD";
+                        initDate = DateTime.now();
+                        initTime = TimeOfDay.fromDateTime(initDate);
+                        viewDate = "";
+                      });
+                      return InstallScheduleForm(i, viewDate, iDate,
+                          unscheduled: true);
+                    },
+                  ).toList(),
+                )
+        ],
+      ),
+    );
+  }
+
+  Widget getInstalls() {
+    return SingleChildScrollView(
+      child: Column(
+        children: <Widget>[
+          TextField(
+            decoration: InputDecoration(labelText: "Search Installs"),
+            onChanged: (value) {
+              if (value.isNotEmpty) {
+                var filtered = installs.where((e) {
+                  String merchant = e["merchantbusinessname"];
+                  String location = e["location"];
+
+                  return (merchant != null || merchant != ""
+                      ? merchant.toLowerCase().contains(value.toLowerCase()) ||
+                          location.toLowerCase().contains(value)
+                      : false);
+                }).toList();
+
+                setState(() {
+                  employeeDropdownValue = "";
+
+                  activeInstalls = filtered.toList();
+
+                  if (activeInstalls.length > 0) {
+                    isEmpty = false;
+                  } else {
+                    isEmpty = true;
+                  }
+                });
+              } else {
+                setState(() {
+                  activeInstalls = installs;
+                  isEmpty = true;
+                  fillEvents();
+                });
+              }
+            },
+          ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(8, 8, 0, 5),
+            child: Row(
+              children: [
+                Padding(
+                  padding: EdgeInsets.fromLTRB(0, 15, 0, 0),
+                  child: Container(
+                    width: MediaQuery.of(context).size.width * 0.4,
+                    child: Row(
+                      children: [
+                        Switch(
+                          activeColor: UniversalStyles.themeColor,
+                          value: installsIncludeAll,
+                          onChanged: (bool value) {
+                            if (value) {
+                              var iFiltered = installs
+                                  .where((e) => e["ticket_open"] == value)
+                                  .toList();
+                              setState(() {
+                                activeInstalls = iFiltered.toList();
+                                installsIncludeAll = value;
+                              });
+                            } else {
+                              setState(() {
+                                activeInstalls = installs;
+                                installsIncludeAll = value;
+                              });
+                            }
+                            fillEvents();
+                          },
+                        ),
+                        Text("Active Installs"),
+                      ],
+                    ),
+                  ),
+                ),
+                Container(
+                  width: MediaQuery.of(context).size.width * 0.5,
+                  child: EmployeeDropDown(
+                    value: employeeDropdownValue,
+                    callback: (val) {
+                      if (val != null) {
+                        var eFiltered = installs.where((e) {
+                          String employee = e["employee"];
+                          return (employee != null
+                              ? employee
+                                  .toLowerCase()
+                                  .contains(val.toLowerCase())
+                              : false);
+                        }).toList();
+
+                        setState(() {
+                          activeInstalls = eFiltered.toList();
+                          isEmpty = false;
+                        });
+                      } else {
+                        setState(() {
+                          activeInstalls = installs;
+                          isEmpty = true;
+                        });
+                      }
+                      fillEvents();
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+          _buildCalendar(),
+          isEmpty
+              ? Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 100, 0, 0),
+                  child: Empty("No installs today"),
+                )
+              : Column(
+                  children: activeInstalls.map((i) {
+                    if (i['date'] != null) {
+                      setState(() {
+                        iDate = DateFormat("EEE, MMM d, ''yy")
+                            .add_jm()
+                            .format(DateTime.parse(i['date']).toLocal());
+                        initDate = DateTime.parse(i['date']).toLocal();
+                        initTime = TimeOfDay.fromDateTime(initDate);
+                        viewDate = DateFormat("yyyy-MM-dd HH:mm")
+                            .format(DateTime.parse(i['date']).toLocal());
+                      });
+                    } else {
+                      setState(() {
+                        iDate = "TBD";
+                        initDate = DateTime.now();
+                        initTime = TimeOfDay.fromDateTime(initDate);
+                        viewDate = "";
+                      });
+                    }
+                    return InstallScheduleForm(
+                      i,
+                      viewDate,
+                      iDate,
+                      unscheduled: false,
+                    );
+                  }).toList(),
+                )
+        ],
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: UniversalStyles.backgroundColor,
-      drawer: CustomDrawer(),
-      appBar: CustomAppBar(
-        key: Key("inventoryscreenappbar"),
-        title: Text(isLoading ? "Loading..." : "$locationSearch"),
-        action: <Widget>[],
-      ),
-      body: Container(
-        padding: EdgeInsets.all(10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            isLoading
-                ? CenteredLoadingSpinner()
-                : Container(
-                    child: Expanded(
-                      child:
-                          isLoading ? CenteredLoadingSpinner() : getDataTable(),
-                    ),
-                  ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget getDataTable() {
-    return Container(
-      child: Column(
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
-            child: EmployeeDropDown(
-                callback: (val) {
-                  if (val != null) {
-                    filterByEmployee(val);
-                  } else {
-                    clearFilter();
-                  }
-                },
-                role: "tech"),
-          ),
-          isEmpty
-              ? Padding(
-                  padding: const EdgeInsets.fromLTRB(8, 200, 8, 0),
-                  child: Empty("No installs found"),
-                )
-              : Expanded(
-                  flex: 6,
-                  child: ListView(
-                    controller: _scrollController,
-                    children: installs.map(
-                      (item) {
-                        var employeeName = item["employeeByEmployee"] == null ||
-                                item["employeeByEmployee"]["displayName"] ==
-                                    null
-                            ? ""
-                            : item["employeeByEmployee"]["displayName"];
-
-                        return GestureDetector(
-                          onTap: () {
-                            openInstall(item);
-                          },
-                          child: CustomCard(
-                            title: item["document"]["title"],
-                            icon: Icons.build,
-                            child: Column(
-                              children: <Widget>[
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: <Widget>[
-                                    Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.start,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.end,
-                                      children: <Widget>[
-                                        Padding(
-                                          padding: EdgeInsets.all(5),
-                                          child: Text(
-                                            'Employee:',
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    Expanded(
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.end,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: <Widget>[
-                                          Padding(
-                                            padding: EdgeInsets.all(5),
-                                            child: Text(
-                                              employeeName,
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                employeeName != null && employeeName != ""
-                                    ? Divider(thickness: 2)
-                                    : Container(),
-                                employeeName != null && employeeName != ""
-                                    ? Text("Employee: " + employeeName,
-                                        style: TextStyle(),
-                                        textAlign: TextAlign.right)
-                                    : Container(),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ).toList(),
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.pushReplacementNamed(context, "/dashboard");
+        return false;
+      },
+      child: DefaultTabController(
+        length: 2,
+        child: Scaffold(
+          drawer: CustomDrawer(),
+          appBar: AppBar(
+            bottom: TabBar(
+              tabs: [
+                Tab(
+                  icon: Icon(
+                    Icons.calendar_today,
+                    color: Colors.white,
+                    size: 25,
                   ),
                 ),
-        ],
+                Tab(
+                  child: Stack(
+                    children: <Widget>[
+                      Icon(
+                        Icons.schedule,
+                        color: Colors.white,
+                        size: 25,
+                      ),
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: unscheduledInstallCount > 0
+                            ? Container(
+                                padding: EdgeInsets.all(2),
+                                decoration: new BoxDecoration(
+                                  color: Colors.redAccent,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                constraints: BoxConstraints(
+                                  minWidth: 14,
+                                  minHeight: 14,
+                                ),
+                                child: Text(
+                                  '${unscheduledInstallCount.toString()}',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 8,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              )
+                            : Container(),
+                      ),
+                    ],
+                  ),
+                )
+              ],
+            ),
+            title: Text("Installs"),
+          ),
+          body: isLoading
+              ? CenteredLoadingSpinner()
+              : TabBarView(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(10),
+                      child: getInstalls(),
+                    ),
+                    Container(
+                      padding: EdgeInsets.all(10),
+                      child: unscheduledInstalls(),
+                    ),
+                  ],
+                  physics: NeverScrollableScrollPhysics(),
+                ),
+        ),
       ),
     );
   }

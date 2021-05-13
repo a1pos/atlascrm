@@ -439,24 +439,26 @@ packages:
   graphql:
     dependency: transitive
     description:
-      name: graphql
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "4.1.0-beta.2"
+      path: "../../.pub-cache/git/graphql-flutter-821dd3c0433f8f41de8146311c3f889dfae5f50d/packages/graphql"
+      relative: true
+    source: path
+    version: "5.0.0-nullsafety.4"
   graphql_flutter:
     dependency: "direct main"
     description:
-      name: graphql_flutter
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "4.1.0-beta.2"
+      path: "packages/graphql_flutter"
+      ref: "821dd3c0433f8f41de8146311c3f889dfae5f50d"
+      resolved-ref: "821dd3c0433f8f41de8146311c3f889dfae5f50d"
+      url: "https://github.com/psrcek/graphql-flutter.git"
+    source: git
+    version: "5.0.0-nullsafety.2"
   hive:
     dependency: transitive
     description:
       name: hive
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.6.0-nullsafety.2"
+    version: "2.0.4"
   http:
     dependency: "direct overridden"
     description:

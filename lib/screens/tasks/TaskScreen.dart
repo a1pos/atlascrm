@@ -366,17 +366,18 @@ class _TaskScreenState extends State<TaskScreen> {
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 children: <Widget>[
                                   Container(
-                                      child: UserService.isAdmin == true
-                                          ? EmployeeDropDown(
-                                              value: employeeDropdownValue,
-                                              callback: ((val) {
-                                                setState(() {
-                                                  leadDropdownValue = null;
-                                                  employeeDropdownValue = val;
-                                                });
-                                              }),
-                                            )
-                                          : Container()),
+                                    child: UserService.isAdmin == true
+                                        ? EmployeeDropDown(
+                                            value: employeeDropdownValue,
+                                            callback: ((val) {
+                                              setState(() {
+                                                leadDropdownValue = null;
+                                                employeeDropdownValue = val;
+                                              });
+                                            }),
+                                          )
+                                        : Container(),
+                                  ),
                                   Divider(
                                     color: Colors.white,
                                   ),
@@ -580,6 +581,7 @@ class _TaskScreenState extends State<TaskScreen> {
                 setState(() {
                   activeTasks = [];
                   isEmpty = true;
+                  fillEvents();
                 });
               }
             },
@@ -638,12 +640,18 @@ class _TaskScreenState extends State<TaskScreen> {
 
                 setState(() {
                   activeTasks = filtered.toList();
-                  isEmpty = false;
+
+                  if (activeTasks.length > 0) {
+                    isEmpty = false;
+                  } else {
+                    isEmpty = true;
+                  }
                 });
               } else {
                 setState(() {
                   activeTasks = [];
                   isEmpty = true;
+                  fillEvents();
                 });
               }
             },

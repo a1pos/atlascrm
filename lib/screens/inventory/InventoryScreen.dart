@@ -13,6 +13,7 @@ import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
 import 'package:flutter/material.dart';
 import 'package:dan_barcode_scan/dan_barcode_scan.dart';
+import 'package:unicorndial/unicorndial.dart';
 
 import 'InventoryAdd.dart';
 
@@ -30,6 +31,8 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
   ScrollController _scrollController = ScrollController();
   TextEditingController _searchController = TextEditingController();
+
+  List<UnicornButton> childButtons = [];
 
   var inventory = [];
   var inventoryFull = [];
@@ -52,6 +55,36 @@ class _InventoryScreenState extends State<InventoryScreen> {
   @override
   void initState() {
     super.initState();
+    childButtons = <UnicornButton>[];
+    childButtons.add(
+      UnicornButton(
+        hasLabel: true,
+        labelText: "Checkout Devices",
+        currentButton: FloatingActionButton(
+          heroTag: "checkout",
+          backgroundColor: Colors.blueAccent,
+          mini: true,
+          child: Icon(Icons.devices),
+          onPressed: () {},
+        ),
+      ),
+    );
+
+    childButtons.add(
+      UnicornButton(
+        hasLabel: true,
+        labelText: "Add Device",
+        currentButton: FloatingActionButton(
+          heroTag: "add",
+          backgroundColor: UniversalStyles.actionColor,
+          mini: true,
+          child: Icon(Icons.add),
+          onPressed: () {
+            openAddInventoryForm();
+          },
+        ),
+      ),
+    );
 
     initInventoryData();
 
@@ -478,6 +511,13 @@ class _InventoryScreenState extends State<InventoryScreen> {
           child: Icon(Icons.add),
           splashColor: Colors.white,
         ),
+        // UnicornDialer(
+        //   backgroundColor: Color.fromRGBO(255, 255, 255, 0.0),
+        //   parentButtonBackground: UniversalStyles.actionColor,
+        //   orientation: UnicornOrientation.VERTICAL,
+        //   parentButton: Icon(Icons.menu),
+        //   childButtons: childButtons.toList(),
+        // ),
       ),
     );
   }

@@ -85,7 +85,7 @@ class _LeadNotesState extends State<LeadNotes> {
             }
           }
       }
-      """),
+    """),
       fetchPolicy: FetchPolicy.networkOnly,
       cacheRereadPolicy: CacheRereadPolicy.ignoreAll,
       variables: {"id": objectId},

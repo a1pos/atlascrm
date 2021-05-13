@@ -671,6 +671,10 @@ class _StatementUploaderState extends State<StatementUploader> {
       var resp = await this.widget.apiService.authDelete(context,
           "/api/upload/statement?lead=${lead["lead"]}&statement=$name", null);
 
+      setState(() {
+        isLoading = true;
+      });
+
       if (resp.statusCode == 200) {
         if (imageDLList.length == 1) {
           setState(() {
@@ -860,6 +864,9 @@ class _StatementUploaderState extends State<StatementUploader> {
   Future<void> addImage(path) async {
     try {
       var resp;
+      setState(() {
+        isLoading = true;
+      });
       if (UserService.isAdmin || UserService.isSalesManager) {
         if (imageDLList.length == 0) {
           resp = await this.widget.apiService.authFilePost(
@@ -898,6 +905,7 @@ class _StatementUploaderState extends State<StatementUploader> {
 
         setState(() {
           imageDLList.add({"name": imgUrl, "url": url});
+          isLoading = false;
         });
       } else {
         Fluttertoast.showToast(
@@ -922,11 +930,12 @@ class _StatementUploaderState extends State<StatementUploader> {
       },
       child: Scaffold(
         appBar: CustomAppBar(
-            key: Key("viewTasksAppBar"),
-            title: Text(isLoading
-                ? "Loading..."
-                : "Statements for: " + lead["document"]["businessName"]),
-            action: <Widget>[]),
+          key: Key("viewTasksAppBar"),
+          title: Text(isLoading
+              ? "Loading..."
+              : "Statements for: " + lead["document"]["businessName"]),
+          action: <Widget>[],
+        ),
         body: isLoading
             ? CenteredLoadingSpinner()
             : Column(
