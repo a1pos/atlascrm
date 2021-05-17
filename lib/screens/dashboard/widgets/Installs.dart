@@ -1,4 +1,3 @@
-import 'package:atlascrm/components/install/InstallItem.dart';
 import 'package:atlascrm/components/install/InstallScheduleForm.dart';
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:atlascrm/components/shared/Empty.dart';

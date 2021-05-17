@@ -11,6 +11,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:image/image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:multi_image_picker/multi_image_picker.dart';
@@ -41,13 +42,14 @@ class _StatementUploaderState extends State<StatementUploader> {
   final picker = ImagePicker();
   static const platform = const MethodChannel('com.ces.atlascrm.channel');
 
-  bool dirtyFlag = false;
   bool isLoading = true;
   bool uploadsComplete = false;
 
   List<Asset> images = [];
   List imageFileList = [];
   List imageDLList = [];
+  List toEmailList = [];
+  List statements = [];
 
   TextEditingController taskDateController = TextEditingController();
 
@@ -58,6 +60,9 @@ class _StatementUploaderState extends State<StatementUploader> {
   var lead;
   var leadDocument;
   var statementId;
+  var emailType;
+  var activeStatement;
+  var dropdownValue;
 
   @override
   void initState() {
@@ -77,7 +82,12 @@ class _StatementUploaderState extends State<StatementUploader> {
             employee
             statement
             document
+            is_active
+            created_at
             leadByLead{
+              document
+            }
+            employeeByEmployee{
               document
             }
           }
@@ -89,30 +99,36 @@ class _StatementUploaderState extends State<StatementUploader> {
 
       if (result.hasException == false) {
         if (result.data != null) {
-          setState(
-            () {
-              statementEmployee = result.data["statement"][0]["employee"];
-              statementId = result.data["statement"][0]["statement"];
-            },
-          );
-          if (result.data["statement"][0]["document"] != null) {
-            if (result.data["statement"][0]["document"]["emailSent"] != null) {
+          var statementsArrDecoded = result.data["statement"];
+
+          if (statementsArrDecoded != null) {
+            var statementsArr = List.from(statementsArrDecoded);
+            if (statementsArr.length > 0) {
               setState(
                 () {
-                  uploadsComplete = true;
+                  statements = statementsArr;
+
+                  activeStatement = statements
+                      .where((element) => element["is_active"] == true)
+                      .toList();
                 },
               );
-            } else {
-              setState(() {
-                dirtyFlag = true;
-              });
+
+              if (activeStatement.length > 0) {
+                statementEmployee = activeStatement[0]["employee"];
+                statementId = activeStatement[0]["statement"];
+
+                if (activeStatement[0]["document"] != null) {
+                  if (activeStatement[0]["document"]["emailSent"] != null) {
+                    setState(
+                      () {
+                        uploadsComplete = true;
+                      },
+                    );
+                  }
+                }
+              }
             }
-          } else {
-            setState(
-              () {
-                dirtyFlag = true;
-              },
-            );
           }
         }
       }
@@ -585,7 +601,6 @@ class _StatementUploaderState extends State<StatementUploader> {
             ),
           ),
         ),
-        // backgroundDecoration: widget.backgroundDecoration,
         pageController: pageController,
         onPageChanged: (newVal) {
           setState(
@@ -676,11 +691,6 @@ class _StatementUploaderState extends State<StatementUploader> {
       });
 
       if (resp.statusCode == 200) {
-        if (imageDLList.length == 1) {
-          setState(() {
-            dirtyFlag = false;
-          });
-        }
         Fluttertoast.showToast(
             msg: "File Deleted!",
             toastLength: Toast.LENGTH_SHORT,
@@ -765,6 +775,11 @@ class _StatementUploaderState extends State<StatementUploader> {
                 "${ConfigSettings.HOOK_API_URL}/uploads/statement/$imgUrl";
             setState(
               () {
+                // keep track of the dropdown value
+                // if there is an active statement, select it automatically in dropdown?
+                // if  there is only one statement & is active, display images automatically
+                //
+                // do .contains on statement id in imageDLList to only pull selected dropdown statement
                 imageDLList.add(
                   {"name": imgUrl, "url": url},
                 );
@@ -798,6 +813,68 @@ class _StatementUploaderState extends State<StatementUploader> {
         },
       );
 
+      QueryOptions settingsTypesOptions = QueryOptions(
+        document: gql("""
+        query GET_SETTINGS_EMAIL_TYPES {
+          settings_email_type {
+            settings_email_type
+            title
+          }
+        }
+      """),
+      );
+
+      final QueryResult settingsTypesResults =
+          await GqlClientFactory().authGqlquery(settingsTypesOptions);
+
+      if (settingsTypesResults != null) {
+        if (settingsTypesResults.hasException == false) {
+          settingsTypesResults.data["settings_email_type"].forEach((type) {
+            if (type["title"] == "statements") {
+              emailType = type["settings_email_type"];
+            }
+          });
+        }
+      }
+
+      QueryOptions statementEmails = QueryOptions(
+        document: gql("""
+        query GET_STATEMENT_EMAILS(\$type: uuid = ""){
+          settings_email(where: {settings_email_type : {_eq: \$type}}) {
+            employee
+            employeeByEmployee{
+              document
+              company
+            }
+          }
+        }
+      """),
+        variables: {
+          "type": emailType,
+        },
+      );
+
+      final QueryResult statementsEmailResult =
+          await GqlClientFactory().authGqlquery(statementEmails);
+
+      if (statementsEmailResult != null) {
+        if (statementsEmailResult.hasException == false) {
+          var statementEmails = statementsEmailResult.data["settings_email"];
+
+          for (var i = 0; i < statementEmails.length; i++) {
+            if (statementEmails[i]["employeeByEmployee"]["company"] ==
+                UserService.employee.company) {
+              toEmailList.insert(
+                  i,
+                  statementsEmailResult.data["settings_email"][i]
+                      ["employeeByEmployee"]["document"]["email"]);
+            }
+          }
+        } else {
+          print(new Error());
+        }
+      }
+
       MutationOptions mutateOptions = MutationOptions(
         document: gql("""
         mutation SEND_EMAIL(\$to:[String]!, \$subject:String!, \$html:String!, \$type:String!, \$statement:String!){
@@ -807,12 +884,7 @@ class _StatementUploaderState extends State<StatementUploader> {
         }
         """),
         variables: {
-          "to": [
-            "nick.kalich@butlerbizsys.com",
-            "jerrod.lumley@a1pos.com",
-            "john.deluga@butlerbizsys.com",
-            "ahrindo@gmail.com"
-          ],
+          "to": toEmailList,
           "subject":
               "New Statement For Review: ${this.widget.lead["document"]["businessName"]} - ${this.widget.lead["document"]["address"]}",
           "html":
@@ -887,11 +959,6 @@ class _StatementUploaderState extends State<StatementUploader> {
       }
 
       if (resp.statusCode == 200) {
-        setState(() {
-          statementId = resp.data["statement"];
-          dirtyFlag = true;
-        });
-
         Fluttertoast.showToast(
             msg: "File Uploaded!",
             toastLength: Toast.LENGTH_SHORT,
@@ -1063,6 +1130,46 @@ class _StatementUploaderState extends State<StatementUploader> {
                       "Upload Statements",
                       style: TextStyle(fontSize: 20),
                     ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      UserService.employee.role == "sa" ||
+                              UserService.employee.role == "salesmanager"
+                          ? DropdownButton(
+                              icon: Icon(Icons.arrow_drop_down),
+                              value: dropdownValue,
+                              hint: Text("View Past Statements"),
+                              items: statements.map<DropdownMenuItem<String>>(
+                                (dynamic value) {
+                                  var dateSubmitted =
+                                      DateTime.parse(value["created_at"])
+                                          .toUtc();
+                                  var dateSubmittedFormat =
+                                      DateFormat("MM/dd/yy")
+                                          .format(dateSubmitted);
+                                  var name = value["employeeByEmployee"]
+                                      ["document"]["displayName"];
+
+                                  var valueString =
+                                      name + " - " + dateSubmittedFormat;
+
+                                  return DropdownMenuItem<String>(
+                                    value: value["statement"],
+                                    child: Text(valueString),
+                                  );
+                                },
+                              ).toList(),
+                              onChanged: (newValue) {
+                                setState(
+                                  () {
+                                    dropdownValue = newValue;
+                                  },
+                                );
+                              },
+                            )
+                          : Container(),
+                    ],
                   ),
                   Flexible(
                     fit: FlexFit.loose,
