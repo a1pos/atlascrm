@@ -111,6 +111,7 @@ class _StatementUploaderState extends State<StatementUploader> {
                   activeStatement = statements
                       .where((element) => element["is_active"] == true)
                       .toList();
+                  dropdownValue = activeStatement[0]["statement"];
                 },
               );
 
@@ -773,18 +774,15 @@ class _StatementUploaderState extends State<StatementUploader> {
           for (var imgUrl in result.data["lead_photos"]["photos"]) {
             var url =
                 "${ConfigSettings.HOOK_API_URL}/uploads/statement/$imgUrl";
-            setState(
-              () {
-                // keep track of the dropdown value
-                // if there is an active statement, select it automatically in dropdown?
-                // if  there is only one statement & is active, display images automatically
-                //
-                // do .contains on statement id in imageDLList to only pull selected dropdown statement
-                imageDLList.add(
-                  {"name": imgUrl, "url": url},
-                );
-              },
-            );
+            if (imgUrl.contains(dropdownValue)) {
+              setState(
+                () {
+                  imageDLList.add(
+                    {"name": imgUrl, "url": url},
+                  );
+                },
+              );
+            }
           }
         }
       }
@@ -1156,7 +1154,15 @@ class _StatementUploaderState extends State<StatementUploader> {
 
                                   return DropdownMenuItem<String>(
                                     value: value["statement"],
-                                    child: Text(valueString),
+                                    child: Text(
+                                      valueString,
+                                      style: value["is_active"] == false
+                                          ? TextStyle(
+                                              color: Colors.grey[400],
+                                              fontStyle: FontStyle.italic,
+                                            )
+                                          : null,
+                                    ),
                                   );
                                 },
                               ).toList(),
@@ -1164,6 +1170,8 @@ class _StatementUploaderState extends State<StatementUploader> {
                                 setState(
                                   () {
                                     dropdownValue = newValue;
+                                    imageDLList = [];
+                                    loadImages();
                                   },
                                 );
                               },

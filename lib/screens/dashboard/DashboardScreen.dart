@@ -169,9 +169,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         child: LeadsChart(),
                       ),
                     ),
-                    UserService.isAdmin ||
-                            UserService.isTech ||
-                            UserService.isSalesManager
+                    UserService.isAdmin || UserService.isTech
                         ? CustomCard(
                             key: Key("Installs"),
                             title: "Installs",
