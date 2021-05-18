@@ -5,6 +5,7 @@ import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/components/shared/AddressSearch.dart';
 import 'package:flutter/foundation.dart';
@@ -31,6 +32,7 @@ class LeadStepperState extends State<LeadStepper> {
   bool isLoading = false;
   bool nextButtonDisabled = true;
   bool placeSelect = false;
+  bool visible = false;
 
   List<GlobalKey<FormState>> _formKeys = [
     GlobalKey<FormState>(),
@@ -54,7 +56,11 @@ class LeadStepperState extends State<LeadStepper> {
     "zipcode": ""
   };
 
-  Map mixedReplyCheck = {"address": "", "place": "", "shortAddress": ""};
+  Map mixedReplyCheck = {
+    "address": "",
+    "place": "",
+    "shortAddress": "",
+  };
 
   String formattedAddressCheck;
   String businessNameCapitalized;
@@ -69,10 +75,14 @@ class LeadStepperState extends State<LeadStepper> {
   var dbaNameController = TextEditingController();
   var businessAddrController = TextEditingController();
   var businessPhoneNumber = TextEditingController();
+  var address1Controller = TextEditingController();
   var address2Controller = TextEditingController();
+  var cityController = TextEditingController();
+  var stateController = TextEditingController();
+  var zipController = TextEditingController();
+
   var processorDropdownValue;
 
-  //var _selectedBusinessType;
   var _currentStep = 0;
   var stepsLength = 3;
   var businessTypes = [];
@@ -89,7 +99,6 @@ class LeadStepperState extends State<LeadStepper> {
     super.initState();
     isSaveDisabled = false;
     _currentStep = 0;
-    //_selectedBusinessType = null;
   }
 
   Future<void> addressCheck(addressObj) async {
@@ -123,10 +132,6 @@ class LeadStepperState extends State<LeadStepper> {
 
     if (phoneNumb == null) {
       phoneNumb = "";
-    }
-
-    if (businessName == null) {
-      businessName = "";
     }
 
     try {
@@ -206,6 +211,7 @@ class LeadStepperState extends State<LeadStepper> {
                 () {
                   locationValue = addressInfoCheck["formattedaddr"];
                   businessNameController.text = businessName;
+                  businessAddress = addressObj["address"];
 
                   if (phoneNumb != "" && phoneNumb != null) {
                     phoneNumb = phoneNumb.replaceAll(RegExp("[^0-9]"), "");
@@ -293,17 +299,36 @@ class LeadStepperState extends State<LeadStepper> {
                   placeSelect = false;
                   isAddress = true;
                   nextButtonDisabled = false;
+                  visible = false;
                 });
               } else {
                 if (val["address"]["address"] == "") {
+                  setState(
+                    () {
+                      locationValue = "";
+                      cityController.text = val["address"]["city"];
+                      stateController.text = val["address"]["state"];
+                      zipController.text = val["address"]["zipcode"];
+                      businessNameController.text = val["place"].name;
+                      phoneNumberController
+                          .updateText(val["place"].formattedPhoneNumber);
+                      isAddress = true;
+                      visible = true;
+                      placeSelect = true;
+                      nextButtonDisabled = false;
+                    },
+                  );
                   Fluttertoast.showToast(
-                      msg: "Address cannot be blank!",
-                      toastLength: Toast.LENGTH_SHORT,
-                      gravity: ToastGravity.BOTTOM,
-                      backgroundColor: Colors.grey[600],
-                      textColor: Colors.white,
-                      fontSize: 16.0);
+                    msg:
+                        "No verified address found, please input business address",
+                    toastLength: Toast.LENGTH_LONG,
+                    gravity: ToastGravity.TOP,
+                    backgroundColor: Colors.grey[600],
+                    textColor: Colors.white,
+                    fontSize: 16.0,
+                  );
                 } else {
+                  visible = false;
                   placeSelect = true;
                   addressCheck(val);
                 }
@@ -382,16 +407,18 @@ class LeadStepperState extends State<LeadStepper> {
 
       MutationOptions mutateOptions = MutationOptions(
         document: gql("""
-        mutation INSERT_LEADS(\$objects: [lead_insert_input!]!) {
-          insert_lead(objects: \$objects) {
-            returning {
-            document
-            }
-          }
-        }
-      """),
+                mutation INSERT_LEADS(\$objects: [lead_insert_input!]!) {
+                  insert_lead(objects: \$objects) {
+                    returning {
+                    document
+                    }
+                  }
+                }
+              """),
         fetchPolicy: FetchPolicy.networkOnly,
-        variables: {"objects": leadInfo},
+        variables: {
+          "objects": leadInfo,
+        },
       );
 
       final QueryResult result =
@@ -473,6 +500,20 @@ class LeadStepperState extends State<LeadStepper> {
                       if (_currentStep == 0) {
                         if (placeSelect == false) {
                           addressCheck(mixedReplyCheck);
+                        } else if (visible == true) {
+                          addressInfoCheck = {
+                            "address": address1Controller.text,
+                            "address2": address2Controller.text,
+                            "city": cityController.text,
+                            "state": stateController.text,
+                            "zipcode": zipController.text,
+                          };
+                          mixedReplyCheck = {
+                            "address": addressInfoCheck,
+                            "place": null,
+                            "shortaddress": null
+                          };
+                          addressCheck(mixedReplyCheck);
                         } else {
                           nextStep();
                         }
@@ -500,7 +541,7 @@ class LeadStepperState extends State<LeadStepper> {
                                 children: [
                                   Padding(
                                     padding:
-                                        const EdgeInsets.fromLTRB(0, 32, 0, 0),
+                                        const EdgeInsets.fromLTRB(0, 10, 0, 0),
                                     child: AddressSearch(
                                       onAddressChange: (val) {
                                         nearbySelect(val);
@@ -514,14 +555,14 @@ class LeadStepperState extends State<LeadStepper> {
                                       labelText: "Address 2 (optional)",
                                     ),
                                     controller: address2Controller,
-                                  )
+                                  ),
                                 ],
                               )
                             : Column(
                                 children: [
                                   Padding(
                                     padding:
-                                        const EdgeInsets.fromLTRB(0, 32, 0, 0),
+                                        const EdgeInsets.fromLTRB(0, 10, 0, 0),
                                     child: AddressSearch(
                                       onAddressChange: (val) {
                                         nearbySelect(val);
@@ -535,6 +576,71 @@ class LeadStepperState extends State<LeadStepper> {
                                         labelText: "Address 2 (optional)"),
                                     controller: address2Controller,
                                   ),
+                                  Visibility(
+                                    visible: visible,
+                                    child: Column(
+                                      children: <Widget>[
+                                        TextFormField(
+                                          decoration: InputDecoration(
+                                            labelText: "Address 1",
+                                          ),
+                                          controller: address1Controller,
+                                          validator: (value) {
+                                            if (value.isEmpty) {
+                                              return 'Please enter an address 1';
+                                            }
+                                            return null;
+                                          },
+                                          textCapitalization:
+                                              TextCapitalization.words,
+                                        ),
+                                        TextFormField(
+                                          decoration: InputDecoration(
+                                            labelText: "City",
+                                          ),
+                                          controller: cityController,
+                                          validator: (value) {
+                                            if (value.isEmpty) {
+                                              return 'Please enter a city';
+                                            }
+                                            return null;
+                                          },
+                                          textCapitalization:
+                                              TextCapitalization.words,
+                                        ),
+                                        TextFormField(
+                                          decoration: InputDecoration(
+                                            labelText: "State",
+                                          ),
+                                          controller: stateController,
+                                          validator: (value) {
+                                            if (value.isEmpty) {
+                                              return 'Please enter a state';
+                                            }
+                                            return null;
+                                          },
+                                          textCapitalization:
+                                              TextCapitalization.characters,
+                                        ),
+                                        TextFormField(
+                                          decoration: InputDecoration(
+                                            labelText: "ZIP Code",
+                                          ),
+                                          controller: zipController,
+                                          validator: (value) {
+                                            if (value.isEmpty) {
+                                              return 'Please enter a zip';
+                                            }
+                                            return null;
+                                          },
+                                          inputFormatters: [
+                                            FilteringTextInputFormatter
+                                                .digitsOnly,
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                   TextFormField(
                                     decoration: InputDecoration(
                                         labelText: "Business Name"),
@@ -546,6 +652,8 @@ class LeadStepperState extends State<LeadStepper> {
                                       }
                                       return null;
                                     },
+                                    textCapitalization:
+                                        TextCapitalization.words,
                                   ),
                                   Padding(
                                     padding: const EdgeInsets.only(top: 8.0),
@@ -568,24 +676,6 @@ class LeadStepperState extends State<LeadStepper> {
                                         labelText: "Phone Number"),
                                     controller: phoneNumberController,
                                   ),
-                                  // DropdownButton<String>(
-                                  //   items: businessTypes.map((value) {
-                                  //     var dpValue = value["document"]["code"];
-                                  //     var text = value["document"]["typeName"];
-                                  //     return new DropdownMenuItem<String>(
-                                  //       value: dpValue,
-                                  //       child: new Text(text),
-                                  //     );
-                                  //   }).toList(),
-                                  //   hint: Text('Business Type'),
-                                  //   onChanged: (val) {
-                                  //     setState(() {
-                                  //       _selectedBusinessType = val;
-                                  //     });
-                                  //   },
-                                  //   isExpanded: true,
-                                  //   value: _selectedBusinessType,
-                                  // ),
                                 ],
                               ),
                       ),
@@ -611,11 +701,13 @@ class LeadStepperState extends State<LeadStepper> {
                                 }
                                 return null;
                               },
+                              textCapitalization: TextCapitalization.words,
                             ),
                             TextFormField(
                               decoration:
                                   InputDecoration(labelText: "Last Name"),
                               controller: lastNameController,
+                              textCapitalization: TextCapitalization.words,
                             ),
                             TextFormField(
                               decoration:
