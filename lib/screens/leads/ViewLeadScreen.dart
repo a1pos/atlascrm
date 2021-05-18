@@ -281,19 +281,32 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
         "phoneNumber": "",
         "dbaName": "",
         "address": "",
+        "address2": "",
         "city": "",
         "state": "",
         "zipCode": "",
       };
     }
     if (leadDocument["address"] != null && leadDocument["address"] != "") {
-      addressText = leadDocument["address"] +
-          ", " +
-          leadDocument["city"] +
-          ", " +
-          leadDocument["state"] +
-          " " +
-          leadDocument["zipCode"];
+      if (leadDocument["address2"] != null && leadDocument["address2"] != "") {
+        addressText = leadDocument["address"] +
+            " " +
+            leadDocument["address2"] +
+            ", " +
+            leadDocument["city"] +
+            ", " +
+            leadDocument["state"] +
+            " " +
+            leadDocument["zipCode"];
+      } else {
+        addressText = leadDocument["address"] +
+            ", " +
+            leadDocument["city"] +
+            ", " +
+            leadDocument["state"] +
+            " " +
+            leadDocument["zipCode"];
+      }
       businessAddress["address"] = leadDocument["address"];
       businessAddress["city"] = leadDocument["city"];
       businessAddress["state"] = leadDocument["state"];
