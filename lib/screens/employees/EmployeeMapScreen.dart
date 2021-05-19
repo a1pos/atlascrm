@@ -19,7 +19,7 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
   final List<LatLng> markerLatLngs = [];
   static final CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(40.907569, -79.923725),
-    zoom: 13.0,
+    zoom: 9,
   );
 
   bool runOnce = true;
@@ -220,146 +220,6 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
       () => refreshSub(),
     );
 
-    // subscription = result.listen(
-    //   (data) async {
-    //     for (var currentLocation in data.data["employee_device"]) {
-    //       var stopCount;
-    //       if (currentLocation["employee_locations"].length != 0) {
-    //         QueryOptions options = QueryOptions(document: gql("""
-    //       query GET_STOP_COUNT(\$device_id: String, \$date: timestamptz) {
-    //                   v_stop_count_aggregate(
-    //                     where: {
-    //                       _and: [
-    //                         { device_id: { _eq: \$device_id } }
-    //                         { created_at: { _gte: \$date } }
-    //                       ]
-    //                     }
-    //                   ) {
-    //                     aggregate {
-    //                       count
-    //                     }
-    //                   }
-    //                 }
-    //           """), fetchPolicy: FetchPolicy.networkOnly, variables: {
-    //           "device_id": currentLocation["device_id"],
-    //           "date": today
-    //         });
-
-    //         final QueryResult result2 =
-    //             await GqlClientFactory().authGqlquery(options);
-    //         if (result2 != null) {
-    //           if (result2.hasException == false) {
-    //             var stopsArrDecoded = result2.data["v_stop_count_aggregate"]
-    //                 ["aggregate"]["count"];
-    //             if (stopsArrDecoded != null) {
-    //               stopCount = stopsArrDecoded.toString();
-    //             }
-    //           }
-    //         }
-
-    //         var location = currentLocation["employee_locations"][0];
-    //         var epoch = location["document"]["time"];
-    //         var lastCheckinTime =
-    //             new DateTime.fromMicrosecondsSinceEpoch(epoch * 1000);
-
-    //         var dateTime = lastCheckinTime;
-
-    //         var formatter = DateFormat.yMd().add_jm();
-    //         String datetimeFmt = formatter.format(dateTime.toLocal());
-
-    //         var markerId = MarkerId(currentLocation["employee"]);
-    //         var currentEmployeeMarker = markers
-    //             .where((marker) => marker.markerId.value == markerId.value);
-
-    //         var pictureUrl =
-    //             currentLocation["employeeByEmployee"]["document"]["photoURL"];
-    //         var icon = await getMarkerImageFromCache(pictureUrl);
-
-    //         if (currentEmployeeMarker.length > 0) {
-    //           if (this.mounted) {
-    //             setState(() {
-    //               markers.removeAll(currentEmployeeMarker.toList());
-
-    //               markers.add(
-    //                 Marker(
-    //                   position: LatLng(
-    //                     location["document"]["latitude"],
-    //                     location["document"]["longitude"],
-    //                   ),
-    //                   markerId: markerId,
-    //                   infoWindow: InfoWindow(
-    //                     snippet: currentLocation["employeeByEmployee"]
-    //                             ["document"]["displayName"] +
-    //                         ", " +
-    //                         datetimeFmt +
-    //                         " Stops:" +
-    //                         stopCount,
-    //                     title: currentLocation["employeeByEmployee"]["document"]
-    //                         ["email"],
-    //                   ),
-    //                   icon: icon,
-    //                 ),
-    //               );
-    //               markerLatLngs.add(LatLng(
-    //                 location["document"]["latitude"],
-    //                 location["document"]["longitude"],
-    //               ));
-    //             });
-    //           }
-    //         } else {
-    //           setState(() {
-    //             markers.add(
-    //               Marker(
-    //                 position: LatLng(
-    //                   location["document"]["latitude"],
-    //                   location["document"]["longitude"],
-    //                 ),
-    //                 markerId: markerId,
-    //                 infoWindow: InfoWindow(
-    //                   snippet: currentLocation["employeeByEmployee"]["document"]
-    //                           ["displayName"] +
-    //                       ", " +
-    //                       datetimeFmt +
-    //                       " Stops:" +
-    //                       stopCount,
-    //                   title: currentLocation["employeeByEmployee"]["document"]
-    //                       ["email"],
-    //                 ),
-    //                 icon: icon,
-    //               ),
-    //             );
-    //             markerLatLngs.add(LatLng(
-    //               location["document"]["latitude"],
-    //               location["document"]["longitude"],
-    //             ));
-    //           });
-    //         }
-    //         // if (runOnce == true) {
-    //         //   LatLngBounds camBounds = boundsFromLatLngList(markerLatLngs);
-    //         //   final GoogleMapController controller =
-    //         //       await _fullScreenMapController.future;
-    //         //   controller
-    //         //       .animateCamera(CameraUpdate.newLatLngBounds(camBounds, 100));
-    //         // }
-    //       }
-    //     }
-    //   },
-    //   onError: (error) async {
-    //     var errMsg = error.payload["message"];
-    //     print(errMsg);
-    //     if (errMsg.contains("JWTExpired")) {
-    //       await refreshSub();
-    //     } else {
-    //       Fluttertoast.showToast(
-    //           msg: errMsg,
-    //           toastLength: Toast.LENGTH_LONG,
-    //           gravity: ToastGravity.BOTTOM,
-    //           backgroundColor: Colors.grey[600],
-    //           textColor: Colors.white,
-    //           fontSize: 16.0);
-    //     }
-    //   },
-    // );
     // an attempt was made at auto-zooming to include all employees in initial view
     // Future.delayed(const Duration(milliseconds: 3000), () async {
     //   if (runOnce == true) {
@@ -438,7 +298,9 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
     }
 
     return await BitmapDescriptor.fromAssetImage(
-        ImageConfiguration(size: Size(5, 5)), 'assets/car.png');
+      ImageConfiguration(size: Size(5, 5)),
+      'assets/car.png',
+    );
   }
 
   @override

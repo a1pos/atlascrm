@@ -6,7 +6,6 @@ import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/components/shared/CustomDrawer.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
 import 'package:atlascrm/services/GqlClientFactory.dart';
-import 'package:atlascrm/services/UserService.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:table_calendar/table_calendar.dart';

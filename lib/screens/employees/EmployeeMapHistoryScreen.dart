@@ -34,7 +34,7 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
   DateTime _endDate = DateTime.now().toUtc();
   CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(40.907569, -79.923725),
-    zoom: 13.0,
+    zoom: 9.0,
   );
   TextEditingController deviceIdController = TextEditingController();
 
@@ -153,7 +153,7 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
                 if (_kGooglePlex == null) {
                   _kGooglePlex = CameraPosition(
                     target: latLng,
-                    zoom: 13.0,
+                    zoom: 9.0,
                   );
                 }
               },
@@ -266,12 +266,13 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
         }
       } else {
         Fluttertoast.showToast(
-            msg: result.exception.toString(),
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.grey[600],
-            textColor: Colors.white,
-            fontSize: 16.0);
+          msg: result.exception.toString(),
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
       }
     }
     _markers.add(

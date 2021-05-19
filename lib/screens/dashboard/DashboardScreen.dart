@@ -179,7 +179,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               child: Installs(),
                             ))
                         : Container(),
-                    Align(alignment: Alignment.center, child: AppVersion()),
+                    Align(
+                      alignment: Alignment.center,
+                      child: AppVersion(),
+                    ),
                   ],
                 )
               ],

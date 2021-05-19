@@ -97,6 +97,7 @@ flutter:
   assets:
     - assets/google_logo.png
     - assets/home.png
+    - assets/homeSmall.png
     - assets/car.png
     - assets/a1logo_blk.png
     - assets/a1logo_wht.png

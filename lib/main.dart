@@ -1,3 +1,4 @@
+import 'package:atlascrm/screens/trips/NewTripsScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
@@ -212,8 +213,15 @@ class _AtlasCRMState extends State<AtlasCRM> {
                   page: ViewTaskScreen(settings.arguments),
                 );
                 break;
-              case '/trips':
-                return MaterialPageRoute(builder: (context) => MileageScreen());
+              // case '/trips':
+              //   return MaterialPageRoute(
+              //     builder: (context) => MileageScreen(),
+              //   );
+              //   break;
+              case '/newtrips':
+                return MaterialPageRoute(
+                  builder: (context) => TripsScreen(),
+                );
                 break;
               case '/statementuploads':
                 return SlideRightRoute(

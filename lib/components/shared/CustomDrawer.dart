@@ -54,11 +54,13 @@ class _CustomDrawerState extends State<CustomDrawer> {
                       style: TextStyle(fontSize: 22),
                       children: <TextSpan>[
                         TextSpan(
-                            text: "ATLAS",
-                            style: TextStyle(fontFamily: "InterBold")),
+                          text: "ATLAS",
+                          style: TextStyle(fontFamily: "InterBold"),
+                        ),
                         TextSpan(
-                            text: "CRM",
-                            style: TextStyle(fontFamily: "InterLight")),
+                          text: "CRM",
+                          style: TextStyle(fontFamily: "InterLight"),
+                        ),
                       ],
                     ),
                   )
@@ -164,10 +166,27 @@ class _CustomDrawerState extends State<CustomDrawer> {
                       ),
                     ),
                     onTap: () {
-                      Navigator.popAndPushNamed(context, "/installs");
+                      Navigator.pushReplacementNamed(context, "/installs");
                     },
                   )
                 : Text(""),
+            // UserService.isTech || UserService.isAdmin
+            //     ? ListTile(
+            //         leading: Icon(
+            //           Icons.drive_eta,
+            //           color: Colors.white,
+            //         ),
+            //         title: Text(
+            //           'Trips',
+            //           style: TextStyle(
+            //             color: Colors.white,
+            //           ),
+            //         ),
+            //         onTap: () {
+            //           Navigator.pushReplacementNamed(context, "/trips");
+            //         },
+            //       )
+            //     : Container(),
             UserService.isTech || UserService.isAdmin
                 ? ListTile(
                     leading: Icon(
@@ -175,13 +194,13 @@ class _CustomDrawerState extends State<CustomDrawer> {
                       color: Colors.white,
                     ),
                     title: Text(
-                      'Trips',
+                      'New Trips',
                       style: TextStyle(
                         color: Colors.white,
                       ),
                     ),
                     onTap: () {
-                      Navigator.pushReplacementNamed(context, "/trips");
+                      Navigator.pushReplacementNamed(context, "/newtrips");
                     },
                   )
                 : Container(),

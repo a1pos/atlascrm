@@ -1,8 +1,15 @@
 import 'dart:developer';
+import 'dart:async';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
+import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
+import 'package:atlascrm/components/shared/Notes.dart';
+import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
+import 'package:intl/intl.dart';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomDrawer.dart';
-import 'package:atlascrm/components/shared/LoadingScreen.dart';
 import 'package:atlascrm/components/shared/MerchantDropdown.dart';
+import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/services/StorageService.dart';
 import 'package:atlascrm/services/UserService.dart';
@@ -10,477 +17,266 @@ import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-import 'package:intl/intl.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-class MileageScreen extends StatefulWidget {
+class TripsScreen extends StatefulWidget {
   final StorageService storageService = new StorageService();
 
   @override
-  _MileageScreenState createState() => _MileageScreenState();
+  _TripsScreenState createState() => _TripsScreenState();
 }
 
-class _MileageScreenState extends State<MileageScreen> {
-  final destinationController = TextEditingController();
+class _TripsScreenState extends State<TripsScreen> {
+  final Set<Marker> _markers = new Set<Marker>();
+  final Set<Polyline> _polyline = new Set<Polyline>();
+  final List<LatLng> markerLatLngs = [];
+  final _formKey = GlobalKey<FormState>();
+
   bool isLoading = true;
-  bool isRunning = false;
+
+  CameraPosition _kGooglePlex = CameraPosition(
+    target: LatLng(40.907569, -79.923725),
+    zoom: 9,
+  );
+
+  Completer<GoogleMapController> _fullScreenMapController = Completer();
+
+  List installs = [];
+  List activeInstalls = [];
+  List unscheduledInstallsList = [];
+
+  var employee = UserService.employee.employee;
+  var currentDate = DateTime.now();
+  var tripDateController = TextEditingController();
+  var homeIcon;
 
   @override
   void initState() {
     super.initState();
-
-    getInitialTripStatus();
   }
 
-  Future<void> selectDestination(isMerchant) async {
-    var destinationMerchant;
-    if (isMerchant) {
-      return showDialog<void>(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Merchant Destination'),
-            content: SingleChildScrollView(
-              child: ListBody(
-                children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 20, 0, 30),
-                    child: Text('Select a Merchant.'),
+  @override
+  void dispose() async {
+    super.dispose();
+
+    installs = [];
+  }
+
+  Widget loadMap() {
+    return GoogleMap(
+      key: Key("tripMap"),
+      myLocationEnabled: true,
+      mapType: MapType.normal,
+      markers: _markers,
+      initialCameraPosition: _kGooglePlex,
+      onMapCreated: (GoogleMapController controller) async {
+        if (!_fullScreenMapController.isCompleted) {
+          _fullScreenMapController.complete(controller);
+          getInstallMarkers();
+        }
+      },
+    );
+  }
+
+  Widget initTripDialog() {
+    return AlertDialog(
+      title: Text("Select Date and Starting Location"),
+      content: StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+        return Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              children: <Widget>[
+                DateTimeField(
+                  decoration: InputDecoration(labelText: "Trip Date"),
+                  onEditingComplete: () => FocusScope.of(context).nextFocus(),
+                  format: DateFormat("MM/dd/yyyy"),
+                  controller: tripDateController,
+                  initialValue: DateTime.now(),
+                  onShowPicker: (context, currentValue) async {
+                    final date = await showDatePicker(
+                      context: context,
+                      initialDate: currentDate,
+                      firstDate: DateTime(1900),
+                      lastDate: DateTime(2100),
+                    );
+                    return date;
+                  },
+                ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(0, 15, 0, 7.5),
+                  child: Text(
+                    "Start from:",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  MerchantDropDown(callback: (newValue) {
-                    setState(() {
-                      destinationMerchant = newValue["id"];
-                    });
-                  }),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(15, 50, 15, 30),
-                    child: MaterialButton(
-                      padding: EdgeInsets.all(5),
-                      color: UniversalStyles.actionColor,
-                      onPressed: () {
-                        var destination = {
-                          "destination": destinationMerchant,
-                          "merchant": isMerchant
-                        };
-                        if (destination["destination"] != null &&
-                            destination["destination"] != "") {
-                          toggleTripStatus(destination);
-                          Navigator.of(context).pop();
-                        } else {
-                          Fluttertoast.showToast(
-                              msg: "Please select a merchant",
-                              toastLength: Toast.LENGTH_SHORT,
-                              gravity: ToastGravity.BOTTOM,
-                              backgroundColor: Colors.grey[600],
-                              textColor: Colors.white,
-                              fontSize: 16.0);
-                        }
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
+                ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(0, 5, 0, 0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          primary: UniversalStyles.actionColor,
+                        ),
                         child: Row(
-                          children: <Widget>[
+                          children: [
                             Icon(
-                              Icons.directions_car,
+                              Icons.business,
                               color: Colors.white,
                             ),
                             Text(
-                              'Start Trip',
+                              "Office",
                               style: TextStyle(
                                 color: Colors.white,
+                                fontWeight: FontWeight.bold,
                               ),
                             )
                           ],
                         ),
+                        onPressed: () {
+                          setState(() {
+                            isLoading = false;
+                          });
+                        },
                       ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            actions: <Widget>[
-              TextButton(
-                child: Text(
-                  'Not a Merchant?',
-                  style: TextStyle(fontSize: 17, color: Colors.green),
-                ),
-                onPressed: () {
-                  setState(
-                    () {
-                      Navigator.pop(context);
-                      selectDestination(false);
-                    },
-                  );
-                },
-              ),
-            ],
-          );
-        },
-      );
-    } else {
-      return showDialog<void>(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Custom Destination'),
-            content: SingleChildScrollView(
-              child: ListBody(
-                children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 20, 0, 30),
-                    child: Text('Enter a Destination.'),
-                  ),
-                  Row(
-                    children: <Widget>[
-                      Expanded(
-                        flex: 4,
-                        child: Text(
-                          'Destination: ',
-                          style: TextStyle(fontSize: 16),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          primary: UniversalStyles.actionColor,
                         ),
-                      ),
-                      Expanded(
-                        flex: 8,
-                        child: TextFormField(
-                          controller: destinationController,
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.add_location_alt,
+                              color: Colors.white,
+                            ),
+                            Text(
+                              "Custom Address",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            )
+                          ],
                         ),
+                        onPressed: () {},
                       ),
                     ],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(15, 50, 15, 30),
-                    child: MaterialButton(
-                      padding: EdgeInsets.all(5),
-                      color: UniversalStyles.actionColor,
-                      onPressed: () {
-                        if (destinationController.text != null &&
-                            destinationController.text != "") {
-                          var destination = {
-                            "destination": destinationController.text,
-                            "merchant": isMerchant
-                          };
-                          toggleTripStatus(destination);
-                          Navigator.of(context).pop();
-                        } else {
-                          Fluttertoast.showToast(
-                              msg: "Please enter a destination",
-                              toastLength: Toast.LENGTH_SHORT,
-                              gravity: ToastGravity.BOTTOM,
-                              backgroundColor: Colors.grey[600],
-                              textColor: Colors.white,
-                              fontSize: 16.0);
-                        }
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Row(
-                          children: <Widget>[
-                            Icon(
-                              Icons.directions_car,
-                              color: Colors.white,
-                            ),
-                            Text(
-                              'Start Trip',
-                              style: TextStyle(
-                                color: Colors.white,
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            actions: <Widget>[
-              TextButton(
-                child: Text(
-                  'Merchant?',
-                  style: TextStyle(fontSize: 17, color: Colors.green),
                 ),
-                onPressed: () {
-                  setState(
-                    () {
-                      Navigator.pop(context);
-                      selectDestination(true);
-                    },
-                  );
-                },
-              ),
-            ],
-          );
-        },
-      );
-    }
+              ],
+            ),
+          ),
+        );
+      }),
+    );
   }
 
-  Future<void> getInitialTripStatus() async {
-    try {
-      var storedStatus =
-          await this.widget.storageService.read("isTechTripRunning");
-      setState(() {
-        isRunning = storedStatus.toLowerCase() == 'true';
-      });
-    } catch (err) {
-      setState(() {
-        isRunning = false;
-      });
-    }
-
-    setState(() {
-      isLoading = false;
-    });
-  }
-
-  Future<void> toggleTripStatus(destination) async {
-    destinationController.clear();
-    try {
-      setState(() {
-        isLoading = true;
-      });
-      bool status = !isRunning;
-      String currentTime =
-          DateFormat('yyyy-MM-dd HH:mm:ss.mmm').format(DateTime.now().toUtc());
-      var sendMerchant;
-      Map sendDocument = {};
-      if (destination["merchant"] != null) {
-        if (destination["merchant"]) {
-          sendMerchant = destination["destination"];
-        } else {
-          sendMerchant = null;
+  Future getInstallMarkers() async {
+    QueryOptions options = QueryOptions(
+      operationName: "GET_V_INSTALL_TABLE",
+      document: gql("""
+      query GET_V_INSTALL_TABLE {
+      v_install_table(
+        where: {
+          _or: [{ ticket_open: { _eq: true } }, { ticket: { _is_null: true } }]
         }
-
-        if (destination["merchant"]) {
-          sendDocument = {};
-        } else {
-          sendDocument["destination"] = destination["destination"];
-        }
+      ) {
+        install
+        merchant
+        merchantbusinessname
+        date
+        ticket
+        employee
+        employeefullname
+        install_address
+        lead
+        lat
+        lng
       }
-      if (status) {
-        MutationOptions mutateOptions = MutationOptions(
-          document: gql("""
-          mutation INSERT_TRIP (\$started_at: timestamptz, \$merchant: uuid, \$employee: uuid, \$document: jsonb){
-            insert_trip_one(object: {started_at: \$started_at, merchant: \$merchant, employee: \$employee, document: \$document}) {
-              trip
-            }
-          }
-        """),
-          fetchPolicy: FetchPolicy.networkOnly,
-          variables: {
-            "started_at": currentTime,
-            "merchant": sendMerchant,
-            "document": sendDocument,
-            "employee": UserService.employee.employee
-          },
+    }
+    """),
+    );
+
+    final result = await GqlClientFactory().authGqlquery(options);
+
+    if (result != null) {
+      if (result.hasException == false) {
+        var installsArrDecoded = result.data["v_install_table"];
+        var installsArr = List.from(installsArrDecoded);
+        List<Marker> markers = [];
+
+        homeIcon = await BitmapDescriptor.fromAssetImage(
+          ImageConfiguration(size: Size(5, 5)),
+          'assets/homeSmall.png',
         );
 
-        final QueryResult result =
-            await GqlClientFactory().authGqlmutate(mutateOptions);
-        if (result.hasException == true) {
-          Fluttertoast.showToast(
-            msg: result.exception.toString(),
-            toastLength: Toast.LENGTH_LONG,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.grey[600],
-            textColor: Colors.white,
-            fontSize: 16.0,
-          );
-          return;
-        } else {
-          await this.widget.storageService.save(
-              "techTripId", result.data["insert_trip_one"]["trip"].toString());
+        if (installsArr.length > 0) {
+          for (var install in installsArr) {
+            var installDate = DateTime.parse(install["date"]).toLocal();
+            var installTime = DateFormat.yMd().add_jm().format(installDate);
+
+            markers.add(
+              Marker(
+                markerId: MarkerId(UniqueKey().toString()),
+                position: LatLng(
+                  double.parse(install["lat"]),
+                  double.parse(install["lng"]),
+                ),
+                infoWindow: InfoWindow(
+                  title: install["merchantbusinessname"],
+                  snippet: installTime,
+                ),
+              ),
+            );
+
+            var markerLatLng = LatLng(
+                double.parse(install["lat"]), double.parse(install["lng"]));
+
+            markerLatLngs.add(markerLatLng);
+          }
           setState(
             () {
-              isRunning = status;
+              isLoading = false;
+              _markers.addAll(markers);
+
+              _markers.add(
+                Marker(
+                  position: LatLng(40.907569, -79.923725),
+                  markerId: MarkerId("home"),
+                  icon: homeIcon,
+                  infoWindow: InfoWindow.noText,
+                ),
+              );
             },
           );
         }
       } else {
-        var trip = await this.widget.storageService.read("techTripId");
-        if (trip != "" && trip != "null") {
-          MutationOptions mutateOptions = MutationOptions(
-            document: gql("""
-           mutation UPDATE_TRIP_COMPLETE (\$completed_at: timestamptz, \$trip: uuid!) {
-            update_trip_by_pk(pk_columns: {trip: \$trip}, _set: {is_completed: true, completed_at: \$completed_at}) {
-              trip
-            }
-          }
-           """),
-            fetchPolicy: FetchPolicy.networkOnly,
-            variables: {"completed_at": currentTime, "trip": trip},
-          );
-
-          final QueryResult result =
-              await GqlClientFactory().authGqlmutate(mutateOptions);
-          if (result.hasException == true) {
-            Fluttertoast.showToast(
-              msg: result.exception.toString(),
-              toastLength: Toast.LENGTH_LONG,
-              gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.grey[600],
-              textColor: Colors.white,
-              fontSize: 16.0,
-            );
-            return;
-          } else {
-            setState(() {
-              isRunning = status;
-            });
-          }
-        } else {
-          Fluttertoast.showToast(
-              msg: "Failed to get status from StorageService!",
-              toastLength: Toast.LENGTH_LONG,
-              gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.grey[600],
-              textColor: Colors.white,
-              fontSize: 16.0);
-          return;
-        }
+        Fluttertoast.showToast(
+          msg: result.exception.toString(),
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
       }
-
-      await this
-          .widget
-          .storageService
-          .save("isTechTripRunning", status.toString());
-
-      setState(() {
-        isLoading = false;
-      });
-    } catch (err) {
-      await this.widget.storageService.delete("isTechTripRunning");
-      await this.widget.storageService.delete("techTripId");
-
-      setState(() {
-        isLoading = false;
-        isRunning = false;
-      });
-
-      log(err);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        Navigator.pushReplacementNamed(context, "/dashboard");
-        return false;
-      },
-      child: Scaffold(
-        backgroundColor: Colors.orange,
-        drawer: CustomDrawer(),
-        appBar: CustomAppBar(
-          key: Key("mileageCustomAppBar"),
-          title: Text("Trips"),
-        ),
-        body: isLoading
-            ? LoadingScreen()
-            : Container(
-                color: Colors.black,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    isRunning
-                        ? Expanded(
-                            child: Column(
-                              children: <Widget>[
-                                Expanded(
-                                  child: Image(
-                                    fit: BoxFit.fill,
-                                    image: NetworkImage(
-                                        "https://media.giphy.com/media/l378BzHA5FwWFXVSg/giphy.gif"),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
-                        : Expanded(
-                            child: Column(
-                              children: <Widget>[
-                                Expanded(
-                                  child: Image(
-                                    fit: BoxFit.fill,
-                                    image: NetworkImage(
-                                        "https://media.giphy.com/media/brHaCdJqCXijm/source.gif"),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                    Expanded(
-                      child: isRunning
-                          ? MaterialButton(
-                              height: MediaQuery.of(context).size.height / 2,
-                              color: Colors.red[300],
-                              onPressed: () {
-                                toggleTripStatus({});
-                              },
-                              child: Text(
-                                'STOP',
-                                style: TextStyle(
-                                  fontSize: 34,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 10,
-                                ),
-                              ),
-                            )
-                          : MaterialButton(
-                              height: MediaQuery.of(context).size.height / 2,
-                              color: Colors.green[200],
-                              onPressed: () {
-                                selectDestination(true);
-                              },
-                              child: Text(
-                                'START',
-                                style: TextStyle(
-                                  fontSize: 34,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 10,
-                                ),
-                              ),
-                            ),
-                    ),
-                  ],
-                ),
-              ),
+    return Scaffold(
+      backgroundColor: Colors.grey[600],
+      drawer: CustomDrawer(),
+      appBar: CustomAppBar(
+        key: Key("tripCustomAppBar"),
+        title: Text("Trips"),
       ),
-    );
-  }
-
-  Widget getInfoRow(label, value, controller) {
-    if (value != null) {
-      controller.text = value;
-    }
-
-    var valueFmt = value ?? "N/A";
-
-    if (valueFmt == "") {
-      valueFmt = "N/A";
-    }
-
-    return Container(
-      child: Padding(
-        padding: EdgeInsets.all(15),
-        child: Row(
-          children: <Widget>[
-            Expanded(
-              flex: 4,
-              child: Text(
-                '$label: ',
-                style: TextStyle(fontSize: 16),
-              ),
-            ),
-            Expanded(
-              flex: 8,
-              child: TextFormField(
-                controller: controller,
-              ),
-            ),
-          ],
-        ),
-      ),
+      body: isLoading ? initTripDialog() : loadMap(),
     );
   }
 }
