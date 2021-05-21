@@ -19,11 +19,16 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  graphql_flutter:
+    git:
+      url: https://github.com/psrcek/graphql-flutter.git
+      ref: 821dd3c0433f8f41de8146311c3f889dfae5f50d
+      path: packages/graphql_flutter
+      publish_to: none
   charts_flutter: ^0.10.0
   confetti: ^0.5.2
   cupertino_icons: ^1.0.2
   dan_barcode_scan: ^1.0.1
-  date_range_picker: ^1.0.5
   datetime_picker_formfield: ^1.0.0
   dio: null
   file_picker: ^3.0.1
@@ -41,16 +46,9 @@ dependencies:
   flutter_pusher: ^1.0.2
   flutter_secure_storage: ^4.1.0
   fluttertoast: ^8.0.3
-  google_maps_flutter: ^0.5.21+15
-  google_maps_webservice: ^0.0.20-nullsafety.3
+  google_maps_flutter: ^2.0.5
+  google_maps_webservice: ^0.0.19
   google_sign_in: ^4.1.1
-  #graphql_flutter: ^4.0.1
-  graphql_flutter:
-    git: #!https://github.com/zino-app/graphql-flutter/issues/856
-      url: https://github.com/psrcek/graphql-flutter.git
-      ref: 821dd3c0433f8f41de8146311c3f889dfae5f50d
-      path: packages/graphql_flutter
-      publish_to: none
   http_parser: ^4.0.0
   image: ^3.0.1
   image_picker: ^0.7.4

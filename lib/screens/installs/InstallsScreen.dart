@@ -203,8 +203,12 @@ class _InstallsScreenState extends State<InstallsScreen> {
                         initTime = TimeOfDay.fromDateTime(initDate);
                         viewDate = "";
                       });
-                      return InstallScheduleForm(i, viewDate, iDate,
-                          unscheduled: true);
+                      return InstallScheduleForm(
+                        i,
+                        viewDate,
+                        iDate,
+                        unscheduled: true,
+                      );
                     },
                   ).toList(),
                 )

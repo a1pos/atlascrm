@@ -11,14 +11,17 @@ class AddressSearch extends StatefulWidget {
   final Function onAddressChange;
   final TextEditingController controller;
   final bool returnNearby;
+  final bool tripSearch;
   final Color lineColor;
 
-  AddressSearch(
-      {this.locationValue,
-      this.onAddressChange,
-      this.controller,
-      this.returnNearby,
-      this.lineColor});
+  AddressSearch({
+    this.locationValue,
+    this.onAddressChange,
+    this.controller,
+    this.returnNearby,
+    this.lineColor,
+    this.tripSearch,
+  });
 
   @override
   _AddressSearchState createState() => _AddressSearchState();
@@ -62,6 +65,7 @@ class _AddressSearchState extends State<AddressSearch> {
           components: [Component(Component.country, "us")],
           strictbounds: false,
         );
+
         displayPrediction(p);
       },
       child: Container(
@@ -69,12 +73,16 @@ class _AddressSearchState extends State<AddressSearch> {
         width: MediaQuery.of(context).size.width,
         child: Column(
           children: <Widget>[
-            Align(alignment: Alignment.bottomLeft, child: Text(locationText)),
+            Align(
+              alignment: Alignment.bottomLeft,
+              child: Text(locationText),
+            ),
             Divider(
-                thickness: .5,
-                color: this.widget.lineColor != null
-                    ? this.widget.lineColor
-                    : Colors.black)
+              thickness: .5,
+              color: this.widget.lineColor != null
+                  ? this.widget.lineColor
+                  : Colors.black,
+            )
           ],
         ),
       ),
@@ -156,7 +164,9 @@ class _AddressSearchState extends State<AddressSearch> {
         };
         this.widget.onAddressChange(mixedReply);
       } else {
-        this.widget.onAddressChange(addressInfo);
+        if (this.widget.tripSearch == false || this.widget.tripSearch == null) {
+          this.widget.onAddressChange(addressInfo);
+        }
       }
     }
   }

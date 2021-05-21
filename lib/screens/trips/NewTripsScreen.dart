@@ -1,9 +1,8 @@
-import 'dart:developer';
 import 'dart:async';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
+import 'package:atlascrm/components/shared/AddressSearch.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
-import 'package:atlascrm/components/shared/Notes.dart';
+import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:intl/intl.dart';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
@@ -33,12 +32,16 @@ class _TripsScreenState extends State<TripsScreen> {
   final _formKey = GlobalKey<FormState>();
 
   bool isLoading = true;
+  bool showMap = false;
+  bool isVisible = false;
+  bool customStart;
 
   CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(40.907569, -79.923725),
-    zoom: 9,
+    zoom: 8.0,
   );
 
+  GoogleMapController _mapController;
   Completer<GoogleMapController> _fullScreenMapController = Completer();
 
   List installs = [];
@@ -49,6 +52,8 @@ class _TripsScreenState extends State<TripsScreen> {
   var currentDate = DateTime.now();
   var tripDateController = TextEditingController();
   var homeIcon;
+  var locationValue;
+  var startAddress;
 
   @override
   void initState() {
@@ -70,9 +75,11 @@ class _TripsScreenState extends State<TripsScreen> {
       markers: _markers,
       initialCameraPosition: _kGooglePlex,
       onMapCreated: (GoogleMapController controller) async {
+        _mapController = controller;
+
+        getInstallMarkers();
         if (!_fullScreenMapController.isCompleted) {
-          _fullScreenMapController.complete(controller);
-          getInstallMarkers();
+          _fullScreenMapController.complete(_mapController);
         }
       },
     );
@@ -81,6 +88,47 @@ class _TripsScreenState extends State<TripsScreen> {
   Widget initTripDialog() {
     return AlertDialog(
       title: Text("Select Date and Starting Location"),
+      actions: [
+        TextButton(
+          child: Text(
+            "Go",
+            style: TextStyle(
+              color: UniversalStyles.actionColor,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+          onPressed: () {
+            if (customStart == null || tripDateController.text == "") {
+              var msg;
+              msg = "Please select both a start location and trip date";
+              Fluttertoast.showToast(
+                msg: msg,
+                toastLength: Toast.LENGTH_LONG,
+                gravity: ToastGravity.BOTTOM,
+                backgroundColor: Colors.grey[600],
+                textColor: Colors.white,
+                fontSize: 16.0,
+              );
+            } else if (customStart == true &&
+                (locationValue == null || locationValue == "")) {
+              var msg = "Please add a custom address";
+              Fluttertoast.showToast(
+                msg: msg,
+                toastLength: Toast.LENGTH_LONG,
+                gravity: ToastGravity.BOTTOM,
+                backgroundColor: Colors.grey[600],
+                textColor: Colors.white,
+                fontSize: 16.0,
+              );
+            } else {
+              setState(() {
+                showMap = true;
+              });
+            }
+          },
+        )
+      ],
       content: StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
         return Form(
@@ -91,6 +139,12 @@ class _TripsScreenState extends State<TripsScreen> {
                 DateTimeField(
                   decoration: InputDecoration(labelText: "Trip Date"),
                   onEditingComplete: () => FocusScope.of(context).nextFocus(),
+                  validator: (DateTime dateTime) {
+                    if (dateTime == null) {
+                      return 'Please select a date';
+                    }
+                    return null;
+                  },
                   format: DateFormat("MM/dd/yyyy"),
                   controller: tripDateController,
                   initialValue: DateTime.now(),
@@ -107,18 +161,20 @@ class _TripsScreenState extends State<TripsScreen> {
                 Padding(
                   padding: EdgeInsets.fromLTRB(0, 15, 0, 7.5),
                   child: Text(
-                    "Start from:",
+                    "Start From:",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-                Padding(
-                  padding: EdgeInsets.fromLTRB(0, 5, 0, 0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      ElevatedButton(
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Opacity(
+                      opacity: customStart == false || customStart == null
+                          ? 1.0
+                          : 0.5,
+                      child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           primary: UniversalStyles.actionColor,
                         ),
@@ -139,11 +195,18 @@ class _TripsScreenState extends State<TripsScreen> {
                         ),
                         onPressed: () {
                           setState(() {
-                            isLoading = false;
+                            customStart = false;
+                            isLoading = true;
+                            isVisible = false;
                           });
                         },
                       ),
-                      ElevatedButton(
+                    ),
+                    Opacity(
+                      opacity: customStart == true || customStart == null
+                          ? 1.0
+                          : 0.5,
+                      child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           primary: UniversalStyles.actionColor,
                         ),
@@ -162,11 +225,35 @@ class _TripsScreenState extends State<TripsScreen> {
                             )
                           ],
                         ),
-                        onPressed: () {},
+                        onPressed: () {
+                          setState(() {
+                            customStart = true;
+                            isVisible = true;
+                          });
+                        },
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Visibility(
+                      visible: isVisible,
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(0, 25, 0, 0),
+                        child: AddressSearch(
+                          returnNearby: true,
+                          locationValue: locationValue,
+                          tripSearch: true,
+                          onAddressChange: (val) {
+                            locationValue = val.toString();
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                )
               ],
             ),
           ),
@@ -276,7 +363,7 @@ class _TripsScreenState extends State<TripsScreen> {
         key: Key("tripCustomAppBar"),
         title: Text("Trips"),
       ),
-      body: isLoading ? initTripDialog() : loadMap(),
+      body: !showMap ? initTripDialog() : loadMap(),
     );
   }
 }
