@@ -19,10 +19,14 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
   final List<LatLng> markerLatLngs = [];
   static final CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(40.907569, -79.923725),
-    zoom: 9,
+    zoom: 13,
   );
+  LatLngBounds _latLngBounds;
 
   bool runOnce = true;
+  bool isLoading = true;
+
+  GoogleMapController _mapController;
   Completer<GoogleMapController> _fullScreenMapController = Completer();
 
   var subscription;
@@ -30,6 +34,10 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
       DateFormat('yyyy-MM-dd').format(DateTime.now()).toString() + " 11:00";
   var todayEnd =
       DateFormat('yyyy-MM-dd').format(DateTime.now()).toString() + " 23:00";
+  var north;
+  var east;
+  var south;
+  var west;
 
   @override
   void initState() {
@@ -44,26 +52,6 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
       await subscription.cancel();
       subscription = null;
     }
-  }
-
-  LatLngBounds boundsFromLatLngList(List<LatLng> list) {
-    assert(list.isNotEmpty);
-    double x0, x1, y0, y1;
-    for (LatLng latLng in list) {
-      if (x0 == null) {
-        x0 = x1 = latLng.latitude;
-        y0 = y1 = latLng.longitude;
-      } else {
-        if (latLng.latitude > x1) x1 = latLng.latitude;
-        if (latLng.latitude < x0) x0 = latLng.latitude;
-        if (latLng.longitude > y1) y1 = latLng.longitude;
-        if (latLng.longitude < y0) y0 = latLng.longitude;
-      }
-    }
-    return LatLngBounds(
-      northeast: LatLng(x1, y1),
-      southwest: LatLng(x0, y0),
-    );
   }
 
   Future initSubListener() async {
@@ -179,6 +167,22 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
                     location["document"]["latitude"],
                     location["document"]["longitude"],
                   ));
+
+                  markerLatLngs
+                      .sort((b, a) => a.latitude.compareTo(b.latitude));
+                  north = markerLatLngs[0];
+
+                  markerLatLngs
+                      .sort((a, b) => a.latitude.compareTo(b.latitude));
+                  south = markerLatLngs[0];
+
+                  markerLatLngs
+                      .sort((a, b) => b.longitude.compareTo(a.longitude));
+                  east = markerLatLngs[0];
+
+                  markerLatLngs
+                      .sort((b, a) => b.longitude.compareTo(a.longitude));
+                  west = markerLatLngs[0];
                 });
               }
             } else {
@@ -212,26 +216,32 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
                   );
                 },
               );
+              markerLatLngs.sort((b, a) => a.latitude.compareTo(b.latitude));
+              north = markerLatLngs[0];
+
+              markerLatLngs.sort((a, b) => a.latitude.compareTo(b.latitude));
+              south = markerLatLngs[0];
+
+              markerLatLngs.sort((a, b) => b.longitude.compareTo(a.longitude));
+              east = markerLatLngs[0];
+
+              markerLatLngs.sort((b, a) => b.longitude.compareTo(a.longitude));
+              west = markerLatLngs[0];
             }
           }
         }
+        _latLngBounds = LatLngBounds(
+          northeast: LatLng(north.latitude, east.longitude),
+          southwest: LatLng(south.latitude, west.longitude),
+        );
+
+        _mapController.animateCamera(
+          CameraUpdate.newLatLngBounds(_latLngBounds, 70),
+        );
       },
       (error) {},
       () => refreshSub(),
     );
-
-    // an attempt was made at auto-zooming to include all employees in initial view
-    // Future.delayed(const Duration(milliseconds: 3000), () async {
-    //   if (runOnce == true) {
-    //     LatLngBounds camBounds = boundsFromLatLngList(markerLatLngs);
-    //     final GoogleMapController controller =
-    //         await _fullScreenMapController.future;
-    //     controller.animateCamera(CameraUpdate.newLatLngBounds(camBounds, 100));
-    //   }
-    //   setState(() {
-    //     runOnce = false;
-    //   });
-    // });
   }
 
   Future refreshSub() async {
@@ -318,6 +328,7 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
         markers: markers,
         initialCameraPosition: _kGooglePlex,
         onMapCreated: (GoogleMapController controller) async {
+          _mapController = controller;
           if (!_fullScreenMapController.isCompleted) {
             _fullScreenMapController.complete(controller);
           }

@@ -26,6 +26,7 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
   final Set<Marker> _markers = new Set<Marker>();
   final Set<Polyline> _polyline = new Set<Polyline>();
   final List<LatLng> markerLatLngs = [];
+  LatLngBounds _latLngBounds;
 
   bool isLoading = true;
 
@@ -34,13 +35,19 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
   DateTime _endDate = DateTime.now().toUtc();
   CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(40.907569, -79.923725),
-    zoom: 9.0,
+    zoom: 13,
   );
+  GoogleMapController _mapController;
+
   TextEditingController deviceIdController = TextEditingController();
 
   var employeeName = "";
   var numberStops = 0;
   var currentDate = DateTime.now();
+  var north;
+  var east;
+  var south;
+  var west;
 
   @override
   void initState() {
@@ -50,23 +57,6 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
         isLoading = false;
       },
     );
-  }
-
-  LatLngBounds boundsFromLatLngList(List<LatLng> list) {
-    assert(list.isNotEmpty);
-    double x0, x1, y0, y1;
-    for (LatLng latLng in list) {
-      if (x0 == null) {
-        x0 = x1 = latLng.latitude;
-        y0 = y1 = latLng.longitude;
-      } else {
-        if (latLng.latitude > x1) x1 = latLng.latitude;
-        if (latLng.latitude < x0) x0 = latLng.latitude;
-        if (latLng.longitude > y1) y1 = latLng.longitude;
-        if (latLng.longitude < y0) y0 = latLng.longitude;
-      }
-    }
-    return LatLngBounds(northeast: LatLng(x1, y1), southwest: LatLng(x0, y0));
   }
 
   Future<void> loadMarkerHistory(DateTime startDate) async {
@@ -147,17 +137,6 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
               location["location_document"]["longitude"],
             );
             latLngs.add(latLng);
-
-            setState(
-              () {
-                if (_kGooglePlex == null) {
-                  _kGooglePlex = CameraPosition(
-                    target: latLng,
-                    zoom: 9.0,
-                  );
-                }
-              },
-            );
           }
 
           setState(() {
@@ -246,7 +225,9 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
                       UniqueKey().toString(),
                     ),
                     infoWindow: InfoWindow(
-                        title: stopTime, snippet: "Duration: " + stop["delta"]),
+                      title: stopTime,
+                      snippet: "Duration: " + stop["delta"],
+                    ),
                   ),
                 );
               }
@@ -256,10 +237,33 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
               );
               markerLatLngs.add(markerLatLng);
             }
+
+            if (latLngs != null && latLngs.length > 0) {
+              markerLatLngs.sort((b, a) => a.latitude.compareTo(b.latitude));
+              north = markerLatLngs[0];
+
+              markerLatLngs.sort((a, b) => a.latitude.compareTo(b.latitude));
+              south = markerLatLngs[0];
+
+              markerLatLngs.sort((a, b) => b.longitude.compareTo(a.longitude));
+              east = markerLatLngs[0];
+
+              markerLatLngs.sort((b, a) => b.longitude.compareTo(a.longitude));
+              west = markerLatLngs[0];
+            }
             setState(
               () {
                 numberStops = count.length;
                 _markers.addAll(markers);
+
+                if (numberStops > 0) {
+                  _latLngBounds = LatLngBounds(
+                    southwest: LatLng(south.latitude, west.longitude),
+                    northeast: LatLng(north.latitude, east.longitude),
+                  );
+
+                  loadMap();
+                }
               },
             );
           }
@@ -275,19 +279,46 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
         );
       }
     }
-    _markers.add(
-      Marker(
-        position: LatLng(40.907569, -79.923725),
-        markerId: MarkerId("home"),
-        icon: homeIcon,
-        infoWindow: InfoWindow(title: "Home Base"),
-      ),
-    );
+    // _markers.add(
+    //   Marker(
+    //     position: LatLng(40.907569, -79.923725),
+    //     markerId: MarkerId("home"),
+    //     icon: homeIcon,
+    //     infoWindow: InfoWindow(title: "Home Base"),
+    //   ),
+    // );
     setState(
       () {
         _startDate = startDate;
         _endDate = endDate;
         isLoading = false;
+      },
+    );
+  }
+
+  Widget loadMap() {
+    return GoogleMap(
+      key: Key("historyMap"),
+      myLocationEnabled: true,
+      mapType: MapType.normal,
+      markers: _markers,
+      polylines: _polyline,
+      initialCameraPosition: _kGooglePlex,
+      onMapCreated: (GoogleMapController controller) async {
+        _mapController = controller;
+        if (!_fullScreenMapController2.isCompleted) {
+          _fullScreenMapController2.complete(controller);
+        }
+
+        if (_latLngBounds != null) {
+          Future.delayed(
+            Duration(milliseconds: 200),
+            () => _mapController.animateCamera(CameraUpdate.newLatLngBounds(
+              _latLngBounds,
+              70,
+            )),
+          );
+        }
       },
     );
   }
@@ -362,19 +393,7 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
                 ),
                 Expanded(
                   flex: 12,
-                  child: GoogleMap(
-                    key: Key("historyMap"),
-                    myLocationEnabled: true,
-                    mapType: MapType.normal,
-                    markers: _markers,
-                    polylines: _polyline,
-                    initialCameraPosition: _kGooglePlex,
-                    onMapCreated: (GoogleMapController controller) async {
-                      if (!_fullScreenMapController2.isCompleted) {
-                        _fullScreenMapController2.complete(controller);
-                      }
-                    },
-                  ),
+                  child: isLoading ? Container() : loadMap(),
                 ),
               ],
             ),

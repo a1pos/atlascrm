@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:atlascrm/components/shared/AddressSearch.dart';
-import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
-import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:intl/intl.dart';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
@@ -30,6 +28,8 @@ class _TripsScreenState extends State<TripsScreen> {
   final Set<Polyline> _polyline = new Set<Polyline>();
   final List<LatLng> markerLatLngs = [];
   final _formKey = GlobalKey<FormState>();
+  static LatLng initialPos = LatLng(40.907569, -79.923725);
+  LatLngBounds _latLngBounds;
 
   bool isLoading = true;
   bool showMap = false;
@@ -37,7 +37,7 @@ class _TripsScreenState extends State<TripsScreen> {
   bool customStart;
 
   CameraPosition _kGooglePlex = CameraPosition(
-    target: LatLng(40.907569, -79.923725),
+    target: LatLng(initialPos.latitude, initialPos.longitude),
     zoom: 8.0,
   );
 
@@ -54,6 +54,10 @@ class _TripsScreenState extends State<TripsScreen> {
   var homeIcon;
   var locationValue;
   var startAddress;
+  var north;
+  var east;
+  var south;
+  var west;
 
   @override
   void initState() {
@@ -76,10 +80,9 @@ class _TripsScreenState extends State<TripsScreen> {
       initialCameraPosition: _kGooglePlex,
       onMapCreated: (GoogleMapController controller) async {
         _mapController = controller;
-
-        getInstallMarkers();
         if (!_fullScreenMapController.isCompleted) {
           _fullScreenMapController.complete(_mapController);
+          getInstallMarkers();
         }
       },
     );
@@ -321,10 +324,25 @@ class _TripsScreenState extends State<TripsScreen> {
             );
 
             var markerLatLng = LatLng(
-                double.parse(install["lat"]), double.parse(install["lng"]));
+              double.parse(install["lat"]),
+              double.parse(install["lng"]),
+            );
 
             markerLatLngs.add(markerLatLng);
           }
+
+          markerLatLngs.sort((b, a) => a.latitude.compareTo(b.latitude));
+          north = markerLatLngs[0];
+
+          markerLatLngs.sort((a, b) => a.latitude.compareTo(b.latitude));
+          south = markerLatLngs[0];
+
+          markerLatLngs.sort((a, b) => b.longitude.compareTo(a.longitude));
+          east = markerLatLngs[0];
+
+          markerLatLngs.sort((b, a) => b.longitude.compareTo(a.longitude));
+          west = markerLatLngs[0];
+
           setState(
             () {
               isLoading = false;
@@ -337,6 +355,21 @@ class _TripsScreenState extends State<TripsScreen> {
                   icon: homeIcon,
                   infoWindow: InfoWindow.noText,
                 ),
+              );
+
+              _latLngBounds = LatLngBounds(
+                southwest: LatLng(
+                  south.latitude,
+                  west.longitude,
+                ),
+                northeast: LatLng(
+                  north.latitude,
+                  east.longitude,
+                ),
+              );
+
+              _mapController.animateCamera(
+                CameraUpdate.newLatLngBounds(_latLngBounds, 70),
               );
             },
           );
