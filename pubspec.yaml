@@ -26,7 +26,6 @@ dependencies:
       path: packages/graphql_flutter
       publish_to: none
   charts_flutter: ^0.10.0
-  confetti: ^0.5.2
   cupertino_icons: ^1.0.2
   dan_barcode_scan: ^1.0.1
   datetime_picker_formfield: ^1.0.0
@@ -101,6 +100,9 @@ flutter:
     - assets/a1logo_wht.png
     - assets/pdf_thumbnail.png
     - assets/disabled_user.png
+    - assets/install.png
+    - assets/installSelected.png
+    - assets/scheduleInstall.png
     - assets/globe-PS.gif
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg

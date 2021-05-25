@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:ui' as ui;
+import 'package:atlascrm/components/install/InstallScheduleForm.dart';
 import 'package:atlascrm/components/shared/AddressSearch.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:intl/intl.dart';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomDrawer.dart';
 import 'package:atlascrm/components/shared/MerchantDropdown.dart';
-import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/services/StorageService.dart';
 import 'package:atlascrm/services/UserService.dart';
@@ -38,8 +38,10 @@ class _TripsScreenState extends State<TripsScreen> {
 
   CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(initialPos.latitude, initialPos.longitude),
-    zoom: 8.0,
+    zoom: 10,
   );
+
+  BitmapDescriptor icon;
 
   GoogleMapController _mapController;
   Completer<GoogleMapController> _fullScreenMapController = Completer();
@@ -78,6 +80,9 @@ class _TripsScreenState extends State<TripsScreen> {
       mapType: MapType.normal,
       markers: _markers,
       initialCameraPosition: _kGooglePlex,
+      cameraTargetBounds: CameraTargetBounds.unbounded,
+      zoomControlsEnabled: false,
+      // onLongPress: ,
       onMapCreated: (GoogleMapController controller) async {
         _mapController = controller;
         if (!_fullScreenMapController.isCompleted) {
@@ -306,11 +311,36 @@ class _TripsScreenState extends State<TripsScreen> {
 
         if (installsArr.length > 0) {
           for (var install in installsArr) {
-            var installDate = DateTime.parse(install["date"]).toLocal();
-            var installTime = DateFormat.yMd().add_jm().format(installDate);
+            var installDate = install["date"] == null
+                ? "TBD"
+                : DateTime.parse(install["date"]).toLocal();
+            var installTime = installDate == "TBD"
+                ? ""
+                : DateFormat.yMd().add_jm().format(installDate);
+            var viewDate = install["date"] == null
+                ? null
+                : DateFormat("yyyy-MM-dd HH:mm")
+                    .format(DateTime.parse(install["date"]).toLocal());
+
+            var iDate = install["date"] == null
+                ? null
+                : DateFormat("EEE, MMM d, ''yy")
+                    .add_jm()
+                    .format(DateTime.parse(install['date']).toLocal());
+
+            icon = install["date"] == null
+                ? await BitmapDescriptor.fromAssetImage(
+                    ImageConfiguration(size: Size(2.5, 2.5)),
+                    'assets/scheduleInstall.png',
+                  )
+                : await BitmapDescriptor.fromAssetImage(
+                    ImageConfiguration(size: Size(2.5, 2.5)),
+                    'assets/install.png',
+                  );
 
             markers.add(
               Marker(
+                icon: icon,
                 markerId: MarkerId(UniqueKey().toString()),
                 position: LatLng(
                   double.parse(install["lat"]),
@@ -318,8 +348,26 @@ class _TripsScreenState extends State<TripsScreen> {
                 ),
                 infoWindow: InfoWindow(
                   title: install["merchantbusinessname"],
-                  snippet: installTime,
+                  snippet: installTime == "" ? "TBD" : installTime,
                 ),
+                onTap: () {
+                  if (installTime == "") {
+                    InstallScheduleForm(
+                      install,
+                      viewDate,
+                      iDate,
+                      unscheduled: true,
+                    );
+                  } else {
+                    showModalBottomSheet(
+                        context: context,
+                        builder: (context) {
+                          return Container(
+                            child: Text("Test"),
+                          );
+                        });
+                  }
+                },
               ),
             );
 
@@ -369,7 +417,7 @@ class _TripsScreenState extends State<TripsScreen> {
               );
 
               _mapController.animateCamera(
-                CameraUpdate.newLatLngBounds(_latLngBounds, 70),
+                CameraUpdate.newLatLngBounds(_latLngBounds, 35),
               );
             },
           );
