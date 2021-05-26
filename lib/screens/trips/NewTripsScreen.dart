@@ -35,6 +35,7 @@ class _TripsScreenState extends State<TripsScreen> {
   bool showMap = false;
   bool isVisible = false;
   bool customStart;
+  bool unscheduled;
 
   CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(initialPos.latitude, initialPos.longitude),
@@ -322,13 +323,9 @@ class _TripsScreenState extends State<TripsScreen> {
                 : DateFormat("yyyy-MM-dd HH:mm")
                     .format(DateTime.parse(install["date"]).toLocal());
 
-            var iDate = install["date"] == null
-                ? null
-                : DateFormat("EEE, MMM d, ''yy")
-                    .add_jm()
-                    .format(DateTime.parse(install['date']).toLocal());
+            var employee = install["employee"];
 
-            icon = install["date"] == null
+            icon = install["date"] == null || install["employee"] == null
                 ? await BitmapDescriptor.fromAssetImage(
                     ImageConfiguration(size: Size(2.5, 2.5)),
                     'assets/scheduleInstall.png',
@@ -351,13 +348,17 @@ class _TripsScreenState extends State<TripsScreen> {
                   snippet: installTime == "" ? "TBD" : installTime,
                 ),
                 onTap: () {
-                  if (installTime == "") {
-                    InstallScheduleForm(
-                      install,
-                      viewDate,
-                      iDate,
-                      unscheduled: true,
-                    );
+                  if (installTime == "" || employee == null) {
+                    if (install['date'] != null) {
+                      unscheduled = false;
+                      viewDate = DateFormat("yyyy-MM-dd HH:mm")
+                          .format(DateTime.parse(install['date']).toLocal());
+                    } else {
+                      unscheduled = true;
+                      viewDate = "";
+                    }
+
+                    openInstallForm(install, viewDate, unscheduled);
                   } else {
                     showModalBottomSheet(
                         context: context,
@@ -433,6 +434,18 @@ class _TripsScreenState extends State<TripsScreen> {
         );
       }
     }
+  }
+
+  void openInstallForm(i, viewDate, unscheduled) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return InstallScheduleForm(
+            i,
+            viewDate,
+            unscheduled: unscheduled,
+          );
+        });
   }
 
   @override

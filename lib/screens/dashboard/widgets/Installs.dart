@@ -1,3 +1,4 @@
+import 'package:atlascrm/components/install/InstallItem.dart';
 import 'package:atlascrm/components/install/InstallScheduleForm.dart';
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
@@ -14,6 +15,7 @@ class Installs extends StatefulWidget {
 class _InstallsState extends State<Installs> {
   bool isLoading = true;
   bool isEmpty = true;
+  bool unscheduled;
 
   List installs = [];
   List activeInstalls = [];
@@ -110,18 +112,27 @@ class _InstallsState extends State<Installs> {
                           .format(DateTime.parse(i['date']).toLocal());
                       viewDate = DateFormat("yyyy-MM-dd HH:mm")
                           .format(DateTime.parse(i['date']).toLocal());
+
+                      unscheduled = false;
                     });
                   } else {
                     setState(() {
                       iDate = "TBD";
                       viewDate = "";
+                      unscheduled = true;
                     });
                   }
-                  return InstallScheduleForm(
-                    i,
-                    viewDate,
-                    iDate,
-                    unscheduled: false,
+                  return GestureDetector(
+                    child: InstallItem(
+                      merchant: i["merchantbusinessname"],
+                      dateTime: iDate ?? "TBD",
+                      merchantDevice: i["merchantdevice"] ?? "No Terminal",
+                      employeeFullName: i["employeefullname"] ?? "",
+                      location: i["location"],
+                    ),
+                    onTap: () {
+                      openInstallForm(i, viewDate, iDate, unscheduled);
+                    },
                   );
                 }).toList(),
               )
@@ -129,5 +140,17 @@ class _InstallsState extends State<Installs> {
                 padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
                 child: Empty("No active Installs found"),
               );
+  }
+
+  void openInstallForm(installList, viewDate, iDate, unscheduled) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return InstallScheduleForm(
+            installList,
+            viewDate,
+            unscheduled: unscheduled,
+          );
+        });
   }
 }

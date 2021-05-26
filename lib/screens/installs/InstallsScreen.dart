@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:atlascrm/components/install/InstallItem.dart';
 import 'package:atlascrm/components/install/InstallScheduleForm.dart';
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
@@ -20,6 +21,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
   bool isLoading = true;
   bool isEmpty = true;
   bool installsIncludeAll = false;
+  bool unscheduled;
 
   TimeOfDay initTime;
   DateTime initDate;
@@ -31,6 +33,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
   List installs = [];
   List activeInstalls = [];
   List unscheduledInstallsList = [];
+  Map installList;
 
   var unscheduledInstallCount = 0;
   var installDateController = TextEditingController();
@@ -38,7 +41,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
   var filterEmployee = "";
   var employeeDropdownValue;
   var viewDate;
-  var iDate;
+  var itemDate;
 
   @override
   void initState() {
@@ -196,18 +199,26 @@ class _InstallsScreenState extends State<InstallsScreen> {
                 )
               : Column(
                   children: unscheduledInstallsList.map(
-                    (i) {
+                    (item) {
                       setState(() {
-                        iDate = "TBD";
+                        itemDate = "TBD";
                         initDate = DateTime.now();
                         initTime = TimeOfDay.fromDateTime(initDate);
-                        viewDate = "";
                       });
-                      return InstallScheduleForm(
-                        i,
-                        viewDate,
-                        iDate,
-                        unscheduled: true,
+                      return GestureDetector(
+                        child: InstallItem(
+                          merchant: item["merchantbusinessname"],
+                          dateTime: itemDate ?? "TBD",
+                          merchantDevice:
+                              item["merchantdevice"] ?? "No Terminal",
+                          employeeFullName: item["employeefullname"] ?? "",
+                          location: item["location"],
+                        ),
+                        onTap: () {
+                          unscheduled = true;
+                          viewDate = null;
+                          openInstallForm(item, viewDate, unscheduled);
+                        },
                       );
                     },
                   ).toList(),
@@ -215,6 +226,18 @@ class _InstallsScreenState extends State<InstallsScreen> {
         ],
       ),
     );
+  }
+
+  void openInstallForm(i, viewDate, unscheduled) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return InstallScheduleForm(
+            i,
+            viewDate,
+            unscheduled: unscheduled,
+          );
+        });
   }
 
   Widget getInstalls() {
@@ -330,30 +353,42 @@ class _InstallsScreenState extends State<InstallsScreen> {
                   child: Empty("No installs today"),
                 )
               : Column(
-                  children: activeInstalls.map((i) {
-                    if (i['date'] != null) {
+                  children: activeInstalls.map((item) {
+                    if (item['date'] != null) {
                       setState(() {
-                        iDate = DateFormat("EEE, MMM d, ''yy")
+                        itemDate = DateFormat("EEE, MMM d, ''yy")
                             .add_jm()
-                            .format(DateTime.parse(i['date']).toLocal());
-                        initDate = DateTime.parse(i['date']).toLocal();
+                            .format(DateTime.parse(item['date']).toLocal());
+                        initDate = DateTime.parse(item['date']).toLocal();
                         initTime = TimeOfDay.fromDateTime(initDate);
-                        viewDate = DateFormat("yyyy-MM-dd HH:mm")
-                            .format(DateTime.parse(i['date']).toLocal());
                       });
                     } else {
                       setState(() {
-                        iDate = "TBD";
+                        itemDate = "TBD";
                         initDate = DateTime.now();
                         initTime = TimeOfDay.fromDateTime(initDate);
-                        viewDate = "";
                       });
                     }
-                    return InstallScheduleForm(
-                      i,
-                      viewDate,
-                      iDate,
-                      unscheduled: false,
+                    return GestureDetector(
+                      child: InstallItem(
+                        merchant: item["merchantbusinessname"],
+                        dateTime: itemDate ?? "TBD",
+                        merchantDevice: item["merchantdevice"] ?? "No Terminal",
+                        employeeFullName: item["employeefullname"] ?? "",
+                        location: item["location"],
+                      ),
+                      onTap: () {
+                        if (item['date'] != null) {
+                          unscheduled = false;
+                          viewDate = DateFormat("yyyy-MM-dd HH:mm")
+                              .format(DateTime.parse(item['date']).toLocal());
+                        } else {
+                          unscheduled = true;
+                          viewDate = "";
+                        }
+
+                        openInstallForm(item, viewDate, unscheduled);
+                      },
                     );
                   }).toList(),
                 )

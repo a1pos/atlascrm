@@ -1,5 +1,4 @@
 import 'dart:ui';
-import 'package:atlascrm/components/install/InstallItem.dart';
 import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/services/GqlClientFactory.dart';
@@ -14,10 +13,8 @@ class InstallScheduleForm extends StatefulWidget {
   final dynamic installList;
   final dynamic viewDate;
   final bool unscheduled;
-  final dynamic iDate;
 
-  InstallScheduleForm(this.installList, this.viewDate, this.iDate,
-      {this.unscheduled});
+  InstallScheduleForm(this.installList, this.viewDate, {this.unscheduled});
 
   @override
   _InstallScheduleFormState createState() => _InstallScheduleFormState();
@@ -34,6 +31,7 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
   Map data;
 
   var installDateController = TextEditingController();
+
   var employeeDropdownValue;
 
   @override
@@ -42,129 +40,107 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
     isSaveDisabled = false;
     initDate = DateTime.now();
     initTime = TimeOfDay.fromDateTime(initDate);
+    installDateController.text = this.widget.viewDate;
   }
 
   Widget installForm(viewDate, installList) {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          installDateController.text = viewDate;
-          employeeDropdownValue = UserService.isTech
-              ? UserService.employee.employee
-              : installList['employee'];
-        });
-        showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                actions: <Widget>[
-                  MaterialButton(
-                    child: Text('Cancel'),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                  !isSaveDisabled
-                      ? MaterialButton(
-                          child: installList['date'] != null
-                              ? Text(
-                                  'Update',
-                                  style: TextStyle(color: Colors.white),
-                                )
-                              : Text(
-                                  'Schedule',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                          color: UniversalStyles.actionColor,
-                          onPressed: () async {
-                            if (_formKey.currentState.validate()) {
-                              setState(() {
-                                isSaveDisabled = true;
-                              });
-                              await changeInstall(installList);
-                            }
-                          },
-                        )
-                      : Container(),
-                ],
-                title: Text(
-                  installList["merchantbusinessname"],
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                content: Form(
-                  key: _formKey,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: <Widget>[
-                        Container(
-                          child:
-                              UserService.isAdmin || UserService.isSalesManager
-                                  ? EmployeeDropDown(
-                                      value: installList['employee'] ?? "",
-                                      callback: (val) {
-                                        setState(() {
-                                          employeeDropdownValue = val;
-                                        });
-                                      },
-                                    )
-                                  : Container(),
-                        ),
-                        DateTimeField(
-                          onEditingComplete: () =>
-                              FocusScope.of(context).nextFocus(),
-                          validator: (DateTime dateTime) {
-                            if (dateTime == null) {
-                              return 'Please select a date';
-                            }
-                            return null;
-                          },
-                          decoration:
-                              InputDecoration(labelText: "Install Date"),
-                          format: DateFormat("yyyy-MM-dd HH:mm"),
-                          controller: installDateController,
-                          initialValue: this.widget.unscheduled
-                              ? null
-                              : DateTime.parse(viewDate),
-                          onShowPicker: (context, currentValue) async {
-                            final date = await showDatePicker(
-                              context: context,
-                              firstDate: DateTime(1900),
-                              initialDate: currentValue ?? initDate,
-                              lastDate: DateTime(2100),
-                            );
-                            if (date != null) {
-                              final time = await showTimePicker(
-                                context: context,
-                                initialTime: TimeOfDay.fromDateTime(
-                                  currentValue ?? DateTime.now(),
-                                ),
-                              );
-                              return DateTimeField.combine(date, time);
-                            } else {
-                              return currentValue;
-                            }
-                          },
-                        )
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            });
-      },
-      child: InstallItem(
-        merchant: installList["merchantbusinessname"],
-        dateTime: this.widget.iDate ?? "TBD",
-        merchantDevice: installList["merchantdevice"] ?? "No Terminal",
-        employeeFullName: installList["employeefullname"] ?? "",
-        location: installList["location"],
+    return AlertDialog(
+      actions: <Widget>[
+        MaterialButton(
+          child: Text('Cancel'),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        !isSaveDisabled
+            ? MaterialButton(
+                child: installList['date'] != null
+                    ? Text(
+                        'Update',
+                        style: TextStyle(color: Colors.white),
+                      )
+                    : Text(
+                        'Schedule',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                color: UniversalStyles.actionColor,
+                onPressed: () async {
+                  if (_formKey.currentState.validate()) {
+                    setState(() {
+                      isSaveDisabled = true;
+                    });
+                    await changeInstall(installList);
+                  }
+                },
+              )
+            : Container(),
+      ],
+      title: Text(
+        installList["merchantbusinessname"],
+        style: TextStyle(fontWeight: FontWeight.bold),
+      ),
+      content: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              Container(
+                child: UserService.isAdmin || UserService.isSalesManager
+                    ? EmployeeDropDown(
+                        value: installList['employee'] ?? "",
+                        callback: (val) {
+                          setState(() {
+                            employeeDropdownValue = val;
+                          });
+                        },
+                      )
+                    : Container(),
+              ),
+              DateTimeField(
+                onEditingComplete: () => FocusScope.of(context).nextFocus(),
+                validator: (DateTime dateTime) {
+                  if (dateTime == null) {
+                    return 'Please select a date';
+                  }
+                  return null;
+                },
+                decoration: InputDecoration(labelText: "Install Date"),
+                format: DateFormat("yyyy-MM-dd HH:mm"),
+                controller: installDateController,
+                initialValue:
+                    this.widget.unscheduled ? null : DateTime.parse(viewDate),
+                onShowPicker: (context, currentValue) async {
+                  final date = await showDatePicker(
+                    context: context,
+                    firstDate: DateTime(1900),
+                    initialDate: currentValue ?? initDate,
+                    lastDate: DateTime(2100),
+                  );
+                  if (date != null) {
+                    final time = await showTimePicker(
+                      context: context,
+                      initialTime: TimeOfDay.fromDateTime(
+                        currentValue ?? DateTime.now(),
+                      ),
+                    );
+                    return DateTimeField.combine(date, time);
+                  } else {
+                    return currentValue;
+                  }
+                },
+              )
+            ],
+          ),
+        ),
       ),
     );
   }
 
   Future<void> changeInstall(install) async {
-    var installEmployee = employeeDropdownValue;
+    var installEmployee = UserService.isTech
+        ? UserService.employee.employee
+        : employeeDropdownValue;
     var merchantName = install['merchantbusinessname'];
     var merchant = install['merchant'];
     var installID = install['install'];
@@ -275,7 +251,7 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
     } else {
       data = {
         "install": installID,
-        "employee": employeeDropdownValue,
+        "employee": installEmployee,
         "date": installDateFormat,
         "ticket": ticket
       };
