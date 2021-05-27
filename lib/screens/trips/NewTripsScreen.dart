@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:atlascrm/components/install/InstallScheduleForm.dart';
 import 'package:atlascrm/components/shared/AddressSearch.dart';
+import 'package:atlascrm/components/shared/Empty.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:intl/intl.dart';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
@@ -31,7 +32,8 @@ class _TripsScreenState extends State<TripsScreen> {
   static LatLng initialPos = LatLng(40.907569, -79.923725);
   LatLngBounds _latLngBounds;
 
-  bool isLoading = true;
+  int maxStops = 10;
+
   bool showMap = false;
   bool isVisible = false;
   bool customStart;
@@ -48,8 +50,7 @@ class _TripsScreenState extends State<TripsScreen> {
   Completer<GoogleMapController> _fullScreenMapController = Completer();
 
   List installs = [];
-  List activeInstalls = [];
-  List unscheduledInstallsList = [];
+  List selectedInstalls = [];
 
   var employee = UserService.employee.employee;
   var currentDate = DateTime.now();
@@ -82,7 +83,7 @@ class _TripsScreenState extends State<TripsScreen> {
       markers: _markers,
       initialCameraPosition: _kGooglePlex,
       cameraTargetBounds: CameraTargetBounds.unbounded,
-      zoomControlsEnabled: false,
+      zoomControlsEnabled: true,
       // onLongPress: ,
       onMapCreated: (GoogleMapController controller) async {
         _mapController = controller;
@@ -131,6 +132,13 @@ class _TripsScreenState extends State<TripsScreen> {
                 fontSize: 16.0,
               );
             } else {
+              if (customStart == true) {
+                startAddress = locationValue;
+                //add start address to list
+              } else {
+                startAddress = initialPos;
+                // add startAddress to List
+              }
               setState(() {
                 showMap = true;
               });
@@ -205,7 +213,6 @@ class _TripsScreenState extends State<TripsScreen> {
                         onPressed: () {
                           setState(() {
                             customStart = false;
-                            isLoading = true;
                             isVisible = false;
                           });
                         },
@@ -360,13 +367,25 @@ class _TripsScreenState extends State<TripsScreen> {
 
                     openInstallForm(install, viewDate, unscheduled);
                   } else {
-                    showModalBottomSheet(
-                        context: context,
-                        builder: (context) {
-                          return Container(
-                            child: Text("Test"),
-                          );
-                        });
+                    if (!selectedInstalls.contains(install)) {
+                      selectedInstalls.add(install);
+                      Fluttertoast.showToast(
+                        msg: install['merchantbusinessname'] +
+                            " added to trip list",
+                        toastLength: Toast.LENGTH_SHORT,
+                        backgroundColor: Colors.grey[600],
+                        textColor: Colors.white,
+                        fontSize: 16.0,
+                      );
+                    } else {
+                      Fluttertoast.showToast(
+                        msg: "This merchant is already on the trip list",
+                        toastLength: Toast.LENGTH_SHORT,
+                        backgroundColor: Colors.grey[600],
+                        textColor: Colors.white,
+                        fontSize: 16.0,
+                      );
+                    }
                   }
                 },
               ),
@@ -394,7 +413,6 @@ class _TripsScreenState extends State<TripsScreen> {
 
           setState(
             () {
-              isLoading = false;
               _markers.addAll(markers);
 
               _markers.add(
@@ -448,6 +466,120 @@ class _TripsScreenState extends State<TripsScreen> {
         });
   }
 
+  Widget buildTripList() {
+    return Expanded(
+      child: Container(
+        height: 400,
+        child: selectedInstalls.length > 0
+            ? ReorderableListView(
+                children: List.generate(
+                  selectedInstalls.length,
+                  (index) {
+                    var install = selectedInstalls[index];
+                    var merchantName = install["merchantbusinessname"];
+                    var listIndex = index + 1;
+
+                    return Container(
+                      key: Key('$index'),
+                      child: Card(
+                        key: Key('$index'),
+                        elevation: 3,
+                        shape: new RoundedRectangleBorder(
+                          side: new BorderSide(
+                            color: Colors.black26,
+                            width: 0.5,
+                          ),
+                          borderRadius: BorderRadius.circular(4.0),
+                        ),
+                        child: Column(
+                          key: Key('$index'),
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              key: Key('$index'),
+                              padding: EdgeInsets.fromLTRB(5, 0, 2.5, 0),
+                              child: ListTile(
+                                key: Key('$index'),
+                                contentPadding: EdgeInsets.only(top: 1),
+                                leading: Text(listIndex.toString() + ". "),
+                                title: Padding(
+                                  padding: EdgeInsets.only(right: 0),
+                                  child: Text(
+                                    merchantName,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                onReorder: (int oldIndex, int newIndex) {
+                  setState(() {
+                    if (oldIndex < newIndex) {
+                      newIndex -= 1;
+                    }
+                    final item = selectedInstalls.removeAt(oldIndex);
+                    selectedInstalls.insert(newIndex, item);
+                  });
+                },
+              )
+            : Empty("Add installs to calculate your trip"),
+      ),
+    );
+  }
+
+  // ? ListView(
+  //     shrinkWrap: true,
+  //     children: List.generate(
+  //       selectedInstalls.length,
+  //       (index) {
+  //         var install = selectedInstalls[index];
+  //         var merchantName = install["merchantbusinessname"];
+  //         var listIndex = index + 1;
+
+  // return Container(
+  //   child: Card(
+  //     elevation: 3,
+  //     shape: new RoundedRectangleBorder(
+  //       side: new BorderSide(
+  //         color: Colors.black26,
+  //         width: 0.5,
+  //       ),
+  //       borderRadius: BorderRadius.circular(4.0),
+  //     ),
+  //   child: Column(
+  //             crossAxisAlignment: CrossAxisAlignment.start,
+  //             children: [
+  //               Padding(
+  //                 padding: EdgeInsets.fromLTRB(5, 0, 2.5, 0),
+  //                 child: ListTile(
+  //                   contentPadding: EdgeInsets.only(top: 1),
+  //                   leading: Text(listIndex.toString() + ". "),
+  //                   title: Padding(
+  //                     padding: EdgeInsets.only(right: 0),
+  //                     child: Text(
+  //                       merchantName,
+  //                       style: TextStyle(
+  //                         fontWeight: FontWeight.bold,
+  //                       ),
+  //                     ),
+  //                   ),
+  //                 ),
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //       );
+  //     },
+  //   ),
+  // )
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -458,6 +590,64 @@ class _TripsScreenState extends State<TripsScreen> {
         title: Text("Trips"),
       ),
       body: !showMap ? initTripDialog() : loadMap(),
+      floatingActionButton: !showMap
+          ? Container()
+          : FloatingActionButton.extended(
+              elevation: 5,
+              label: const Text('Review Trip'),
+              icon: const Icon(Icons.keyboard_arrow_up),
+              onPressed: () {
+                showModalBottomSheet(
+                    enableDrag: true,
+                    elevation: 10,
+                    barrierColor: Colors.transparent,
+                    context: context,
+                    builder: (BuildContext context) {
+                      return Column(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              child: Column(
+                                children: [
+                                  Padding(
+                                    padding:
+                                        EdgeInsets.fromLTRB(20, 10, 20, 10),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "Trip Review",
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18.0,
+                                          ),
+                                        ),
+                                        GestureDetector(
+                                          onTap: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: Icon(
+                                            Icons.keyboard_arrow_down,
+                                            color: Colors.grey[750],
+                                            size: 30.0,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  buildTripList(),
+                                ],
+                              ),
+                            ),
+                          )
+                        ],
+                      );
+                    });
+                // show container hidden with trip list
+              },
+            ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 }

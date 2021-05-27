@@ -69,9 +69,6 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
       },
     );
 
-    var homeIcon = await BitmapDescriptor.fromAssetImage(
-        ImageConfiguration(size: Size(5, 5)), 'assets/home.png');
-
     if (startDate != null) {
       startDate = DateTime(startDate.toUtc().year, startDate.toUtc().month,
           startDate.toUtc().day, 11, 0);
@@ -279,14 +276,6 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
         );
       }
     }
-    // _markers.add(
-    //   Marker(
-    //     position: LatLng(40.907569, -79.923725),
-    //     markerId: MarkerId("home"),
-    //     icon: homeIcon,
-    //     infoWindow: InfoWindow(title: "Home Base"),
-    //   ),
-    // );
     setState(
       () {
         _startDate = startDate;
