@@ -12,9 +12,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 class LeadNotes extends StatefulWidget {
   final Map object;
 
-  LeadNotes(
-    this.object,
-  );
+  LeadNotes(this.object);
 
   @override
   _LeadNotesState createState() => _LeadNotesState();
@@ -22,11 +20,13 @@ class LeadNotes extends StatefulWidget {
 
 bool isFocused = false;
 bool isLoading = false;
+bool isBoarded = false;
 bool notesEmpty = true;
 
 List notes = [];
 List notesDisplay = [];
 
+var leadStatus;
 var notesController = TextEditingController();
 var typeUpper;
 var type = "lead";
@@ -41,6 +41,7 @@ class _LeadNotesState extends State<LeadNotes> {
     super.initState();
     typeUpper = type.toUpperCase();
     notesController.clear();
+    checkIfBoarded(this.widget.object["lead_status"]);
     loadNotes(this.widget.object[type]);
 
     _focus.addListener(_onFocusChange);
@@ -144,6 +145,41 @@ class _LeadNotesState extends State<LeadNotes> {
     loadNotes(this.widget.object[type]);
   }
 
+  Future<void> checkIfBoarded(status) async {
+    QueryOptions options = QueryOptions(
+      document: gql("""
+      query LEAD_STATUS {
+        lead_status {
+          lead_status
+          text
+        }
+      }
+
+    """),
+      fetchPolicy: FetchPolicy.networkOnly,
+    );
+
+    final result = await GqlClientFactory().authGqlquery(options);
+
+    if (result != null) {
+      if (result.hasException == false) {
+        result.data["lead_status"].forEach((item) {
+          if (item["text"] == "Boarded") {
+            leadStatus = item["lead_status"];
+          }
+        });
+
+        if (leadStatus == status) {
+          setState(() {
+            isBoarded = true;
+          });
+        }
+      } else {
+        print(new Error());
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!notesEmpty) {
@@ -167,65 +203,73 @@ class _LeadNotesState extends State<LeadNotes> {
             color: Colors.white,
             child: Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Row(
-                children: <Widget>[
-                  Expanded(
-                    child: TextField(
-                      onEditingComplete: () {
-                        saveNote(
-                            type: type,
-                            objectId: this.widget.object["lead"],
-                            newNote: notesController.text);
-                        notesController.text = "";
-                      },
-                      focusNode: _focus,
-                      controller: notesController,
-                      decoration: InputDecoration(
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                              color: UniversalStyles.actionColor, width: 3.0),
+              // !isBoarded -> textbox : container()
+              child: !isBoarded
+                  ? Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: TextField(
+                            onEditingComplete: () {
+                              saveNote(
+                                  type: type,
+                                  objectId: this.widget.object["lead"],
+                                  newNote: notesController.text);
+                              notesController.text = "";
+                            },
+                            focusNode: _focus,
+                            controller: notesController,
+                            decoration: InputDecoration(
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: UniversalStyles.actionColor,
+                                    width: 3.0),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide:
+                                    BorderSide(color: Colors.grey, width: 0.5),
+                              ),
+                              hintText: 'Additional Notes.',
+                            ),
+                          ),
                         ),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: Colors.grey, width: 0.5),
-                        ),
-                        hintText: 'Additional Notes.',
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.send),
-                    onPressed: () {
-                      if (notesController.text == null ||
-                          notesController.text == "") {
-                        Fluttertoast.showToast(
-                            msg: "Cannot add blank note!",
-                            toastLength: Toast.LENGTH_SHORT,
-                            gravity: ToastGravity.BOTTOM,
-                            backgroundColor: Colors.grey[600],
-                            textColor: Colors.white,
-                            fontSize: 16.0);
-                      } else {
-                        saveNote(
-                            type: type,
-                            objectId: this.widget.object["lead"],
-                            newNote: notesController.text);
-                      }
-                      notesController.text = "";
-                    },
-                  )
-                ],
-              ),
+                        IconButton(
+                          icon: Icon(Icons.send),
+                          onPressed: () {
+                            if (notesController.text == null ||
+                                notesController.text == "") {
+                              Fluttertoast.showToast(
+                                msg: "Cannot add blank note!",
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                backgroundColor: Colors.grey[600],
+                                textColor: Colors.white,
+                                fontSize: 16.0,
+                              );
+                            } else {
+                              saveNote(
+                                  type: type,
+                                  objectId: this.widget.object["lead"],
+                                  newNote: notesController.text);
+                            }
+                            notesController.text = "";
+                          },
+                        )
+                      ],
+                    )
+                  : Row(),
             ),
           ),
         ),
         appBar: CustomAppBar(
-            key: Key("viewTasksAppBar"),
-            title: Text(isLoading
+          key: Key("viewTasksAppBar"),
+          title: Text(
+            isLoading
                 ? "Loading..."
                 : "Notes for: " +
-                    this.widget.object["document"]["businessName"]),
-            action: <Widget>[]),
+                    this.widget.object["document"]["businessName"],
+          ),
+          action: <Widget>[],
+        ),
         body: isLoading
             ? CenteredLoadingSpinner()
             : Column(

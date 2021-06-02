@@ -183,13 +183,13 @@ class _InventoryScreenState extends State<InventoryScreen> {
       var params =
           'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}';
 
-      if (isSearching) {
-        params =
-            'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {serial: {_eq: "$currentSearch"}}';
-      }
       if (isFiltering) {
         params =
             'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {employee: {_eq: "$filterEmployee"}}';
+      }
+      if (isSearching) {
+        params =
+            'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {serial: {_eq: "$currentSearch"}}';
       }
       if (isLocFiltering) {
         params =
@@ -461,6 +461,11 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
   void openDevice(inventory) {
     Map sendable = {"id": inventory["inventory"]};
+    FocusScopeNode currentFocus = FocusScope.of(context);
+
+    if (!currentFocus.hasFocus) {
+      currentFocus.unfocus();
+    }
     Navigator.pushNamed(context, "/viewinventory", arguments: sendable);
   }
 
@@ -565,14 +570,15 @@ class _InventoryScreenState extends State<InventoryScreen> {
           Padding(
             padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
             child: EmployeeDropDown(
-                callback: (val) {
-                  if (val != null) {
-                    filterByEmployee(val);
-                  } else {
-                    clearFilter();
-                  }
-                },
-                role: "tech"),
+              callback: (val) {
+                if (val != null) {
+                  filterByEmployee(val);
+                } else {
+                  clearFilter();
+                }
+              },
+              role: "tech",
+            ),
           ),
           isEmpty
               ? Padding(

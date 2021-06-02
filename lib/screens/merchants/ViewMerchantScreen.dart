@@ -86,7 +86,7 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
             displayName:document(path:"displayName")
           }
           leadByLead {
-            agreement_builder {
+            agreement_builders {
               document
             }
           }
@@ -126,23 +126,24 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
               " " +
               merchantDocument["leadDocument"]["zipCode"];
         } else {
-          if (merchant['leadByLead']['agreement_builder']['document']
+          //come back to this with a loop or query for to only get address of active agreement builder
+          if (merchant['leadByLead']['agreement_builders'][0]['document']
                       ['ApplicationInformation']['CorporateInfo']['Address1'] !=
                   null &&
-              merchant['leadByLead']['agreement_builder']['document']
+              merchant['leadByLead']['agreement_builders'][0]['document']
                       ['ApplicationInformation']['CorporateInfo']['Address1'] !=
                   "") {
-            merchantLocation = merchant['leadByLead']['agreement_builder']
+            merchantLocation = merchant['leadByLead']['agreement_builders'][0]
                         ['document']['ApplicationInformation']['CorporateInfo']
                     ['Address1'] +
                 ", " +
-                merchant['leadByLead']['agreement_builder']['document']
+                merchant['leadByLead']['agreement_builders'][0]['document']
                     ['ApplicationInformation']['CorporateInfo']['City'] +
                 ", " +
-                merchant['leadByLead']['agreement_builder']['document']
+                merchant['leadByLead']['agreement_builders'][0]['document']
                     ['ApplicationInformation']['CorporateInfo']['State'] +
                 " " +
-                merchant['leadByLead']['agreement_builder']['document']
+                merchant['leadByLead']['agreement_builders'][0]['document']
                     ['ApplicationInformation']['CorporateInfo']['First5Zip'];
           } else if (merchant['document']['ApplicationInformation']
                           ['MpaOutletInfo']['Outlet']['BusinessInfo']
@@ -180,6 +181,15 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
           }
         }
       }
+    } else {
+      Fluttertoast.showToast(
+        msg: result.exception.toString(),
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.grey[600],
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
     }
 
     setState(() {

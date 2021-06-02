@@ -55,12 +55,14 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
 
   bool isChanged = false;
   bool isLoading = true;
+  bool isBoarded = false;
   bool statementDirty = false;
   bool statementComplete = false;
   bool isStale = false;
   List<LeadInfoEntry> leadInfoEntries = [];
 
   var lead;
+  var leadStatus;
   var leadDocument;
   var displayPhone;
   var repeats = 2;
@@ -103,7 +105,44 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
   }
 
   void openLead(lead) {
-    Navigator.popAndPushNamed(context, "/viewlead", arguments: lead["lead"]);
+    Navigator.popAndPushNamed(context, "/viewlead", arguments: {
+      lead["lead"],
+    });
+  }
+
+  Future<void> checkIfBoarded(status) async {
+    QueryOptions options = QueryOptions(
+      document: gql("""
+      query LEAD_STATUS {
+        lead_status {
+          lead_status
+          text
+        }
+      }
+
+    """),
+      fetchPolicy: FetchPolicy.networkOnly,
+    );
+
+    final result = await GqlClientFactory().authGqlquery(options);
+
+    if (result != null) {
+      if (result.hasException == false) {
+        result.data["lead_status"].forEach((item) {
+          if (item["text"] == "Boarded") {
+            leadStatus = item["lead_status"];
+          }
+        });
+
+        if (leadStatus == status) {
+          setState(() {
+            isBoarded = true;
+          });
+        }
+      } else {
+        print(new Error());
+      }
+    }
   }
 
   Future<void> openStaleModal(lead) async {
@@ -239,6 +278,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
             lead
             document
             is_stale
+            lead_status
             employee: employeeByEmployee {
               employee
               fullName: document(path: "fullName")
@@ -256,6 +296,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
       isStale = result.data["lead_by_pk"]["is_stale"];
       if (body != null) {
         var bodyDecoded = body;
+        checkIfBoarded(bodyDecoded["lead_status"]);
 
         setState(
           () {
@@ -592,7 +633,30 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                   ],
                                 ),
                               )
-                            : Container(),
+                            : isBoarded
+                                ? Padding(
+                                    padding: const EdgeInsets.all(10),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.info_outline,
+                                          color: Colors.green[400],
+                                        ),
+                                        Text(
+                                          "Lead boarded! Please edit the merchant",
+                                          maxLines: 1,
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.green[400],
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  )
+                                : Container(),
                         UserService.isAdmin || UserService.isSalesManager
                             ? CustomCard(
                                 key: Key("leadEmployee"),
@@ -629,7 +693,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                   }
                                   return null;
                                 },
-                                editable: !isStale,
+                                editable: !isStale && !isBoarded,
                               ),
                               Container(
                                 child: Padding(
@@ -672,20 +736,27 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                   }
                                   return null;
                                 },
-                                editable: !isStale,
+                                editable: !isStale && !isBoarded,
                               ),
-                              getInfoRow("Last Name", leadDocument["lastName"],
-                                  lastNameController,
-                                  editable: !isStale),
+                              getInfoRow(
+                                "Last Name",
+                                leadDocument["lastName"],
+                                lastNameController,
+                                editable: !isStale && !isBoarded,
+                              ),
                               validatorRow(
-                                  "Email Address",
-                                  leadDocument["emailAddr"],
-                                  emailAddrController, (value) {
-                                if (value.isNotEmpty && !value.contains('@')) {
-                                  return 'Please enter a valid email';
-                                }
-                                return null;
-                              }, editable: !isStale),
+                                "Email Address",
+                                leadDocument["emailAddr"],
+                                emailAddrController,
+                                (value) {
+                                  if (value.isNotEmpty &&
+                                      !value.contains('@')) {
+                                    return 'Please enter a valid email';
+                                  }
+                                  return null;
+                                },
+                                editable: !isStale && !isBoarded,
+                              ),
                               Container(
                                 child: Padding(
                                   padding: EdgeInsets.all(15),
@@ -699,14 +770,14 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                         ),
                                       ),
                                       Expanded(
-                                        flex: 8,
-                                        child: isStale
-                                            ? Text(phoneNumberController.text)
-                                            : TextField(
-                                                controller:
-                                                    phoneNumberController,
-                                              ),
-                                      ),
+                                          flex: 8,
+                                          child: !isStale && !isBoarded
+                                              ? TextField(
+                                                  controller:
+                                                      phoneNumberController,
+                                                )
+                                              : Text(
+                                                  phoneNumberController.text)),
                                     ],
                                   ),
                                 ),
@@ -865,7 +936,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                 "Lead Source",
                                 leadDocument["leadSource"],
                                 leadSourceController,
-                                editable: !isStale,
+                                editable: !isStale && !isBoarded,
                               ),
                             ],
                           ),
@@ -882,8 +953,10 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                     onTap: () {
                                       if (!isStale) {
                                         Navigator.pushNamed(
-                                            context, "/leadtasks",
-                                            arguments: lead);
+                                          context,
+                                          "/leadtasks",
+                                          arguments: lead,
+                                        );
                                       } else {
                                         Fluttertoast.showToast(
                                             msg:
@@ -1029,23 +1102,26 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                 ),
               ),
         floatingActionButton:
-            isStale && !UserService.isSalesManager && !UserService.isAdmin
-                ? FloatingActionButton(
-                    onPressed: () async {
-                      if (_leadFormKey.currentState.validate()) {
-                        openStaleModal(lead);
-                      }
-                    },
-                    child: Icon(Icons.how_to_reg),
-                  )
-                : FloatingActionButton(
-                    onPressed: () async {
-                      if (_leadFormKey.currentState.validate()) {
-                        updateLead(this.widget.leadId);
-                      }
-                    },
-                    child: Icon(Icons.save),
-                  ),
+            // ! if not boarded else container
+            !isBoarded
+                ? isStale && !UserService.isSalesManager && !UserService.isAdmin
+                    ? FloatingActionButton(
+                        onPressed: () async {
+                          if (_leadFormKey.currentState.validate()) {
+                            openStaleModal(lead);
+                          }
+                        },
+                        child: Icon(Icons.how_to_reg),
+                      )
+                    : FloatingActionButton(
+                        onPressed: () async {
+                          if (_leadFormKey.currentState.validate()) {
+                            updateLead(this.widget.leadId);
+                          }
+                        },
+                        child: Icon(Icons.save),
+                      )
+                : Container(),
       ),
     );
   }

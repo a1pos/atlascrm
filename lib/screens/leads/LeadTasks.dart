@@ -34,6 +34,7 @@ class _LeadTasksState extends State<LeadTasks> {
   bool isSaveDisabled;
   bool isLoading = true;
   bool isEmpty = true;
+  bool isBoarded = false;
 
   var tasks = [];
   var tasksFull = [];
@@ -44,6 +45,8 @@ class _LeadTasksState extends State<LeadTasks> {
   var taskDateController = TextEditingController();
 
   var leadDropdownValue;
+  var status;
+  var leadStatus;
   var taskTypeDropdownValue;
   var taskPriorityDropdownValue;
   var employeeDropdownValue;
@@ -53,6 +56,7 @@ class _LeadTasksState extends State<LeadTasks> {
   void initState() {
     super.initState();
     isSaveDisabled = false;
+    checkIfBoarded(this.widget.lead["lead_status"]);
     _calendarController = CalendarController();
     _calendarEvents = {};
     initTasks();
@@ -300,6 +304,41 @@ class _LeadTasksState extends State<LeadTasks> {
     _formKey.currentState.reset();
   }
 
+  Future<void> checkIfBoarded(status) async {
+    QueryOptions options = QueryOptions(
+      document: gql("""
+      query LEAD_STATUS {
+        lead_status {
+          lead_status
+          text
+        }
+      }
+
+    """),
+      fetchPolicy: FetchPolicy.networkOnly,
+    );
+
+    final result = await GqlClientFactory().authGqlquery(options);
+
+    if (result != null) {
+      if (result.hasException == false) {
+        result.data["lead_status"].forEach((item) {
+          if (item["text"] == "Boarded") {
+            leadStatus = item["lead_status"];
+          }
+        });
+
+        if (leadStatus == status) {
+          setState(() {
+            isBoarded = true;
+          });
+        }
+      } else {
+        print(new Error());
+      }
+    }
+  }
+
   void openAddLeadForm() {
     showDialog(
       context: context,
@@ -360,8 +399,10 @@ class _LeadTasksState extends State<LeadTasks> {
                       )
                     : Container(),
               ],
-              title: Text('Add New Task for ' +
-                  this.widget.lead["document"]["businessName"]),
+              title: Text(
+                'Add New Task for ' +
+                    this.widget.lead["document"]["businessName"],
+              ),
               content: Form(
                 key: _formKey,
                 child: SingleChildScrollView(
@@ -525,13 +566,15 @@ class _LeadTasksState extends State<LeadTasks> {
               padding: EdgeInsets.all(10),
               child: getTasks(),
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: openAddTaskForm,
-        backgroundColor: UniversalStyles.actionColor,
-        foregroundColor: Colors.white,
-        child: Icon(Icons.add),
-        splashColor: Colors.white,
-      ),
+      floatingActionButton: !isBoarded
+          ? FloatingActionButton(
+              onPressed: openAddTaskForm,
+              backgroundColor: UniversalStyles.actionColor,
+              foregroundColor: Colors.white,
+              child: Icon(Icons.add),
+              splashColor: Colors.white,
+            )
+          : Container(),
     );
   }
 

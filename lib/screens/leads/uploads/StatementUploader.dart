@@ -11,7 +11,6 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-import 'package:image/image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:multi_image_picker/multi_image_picker.dart';
@@ -43,6 +42,7 @@ class _StatementUploaderState extends State<StatementUploader> {
   static const platform = const MethodChannel('com.ces.atlascrm.channel');
 
   bool isLoading = true;
+  bool isBoarded = false;
   bool uploadsComplete = false;
 
   List<Asset> images = [];
@@ -58,6 +58,8 @@ class _StatementUploaderState extends State<StatementUploader> {
   var dio = Dio();
   var widgetType;
   var lead;
+  var status;
+  var leadStatus;
   var leadDocument;
   var statementId;
   var emailType;
@@ -67,6 +69,7 @@ class _StatementUploaderState extends State<StatementUploader> {
   @override
   void initState() {
     super.initState();
+    checkIfBoarded(this.widget.lead["lead_status"]);
     loadStatement();
     loadImages();
   }
@@ -77,7 +80,7 @@ class _StatementUploaderState extends State<StatementUploader> {
     try {
       QueryOptions options = QueryOptions(
         document: gql("""
-        query GET_STATEMENT {
+        query GET_STATEMENTS_FROM_LEAD {
           statement(where: {lead: {_eq: "${lead["lead"]}"}}) {
             employee
             statement
@@ -135,6 +138,41 @@ class _StatementUploaderState extends State<StatementUploader> {
       }
     } catch (err) {
       print(err);
+    }
+  }
+
+  Future<void> checkIfBoarded(status) async {
+    QueryOptions options = QueryOptions(
+      document: gql("""
+      query LEAD_STATUS {
+        lead_status {
+          lead_status
+          text
+        }
+      }
+
+    """),
+      fetchPolicy: FetchPolicy.networkOnly,
+    );
+
+    final result = await GqlClientFactory().authGqlquery(options);
+
+    if (result != null) {
+      if (result.hasException == false) {
+        result.data["lead_status"].forEach((item) {
+          if (item["text"] == "Boarded") {
+            leadStatus = item["lead_status"];
+          }
+        });
+
+        if (leadStatus == status) {
+          setState(() {
+            isBoarded = true;
+          });
+        }
+      } else {
+        print(new Error());
+      }
     }
   }
 
@@ -780,6 +818,7 @@ class _StatementUploaderState extends State<StatementUploader> {
                   imageDLList.add(
                     {"name": imgUrl, "url": url},
                   );
+                  isLoading = false;
                 },
               );
             }
@@ -1018,10 +1057,10 @@ class _StatementUploaderState extends State<StatementUploader> {
                                 MaterialTapTargetSize.shrinkWrap,
                             shape: CircleBorder(),
                             padding: EdgeInsets.all(15.0),
-                            fillColor: uploadsComplete
+                            fillColor: uploadsComplete || isBoarded
                                 ? Colors.grey
                                 : UniversalStyles.actionColor,
-                            onPressed: uploadsComplete
+                            onPressed: uploadsComplete || isBoarded
                                 ? () {}
                                 : () async {
                                     var result = await platform
@@ -1052,10 +1091,10 @@ class _StatementUploaderState extends State<StatementUploader> {
                               MaterialTapTargetSize.shrinkWrap,
                           shape: CircleBorder(),
                           padding: EdgeInsets.all(15.0),
-                          fillColor: uploadsComplete
+                          fillColor: uploadsComplete || isBoarded
                               ? Colors.grey
                               : UniversalStyles.actionColor,
-                          onPressed: uploadsComplete
+                          onPressed: uploadsComplete || isBoarded
                               ? () {}
                               : () async {
                                   var result =
@@ -1087,10 +1126,10 @@ class _StatementUploaderState extends State<StatementUploader> {
                                 MaterialTapTargetSize.shrinkWrap,
                             shape: CircleBorder(),
                             padding: EdgeInsets.all(15.0),
-                            fillColor: uploadsComplete
+                            fillColor: uploadsComplete || isBoarded
                                 ? Colors.grey
                                 : UniversalStyles.actionColor,
-                            onPressed: uploadsComplete
+                            onPressed: uploadsComplete || isBoarded
                                 ? () {}
                                 : () async {
                                     var result = await FilePicker.platform
@@ -1132,8 +1171,10 @@ class _StatementUploaderState extends State<StatementUploader> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      UserService.employee.role == "sa" ||
-                              UserService.employee.role == "salesmanager"
+                      (UserService.employee.role == "sa" ||
+                                  UserService.employee.role ==
+                                      "salesmanager") &&
+                              statements.length > 0
                           ? DropdownButton(
                               icon: Icon(Icons.arrow_drop_down),
                               value: dropdownValue,
@@ -1169,6 +1210,7 @@ class _StatementUploaderState extends State<StatementUploader> {
                               onChanged: (newValue) {
                                 setState(
                                   () {
+                                    isLoading = true;
                                     dropdownValue = newValue;
                                     imageDLList = [];
                                     loadImages();

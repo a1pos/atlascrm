@@ -25,6 +25,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
   bool salesIncludeStale = false;
   bool isLoading = true;
   bool isEmpty = true;
+  bool isBoarded = false;
 
   ScrollController _scrollController = ScrollController();
   TextEditingController _searchController = TextEditingController();
@@ -165,6 +166,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
               leadfirstname
               leadlastname
               stale
+              text
             }
           }
       """),
@@ -276,6 +278,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
               leadfirstname
               leadlastname
               stale
+              text
             }
           }
       """),
@@ -640,7 +643,30 @@ class _LeadsScreenState extends State<LeadsScreen> {
                                       ),
                                     ),
                                   )
-                                : null,
+                                : lead["text"] == "Boarded"
+                                    ? Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.green[50],
+                                          border: Border.all(
+                                            color: Colors.green[50],
+                                          ),
+                                          borderRadius: BorderRadius.all(
+                                            Radius.circular(8),
+                                          ),
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(3.0),
+                                          child: Text(
+                                            "Boarded",
+                                            style: TextStyle(
+                                              fontSize: 18,
+                                              color: Colors.green[400],
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      )
+                                    : null,
                             color: Colors.white,
                             title: businessName,
                             icon: Icons.arrow_forward_ios,
