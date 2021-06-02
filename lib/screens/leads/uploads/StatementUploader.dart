@@ -671,6 +671,7 @@ class _StatementUploaderState extends State<StatementUploader> {
               } else {
                 setState(
                   () {
+                    isLoading = true;
                     galleryImages = [];
                     currentImage = imgFile;
                   },
@@ -682,6 +683,9 @@ class _StatementUploaderState extends State<StatementUploader> {
                     galleryImages.add(item);
                   }
                 }
+                setState(() {
+                  isLoading = false;
+                });
                 var imgIndex = galleryImages.indexOf(imgFile);
                 viewImage(imgFile, imgIndex);
               }
