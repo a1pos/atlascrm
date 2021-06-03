@@ -1,30 +1,28 @@
+import 'dart:async';
+import 'dart:io';
+import 'dart:typed_data';
 import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/config/ConfigSettings.dart';
 import 'package:atlascrm/services/GqlClientFactory.dart';
+import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
+import 'package:atlascrm/services/ApiService.dart';
+import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'dart:async';
-import 'dart:io';
-import 'dart:typed_data';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:multi_image_picker/multi_image_picker.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:http/http.dart' as http;
-import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
-import 'package:atlascrm/services/ApiService.dart';
-
-import 'package:atlascrm/components/shared/CustomAppBar.dart';
 
 class StatementUploader extends StatefulWidget {
   final ApiService apiService = new ApiService();
@@ -38,14 +36,12 @@ class StatementUploader extends StatefulWidget {
 }
 
 class _StatementUploaderState extends State<StatementUploader> {
-  final picker = ImagePicker();
   static const platform = const MethodChannel('com.ces.atlascrm.channel');
 
   bool isLoading = true;
   bool isBoarded = false;
   bool uploadsComplete = false;
 
-  List<Asset> images = [];
   List imageFileList = [];
   List imageDLList = [];
   List toEmailList = [];
@@ -441,21 +437,22 @@ class _StatementUploaderState extends State<StatementUploader> {
                         children: <Widget>[
                           TextButton(
                             child: Text(
-                              'Assign',
-                              style:
-                                  TextStyle(color: Colors.green, fontSize: 17),
+                              'Cancel',
+                              style: TextStyle(color: Colors.red, fontSize: 17),
                             ),
                             onPressed: () {
-                              addImage(result);
                               Navigator.pop(context);
                             },
                           ),
                           TextButton(
                             child: Text(
-                              'Cancel',
-                              style: TextStyle(color: Colors.red, fontSize: 17),
+                              'Assign',
+                              style:
+                                  TextStyle(color: Colors.green, fontSize: 17),
                             ),
                             onPressed: () {
+                              compressImage(result);
+                              // addImage(result);
                               Navigator.pop(context);
                             },
                           ),
@@ -773,17 +770,17 @@ class _StatementUploaderState extends State<StatementUploader> {
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('Delete',
-                  style: TextStyle(fontSize: 17, color: Colors.red)),
-              onPressed: () {
-                deleteImage(asset);
-              },
-            ),
-            TextButton(
               child: Text('Cancel'),
               onPressed: () {
                 Navigator.of(context).pop();
                 Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Delete',
+                  style: TextStyle(fontSize: 17, color: Colors.red)),
+              onPressed: () {
+                deleteImage(asset);
               },
             ),
           ],
@@ -1029,6 +1026,20 @@ class _StatementUploaderState extends State<StatementUploader> {
     }
   }
 
+  void compressImage(file) async {
+    final filePath = file;
+
+    final lastIndex = filePath.lastIndexOf(new RegExp(r'.jp'));
+    final splitted = filePath.substring(0, lastIndex);
+    final outPath = "${splitted}_out${filePath.substring(lastIndex)}";
+
+    final compressedImage = await FlutterImageCompress.compressAndGetFile(
+        filePath, outPath,
+        quality: 75);
+
+    addImage(compressedImage);
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -1039,9 +1050,11 @@ class _StatementUploaderState extends State<StatementUploader> {
       child: Scaffold(
         appBar: CustomAppBar(
           key: Key("viewTasksAppBar"),
-          title: Text(isLoading
-              ? "Loading..."
-              : "Statements for: " + lead["document"]["businessName"]),
+          title: Text(
+            isLoading
+                ? "Loading..."
+                : "Statements for: " + lead["document"]["businessName"],
+          ),
           action: <Widget>[],
         ),
         body: isLoading
@@ -1072,12 +1085,15 @@ class _StatementUploaderState extends State<StatementUploader> {
                                     if (UserService.isAdmin ||
                                         UserService.isSalesManager) {
                                       if (imageDLList.length == 0) {
-                                        adminUploadCheck(result);
+                                        compressImage(result);
+                                        // adminUploadCheck(result);
                                       } else {
-                                        addImage(result);
+                                        compressImage(result);
+                                        // addImage(result);
                                       }
                                     } else {
-                                      addImage(result);
+                                      compressImage(result);
+                                      // addImage(result);
                                     }
                                   },
                             child: Padding(
@@ -1108,10 +1124,10 @@ class _StatementUploaderState extends State<StatementUploader> {
                                     if (imageDLList.length == 0) {
                                       adminUploadCheck(result);
                                     } else {
-                                      addImage(result);
+                                      compressImage(result);
                                     }
                                   } else {
-                                    addImage(result);
+                                    compressImage(result);
                                   }
                                 },
                           child: Padding(
@@ -1146,10 +1162,12 @@ class _StatementUploaderState extends State<StatementUploader> {
                                       if (imageDLList.length == 0) {
                                         adminUploadCheck(result.files[0].path);
                                       } else {
-                                        addImage(result.files[0].path);
+                                        compressImage(result.files[0].path);
+                                        // addImage(result.files[0].path);
                                       }
                                     } else {
-                                      addImage(result.files[0].path);
+                                      compressImage(result.files[0].path);
+                                      // addImage(result.files[0].path);
                                     }
                                   },
                             child: Padding(
