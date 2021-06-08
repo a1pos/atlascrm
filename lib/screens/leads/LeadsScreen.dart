@@ -83,6 +83,15 @@ class _LeadsScreenState extends State<LeadsScreen> {
           actions: <Widget>[
             TextButton(
               child: Text(
+                'No',
+                style: TextStyle(fontSize: 17, color: Colors.red),
+              ),
+              onPressed: () {
+                openLead(lead);
+              },
+            ),
+            TextButton(
+              child: Text(
                 'Yes',
                 style: TextStyle(fontSize: 17, color: Colors.green),
               ),
@@ -124,15 +133,6 @@ class _LeadsScreenState extends State<LeadsScreen> {
                       textColor: Colors.white,
                       fontSize: 16.0);
                 }
-              },
-            ),
-            TextButton(
-              child: Text(
-                'No',
-                style: TextStyle(fontSize: 17, color: Colors.red),
-              ),
-              onPressed: () {
-                openLead(lead);
               },
             ),
           ],

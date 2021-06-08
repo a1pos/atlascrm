@@ -161,6 +161,16 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
           actions: <Widget>[
             TextButton(
               child: Text(
+                'No',
+                style: TextStyle(fontSize: 17, color: Colors.red),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+                openLead(lead);
+              },
+            ),
+            TextButton(
+              child: Text(
                 'Yes',
                 style: TextStyle(fontSize: 17, color: Colors.green),
               ),
@@ -203,16 +213,6 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                       textColor: Colors.white,
                       fontSize: 16.0);
                 }
-              },
-            ),
-            TextButton(
-              child: Text(
-                'No',
-                style: TextStyle(fontSize: 17, color: Colors.red),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-                openLead(lead);
               },
             ),
           ],

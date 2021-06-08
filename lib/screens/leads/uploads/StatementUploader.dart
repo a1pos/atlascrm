@@ -41,7 +41,7 @@ class _StatementUploaderState extends State<StatementUploader> {
   final picker = ImagePicker();
   static const platform = const MethodChannel('com.ces.atlascrm.channel');
 
-  bool isLoading = false;
+  bool isLoading = true;
   bool isBoarded = false;
   bool dirtyFlag = false;
   bool emailSent = false;
@@ -71,6 +71,7 @@ class _StatementUploaderState extends State<StatementUploader> {
   var activeStatement;
   var dropdownValue;
   var activeValueString;
+  var saveDateFormat;
 
   @override
   void initState() {
@@ -120,14 +121,15 @@ class _StatementUploaderState extends State<StatementUploader> {
 
               if (activeStatement.length > 0) {
                 dropdownValue = activeStatement[0]["statement"] ?? null;
+                statementId = activeStatement[0]["statement"];
 
                 setState(() {
                   statementActive = true;
+                  isLoading = false;
                   loadImages();
                 });
                 if (activeStatement[0]["document"] != null) {
                   statementEmployee = activeStatement[0]["employee"];
-                  statementId = activeStatement[0]["statement"];
                   if (activeStatement[0]["document"]["emailSent"] != null) {
                     setState(
                       () {
@@ -146,10 +148,9 @@ class _StatementUploaderState extends State<StatementUploader> {
                 }
                 statementActive = false;
                 emailSent = true;
-
-                // setState(() {
-                //   isLoading = true;
-                // });
+                setState(() {
+                  isLoading = false;
+                });
               }
             } else {
               setState(() {
@@ -347,7 +348,8 @@ class _StatementUploaderState extends State<StatementUploader> {
                           : Padding(
                               padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
                               child: Text(
-                                  'Please enter the date and time you intend to present the rate review to this merchant'),
+                                'Please enter the date and time you intend to present the rate review to this merchant',
+                              ),
                             ),
                       UserService.isAdmin || UserService.isSalesManager
                           ? Container()
@@ -359,6 +361,12 @@ class _StatementUploaderState extends State<StatementUploader> {
                               ),
                               format: DateFormat("yyyy-MM-dd HH:mm"),
                               controller: taskDateController,
+                              validator: (DateTime dateTime) {
+                                if (dateTime == null) {
+                                  return 'Please select a date';
+                                }
+                                return null;
+                              },
                               onShowPicker: (context, currentValue) async {
                                 final date = await showDatePicker(
                                   context: context,
@@ -383,13 +391,32 @@ class _StatementUploaderState extends State<StatementUploader> {
                         color: Colors.white,
                       ),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
-                          TextButton(
+                          ElevatedButton(
+                            style:
+                                ElevatedButton.styleFrom(primary: Colors.red),
+                            child: Text(
+                              'Leave',
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 17),
+                            ),
+                            onPressed: () {
+                              Navigator.pushNamed(
+                                context,
+                                "/viewlead",
+                                arguments: lead["lead"],
+                              );
+                            },
+                          ),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              primary: UniversalStyles.actionColor,
+                            ),
                             child: Text(
                               'Submit',
                               style: TextStyle(
-                                color: Colors.green,
+                                color: Colors.white,
                                 fontSize: 17,
                               ),
                             ),
@@ -405,26 +432,16 @@ class _StatementUploaderState extends State<StatementUploader> {
                                   uploadComplete();
                                 } else {
                                   Fluttertoast.showToast(
-                                      msg: "Please select a date/time!",
-                                      toastLength: Toast.LENGTH_SHORT,
-                                      gravity: ToastGravity.BOTTOM,
-                                      backgroundColor: Colors.grey[600],
-                                      textColor: Colors.white,
-                                      fontSize: 16.0);
+                                    msg: "Please select a date/time!",
+                                    toastLength: Toast.LENGTH_SHORT,
+                                    gravity: ToastGravity.BOTTOM,
+                                    backgroundColor: Colors.grey[600],
+                                    textColor: Colors.white,
+                                    fontSize: 16.0,
+                                  );
+                                  return null;
                                 }
                               }
-                            },
-                          ),
-                          TextButton(
-                            child: Text('Leave',
-                                style:
-                                    TextStyle(color: Colors.red, fontSize: 17)),
-                            onPressed: () {
-                              Navigator.pushNamed(
-                                context,
-                                "/viewlead",
-                                arguments: lead["lead"],
-                              );
                             },
                           ),
                         ],
@@ -818,18 +835,21 @@ class _StatementUploaderState extends State<StatementUploader> {
           actions: <Widget>[
             TextButton(
               child: Text(
+                'Cancel',
+                style: TextStyle(color: Colors.grey[500], fontSize: 17),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text(
                 'Delete',
                 style: TextStyle(fontSize: 17, color: Colors.red),
               ),
               onPressed: () {
                 deleteImage(asset);
-              },
-            ),
-            TextButton(
-              child: Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pop();
               },
             ),
           ],
@@ -877,6 +897,10 @@ class _StatementUploaderState extends State<StatementUploader> {
               }
             }
           }
+          setState(() {
+            isLoading = false;
+          });
+        } else {
           setState(() {
             isLoading = false;
           });
@@ -1014,12 +1038,13 @@ class _StatementUploaderState extends State<StatementUploader> {
             },
           );
           Fluttertoast.showToast(
-              msg: "Statement Submited!",
-              toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.grey[600],
-              textColor: Colors.white,
-              fontSize: 16.0);
+            msg: "Statement Submitted!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0,
+          );
           Navigator.pushNamed(context, "/viewlead", arguments: lead["lead"]);
         }
       }
@@ -1110,10 +1135,6 @@ class _StatementUploaderState extends State<StatementUploader> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        print(uploadsComplete);
-        print(statementActive);
-        print(inactiveSelected);
-        print(emailSent);
         if ((!uploadsComplete && imageDLList.length > 0 && statementActive) ||
             (inactiveSelected && !emailSent)) {
           setState(() {
