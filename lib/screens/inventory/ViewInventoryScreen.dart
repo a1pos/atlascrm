@@ -47,6 +47,7 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
 
   void initState() {
     super.initState();
+
     loadInventoryData();
   }
 
@@ -598,15 +599,19 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
                                   Padding(
                                     padding:
                                         const EdgeInsets.fromLTRB(17, 0, 0, 0),
-                                    child: Text("Status:",
-                                        style: TextStyle(fontSize: 16)),
+                                    child: Text(
+                                      "Status:",
+                                      style: TextStyle(fontSize: 16),
+                                    ),
                                   ),
                                   Expanded(
                                       child: Padding(
                                     padding:
                                         const EdgeInsets.fromLTRB(10, 8, 0, 8),
-                                    child: Text(deviceStatus,
-                                        style: TextStyle(fontSize: 15)),
+                                    child: Text(
+                                      deviceStatus,
+                                      style: TextStyle(fontSize: 15),
+                                    ),
                                   )),
                                   Expanded(
                                       child: Padding(
@@ -624,11 +629,12 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
                           icon: Icons.history,
                           title: "Device History",
                           child: ConstrainedBox(
-                              constraints: new BoxConstraints(
-                                minHeight: 35.0,
-                                maxHeight: 340.0,
-                              ),
-                              child: Scrollbar(child: buildHistoryList())),
+                            constraints: new BoxConstraints(
+                              minHeight: 35.0,
+                              maxHeight: 340.0,
+                            ),
+                            child: Scrollbar(child: buildHistoryList()),
+                          ),
                         ),
                       ],
                     ),
@@ -636,11 +642,12 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
                 ),
               ),
         floatingActionButton: UnicornDialer(
-            backgroundColor: Color.fromRGBO(255, 255, 255, 0.0),
-            parentButtonBackground: UniversalStyles.actionColor,
-            orientation: UnicornOrientation.VERTICAL,
-            parentButton: Icon(Icons.menu),
-            childButtons: childButtons.toList()),
+          backgroundColor: Color.fromRGBO(255, 255, 255, 0.0),
+          parentButtonBackground: UniversalStyles.actionColor,
+          orientation: UnicornOrientation.VERTICAL,
+          parentButton: Icon(Icons.menu),
+          childButtons: childButtons.toList(),
+        ),
       ),
     );
   }

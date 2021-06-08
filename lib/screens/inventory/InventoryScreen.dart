@@ -55,36 +55,36 @@ class _InventoryScreenState extends State<InventoryScreen> {
   @override
   void initState() {
     super.initState();
-    childButtons = <UnicornButton>[];
-    childButtons.add(
-      UnicornButton(
-        hasLabel: true,
-        labelText: "Checkout Devices",
-        currentButton: FloatingActionButton(
-          heroTag: "checkout",
-          backgroundColor: Colors.blueAccent,
-          mini: true,
-          child: Icon(Icons.devices),
-          onPressed: () {},
-        ),
-      ),
-    );
+    // childButtons = <UnicornButton>[];
+    // childButtons.add(
+    //   UnicornButton(
+    //     hasLabel: true,
+    //     labelText: "Checkout Devices",
+    //     currentButton: FloatingActionButton(
+    //       heroTag: "checkout",
+    //       backgroundColor: Colors.blueAccent,
+    //       mini: true,
+    //       child: Icon(Icons.devices),
+    //       onPressed: () {},
+    //     ),
+    //   ),
+    // );
 
-    childButtons.add(
-      UnicornButton(
-        hasLabel: true,
-        labelText: "Add Device",
-        currentButton: FloatingActionButton(
-          heroTag: "add",
-          backgroundColor: UniversalStyles.actionColor,
-          mini: true,
-          child: Icon(Icons.add),
-          onPressed: () {
-            openAddInventoryForm();
-          },
-        ),
-      ),
-    );
+    // childButtons.add(
+    //   UnicornButton(
+    //     hasLabel: true,
+    //     labelText: "Add Device",
+    //     currentButton: FloatingActionButton(
+    //       heroTag: "add",
+    //       backgroundColor: UniversalStyles.actionColor,
+    //       mini: true,
+    //       child: Icon(Icons.add),
+    //       onPressed: () {
+    //         openAddInventoryForm();
+    //       },
+    //     ),
+    //   ),
+    // );
 
     initInventoryData();
 
@@ -99,6 +99,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
   @override
   void dispose() {
     _scrollController.dispose();
+
     super.dispose();
   }
 
@@ -172,7 +173,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
         },
       );
     } catch (err) {
-      log(err);
+      print(err);
     }
   }
 
@@ -276,11 +277,13 @@ class _InventoryScreenState extends State<InventoryScreen> {
         },
       );
     } catch (err) {
-      log(err);
+      print(err);
     }
   }
 
   Future<void> scanBarcode() async {
+    FocusScope.of(context).requestFocus(new FocusNode());
+
     RegExp searchPat = RegExp(r"^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$");
     try {
       var options = ScanOptions(strings: {
@@ -306,7 +309,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
         }
       }
     } catch (err) {
-      log(err);
+      print(err);
     }
   }
 
@@ -382,6 +385,8 @@ class _InventoryScreenState extends State<InventoryScreen> {
       inventoryFull = [];
     });
     onScroll();
+
+    FocusScope.of(context).requestFocus(new FocusNode());
   }
 
   Future<void> initEmployeeData() async {
@@ -411,7 +416,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
         isLoading = false;
       });
     } catch (err) {
-      log(err);
+      print(err);
     }
   }
 
@@ -461,11 +466,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
   void openDevice(inventory) {
     Map sendable = {"id": inventory["inventory"]};
-    FocusScopeNode currentFocus = FocusScope.of(context);
-
-    if (!currentFocus.hasFocus) {
-      currentFocus.unfocus();
-    }
+    FocusScope.of(context).requestFocus(new FocusNode());
     Navigator.pushNamed(context, "/viewinventory", arguments: sendable);
   }
 
@@ -538,8 +539,18 @@ class _InventoryScreenState extends State<InventoryScreen> {
                 child: TextField(
                   controller: _searchController,
                   onEditingComplete: () {
-                    searchInventory(_searchController.text);
-                    currentSearch = _searchController.text;
+                    if (_searchController.text.trim() != "" &&
+                        _searchController.text.trim() != null) {
+                      searchInventory(_searchController.text);
+                      currentSearch = _searchController.text;
+                    } else {
+                      clearSearch();
+                    }
+                  },
+                  onChanged: (value) {
+                    if (value == "" || value == null) {
+                      clearSearch();
+                    }
                   },
                   decoration: InputDecoration(
                     labelText: "Search Inventory (Serial)",

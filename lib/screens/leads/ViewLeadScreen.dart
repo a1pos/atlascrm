@@ -160,8 +160,10 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('Yes',
-                  style: TextStyle(fontSize: 17, color: Colors.green)),
+              child: Text(
+                'Yes',
+                style: TextStyle(fontSize: 17, color: Colors.green),
+              ),
               onPressed: () async {
                 Map data = {
                   "employee": UserService.employee.employee,
@@ -190,6 +192,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                       backgroundColor: Colors.grey[600],
                       textColor: Colors.white,
                       fontSize: 16.0);
+                  Navigator.of(context).pop();
                   openLead(lead);
                 } else {
                   Fluttertoast.showToast(
@@ -208,6 +211,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                 style: TextStyle(fontSize: 17, color: Colors.red),
               ),
               onPressed: () {
+                Navigator.of(context).pop();
                 openLead(lead);
               },
             ),
@@ -224,9 +228,10 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
       QueryOptions options = QueryOptions(
         document: gql("""
         query GET_STATEMENT {
-          statement(where: {lead: {_eq: "${this.widget.leadId}"}}) {
+          statement(where: {lead: {_eq: "${this.widget.leadId}"}, is_active: {_eq: true}}) {
             statement
             document
+            is_active
             leadByLead{
               document
             }
@@ -645,7 +650,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                           color: Colors.green[400],
                                         ),
                                         Text(
-                                          "Lead boarded! Please edit the merchant",
+                                          "This lead is already a merchant!",
                                           maxLines: 1,
                                           style: TextStyle(
                                             fontSize: 16,
@@ -1101,27 +1106,25 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                   ),
                 ),
               ),
-        floatingActionButton:
-            // ! if not boarded else container
-            !isBoarded
-                ? isStale && !UserService.isSalesManager && !UserService.isAdmin
-                    ? FloatingActionButton(
-                        onPressed: () async {
-                          if (_leadFormKey.currentState.validate()) {
-                            openStaleModal(lead);
-                          }
-                        },
-                        child: Icon(Icons.how_to_reg),
-                      )
-                    : FloatingActionButton(
-                        onPressed: () async {
-                          if (_leadFormKey.currentState.validate()) {
-                            updateLead(this.widget.leadId);
-                          }
-                        },
-                        child: Icon(Icons.save),
-                      )
-                : Container(),
+        floatingActionButton: !isBoarded
+            ? isStale && !UserService.isSalesManager && !UserService.isAdmin
+                ? FloatingActionButton(
+                    onPressed: () async {
+                      if (_leadFormKey.currentState.validate()) {
+                        openStaleModal(lead);
+                      }
+                    },
+                    child: Icon(Icons.how_to_reg),
+                  )
+                : FloatingActionButton(
+                    onPressed: () async {
+                      if (_leadFormKey.currentState.validate()) {
+                        updateLead(this.widget.leadId);
+                      }
+                    },
+                    child: Icon(Icons.save),
+                  )
+            : Container(),
       ),
     );
   }

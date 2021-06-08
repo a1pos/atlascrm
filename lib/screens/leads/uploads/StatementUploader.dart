@@ -41,9 +41,14 @@ class _StatementUploaderState extends State<StatementUploader> {
   final picker = ImagePicker();
   static const platform = const MethodChannel('com.ces.atlascrm.channel');
 
-  bool isLoading = true;
+  bool isLoading = false;
   bool isBoarded = false;
+  bool dirtyFlag = false;
+  bool emailSent = false;
+  bool prompt = false;
   bool uploadsComplete = false;
+  bool inactiveSelected = false;
+  bool statementActive = false;
 
   List<Asset> images = [];
   List imageFileList = [];
@@ -65,16 +70,16 @@ class _StatementUploaderState extends State<StatementUploader> {
   var emailType;
   var activeStatement;
   var dropdownValue;
+  var activeValueString;
 
   @override
   void initState() {
     super.initState();
     checkIfBoarded(this.widget.lead["lead_status"]);
-    loadStatement();
-    loadImages();
+    loadStatements();
   }
 
-  Future<void> loadStatement() async {
+  Future<void> loadStatements() async {
     lead = this.widget.lead;
 
     try {
@@ -107,31 +112,52 @@ class _StatementUploaderState extends State<StatementUploader> {
           if (statementsArrDecoded != null) {
             var statementsArr = List.from(statementsArrDecoded);
             if (statementsArr.length > 0) {
-              setState(
-                () {
-                  statements = statementsArr;
+              statements = statementsArr;
 
-                  activeStatement = statements
-                      .where((element) => element["is_active"] == true)
-                      .toList();
-                  dropdownValue = activeStatement[0]["statement"];
-                },
-              );
+              activeStatement = statements
+                  .where((element) => element["is_active"] == true)
+                  .toList();
 
               if (activeStatement.length > 0) {
-                statementEmployee = activeStatement[0]["employee"];
-                statementId = activeStatement[0]["statement"];
+                dropdownValue = activeStatement[0]["statement"] ?? null;
 
+                setState(() {
+                  statementActive = true;
+                  loadImages();
+                });
                 if (activeStatement[0]["document"] != null) {
+                  statementEmployee = activeStatement[0]["employee"];
+                  statementId = activeStatement[0]["statement"];
                   if (activeStatement[0]["document"]["emailSent"] != null) {
                     setState(
                       () {
+                        emailSent = true;
                         uploadsComplete = true;
                       },
                     );
                   }
                 }
+              } else {
+                if (UserService.employee.role == "sa" ||
+                    UserService.employee.role == "salesmanager") {
+                  loadImages();
+                  dropdownValue = statements[0]["statement"] ?? null;
+                  inactiveSelected = true;
+                }
+                statementActive = false;
+                emailSent = true;
+
+                // setState(() {
+                //   isLoading = true;
+                // });
               }
+            } else {
+              setState(() {
+                isLoading = false;
+                activeStatement = [];
+                statements = [];
+                dropdownValue = null;
+              });
             }
           }
         }
@@ -281,18 +307,19 @@ class _StatementUploaderState extends State<StatementUploader> {
       } catch (err) {
         print(err);
         Fluttertoast.showToast(
-            msg: "Failed to create task for employee!",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.grey[600],
-            textColor: Colors.white,
-            fontSize: 16.0);
+          msg: "Failed to create task for employee!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
       }
     }
   }
 
   Future<void> leaveCheck() async {
-    if (!uploadsComplete && imageDLList.length > 0) {
+    if (prompt) {
       return showDialog<void>(
         context: context,
         builder: (BuildContext context) {
@@ -303,11 +330,17 @@ class _StatementUploaderState extends State<StatementUploader> {
                 return SingleChildScrollView(
                   child: ListBody(
                     children: <Widget>[
-                      Text('You have an unsubmitted statement!'),
+                      activeValueString != null
+                          ? Text(
+                              'You have an unsubmitted statement for ' +
+                                  activeValueString,
+                            )
+                          : Text('You have an unsubmitted statement!'),
                       Padding(
                         padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
                         child: Text(
-                            ' Would you like to submit this statement before you leave?'),
+                          ' Would you like to submit this statement before you leave?',
+                        ),
                       ),
                       UserService.isAdmin || UserService.isSalesManager
                           ? Container()
@@ -322,7 +355,8 @@ class _StatementUploaderState extends State<StatementUploader> {
                               onEditingComplete: () =>
                                   FocusScope.of(context).nextFocus(),
                               decoration: InputDecoration(
-                                  labelText: "Date to Present Rate Review"),
+                                labelText: "Date to Present Rate Review",
+                              ),
                               format: DateFormat("yyyy-MM-dd HH:mm"),
                               controller: taskDateController,
                               onShowPicker: (context, currentValue) async {
@@ -352,9 +386,13 @@ class _StatementUploaderState extends State<StatementUploader> {
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: <Widget>[
                           TextButton(
-                            child: Text('Submit',
-                                style: TextStyle(
-                                    color: Colors.green, fontSize: 17)),
+                            child: Text(
+                              'Submit',
+                              style: TextStyle(
+                                color: Colors.green,
+                                fontSize: 17,
+                              ),
+                            ),
                             onPressed: () {
                               if (UserService.isAdmin ||
                                   UserService.isSalesManager) {
@@ -406,7 +444,7 @@ class _StatementUploaderState extends State<StatementUploader> {
   }
 
   Future<void> adminUploadCheck(result) async {
-    if (imageDLList.length == 0) {
+    if (imageDLList.length == 0 && !inactiveSelected) {
       return showDialog<void>(
         context: context,
         builder: (BuildContext context) {
@@ -420,7 +458,8 @@ class _StatementUploaderState extends State<StatementUploader> {
                       Padding(
                         padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
                         child: Text(
-                            'Would you like to give a different employee credit for this statement?'),
+                          'Would you like to give a different employee credit for this statement?',
+                        ),
                       ),
                       Padding(
                         padding: const EdgeInsets.fromLTRB(15, 10, 15, 0),
@@ -488,7 +527,7 @@ class _StatementUploaderState extends State<StatementUploader> {
           appBar: CustomAppBar(
             title: Text("Viewing Image"),
             action: <Widget>[
-              uploadsComplete
+              emailSent
                   ? Container()
                   : MaterialButton(
                       padding: EdgeInsets.all(5),
@@ -573,7 +612,7 @@ class _StatementUploaderState extends State<StatementUploader> {
           appBar: CustomAppBar(
             title: Text("Viewing PDF"),
             action: <Widget>[
-              uploadsComplete
+              emailSent
                   ? Container()
                   : MaterialButton(
                       padding: EdgeInsets.all(5),
@@ -671,7 +710,6 @@ class _StatementUploaderState extends State<StatementUploader> {
               } else {
                 setState(
                   () {
-                    isLoading = true;
                     galleryImages = [];
                     currentImage = imgFile;
                   },
@@ -729,22 +767,28 @@ class _StatementUploaderState extends State<StatementUploader> {
       var resp = await this.widget.apiService.authDelete(context,
           "/api/upload/statement?lead=${lead["lead"]}&statement=$name", null);
 
-      setState(() {
-        isLoading = true;
-      });
-
       if (resp.statusCode == 200) {
+        if (imageDLList.length == 1) {
+          setState(() {
+            dirtyFlag = false;
+            uploadsComplete = false;
+            statementActive = false;
+          });
+        }
         Fluttertoast.showToast(
-            msg: "File Deleted!",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.grey[600],
-            textColor: Colors.white,
-            fontSize: 16.0);
+          msg: "File Deleted!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
         setState(() {
           imageDLList = [];
+          statementActive = false;
+
+          loadStatements();
         });
-        loadImages();
       }
     } catch (err) {
       print(err);
@@ -773,8 +817,10 @@ class _StatementUploaderState extends State<StatementUploader> {
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('Delete',
-                  style: TextStyle(fontSize: 17, color: Colors.red)),
+              child: Text(
+                'Delete',
+                style: TextStyle(fontSize: 17, color: Colors.red),
+              ),
               onPressed: () {
                 deleteImage(asset);
               },
@@ -795,6 +841,9 @@ class _StatementUploaderState extends State<StatementUploader> {
   var loadedImage;
 
   Future<void> loadImages() async {
+    setState(() {
+      isLoading = true;
+    });
     try {
       QueryOptions options = QueryOptions(
         document: gql("""
@@ -802,7 +851,7 @@ class _StatementUploaderState extends State<StatementUploader> {
         lead_photos(lead: \$lead){
           photos
         }
-      }
+      } 
       """),
         variables: {
           "lead": lead["lead"],
@@ -816,17 +865,21 @@ class _StatementUploaderState extends State<StatementUploader> {
           for (var imgUrl in result.data["lead_photos"]["photos"]) {
             var url =
                 "${ConfigSettings.HOOK_API_URL}/uploads/statement/$imgUrl";
-            if (imgUrl.contains(dropdownValue)) {
-              setState(
-                () {
-                  imageDLList.add(
-                    {"name": imgUrl, "url": url},
-                  );
-                  isLoading = false;
-                },
-              );
+            if (dropdownValue != null) {
+              if (imgUrl.contains(dropdownValue)) {
+                setState(
+                  () {
+                    imageDLList.add(
+                      {"name": imgUrl, "url": url},
+                    );
+                  },
+                );
+              }
             }
           }
+          setState(() {
+            isLoading = false;
+          });
         }
       }
     } catch (err) {
@@ -838,12 +891,13 @@ class _StatementUploaderState extends State<StatementUploader> {
           backgroundColor: Colors.grey[600],
           textColor: Colors.white,
           fontSize: 16.0);
+
+      setState(
+        () {
+          isLoading = false;
+        },
+      );
     }
-    setState(
-      () {
-        isLoading = false;
-      },
-    );
   }
 
   Future<void> uploadComplete() async {
@@ -853,7 +907,6 @@ class _StatementUploaderState extends State<StatementUploader> {
           isLoading = true;
         },
       );
-
       QueryOptions settingsTypesOptions = QueryOptions(
         document: gql("""
         query GET_SETTINGS_EMAIL_TYPES {
@@ -877,7 +930,6 @@ class _StatementUploaderState extends State<StatementUploader> {
           });
         }
       }
-
       QueryOptions statementEmails = QueryOptions(
         document: gql("""
         query GET_STATEMENT_EMAILS(\$type: uuid = ""){
@@ -918,8 +970,20 @@ class _StatementUploaderState extends State<StatementUploader> {
 
       MutationOptions mutateOptions = MutationOptions(
         document: gql("""
-        mutation SEND_EMAIL(\$to:[String]!, \$subject:String!, \$html:String!, \$type:String!, \$statement:String!){
-          email_statement(to:\$to, subject:\$subject, html:\$html, type:\$type, statement:\$statement){
+        mutation SEND_EMAIL(
+          \$to:[String]!, 
+          \$subject:String!, 
+          \$html:String!, 
+          \$type:String!, 
+          \$statement:String!
+        ){
+          email_statement(
+            to:\$to, 
+            subject:\$subject, 
+            html:\$html, 
+            type:\$type, 
+            statement:\$statement
+          ){
             email_status
           }
         }
@@ -1011,9 +1075,19 @@ class _StatementUploaderState extends State<StatementUploader> {
         var imgUrl = resp.data["name"];
         var url = "${ConfigSettings.HOOK_API_URL}/uploads/statement/$imgUrl";
 
-        setState(() {
+        if (statementActive == false) {
+          imageDLList = [];
+          loadStatements();
+        } else {
           imageDLList.add({"name": imgUrl, "url": url});
+        }
+        setState(() {
+          statementId = resp.data["statement"];
+          dirtyFlag = false;
           isLoading = false;
+          inactiveSelected = false;
+          statementActive = true;
+          emailSent = false;
         });
       } else {
         Fluttertoast.showToast(
@@ -1025,6 +1099,9 @@ class _StatementUploaderState extends State<StatementUploader> {
             fontSize: 16.0);
       }
     } catch (err) {
+      setState(() {
+        isLoading = false;
+      });
       print(err);
     }
   }
@@ -1033,15 +1110,32 @@ class _StatementUploaderState extends State<StatementUploader> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
+        print(uploadsComplete);
+        print(statementActive);
+        print(inactiveSelected);
+        print(emailSent);
+        if ((!uploadsComplete && imageDLList.length > 0 && statementActive) ||
+            (inactiveSelected && !emailSent)) {
+          setState(() {
+            prompt = true;
+          });
+        } else {
+          setState(() {
+            prompt = false;
+          });
+        }
+
         leaveCheck();
         return Future.value(false);
       },
       child: Scaffold(
         appBar: CustomAppBar(
           key: Key("viewTasksAppBar"),
-          title: Text(isLoading
-              ? "Loading..."
-              : "Statements for: " + lead["document"]["businessName"]),
+          title: Text(
+            isLoading
+                ? "Loading..."
+                : "Statements for: " + lead["document"]["businessName"],
+          ),
           action: <Widget>[],
         ),
         body: isLoading
@@ -1175,9 +1269,7 @@ class _StatementUploaderState extends State<StatementUploader> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      (UserService.employee.role == "sa" ||
-                                  UserService.employee.role ==
-                                      "salesmanager") &&
+                      (UserService.isAdmin || UserService.isSalesManager) &&
                               statements.length > 0
                           ? DropdownButton(
                               icon: Icon(Icons.arrow_drop_down),
@@ -1197,6 +1289,10 @@ class _StatementUploaderState extends State<StatementUploader> {
                                   var valueString =
                                       name + " - " + dateSubmittedFormat;
 
+                                  if (value["is_active"] == true) {
+                                    activeValueString = valueString;
+                                  }
+
                                   return DropdownMenuItem<String>(
                                     value: value["statement"],
                                     child: Text(
@@ -1208,13 +1304,37 @@ class _StatementUploaderState extends State<StatementUploader> {
                                             )
                                           : null,
                                     ),
+                                    onTap: () {
+                                      if (value["is_active"] == false) {
+                                        inactiveSelected = true;
+                                        uploadsComplete = true;
+                                        statementActive = false;
+                                        emailSent = true;
+                                        dirtyFlag = false;
+                                      } else {
+                                        if (value["document"] != null) {
+                                          if (value["document"]["emailSent"] ==
+                                              true) {
+                                            emailSent = true;
+                                            uploadsComplete = true;
+                                            statementActive = false;
+                                          }
+                                        } else {
+                                          emailSent = false;
+                                          uploadsComplete = false;
+                                          statementActive = true;
+                                        }
+                                        statementId = value["statement"];
+                                        inactiveSelected = false;
+                                      }
+                                    },
                                   );
                                 },
                               ).toList(),
                               onChanged: (newValue) {
                                 setState(
                                   () {
-                                    isLoading = true;
+                                    // isLoading = true;
                                     dropdownValue = newValue;
                                     imageDLList = [];
                                     loadImages();

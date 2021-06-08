@@ -330,7 +330,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
                   children: activeInstalls.map((i) {
                     if (i['date'] != null) {
                       setState(() {
-                        iDate = DateFormat("EEE, MMM d, ''yy")
+                        iDate = DateFormat("EEEE, MMM d, yyyy")
                             .add_jm()
                             .format(DateTime.parse(i['date']).toLocal());
                         initDate = DateTime.parse(i['date']).toLocal();
