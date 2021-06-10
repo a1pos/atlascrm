@@ -26,6 +26,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
   bool submitted = false;
   bool isLoading = true;
   DateTime initDate;
+  DateTime taskDate;
   TimeOfDay initTime;
 
   var taskTitleController = TextEditingController();
@@ -166,6 +167,8 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
             textColor: Colors.white,
             fontSize: 16.0);
         return;
+      } else {
+        taskDate = DateTime.parse(taskDateController.text).toUtc();
       }
 
       Map data = {
@@ -180,7 +183,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
           "title": taskTitleController.text,
           "eventId": task["document"]["eventId"]
         },
-        "date": taskDateController.text
+        "date": taskDate.toString(),
       };
 
       MutationOptions options;

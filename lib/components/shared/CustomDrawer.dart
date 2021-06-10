@@ -168,23 +168,6 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     },
                   )
                 : Text(""),
-            UserService.isTech || UserService.isAdmin
-                ? ListTile(
-                    leading: Icon(
-                      Icons.drive_eta,
-                      color: Colors.white,
-                    ),
-                    title: Text(
-                      'Trips',
-                      style: TextStyle(
-                        color: Colors.white,
-                      ),
-                    ),
-                    onTap: () {
-                      Navigator.pushReplacementNamed(context, "/trips");
-                    },
-                  )
-                : Container(),
             UserService.isAdmin || UserService.isSalesManager
                 ? ListTile(
                     leading: Icon(
