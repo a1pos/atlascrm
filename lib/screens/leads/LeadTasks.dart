@@ -34,7 +34,7 @@ class _LeadTasksState extends State<LeadTasks> {
   bool isSaveDisabled;
   bool isLoading = true;
   bool isEmpty = true;
-  bool isBoarded = false;
+  bool isBoarded;
 
   var tasks = [];
   var tasksFull = [];
@@ -55,6 +55,7 @@ class _LeadTasksState extends State<LeadTasks> {
   @override
   void initState() {
     super.initState();
+    isBoarded = false;
     isSaveDisabled = false;
     checkIfBoarded(this.widget.lead["lead_status"]);
     _calendarController = CalendarController();
@@ -332,6 +333,10 @@ class _LeadTasksState extends State<LeadTasks> {
           setState(() {
             isBoarded = true;
           });
+        } else {
+          setState(() {
+            isBoarded = false;
+          });
         }
       } else {
         print(new Error());
@@ -554,28 +559,27 @@ class _LeadTasksState extends State<LeadTasks> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: UniversalStyles.backgroundColor,
-      appBar: CustomAppBar(
-        key: Key("leadTaskAppBar"),
-        title:
-            Text("Tasks for: " + this.widget.lead["document"]["businessName"]),
-      ),
-      body: isLoading
-          ? CenteredLoadingSpinner()
-          : Container(
-              padding: EdgeInsets.all(10),
-              child: getTasks(),
-            ),
-      floatingActionButton: !isBoarded
-          ? FloatingActionButton(
-              onPressed: openAddTaskForm,
-              backgroundColor: UniversalStyles.actionColor,
-              foregroundColor: Colors.white,
-              child: Icon(Icons.add),
-              splashColor: Colors.white,
-            )
-          : Container(),
-    );
+        backgroundColor: UniversalStyles.backgroundColor,
+        appBar: CustomAppBar(
+          key: Key("leadTaskAppBar"),
+          title: Text(
+              "Tasks for: " + this.widget.lead["document"]["businessName"]),
+        ),
+        body: isLoading
+            ? CenteredLoadingSpinner()
+            : Container(
+                padding: EdgeInsets.all(10),
+                child: getTasks(),
+              ),
+        floatingActionButton: isBoarded
+            ? Container()
+            : FloatingActionButton(
+                onPressed: openAddTaskForm,
+                backgroundColor: UniversalStyles.actionColor,
+                foregroundColor: Colors.white,
+                child: Icon(Icons.add),
+                splashColor: Colors.white,
+              ));
   }
 
   Widget taskList() {

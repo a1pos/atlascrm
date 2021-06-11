@@ -25,7 +25,6 @@ class _LeadsScreenState extends State<LeadsScreen> {
   bool salesIncludeStale = false;
   bool isLoading = true;
   bool isEmpty = true;
-  bool isBoarded = false;
 
   ScrollController _scrollController = ScrollController();
   TextEditingController _searchController = TextEditingController();
@@ -217,7 +216,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
         },
       );
     } catch (err) {
-      log(err);
+      print(err);
       setState(
         () {
           isLoading = false;
@@ -322,7 +321,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
         },
       );
     } catch (err) {
-      log(err);
+      print(err);
     }
   }
 

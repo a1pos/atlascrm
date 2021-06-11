@@ -20,8 +20,8 @@ class LeadNotes extends StatefulWidget {
 
 bool isFocused = false;
 bool isLoading = false;
-bool isBoarded = false;
 bool notesEmpty = true;
+bool isBoarded;
 
 List notes = [];
 List notesDisplay = [];
@@ -39,9 +39,9 @@ class _LeadNotesState extends State<LeadNotes> {
   @override
   void initState() {
     super.initState();
+    isBoarded = false;
     typeUpper = type.toUpperCase();
     notesController.clear();
-    checkIfBoarded(this.widget.object["lead_status"]);
     loadNotes(this.widget.object[type]);
 
     _focus.addListener(_onFocusChange);
@@ -51,7 +51,7 @@ class _LeadNotesState extends State<LeadNotes> {
   void dispose() async {
     super.dispose();
     isLoading = false;
-
+    isBoarded = false;
     notesEmpty = true;
     notes = [];
   }
@@ -65,6 +65,8 @@ class _LeadNotesState extends State<LeadNotes> {
   }
 
   Future<void> loadNotes(objectId) async {
+    checkIfBoarded(this.widget.object["lead_status"]);
+
     notesController.clear();
 
     QueryOptions options = QueryOptions(
@@ -157,6 +159,7 @@ class _LeadNotesState extends State<LeadNotes> {
 
     """),
       fetchPolicy: FetchPolicy.networkOnly,
+      cacheRereadPolicy: CacheRereadPolicy.ignoreAll,
     );
 
     final result = await GqlClientFactory().authGqlquery(options);
@@ -172,6 +175,10 @@ class _LeadNotesState extends State<LeadNotes> {
         if (leadStatus == status) {
           setState(() {
             isBoarded = true;
+          });
+        } else {
+          setState(() {
+            isBoarded = false;
           });
         }
       } else {
@@ -203,9 +210,9 @@ class _LeadNotesState extends State<LeadNotes> {
             color: Colors.white,
             child: Padding(
               padding: const EdgeInsets.all(8.0),
-              // !isBoarded -> textbox : container()
-              child: !isBoarded
-                  ? Row(
+              child: isBoarded
+                  ? Row()
+                  : Row(
                       children: <Widget>[
                         Expanded(
                           child: TextField(
@@ -255,8 +262,7 @@ class _LeadNotesState extends State<LeadNotes> {
                           },
                         )
                       ],
-                    )
-                  : Row(),
+                    ),
             ),
           ),
         ),

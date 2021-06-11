@@ -42,7 +42,7 @@ class _StatementUploaderState extends State<StatementUploader> {
   static const platform = const MethodChannel('com.ces.atlascrm.channel');
 
   bool isLoading = true;
-  bool isBoarded = false;
+  bool isBoarded;
   bool dirtyFlag = false;
   bool emailSent = false;
   bool prompt = false;
@@ -76,6 +76,7 @@ class _StatementUploaderState extends State<StatementUploader> {
   @override
   void initState() {
     super.initState();
+    isBoarded = false;
     checkIfBoarded(this.widget.lead["lead_status"]);
     loadStatements();
   }
@@ -193,9 +194,7 @@ class _StatementUploaderState extends State<StatementUploader> {
         });
 
         if (leadStatus == status) {
-          setState(() {
-            isBoarded = true;
-          });
+          isBoarded = true;
         }
       } else {
         print(new Error());

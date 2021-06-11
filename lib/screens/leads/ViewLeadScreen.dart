@@ -55,7 +55,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
 
   bool isChanged = false;
   bool isLoading = true;
-  bool isBoarded = false;
+  bool isBoarded;
   bool statementDirty = false;
   bool statementComplete = false;
   bool isStale = false;
@@ -70,6 +70,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
 
   void initState() {
     super.initState();
+    isBoarded = false;
     pulseVisibility = true;
     loadLeadData(this.widget.leadId);
     loadStatement();
@@ -122,6 +123,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
 
     """),
       fetchPolicy: FetchPolicy.networkOnly,
+      cacheRereadPolicy: CacheRereadPolicy.ignoreAll,
     );
 
     final result = await GqlClientFactory().authGqlquery(options);
@@ -137,6 +139,10 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
         if (leadStatus == status) {
           setState(() {
             isBoarded = true;
+          });
+        } else {
+          setState(() {
+            isBoarded = false;
           });
         }
       } else {
@@ -346,12 +352,13 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
             leadDocument["zipCode"];
       } else {
         addressText = leadDocument["address"] +
-            ", " +
-            leadDocument["city"] +
-            ", " +
-            leadDocument["state"] +
-            " " +
-            leadDocument["zipCode"];
+                ", " +
+                leadDocument["city"] +
+                ", " +
+                leadDocument["state"] +
+                " " +
+                leadDocument["zipCode"] ??
+            " ";
       }
       businessAddress["address"] = leadDocument["address"];
       businessAddress["city"] = leadDocument["city"];
@@ -1106,8 +1113,9 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                   ),
                 ),
               ),
-        floatingActionButton: !isBoarded
-            ? isStale && !UserService.isSalesManager && !UserService.isAdmin
+        floatingActionButton: isBoarded
+            ? Container()
+            : isStale && !UserService.isSalesManager && !UserService.isAdmin
                 ? FloatingActionButton(
                     onPressed: () async {
                       if (_leadFormKey.currentState.validate()) {
@@ -1123,8 +1131,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                       }
                     },
                     child: Icon(Icons.save),
-                  )
-            : Container(),
+                  ),
       ),
     );
   }
