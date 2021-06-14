@@ -20,7 +20,6 @@ import 'package:atlascrm/screens/leads/LeadsScreen.dart';
 import 'package:atlascrm/screens/inventory/InventoryScreen.dart';
 import 'package:atlascrm/screens/installs/InstallsScreen.dart';
 import 'package:atlascrm/screens/merchants/MerchantsScreen.dart';
-import 'package:atlascrm/screens/trips/TripsScreen.dart';
 import 'package:atlascrm/screens/tasks/TaskScreen.dart';
 import 'package:atlascrm/screens/employees/ViewEmployeeScreen.dart';
 import 'package:atlascrm/screens/inventory/ViewInventoryScreen.dart';
@@ -215,7 +214,7 @@ class _AtlasCRMState extends State<AtlasCRM> {
                 break;
               // case '/trips':
               //   return MaterialPageRoute(
-              //     builder: (context) => MileageScreen(),
+              //     builder: (context) => TripsScreen(),
               //   );
               //   break;
               case '/newtrips':
@@ -239,6 +238,7 @@ class _AtlasCRMState extends State<AtlasCRM> {
                 );
                 break;
             }
+            return null;
           },
         ),
       ),

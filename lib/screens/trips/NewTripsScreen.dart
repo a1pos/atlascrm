@@ -40,6 +40,7 @@ class _TripsScreenState extends State<TripsScreen> {
   bool showMap = false;
   bool isVisible = false;
   bool customStart;
+  bool customEnd;
   bool unscheduled;
 
   CameraPosition _kGooglePlex = CameraPosition(
@@ -127,11 +128,23 @@ class _TripsScreenState extends State<TripsScreen> {
     return AlertDialog(
       title: Text("Select Date and Starting Location"),
       actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: Text(
+            "Cancel",
+            style: TextStyle(color: Colors.grey[750]),
+          ),
+        ),
         ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            primary: UniversalStyles.actionColor,
+          ),
           child: Text(
             "Go",
             style: TextStyle(
-              color: UniversalStyles.actionColor,
+              color: Colors.white,
               fontWeight: FontWeight.bold,
               fontSize: 16,
             ),
@@ -370,8 +383,17 @@ class _TripsScreenState extends State<TripsScreen> {
             child: ListBody(
               children: [
                 Text(
-                  "Add " + install["merchantbusinessname"] + " to your trip?",
+                  install['merchantbusinessname'] +
+                          "\n " +
+                          DateFormat("MM/dd/yyyy - HH:mma")
+                              .format(DateTime.parse(install["date"]).toLocal())
+                              .toString() ??
+                      "TBD",
                 ),
+                Divider(
+                  color: Colors.white,
+                ),
+                Text("Add to trip?"),
                 Divider(
                   color: Colors.white,
                 ),
@@ -764,46 +786,185 @@ class _TripsScreenState extends State<TripsScreen> {
                       child: Empty("Add merchants to calculate your trip"),
                     ),
             ),
-            Container(
-              child: Column(
-                // crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.flag,
-                    color: Colors.black,
-                    size: 25.0,
-                  ),
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(8, 0, 8, 0),
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        primary: UniversalStyles.actionColor,
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.business_rounded,
-                            color: Colors.white,
-                          ),
-                          Text(
-                            "Office",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
+            // don't show until there is at least one item in selectedInstall
+            // if selected, append it to the bottom of the selectedInstalls list and remove container
+            selectedInstalls.length > 0
+                ? Container(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
+                          child: ListTile(
+                            leading: Icon(
+                              Icons.flag,
+                              color: Colors.black,
+                              size: 25.0,
                             ),
-                          )
-                        ],
-                      ),
-                      onPressed: () {},
+                            title: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Opacity(
+                                  opacity:
+                                      customEnd == false || customEnd == null
+                                          ? 1.0
+                                          : 0.5,
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      primary: UniversalStyles.actionColor,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.business_rounded,
+                                          color: Colors.white,
+                                        ),
+                                        Text(
+                                          "Office",
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        customEnd = false;
+                                        isVisible = false;
+                                      });
+                                    },
+                                  ),
+                                ),
+                                Opacity(
+                                  opacity:
+                                      customEnd == true || customEnd == null
+                                          ? 1.0
+                                          : 0.5,
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      primary: UniversalStyles.actionColor,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.add_location_alt,
+                                          color: Colors.white,
+                                        ),
+                                        Text(
+                                          "Custom Address",
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        customEnd = true;
+                                        isVisible = true;
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
+                  )
+                : Container(),
+            Container(
+              child: TextButton(
+                style: TextButton.styleFrom(
+                  primary: UniversalStyles.actionColor,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.add_circle_outline_rounded,
+                      size: 24,
+                    ),
+                    Text(
+                      "Add merchant location",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    )
+                  ],
+                ),
+                onPressed: () {
+                  AlertDialog(
+                    title: Text("Add merchant"),
+                  );
+                },
               ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  void showTripList() {
+    showModalBottomSheet(
+        enableDrag: true,
+        elevation: 10,
+        barrierColor: Colors.transparent,
+        context: context,
+        builder: (BuildContext context) {
+          // return TripList();
+          return StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+            return Column(
+              children: [
+                Expanded(
+                  child: Container(
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Trip Review",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18.0,
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: Icon(
+                                  Icons.keyboard_arrow_down,
+                                  color: Colors.grey[750],
+                                  size: 30.0,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Divider(
+                          height: 1,
+                          thickness: 1,
+                          color: Colors.grey[750],
+                        ),
+                        buildTripList(),
+                      ],
+                    ),
+                  ),
+                )
+              ],
+            );
+          });
+        });
   }
 
   @override
@@ -823,62 +984,7 @@ class _TripsScreenState extends State<TripsScreen> {
               label: const Text('Review Trip'),
               icon: const Icon(Icons.keyboard_arrow_up),
               onPressed: () async {
-                showModalBottomSheet(
-                    enableDrag: true,
-                    elevation: 10,
-                    barrierColor: Colors.transparent,
-                    context: context,
-                    builder: (BuildContext context) {
-                      return StatefulBuilder(builder:
-                          (BuildContext context, StateSetter setState) {
-                        return Column(
-                          children: [
-                            Expanded(
-                              child: Container(
-                                child: Column(
-                                  children: [
-                                    Padding(
-                                      padding:
-                                          EdgeInsets.fromLTRB(20, 10, 20, 10),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            "Trip Review",
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18.0,
-                                            ),
-                                          ),
-                                          GestureDetector(
-                                            onTap: () {
-                                              Navigator.of(context).pop();
-                                            },
-                                            child: Icon(
-                                              Icons.keyboard_arrow_down,
-                                              color: Colors.grey[750],
-                                              size: 30.0,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Divider(
-                                      height: 1,
-                                      thickness: 1,
-                                      color: Colors.grey[750],
-                                    ),
-                                    buildTripList(),
-                                  ],
-                                ),
-                              ),
-                            )
-                          ],
-                        );
-                      });
-                    });
-                // show container hidden with trip list
+                showTripList();
               },
             ),
       floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
