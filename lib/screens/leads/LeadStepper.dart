@@ -229,7 +229,7 @@ class LeadStepperState extends State<LeadStepper> {
         }
       }
     } catch (err) {
-      log(err);
+      print(err);
     }
   }
 

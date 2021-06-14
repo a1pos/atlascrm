@@ -314,9 +314,11 @@ class _StatementUploaderState extends State<StatementUploader> {
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: <Widget>[
                           TextButton(
-                            child: Text('Submit',
-                                style: TextStyle(
-                                    color: Colors.green, fontSize: 17)),
+                            child: Text(
+                              'Submit',
+                              style:
+                                  TextStyle(color: Colors.green, fontSize: 17),
+                            ),
                             onPressed: () {
                               if (UserService.isAdmin ||
                                   UserService.isSalesManager) {

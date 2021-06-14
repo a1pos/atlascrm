@@ -127,7 +127,7 @@ class _TripsScreenState extends State<TripsScreen> {
     return AlertDialog(
       title: Text("Select Date and Starting Location"),
       actions: [
-        TextButton(
+        ElevatedButton(
           child: Text(
             "Go",
             style: TextStyle(
@@ -233,7 +233,7 @@ class _TripsScreenState extends State<TripsScreen> {
                         child: Row(
                           children: [
                             Icon(
-                              Icons.business,
+                              Icons.business_rounded,
                               color: Colors.white,
                             ),
                             Text(
@@ -360,6 +360,65 @@ class _TripsScreenState extends State<TripsScreen> {
     }
   }
 
+  Future<void> confirmTripAdd(install) async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Confirm"),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: [
+                Text(
+                  "Add " + install["merchantbusinessname"] + " to your trip?",
+                ),
+                Divider(
+                  color: Colors.white,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        primary: Colors.red,
+                      ),
+                      child: Text(
+                        "Cancel",
+                      ),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        primary: UniversalStyles.actionColor,
+                      ),
+                      child: Text(
+                        "Confirm",
+                      ),
+                      onPressed: () {
+                        selectedInstalls.add(install);
+                        Fluttertoast.showToast(
+                          msg: install['merchantbusinessname'] +
+                              " added to trip list",
+                          toastLength: Toast.LENGTH_SHORT,
+                          backgroundColor: Colors.grey[600],
+                          textColor: Colors.white,
+                          fontSize: 16.0,
+                        );
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Future getInstallMarkers() async {
     QueryOptions options = QueryOptions(
       operationName: "GET_V_INSTALL_TABLE",
@@ -459,15 +518,7 @@ class _TripsScreenState extends State<TripsScreen> {
                           fontSize: 16.0,
                         );
                       } else {
-                        selectedInstalls.add(install);
-                        Fluttertoast.showToast(
-                          msg: install['merchantbusinessname'] +
-                              " added to trip list",
-                          toastLength: Toast.LENGTH_SHORT,
-                          backgroundColor: Colors.grey[600],
-                          textColor: Colors.white,
-                          fontSize: 16.0,
-                        );
+                        confirmTripAdd(install);
                       }
                     } else {
                       Fluttertoast.showToast(
@@ -713,46 +764,41 @@ class _TripsScreenState extends State<TripsScreen> {
                       child: Empty("Add merchants to calculate your trip"),
                     ),
             ),
-            ListView(
-              shrinkWrap: true,
-              children: List.generate(startLocation.length, (index) {
-                return Container(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.fromLTRB(8, 0, 8, 0),
-                        child: Card(
-                          child: ListTile(
-                            leading: Icon(
-                              Icons.flag,
-                              color: Colors.black,
-                              size: 25.0,
-                            ),
-                            title: Text(
-                              startLocation[0]["merchantbusinessname"],
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            trailing: IconButton(
-                              icon: Icon(
-                                Icons.close_rounded,
-                                color: Colors.grey[750],
-                                size: 25.0,
-                              ),
-                              onPressed: () {
-                                removeItem(index);
-                                buildTripList();
-                              },
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+            Container(
+              child: Column(
+                // crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.flag,
+                    color: Colors.black,
+                    size: 25.0,
                   ),
-                );
-              }),
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(8, 0, 8, 0),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        primary: UniversalStyles.actionColor,
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.business_rounded,
+                            color: Colors.white,
+                          ),
+                          Text(
+                            "Office",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          )
+                        ],
+                      ),
+                      onPressed: () {},
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -835,7 +881,7 @@ class _TripsScreenState extends State<TripsScreen> {
                 // show container hidden with trip list
               },
             ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
     );
   }
 }
