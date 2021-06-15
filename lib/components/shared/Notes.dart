@@ -69,7 +69,7 @@ class _NotesState extends State<Notes> {
         }
       }
     """),
-      fetchPolicy: FetchPolicy.networkOnly,
+      fetchPolicy: FetchPolicy.noCache,
       variables: {"id": "$objectId"},
     );
 
@@ -94,7 +94,7 @@ class _NotesState extends State<Notes> {
     //     }
     //   }
     // """),
-    //   fetchPolicy: FetchPolicy.networkOnly,
+    //   fetchPolicy: FetchPolicy.noCache,
     //   variables: {"lead": "$objectId"},
     // );
 
@@ -125,16 +125,13 @@ class _NotesState extends State<Notes> {
       "note_text": newNote,
     };
 
-    MutationOptions mutateOptions = MutationOptions(
-        document: gql("""
+    MutationOptions mutateOptions = MutationOptions(document: gql("""
      mutation INSERT_${typeUpper}_NOTE (\$object: ${type}_note_insert_input!){
       insert_${type}_note_one(object: \$object){
 		    ${type}_note
       }
     }
-      """),
-        fetchPolicy: FetchPolicy.networkOnly,
-        variables: {"object": sendNote});
+      """), fetchPolicy: FetchPolicy.noCache, variables: {"object": sendNote});
     final QueryResult result =
         await GqlClientFactory().authGqlmutate(mutateOptions);
     if (result.hasException == true) {

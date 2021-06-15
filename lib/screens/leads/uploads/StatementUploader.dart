@@ -180,7 +180,7 @@ class _StatementUploaderState extends State<StatementUploader> {
       }
 
     """),
-      fetchPolicy: FetchPolicy.networkOnly,
+      fetchPolicy: FetchPolicy.noCache,
     );
 
     final result = await GqlClientFactory().authGqlquery(options);
@@ -284,7 +284,7 @@ class _StatementUploaderState extends State<StatementUploader> {
           }
         }
             """),
-          fetchPolicy: FetchPolicy.networkOnly,
+          fetchPolicy: FetchPolicy.noCache,
           variables: {"data": data},
         );
 
@@ -1020,7 +1020,7 @@ class _StatementUploaderState extends State<StatementUploader> {
           "type": "STATEMENT",
           "statement": statementId
         },
-        fetchPolicy: FetchPolicy.networkOnly,
+        fetchPolicy: FetchPolicy.noCache,
       );
       final QueryResult result =
           await GqlClientFactory().authGqlmutate(mutateOptions);

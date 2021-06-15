@@ -107,7 +107,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
         }
       }
       """),
-        fetchPolicy: FetchPolicy.networkOnly,
+        fetchPolicy: FetchPolicy.noCache,
         cacheRereadPolicy: CacheRereadPolicy.ignoreAll);
 
     final QueryResult result = await GqlClientFactory().authGqlquery(options);
@@ -206,7 +206,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
             created_at
           }
         }
-        """), fetchPolicy: FetchPolicy.networkOnly, variables: {"data": data});
+        """), fetchPolicy: FetchPolicy.noCache, variables: {"data": data});
 
       final QueryResult result =
           await GqlClientFactory().authGqlmutate(options);

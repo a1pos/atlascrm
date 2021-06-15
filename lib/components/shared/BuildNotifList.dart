@@ -112,7 +112,7 @@ class _BuildNotifListState extends State<BuildNotifList> {
             }
           }
       """),
-      fetchPolicy: FetchPolicy.networkOnly,
+      fetchPolicy: FetchPolicy.noCache,
       variables: {"notification": notification},
     );
     final QueryResult result =
@@ -154,7 +154,7 @@ class _BuildNotifListState extends State<BuildNotifList> {
             }
           }
       """),
-      fetchPolicy: FetchPolicy.networkOnly,
+      fetchPolicy: FetchPolicy.noCache,
       variables: {"employee": UserService.employee.employee},
     );
     final QueryResult result =

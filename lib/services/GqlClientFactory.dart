@@ -137,7 +137,7 @@ class GqlClientFactory {
 
     final policies = Policies(
       cacheReread: CacheRereadPolicy.ignoreAll,
-      fetch: FetchPolicy.networkOnly,
+      fetch: FetchPolicy.noCache,
     );
 
     WebSocketLink _wsLink = WebSocketLink(
@@ -180,7 +180,7 @@ class GqlClientFactory {
   static void setPublicGraphQLClient() {
     final policies = Policies(
       cacheReread: CacheRereadPolicy.ignoreAll,
-      fetch: FetchPolicy.networkOnly,
+      fetch: FetchPolicy.noCache,
     );
 
     final GraphQLClient aCLient = GraphQLClient(

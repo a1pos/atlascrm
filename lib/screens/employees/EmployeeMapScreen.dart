@@ -87,7 +87,7 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
           }
         }
     """),
-      fetchPolicy: FetchPolicy.networkOnly,
+      fetchPolicy: FetchPolicy.noCache,
     );
     subscription = await GqlClientFactory().authGqlsubscribe(
       options,
@@ -240,7 +240,7 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
     //                     }
     //                   }
     //                 }
-    //           """), fetchPolicy: FetchPolicy.networkOnly, variables: {
+    //           """), fetchPolicy: FetchPolicy.noCache, variables: {
     //           "device_id": currentLocation["device_id"],
     //           "date": today
     //         });

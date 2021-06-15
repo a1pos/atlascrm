@@ -183,7 +183,7 @@ class _LeadTasksState extends State<LeadTasks> {
             }
           }
         """),
-      fetchPolicy: FetchPolicy.networkOnly,
+      fetchPolicy: FetchPolicy.noCache,
       variables: {"lead": "${this.widget.lead["lead"]}"},
     );
 
@@ -271,7 +271,7 @@ class _LeadTasksState extends State<LeadTasks> {
           }
         }
         """),
-        fetchPolicy: FetchPolicy.networkOnly,
+        fetchPolicy: FetchPolicy.noCache,
         variables: {"data": data},
       );
 
@@ -316,7 +316,7 @@ class _LeadTasksState extends State<LeadTasks> {
       }
 
     """),
-      fetchPolicy: FetchPolicy.networkOnly,
+      fetchPolicy: FetchPolicy.noCache,
     );
 
     final result = await GqlClientFactory().authGqlquery(options);

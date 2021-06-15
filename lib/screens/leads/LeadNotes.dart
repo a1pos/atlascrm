@@ -89,7 +89,7 @@ class _LeadNotesState extends State<LeadNotes> {
           }
       }
     """),
-      fetchPolicy: FetchPolicy.networkOnly,
+      fetchPolicy: FetchPolicy.noCache,
       cacheRereadPolicy: CacheRereadPolicy.ignoreAll,
       variables: {"id": objectId},
     );
@@ -129,7 +129,7 @@ class _LeadNotesState extends State<LeadNotes> {
       }
     }
       """),
-      fetchPolicy: FetchPolicy.networkOnly,
+      fetchPolicy: FetchPolicy.noCache,
       variables: {"object": sendNote},
     );
 
@@ -158,7 +158,7 @@ class _LeadNotesState extends State<LeadNotes> {
       }
 
     """),
-      fetchPolicy: FetchPolicy.networkOnly,
+      fetchPolicy: FetchPolicy.noCache,
       cacheRereadPolicy: CacheRereadPolicy.ignoreAll,
     );
 

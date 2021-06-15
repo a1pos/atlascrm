@@ -108,7 +108,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
                         }
                       }
                   """),
-                  fetchPolicy: FetchPolicy.networkOnly,
+                  fetchPolicy: FetchPolicy.noCache,
                   variables: {"data": data},
                 );
                 final QueryResult result =
@@ -169,7 +169,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
             }
           }
       """),
-        fetchPolicy: FetchPolicy.networkOnly,
+        fetchPolicy: FetchPolicy.noCache,
       );
 
       final result = await GqlClientFactory().authGqlquery(options);
@@ -281,7 +281,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
             }
           }
       """),
-        fetchPolicy: FetchPolicy.networkOnly,
+        fetchPolicy: FetchPolicy.noCache,
       );
 
       final QueryResult result = await GqlClientFactory().authGqlquery(options);

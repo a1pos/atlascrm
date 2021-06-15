@@ -144,7 +144,7 @@ class InventoryAddState extends State<InventoryAdd> {
           }
         }
       """),
-          fetchPolicy: FetchPolicy.networkOnly,
+          fetchPolicy: FetchPolicy.noCache,
           variables: {"objects": data},
         );
 

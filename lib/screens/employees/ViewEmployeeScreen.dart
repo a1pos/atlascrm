@@ -74,7 +74,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
           }
         }
     """),
-      fetchPolicy: FetchPolicy.networkOnly,
+      fetchPolicy: FetchPolicy.noCache,
       variables: {"employee": "${this.widget.employeeId}"},
     );
 
@@ -148,7 +148,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
         }
       }
           """),
-      fetchPolicy: FetchPolicy.networkOnly,
+      fetchPolicy: FetchPolicy.noCache,
       variables: {"employee": this.widget.employeeId, "role": role},
     );
     final QueryResult result =
@@ -252,7 +252,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                         }
                       }
                   """),
-                      fetchPolicy: FetchPolicy.networkOnly,
+                      fetchPolicy: FetchPolicy.noCache,
                       variables: {"object": newDevice});
 
                   final QueryResult result =
@@ -316,7 +316,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                         }
                       }
                   """),
-                  fetchPolicy: FetchPolicy.networkOnly,
+                  fetchPolicy: FetchPolicy.noCache,
                   variables: {"employee_device": deviceId},
                 );
 
