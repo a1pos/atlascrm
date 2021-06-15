@@ -97,7 +97,7 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
             }
           }
         """),
-      fetchPolicy: FetchPolicy.networkOnly,
+      fetchPolicy: FetchPolicy.noCache,
     );
 
     subscription = await GqlClientFactory().authGqlsubscribe(

@@ -94,7 +94,7 @@ class _LeadsChartState extends State<LeadsChart> {
     }
 
     """),
-      fetchPolicy: FetchPolicy.networkOnly,
+      fetchPolicy: FetchPolicy.noCache,
       variables: {"from": from},
     );
 

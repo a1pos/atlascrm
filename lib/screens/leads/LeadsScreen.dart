@@ -87,6 +87,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
               ),
               onPressed: () {
                 openLead(lead);
+                Navigator.of(context).pop();
               },
             ),
             TextButton(
@@ -108,7 +109,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
                         }
                       }
                   """),
-                  fetchPolicy: FetchPolicy.networkOnly,
+                  fetchPolicy: FetchPolicy.noCache,
                   variables: {"data": data},
                 );
                 final QueryResult result =
@@ -123,14 +124,16 @@ class _LeadsScreenState extends State<LeadsScreen> {
                       textColor: Colors.white,
                       fontSize: 16.0);
                   openLead(lead);
+                  Navigator.of(context).pop();
                 } else {
                   Fluttertoast.showToast(
-                      msg: "Failed to claim lead!",
-                      toastLength: Toast.LENGTH_LONG,
-                      gravity: ToastGravity.BOTTOM,
-                      backgroundColor: Colors.grey[600],
-                      textColor: Colors.white,
-                      fontSize: 16.0);
+                    msg: "Failed to claim lead!",
+                    toastLength: Toast.LENGTH_LONG,
+                    gravity: ToastGravity.BOTTOM,
+                    backgroundColor: Colors.grey[600],
+                    textColor: Colors.white,
+                    fontSize: 16.0,
+                  );
                 }
               },
             ),
@@ -169,7 +172,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
             }
           }
       """),
-        fetchPolicy: FetchPolicy.networkOnly,
+        fetchPolicy: FetchPolicy.noCache,
       );
 
       final result = await GqlClientFactory().authGqlquery(options);
@@ -281,7 +284,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
             }
           }
       """),
-        fetchPolicy: FetchPolicy.networkOnly,
+        fetchPolicy: FetchPolicy.noCache,
       );
 
       final QueryResult result = await GqlClientFactory().authGqlquery(options);

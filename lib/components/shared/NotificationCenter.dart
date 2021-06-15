@@ -58,7 +58,7 @@ class _NotificationCenterState extends State<NotificationCenter> {
             }
           }
             """),
-      fetchPolicy: FetchPolicy.networkOnly,
+      fetchPolicy: FetchPolicy.noCache,
       variables: {"employee": "${UserService.employee.employee}"},
     );
 
@@ -95,7 +95,7 @@ class _NotificationCenterState extends State<NotificationCenter> {
             }
           }
       """),
-      fetchPolicy: FetchPolicy.networkOnly,
+      fetchPolicy: FetchPolicy.noCache,
       variables: {"employee": UserService.employee.employee},
     );
     final QueryResult result =

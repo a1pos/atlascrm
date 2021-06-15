@@ -134,7 +134,7 @@ class FirebaseCESService {
           }
           """),
             variables: {"phone_link_stream": message["phone_link_stream"]},
-            fetchPolicy: FetchPolicy.networkOnly);
+            fetchPolicy: FetchPolicy.noCache);
 
         if (result == null) {
           await GqlClientFactory().authGqlmutate(options);

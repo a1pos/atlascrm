@@ -213,7 +213,7 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
             }
           }
             """),
-        fetchPolicy: FetchPolicy.networkOnly,
+        fetchPolicy: FetchPolicy.noCache,
         variables: {"merchant": "${this.widget.merchantId}"});
 
     subscription =

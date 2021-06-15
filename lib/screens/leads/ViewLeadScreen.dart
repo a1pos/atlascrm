@@ -122,7 +122,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
       }
 
     """),
-      fetchPolicy: FetchPolicy.networkOnly,
+      fetchPolicy: FetchPolicy.noCache,
       cacheRereadPolicy: CacheRereadPolicy.ignoreAll,
     );
 
@@ -194,7 +194,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                         }
                       }
                   """),
-                  fetchPolicy: FetchPolicy.networkOnly,
+                  fetchPolicy: FetchPolicy.noCache,
                   variables: {"data": data},
                 );
                 final QueryResult result =
@@ -405,7 +405,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
           }
         }
       """),
-      fetchPolicy: FetchPolicy.networkOnly,
+      fetchPolicy: FetchPolicy.noCache,
       variables: {"data": data},
     );
 
