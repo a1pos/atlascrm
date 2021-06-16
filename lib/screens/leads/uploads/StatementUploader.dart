@@ -979,11 +979,14 @@ class _StatementUploaderState extends State<StatementUploader> {
 
           for (var i = 0; i < statementEmails.length; i++) {
             if (statementEmails[i]["employeeByEmployee"]["company"] ==
-                UserService.employee.company) {
+                    UserService.employee.company ||
+                statementEmails[i]["employeeByEmployee"]["company"] ==
+                    "1d55068f-dd67-41d0-9b72-6ae7716b84f3") {
               toEmailList.insert(
-                  i,
-                  statementsEmailResult.data["settings_email"][i]
-                      ["employeeByEmployee"]["document"]["email"]);
+                i,
+                statementsEmailResult.data["settings_email"][i]
+                    ["employeeByEmployee"]["document"]["email"],
+              );
             }
           }
         } else {
@@ -1022,6 +1025,7 @@ class _StatementUploaderState extends State<StatementUploader> {
         },
         fetchPolicy: FetchPolicy.noCache,
       );
+
       final QueryResult result =
           await GqlClientFactory().authGqlmutate(mutateOptions);
 
@@ -1046,6 +1050,8 @@ class _StatementUploaderState extends State<StatementUploader> {
           );
           Navigator.pushNamed(context, "/viewlead", arguments: lead["lead"]);
         }
+      } else {
+        print(result.exception.toString());
       }
     } catch (err) {
       print(err);
