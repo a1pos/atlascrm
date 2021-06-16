@@ -11,6 +11,7 @@ import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:intl/intl.dart';
 
 import 'LeadStepper.dart';
 
@@ -36,6 +37,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
 
   var dropdownVal = "2";
 
+  var currentDate;
   var currentSearch = "";
   var pageNum = 0;
   var filterEmployee = "";
@@ -64,6 +66,12 @@ class _LeadsScreenState extends State<LeadsScreen> {
   void dispose() {
     _scrollController.dispose();
     super.dispose();
+  }
+
+  getCurrentDateTime() {
+    currentDate = DateFormat.yMd().add_jm().format(DateTime.now()).toString();
+
+    return currentDate;
   }
 
   Future<void> openStaleModal(lead) async {
@@ -377,7 +385,6 @@ class _LeadsScreenState extends State<LeadsScreen> {
           leads = [];
         },
       );
-      onScroll();
     }
   }
 
@@ -496,17 +503,39 @@ class _LeadsScreenState extends State<LeadsScreen> {
             ? CenteredLoadingSpinner()
             : Container(
                 padding: EdgeInsets.all(10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    Container(
-                      child: Expanded(
-                        child: getDataTable(),
+                child: RefreshIndicator(
+                  onRefresh: () {
+                    return Future.delayed(
+                      Duration(seconds: 1),
+                      () {
+                        setState(() {
+                          pageNum = 0;
+                          dropdownVal = "2";
+                          sortQuery = sortQueries[int.parse(dropdownVal)];
+                          clearSearch();
+                          toggleStale(false);
+                        });
+
+                        currentDate = getCurrentDateTime();
+
+                        Fluttertoast.showToast(
+                          msg: "Refresh completed at " + currentDate,
+                          toastLength: Toast.LENGTH_LONG,
+                        );
+                      },
+                    );
+                  },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      Container(
+                        child: Expanded(
+                          child: getDataTable(),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
+                    ],
+                  ),
+                )),
         floatingActionButton: FloatingActionButton(
           onPressed: openAddLeadForm,
           foregroundColor: Colors.white,

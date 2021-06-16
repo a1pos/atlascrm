@@ -7,12 +7,13 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:intl/intl.dart';
 
 class SalesLeaderboardCards extends StatefulWidget {
-  SalesLeaderboardCards();
+  SalesLeaderboardCards({Key key}) : super(key: key);
+
   @override
-  _SalesLeaderboardCardsState createState() => _SalesLeaderboardCardsState();
+  SalesLeaderboardCardsState createState() => SalesLeaderboardCardsState();
 }
 
-class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
+class SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
   final UserService userService = UserService();
   final _pageController = PageController(viewportFraction: .8);
   final currencyFmt = new NumberFormat("#,##0", "en_US");
@@ -34,6 +35,8 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
   bool isLoading = true;
 
   List starColors = [Colors.yellow[600], Colors.grey[500], Colors.orange[600]];
+
+  ScrollController _scrollController = ScrollController();
 
   var currentPage = 1;
 
@@ -124,6 +127,8 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
     if (subscription != null) {
       await subscription.cancel();
       subscription = null;
+      _scrollController.animateTo(0,
+          duration: Duration(milliseconds: 500), curve: Curves.fastOutSlowIn);
       initSub();
     }
   }
@@ -404,6 +409,7 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
 
   Widget buildDLGridView() {
     return ListView(
+      controller: _scrollController,
       shrinkWrap: true,
       children: List.generate(
         graphFinal.length,
@@ -459,8 +465,10 @@ class _SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
           return GestureDetector(
             onTap: () async {
               openCard();
-              return new Future.delayed(const Duration(milliseconds: 50),
-                  () => _pageController.jumpToPage(index));
+              return new Future.delayed(
+                const Duration(milliseconds: 50),
+                () => _pageController.jumpToPage(index),
+              );
             },
             child: Card(
               elevation: 2,
