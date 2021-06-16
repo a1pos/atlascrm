@@ -7,12 +7,13 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:intl/intl.dart';
 
 class LeadsChart extends StatefulWidget {
-  LeadsChart();
+  LeadsChart({Key key}) : super(key: key);
+
   @override
-  _LeadsChartState createState() => _LeadsChartState();
+  LeadsChartState createState() => LeadsChartState();
 }
 
-class _LeadsChartState extends State<LeadsChart> {
+class LeadsChartState extends State<LeadsChart> {
   final UserService userService = UserService();
 
   bool isLoading = true;
@@ -98,21 +99,33 @@ class _LeadsChartState extends State<LeadsChart> {
       variables: {"from": from},
     );
 
-    subscription =
-        await GqlClientFactory().authGqlsubscribe(leadOptions, (data) {
-      var incomingData = data.data["employee"];
-      if (incomingData != null) {
-        if (this.mounted) {
-          setState(() {
-            graphList = incomingData;
-            isLoading = false;
-          });
+    subscription = await GqlClientFactory().authGqlsubscribe(
+      leadOptions,
+      (data) {
+        var incomingData = data.data["employee"];
+        if (incomingData != null) {
+          if (this.mounted) {
+            setState(() {
+              graphList = incomingData;
+              isLoading = false;
+            });
+          }
         }
-      }
-    }, (error) {}, () => refreshSubscription());
+      },
+      (error) {},
+      () => refreshSub(),
+    );
   }
 
-  refreshSubscription() async {
+  void parentRefresh() async {
+    setState(() {
+      timeDropdownValue = "week";
+    });
+
+    refreshSub();
+  }
+
+  refreshSub() async {
     var from = timeDropdownValue;
     var fromVal = today;
     var toVal = today;
@@ -208,7 +221,7 @@ class _LeadsChartState extends State<LeadsChart> {
                   setState(() {
                     isLoading = true;
                     timeDropdownValue = newValue;
-                    refreshSubscription();
+                    refreshSub();
                   });
                 },
               ),

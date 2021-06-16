@@ -8,22 +8,26 @@ import 'package:intl/intl.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 
 class Tasks extends StatefulWidget {
+  Tasks({Key key}) : super(key: key);
+
   @override
-  _TasksState createState() => _TasksState();
+  TasksState createState() => TasksState();
 }
 
-class _TasksState extends State<Tasks> {
+class TasksState extends State<Tasks> {
   bool isLoading = true;
   bool isEmpty = true;
 
   List tasks = [];
   List activeTasks = [];
+
+  ScrollController scrollController = ScrollController();
+
   var subscription;
 
   @override
   void initState() {
     super.initState();
-
     initTasks();
   }
 
@@ -93,6 +97,9 @@ class _TasksState extends State<Tasks> {
     if (subscription != null) {
       await subscription.cancel();
       subscription = null;
+      scrollController.animateTo(0,
+          duration: Duration(milliseconds: 500), curve: Curves.fastOutSlowIn);
+
       initTasks();
     }
   }
@@ -110,15 +117,16 @@ class _TasksState extends State<Tasks> {
             )
           : activeTasks == null
               ? Empty("No Active Tasks found")
-              : buildDLGridView(context, activeTasks),
+              : buildDLGridView(context, activeTasks, scrollController),
     );
   }
 }
 
-Widget buildDLGridView(BuildContext context, list) {
+Widget buildDLGridView(BuildContext context, list, scrollController) {
   return list.length == 0
       ? Empty("No Active Tasks found")
       : ListView(
+          controller: scrollController,
           shrinkWrap: true,
           children: List.generate(
             list.length,

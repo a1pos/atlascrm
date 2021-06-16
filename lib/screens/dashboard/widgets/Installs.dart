@@ -7,16 +7,20 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:intl/intl.dart';
 
 class Installs extends StatefulWidget {
+  Installs({Key key}) : super(key: key);
+
   @override
-  _InstallsState createState() => _InstallsState();
+  InstallsState createState() => InstallsState();
 }
 
-class _InstallsState extends State<Installs> {
+class InstallsState extends State<Installs> {
   bool isLoading = true;
   bool isEmpty = true;
 
   List installs = [];
   List activeInstalls = [];
+
+  ScrollController _scrollController = ScrollController();
 
   var subscription;
   var iDate;
@@ -91,6 +95,8 @@ class _InstallsState extends State<Installs> {
     if (subscription != null) {
       await subscription.cancel();
       subscription = null;
+      _scrollController.animateTo(0,
+          duration: Duration(milliseconds: 500), curve: Curves.fastOutSlowIn);
       initInstalls();
     }
   }
@@ -101,6 +107,7 @@ class _InstallsState extends State<Installs> {
         ? CenteredLoadingSpinner()
         : !isEmpty
             ? ListView(
+                controller: _scrollController,
                 shrinkWrap: true,
                 children: activeInstalls.map((i) {
                   if (i['date'] != null) {
