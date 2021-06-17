@@ -94,8 +94,8 @@ class _LeadsScreenState extends State<LeadsScreen> {
                 style: TextStyle(fontSize: 17, color: Colors.red),
               ),
               onPressed: () {
-                openLead(lead);
                 Navigator.of(context).pop();
+                openLead(lead);
               },
             ),
             TextButton(
@@ -131,8 +131,8 @@ class _LeadsScreenState extends State<LeadsScreen> {
                       backgroundColor: Colors.grey[600],
                       textColor: Colors.white,
                       fontSize: 16.0);
-                  openLead(lead);
                   Navigator.of(context).pop();
+                  openLead(lead);
                 } else {
                   Fluttertoast.showToast(
                     msg: "Failed to claim lead!",
