@@ -42,8 +42,8 @@ class _LeadsScreenState extends State<LeadsScreen> {
   var pageNum = 0;
   var filterEmployee = "";
   var sortQueries = [
-    "updated_at: desc",
-    "updated_at: asc",
+    "leadcreatedat: desc",
+    "leadcreatedat: asc",
     "leadbusinessname: asc"
   ];
   var sortQuery = "leadbusinessname: asc";
@@ -241,6 +241,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
       var offsetAmount = pageNum * 10;
       var limitAmount = 10;
       var params;
+
       var searchParams =
           '	_or: [{leadbusinessname: {_ilike: "%$currentSearch%"}}, {employeefullname: {_ilike: "%$currentSearch%"}}, {leademailaddress: {_ilike: "%$currentSearch%"}}, {leadfirstname: {_ilike: "%$currentSearch%"}}, {leadlastname: {_ilike: "%$currentSearch%"}}, {leaddbaname: {_ilike: "%$currentSearch%"}}, {leadphonenumber: {_ilike: "%$currentSearch%"}},]';
       if (UserService.isAdmin || UserService.isSalesManager) {
@@ -385,6 +386,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
           leads = [];
         },
       );
+      onScroll();
     }
   }
 
