@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
@@ -501,43 +500,42 @@ class _LeadsScreenState extends State<LeadsScreen> {
             )
           ],
         ),
-        body: isLoading
-            ? CenteredLoadingSpinner()
-            : Container(
-                padding: EdgeInsets.all(10),
-                child: RefreshIndicator(
-                  onRefresh: () {
-                    return Future.delayed(
-                      Duration(seconds: 1),
-                      () {
-                        setState(() {
-                          pageNum = 0;
-                          dropdownVal = "2";
-                          sortQuery = sortQueries[int.parse(dropdownVal)];
-                          clearSearch();
-                          toggleStale(false);
-                        });
+        body: Container(
+            padding: EdgeInsets.all(10),
+            child: RefreshIndicator(
+              onRefresh: () {
+                return Future.delayed(
+                  Duration(seconds: 1),
+                  () {
+                    setState(() {
+                      pageNum = 0;
+                      isLoading = true;
+                      sortQuery = sortQueries[int.parse(dropdownVal)];
+                      clearSearch();
+                      toggleStale(false);
+                    });
 
-                        currentDate = getCurrentDateTime();
+                    currentDate = getCurrentDateTime();
 
-                        Fluttertoast.showToast(
-                          msg: "Refresh completed at " + currentDate,
-                          toastLength: Toast.LENGTH_LONG,
-                        );
-                      },
+                    Fluttertoast.showToast(
+                      msg: "Refresh completed at " + currentDate,
+                      toastLength: Toast.LENGTH_LONG,
                     );
                   },
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      Container(
-                        child: Expanded(
-                          child: getDataTable(),
-                        ),
-                      ),
-                    ],
+                );
+              },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Container(
+                    child: Expanded(
+                      child:
+                          isLoading ? CenteredLoadingSpinner() : getDataTable(),
+                    ),
                   ),
-                )),
+                ],
+              ),
+            )),
         floatingActionButton: FloatingActionButton(
           onPressed: openAddLeadForm,
           foregroundColor: Colors.white,
@@ -670,9 +668,10 @@ class _LeadsScreenState extends State<LeadsScreen> {
                                       child: Text(
                                         "Stale",
                                         style: TextStyle(
-                                            fontSize: 18,
-                                            color: Colors.orange[400],
-                                            fontWeight: FontWeight.bold),
+                                          fontSize: 18,
+                                          color: Colors.orange[400],
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                     ),
                                   )
