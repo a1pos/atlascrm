@@ -3,7 +3,6 @@ import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/config/ConfigSettings.dart';
 import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
@@ -60,7 +59,6 @@ class _StatementUploaderState extends State<StatementUploader> {
 
   var statementEmployee = UserService.employee.employee;
 
-  var dio = Dio();
   var widgetType;
   var lead;
   var status;
@@ -72,12 +70,14 @@ class _StatementUploaderState extends State<StatementUploader> {
   var dropdownValue;
   var activeValueString;
   var saveDateFormat;
+  var parentCompany;
 
   @override
   void initState() {
     super.initState();
     isBoarded = false;
     checkIfBoarded(this.widget.lead["lead_status"]);
+    getParentCompany();
     loadStatements();
   }
 
@@ -196,6 +196,34 @@ class _StatementUploaderState extends State<StatementUploader> {
         if (leadStatus == status) {
           isBoarded = true;
         }
+      } else {
+        print(new Error());
+      }
+    }
+  }
+
+  getParentCompany() async {
+    QueryOptions options = QueryOptions(
+      document: gql("""
+      query GET_PARENT_COMPANY {
+        company {
+          company
+          title
+        }
+      }
+    """),
+      fetchPolicy: FetchPolicy.noCache,
+    );
+
+    final result = await GqlClientFactory().authGqlquery(options);
+
+    if (result != null) {
+      if (result.hasException == false) {
+        result.data["company"].forEach((item) {
+          if (item["title"] == "Cutting Edge Solutions") {
+            parentCompany = item["company"];
+          }
+        });
       } else {
         print(new Error());
       }
@@ -930,6 +958,7 @@ class _StatementUploaderState extends State<StatementUploader> {
           isLoading = true;
         },
       );
+
       QueryOptions settingsTypesOptions = QueryOptions(
         document: gql("""
         query GET_SETTINGS_EMAIL_TYPES {
@@ -953,20 +982,31 @@ class _StatementUploaderState extends State<StatementUploader> {
           });
         }
       }
+
       QueryOptions statementEmails = QueryOptions(
         document: gql("""
-        query GET_STATEMENT_EMAILS(\$type: uuid = ""){
-          settings_email(where: {settings_email_type : {_eq: \$type}}) {
-            employee
-            employeeByEmployee{
-              document
-              company
-            }
+        query GET_STATEMENT_EMAILS(\$type: uuid!, \$parentCompany: uuid!, \$userCompany: uuid!) {
+        settings_email(where: 
+        {_and: 
+        [
+          {settings_email_type: {_eq: \$type}}, 
+          {_or: [{employeeByEmployee: {company: {_eq: \$parentCompany}}}, 
+          {employeeByEmployee: {company: {_eq: \$userCompany}}}]}
+        ]}) {
+          settings_email_type
+          company
+          employee
+          employeeByEmployee {
+            document
+            company
           }
         }
+      }
       """),
         variables: {
           "type": emailType,
+          "parentCompany": parentCompany,
+          "userCompany": UserService.employee.company,
         },
       );
 
@@ -978,14 +1018,10 @@ class _StatementUploaderState extends State<StatementUploader> {
           var statementEmails = statementsEmailResult.data["settings_email"];
 
           for (var i = 0; i < statementEmails.length; i++) {
-            if (statementEmails[i]["employeeByEmployee"]["company"] ==
-                    UserService.employee.company ||
-                statementEmails[i]["employeeByEmployee"]["company"] ==
-                    "1d55068f-dd67-41d0-9b72-6ae7716b84f3") {
+            if (statementEmails[i]["employeeByEmployee"] != null) {
               toEmailList.insert(
                 i,
-                statementsEmailResult.data["settings_email"][i]
-                    ["employeeByEmployee"]["document"]["email"],
+                statementEmails[i]["employeeByEmployee"]["document"]["email"],
               );
             }
           }
@@ -994,8 +1030,9 @@ class _StatementUploaderState extends State<StatementUploader> {
         }
       }
 
-      MutationOptions mutateOptions = MutationOptions(
-        document: gql("""
+      if (toEmailList.length > 0) {
+        MutationOptions mutateOptions = MutationOptions(
+          document: gql("""
         mutation SEND_EMAIL(
           \$to:[String]!, 
           \$subject:String!, 
@@ -1014,44 +1051,68 @@ class _StatementUploaderState extends State<StatementUploader> {
           }
         }
         """),
-        variables: {
-          "to": toEmailList,
-          "subject":
-              "New Statement For Review: ${this.widget.lead["document"]["businessName"]} - ${this.widget.lead["document"]["address"]}",
-          "html":
-              'Lead: ${this.widget.lead["document"]["businessName"]} <br />',
-          "type": "STATEMENT",
-          "statement": statementId
-        },
-        fetchPolicy: FetchPolicy.noCache,
-      );
+          variables: {
+            "to": toEmailList,
+            "subject":
+                "New Statement For Review: ${this.widget.lead["document"]["businessName"]} - ${this.widget.lead["document"]["address"]}",
+            "html":
+                'Lead: ${this.widget.lead["document"]["businessName"]} <br />',
+            "type": "STATEMENT",
+            "statement": statementId
+          },
+          fetchPolicy: FetchPolicy.noCache,
+        );
 
-      final QueryResult result =
-          await GqlClientFactory().authGqlmutate(mutateOptions);
+        final QueryResult result =
+            await GqlClientFactory().authGqlmutate(mutateOptions);
 
-      if (result.hasException == false) {
-        if (result.data != null) {
-          if (!UserService.isAdmin || !UserService.isSalesManager) {
-            createTask();
+        if (result.hasException == false) {
+          if (result.data != null) {
+            if (!UserService.isAdmin || !UserService.isSalesManager) {
+              createTask();
+            }
+            setState(
+              () {
+                uploadsComplete = true;
+                isLoading = false;
+              },
+            );
+            Fluttertoast.showToast(
+              msg: "Statement Submitted!",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.grey[600],
+              textColor: Colors.white,
+              fontSize: 16.0,
+            );
+            Navigator.pushNamed(context, "/viewlead", arguments: lead["lead"]);
           }
-          setState(
-            () {
-              uploadsComplete = true;
-              isLoading = false;
-            },
-          );
+        } else {
           Fluttertoast.showToast(
-            msg: "Statement Submitted!",
+            msg: "Failed to submit statement! Error: " +
+                result.exception.toString(),
             toastLength: Toast.LENGTH_SHORT,
             gravity: ToastGravity.BOTTOM,
             backgroundColor: Colors.grey[600],
             textColor: Colors.white,
             fontSize: 16.0,
           );
-          Navigator.pushNamed(context, "/viewlead", arguments: lead["lead"]);
+          setState(() {
+            isLoading = false;
+          });
         }
       } else {
-        print(result.exception.toString());
+        setState(() {
+          isLoading = false;
+        });
+        Fluttertoast.showToast(
+          msg: "Failed to submit statement! No recipients in list",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
       }
     } catch (err) {
       print(err);
@@ -1059,12 +1120,13 @@ class _StatementUploaderState extends State<StatementUploader> {
         isLoading = false;
       });
       Fluttertoast.showToast(
-          msg: "Failed to complete upload!",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.grey[600],
-          textColor: Colors.white,
-          fontSize: 16.0);
+        msg: "Failed to submit statement!",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.grey[600],
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
     }
   }
 
@@ -1087,46 +1149,54 @@ class _StatementUploaderState extends State<StatementUploader> {
               path);
         }
       } else {
-        resp = await this.widget.apiService.authFilePost(
-            context,
-            "/api/upload/statement?lead=${lead["lead"]}&employee=${UserService.employee.employee}",
-            path);
+        if (path != null) {
+          resp = await this.widget.apiService.authFilePost(
+              context,
+              "/api/upload/statement?lead=${lead["lead"]}&employee=${UserService.employee.employee}",
+              path);
+        }
       }
 
-      if (resp.statusCode == 200) {
-        Fluttertoast.showToast(
-            msg: "File Uploaded!",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.grey[600],
-            textColor: Colors.white,
-            fontSize: 16.0);
+      if (resp != null) {
+        if (resp.statusCode == 200) {
+          Fluttertoast.showToast(
+              msg: "File Uploaded!",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.grey[600],
+              textColor: Colors.white,
+              fontSize: 16.0);
 
-        var imgUrl = resp.data["name"];
-        var url = "${ConfigSettings.HOOK_API_URL}/uploads/statement/$imgUrl";
+          var imgUrl = resp.data["name"];
+          var url = "${ConfigSettings.HOOK_API_URL}/uploads/statement/$imgUrl";
 
-        if (statementActive == false) {
-          imageDLList = [];
-          loadStatements();
+          if (statementActive == false) {
+            imageDLList = [];
+            loadStatements();
+          } else {
+            imageDLList.add({"name": imgUrl, "url": url});
+          }
+          setState(() {
+            statementId = resp.data["statement"];
+            dirtyFlag = false;
+            isLoading = false;
+            inactiveSelected = false;
+            statementActive = true;
+            emailSent = false;
+          });
         } else {
-          imageDLList.add({"name": imgUrl, "url": url});
+          Fluttertoast.showToast(
+              msg: "Failed to upload file!",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.grey[600],
+              textColor: Colors.white,
+              fontSize: 16.0);
         }
-        setState(() {
-          statementId = resp.data["statement"];
-          dirtyFlag = false;
-          isLoading = false;
-          inactiveSelected = false;
-          statementActive = true;
-          emailSent = false;
-        });
       } else {
-        Fluttertoast.showToast(
-            msg: "Failed to upload file!",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.grey[600],
-            textColor: Colors.white,
-            fontSize: 16.0);
+        setState(() {
+          isLoading = false;
+        });
       }
     } catch (err) {
       setState(() {
@@ -1266,10 +1336,14 @@ class _StatementUploaderState extends State<StatementUploader> {
                                       if (imageDLList.length == 0) {
                                         adminUploadCheck(result.files[0].path);
                                       } else {
-                                        addImage(result.files[0].path);
+                                        if (result != null) {
+                                          addImage(result.files[0].path);
+                                        }
                                       }
                                     } else {
-                                      addImage(result.files[0].path);
+                                      if (result != null) {
+                                        addImage(result.files[0].path);
+                                      }
                                     }
                                   },
                             child: Padding(
