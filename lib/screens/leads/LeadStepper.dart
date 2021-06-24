@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'dart:async';
 import 'package:atlascrm/components/shared/ProcessorDropDown.dart';
+import 'package:atlascrm/components/shared/CompanyDropDown.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
@@ -40,6 +41,8 @@ class LeadStepperState extends State<LeadStepper> {
     GlobalKey<FormState>()
   ];
 
+  List<Step> steps;
+
   Map businessAddress = {
     "address": "",
     "address2": "",
@@ -70,6 +73,9 @@ class LeadStepperState extends State<LeadStepper> {
   var lastNameController = TextEditingController();
   var emailAddrController = TextEditingController();
   var phoneNumberController = MaskedTextController(mask: '000-000-0000');
+
+  var companyController = TextEditingController();
+  var companyNameController = TextEditingController();
 
   var businessNameController = TextEditingController();
   var dbaNameController = TextEditingController();
@@ -371,6 +377,9 @@ class LeadStepperState extends State<LeadStepper> {
       String businessNameTrim = businessNameController.text.trim();
       String firstName = firstNameController.text;
       String lastName = lastNameController.text;
+      String company = UserService.isAdmin
+          ? companyController.text
+          : UserService.employee.company;
 
       String rawNumber = phoneNumberController.text;
       var filteredNumber = rawNumber.replaceAll(RegExp("[^0-9]"), "");
@@ -390,6 +399,7 @@ class LeadStepperState extends State<LeadStepper> {
         "employee": UserService.employee.employee,
         "is_active": true,
         "processor": processorDropdownValue,
+        "company": company,
         "document": {
           "firstName": firstNameCap,
           "lastName": lastNameCap,
@@ -461,6 +471,228 @@ class LeadStepperState extends State<LeadStepper> {
     }
   }
 
+  List<Step> _buildSteps() {
+    steps = [
+      Step(
+        title: Text('Business Info'),
+        content: Form(
+          key: _formKeys[0],
+          child: !isAddress
+              ? Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
+                      child: AddressSearch(
+                        onAddressChange: (val) {
+                          nearbySelect(val);
+                        },
+                        returnNearby: true,
+                        locationValue: locationValue,
+                      ),
+                    ),
+                    TextFormField(
+                      decoration: InputDecoration(
+                        labelText: "Address 2 (optional)",
+                      ),
+                      controller: address2Controller,
+                    ),
+                  ],
+                )
+              : Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
+                      child: AddressSearch(
+                        onAddressChange: (val) {
+                          nearbySelect(val);
+                        },
+                        returnNearby: true,
+                        locationValue: locationValue,
+                      ),
+                    ),
+                    TextFormField(
+                      decoration:
+                          InputDecoration(labelText: "Address 2 (optional)"),
+                      controller: address2Controller,
+                    ),
+                    Visibility(
+                      visible: visible,
+                      child: Column(
+                        children: <Widget>[
+                          TextFormField(
+                            decoration: InputDecoration(
+                              labelText: "Address 1",
+                            ),
+                            controller: address1Controller,
+                            validator: (value) {
+                              if (value.isEmpty) {
+                                return 'Please enter an address 1';
+                              }
+                              return null;
+                            },
+                            textCapitalization: TextCapitalization.words,
+                          ),
+                          TextFormField(
+                            decoration: InputDecoration(
+                              labelText: "City",
+                            ),
+                            controller: cityController,
+                            validator: (value) {
+                              if (value.isEmpty) {
+                                return 'Please enter a city';
+                              }
+                              return null;
+                            },
+                            textCapitalization: TextCapitalization.words,
+                          ),
+                          TextFormField(
+                            decoration: InputDecoration(
+                              labelText: "State",
+                            ),
+                            controller: stateController,
+                            validator: (value) {
+                              if (value.isEmpty) {
+                                return 'Please enter a state';
+                              }
+                              return null;
+                            },
+                            textCapitalization: TextCapitalization.characters,
+                          ),
+                          TextFormField(
+                            decoration: InputDecoration(
+                              labelText: "ZIP Code",
+                            ),
+                            controller: zipController,
+                            validator: (value) {
+                              if (value.isEmpty) {
+                                return 'Please enter a zip';
+                              }
+                              return null;
+                            },
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    TextFormField(
+                      decoration: InputDecoration(labelText: "Business Name"),
+                      controller: businessNameController,
+                      validator: (value) {
+                        businessName = value;
+                        if (value.isEmpty) {
+                          return 'Please enter a business name';
+                        }
+                        return null;
+                      },
+                      textCapitalization: TextCapitalization.words,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: ProcessorDropDown(
+                        value: processorDropdownValue,
+                        callback: ((val) {
+                          setState(() {
+                            processorDropdownValue = val;
+                          });
+                        }),
+                      ),
+                    ),
+                    TextFormField(
+                      decoration: InputDecoration(
+                        labelText: "Doing Business As",
+                      ),
+                      controller: dbaNameController,
+                    ),
+                    TextFormField(
+                      decoration: InputDecoration(
+                        labelText: "Phone Number",
+                      ),
+                      controller: phoneNumberController,
+                    ),
+                  ],
+                ),
+        ),
+        isActive: _currentStep >= 0,
+        state: _currentStep >= 0 ? StepState.complete : StepState.disabled,
+      ),
+      Step(
+        title: Text('Contact Info'),
+        content: Form(
+          key: _formKeys[1],
+          child: Column(
+            children: [
+              TextFormField(
+                decoration: InputDecoration(labelText: "First Name"),
+                controller: firstNameController,
+                validator: (value) {
+                  if (value.isEmpty || value.trim() == "") {
+                    firstNameController.clear();
+                    return 'Please enter a contact first name';
+                  }
+                  return null;
+                },
+                textCapitalization: TextCapitalization.words,
+              ),
+              TextFormField(
+                decoration: InputDecoration(labelText: "Last Name"),
+                controller: lastNameController,
+                textCapitalization: TextCapitalization.words,
+              ),
+              TextFormField(
+                decoration: InputDecoration(labelText: "Email Address"),
+                controller: emailAddrController,
+                validator: (value) {
+                  if (value.isNotEmpty && !value.contains('@')) {
+                    return 'Please enter a valid email';
+                  }
+                  return null;
+                },
+              ),
+              UserService.isAdmin
+                  ? Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
+                      child: CompanyDropDown(
+                        callback: (newValue) {
+                          if (newValue != null) {
+                            setState(
+                              () {
+                                companyController.text = newValue["id"];
+                                companyNameController.text = newValue["name"];
+                              },
+                            );
+                          }
+                        },
+                      ),
+                    )
+                  : Container(),
+            ],
+          ),
+        ),
+        isActive: _currentStep >= 0,
+        state: _currentStep >= 1 ? StepState.complete : StepState.disabled,
+      ),
+      Step(
+        title: Text('Misc Info'),
+        content: Form(
+          key: _formKeys[2],
+          child: Column(
+            children: <Widget>[
+              TextFormField(
+                decoration: InputDecoration(labelText: "Lead Source"),
+              ),
+            ],
+          ),
+        ),
+        isActive: _currentStep >= 0,
+        state: _currentStep >= 2 ? StepState.complete : StepState.disabled,
+      ),
+    ];
+
+    return steps;
+  }
+
   @override
   Widget build(BuildContext context) {
     return isLoading
@@ -468,285 +700,74 @@ class LeadStepperState extends State<LeadStepper> {
         : Column(
             children: <Widget>[
               Expanded(
-                child: Stepper(
-                  controlsBuilder: (BuildContext context,
-                      {VoidCallback onStepContinue,
-                      VoidCallback onStepCancel}) {
-                    return Row(
-                      children: <Widget>[
-                        Container(
-                          child: null,
-                        ),
-                        Container(
-                          child: null,
-                        ),
-                      ],
+                child: StatefulBuilder(
+                  builder: (BuildContext context, StateSetter setState) {
+                    return Stepper(
+                      controlsBuilder: (BuildContext context,
+                          {VoidCallback onStepContinue,
+                          VoidCallback onStepCancel}) {
+                        return Row(
+                          children: <Widget>[
+                            Container(
+                              child: null,
+                            ),
+                            Container(
+                              child: null,
+                            ),
+                          ],
+                        );
+                      },
+                      type: StepperType.vertical,
+                      currentStep: _currentStep,
+                      key: this._stepperKey,
+                      onStepTapped: (int step) {
+                        if (validationPassed()) {
+                          setState(
+                            () {
+                              _currentStep = step;
+                            },
+                          );
+                        }
+                      },
+                      onStepContinue: () async {
+                        if (_formKeys[_currentStep].currentState.validate()) {
+                          if (_currentStep == 0) {
+                            if (placeSelect == false) {
+                              addressCheck(mixedReplyCheck);
+                            } else if (visible == true) {
+                              addressInfoCheck = {
+                                "address": address1Controller.text,
+                                "address2": address2Controller.text,
+                                "city": cityController.text,
+                                "state": stateController.text,
+                                "zipcode": zipController.text,
+                              };
+                              mixedReplyCheck = {
+                                "address": addressInfoCheck,
+                                "place": null,
+                                "shortaddress": null
+                              };
+                              addressCheck(mixedReplyCheck);
+                            } else {
+                              nextStep();
+                            }
+                          } else {
+                            nextStep();
+                          }
+                        }
+                      },
+                      onStepCancel: () {
+                        if (_formKeys[_currentStep].currentState.validate()) {
+                          setState(
+                            () {
+                              _currentStep > 0 ? _currentStep -= 1 : null;
+                            },
+                          );
+                        }
+                      },
+                      steps: _buildSteps(),
                     );
                   },
-                  type: StepperType.vertical,
-                  currentStep: _currentStep,
-                  key: this._stepperKey,
-                  onStepTapped: (int step) {
-                    if (validationPassed()) {
-                      setState(
-                        () {
-                          _currentStep = step;
-                        },
-                      );
-                    }
-                  },
-                  onStepContinue: () async {
-                    if (_formKeys[_currentStep].currentState.validate()) {
-                      if (_currentStep == 0) {
-                        if (placeSelect == false) {
-                          addressCheck(mixedReplyCheck);
-                        } else if (visible == true) {
-                          addressInfoCheck = {
-                            "address": address1Controller.text,
-                            "address2": address2Controller.text,
-                            "city": cityController.text,
-                            "state": stateController.text,
-                            "zipcode": zipController.text,
-                          };
-                          mixedReplyCheck = {
-                            "address": addressInfoCheck,
-                            "place": null,
-                            "shortaddress": null
-                          };
-                          addressCheck(mixedReplyCheck);
-                        } else {
-                          nextStep();
-                        }
-                      } else {
-                        nextStep();
-                      }
-                    }
-                  },
-                  onStepCancel: () {
-                    if (_formKeys[_currentStep].currentState.validate()) {
-                      setState(
-                        () {
-                          _currentStep > 0 ? _currentStep -= 1 : null;
-                        },
-                      );
-                    }
-                  },
-                  steps: [
-                    Step(
-                      title: Text('Business Info'),
-                      content: Form(
-                        key: _formKeys[0],
-                        child: !isAddress
-                            ? Column(
-                                children: [
-                                  Padding(
-                                    padding:
-                                        const EdgeInsets.fromLTRB(0, 10, 0, 0),
-                                    child: AddressSearch(
-                                      onAddressChange: (val) {
-                                        nearbySelect(val);
-                                      },
-                                      returnNearby: true,
-                                      locationValue: locationValue,
-                                    ),
-                                  ),
-                                  TextFormField(
-                                    decoration: InputDecoration(
-                                      labelText: "Address 2 (optional)",
-                                    ),
-                                    controller: address2Controller,
-                                  ),
-                                ],
-                              )
-                            : Column(
-                                children: [
-                                  Padding(
-                                    padding:
-                                        const EdgeInsets.fromLTRB(0, 10, 0, 0),
-                                    child: AddressSearch(
-                                      onAddressChange: (val) {
-                                        nearbySelect(val);
-                                      },
-                                      returnNearby: true,
-                                      locationValue: locationValue,
-                                    ),
-                                  ),
-                                  TextFormField(
-                                    decoration: InputDecoration(
-                                        labelText: "Address 2 (optional)"),
-                                    controller: address2Controller,
-                                  ),
-                                  Visibility(
-                                    visible: visible,
-                                    child: Column(
-                                      children: <Widget>[
-                                        TextFormField(
-                                          decoration: InputDecoration(
-                                            labelText: "Address 1",
-                                          ),
-                                          controller: address1Controller,
-                                          validator: (value) {
-                                            if (value.isEmpty) {
-                                              return 'Please enter an address 1';
-                                            }
-                                            return null;
-                                          },
-                                          textCapitalization:
-                                              TextCapitalization.words,
-                                        ),
-                                        TextFormField(
-                                          decoration: InputDecoration(
-                                            labelText: "City",
-                                          ),
-                                          controller: cityController,
-                                          validator: (value) {
-                                            if (value.isEmpty) {
-                                              return 'Please enter a city';
-                                            }
-                                            return null;
-                                          },
-                                          textCapitalization:
-                                              TextCapitalization.words,
-                                        ),
-                                        TextFormField(
-                                          decoration: InputDecoration(
-                                            labelText: "State",
-                                          ),
-                                          controller: stateController,
-                                          validator: (value) {
-                                            if (value.isEmpty) {
-                                              return 'Please enter a state';
-                                            }
-                                            return null;
-                                          },
-                                          textCapitalization:
-                                              TextCapitalization.characters,
-                                        ),
-                                        TextFormField(
-                                          decoration: InputDecoration(
-                                            labelText: "ZIP Code",
-                                          ),
-                                          controller: zipController,
-                                          validator: (value) {
-                                            if (value.isEmpty) {
-                                              return 'Please enter a zip';
-                                            }
-                                            return null;
-                                          },
-                                          inputFormatters: [
-                                            FilteringTextInputFormatter
-                                                .digitsOnly,
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  TextFormField(
-                                    decoration: InputDecoration(
-                                        labelText: "Business Name"),
-                                    controller: businessNameController,
-                                    validator: (value) {
-                                      businessName = value;
-                                      if (value.isEmpty) {
-                                        return 'Please enter a business name';
-                                      }
-                                      return null;
-                                    },
-                                    textCapitalization:
-                                        TextCapitalization.words,
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 8.0),
-                                    child: ProcessorDropDown(
-                                      value: processorDropdownValue,
-                                      callback: ((val) {
-                                        setState(() {
-                                          processorDropdownValue = val;
-                                        });
-                                      }),
-                                    ),
-                                  ),
-                                  TextFormField(
-                                    decoration: InputDecoration(
-                                        labelText: "Doing Business As"),
-                                    controller: dbaNameController,
-                                  ),
-                                  TextFormField(
-                                    decoration: InputDecoration(
-                                        labelText: "Phone Number"),
-                                    controller: phoneNumberController,
-                                  ),
-                                ],
-                              ),
-                      ),
-                      isActive: _currentStep >= 0,
-                      state: _currentStep >= 0
-                          ? StepState.complete
-                          : StepState.disabled,
-                    ),
-                    Step(
-                      title: Text('Contact Info'),
-                      content: Form(
-                        key: _formKeys[1],
-                        child: Column(
-                          children: [
-                            TextFormField(
-                              decoration:
-                                  InputDecoration(labelText: "First Name"),
-                              controller: firstNameController,
-                              validator: (value) {
-                                if (value.isEmpty || value.trim() == "") {
-                                  firstNameController.clear();
-                                  return 'Please enter a contact first name';
-                                }
-                                return null;
-                              },
-                              textCapitalization: TextCapitalization.words,
-                            ),
-                            TextFormField(
-                              decoration:
-                                  InputDecoration(labelText: "Last Name"),
-                              controller: lastNameController,
-                              textCapitalization: TextCapitalization.words,
-                            ),
-                            TextFormField(
-                              decoration:
-                                  InputDecoration(labelText: "Email Address"),
-                              controller: emailAddrController,
-                              validator: (value) {
-                                if (value.isNotEmpty && !value.contains('@')) {
-                                  return 'Please enter a valid email';
-                                }
-                                return null;
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                      isActive: _currentStep >= 0,
-                      state: _currentStep >= 1
-                          ? StepState.complete
-                          : StepState.disabled,
-                    ),
-                    Step(
-                      title: Text('Misc Info'),
-                      content: Form(
-                        key: _formKeys[2],
-                        child: Column(
-                          children: <Widget>[
-                            TextFormField(
-                              decoration:
-                                  InputDecoration(labelText: "Lead Source"),
-                            ),
-                          ],
-                        ),
-                      ),
-                      isActive: _currentStep >= 0,
-                      state: _currentStep >= 2
-                          ? StepState.complete
-                          : StepState.disabled,
-                    ),
-                  ],
                 ),
               ),
               Container(
