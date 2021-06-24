@@ -1,7 +1,6 @@
 import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-import 'package:searchable_dropdown/searchable_dropdown.dart';
 
 class CompanyDropDown extends StatefulWidget {
   final bool disabled;

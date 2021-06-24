@@ -377,9 +377,7 @@ class LeadStepperState extends State<LeadStepper> {
       String businessNameTrim = businessNameController.text.trim();
       String firstName = firstNameController.text;
       String lastName = lastNameController.text;
-      String company = UserService.isAdmin
-          ? companyController.text
-          : UserService.employee.company;
+      var company = companyController.text;
 
       String rawNumber = phoneNumberController.text;
       var filteredNumber = rawNumber.replaceAll(RegExp("[^0-9]"), "");
@@ -399,7 +397,6 @@ class LeadStepperState extends State<LeadStepper> {
         "employee": UserService.employee.employee,
         "is_active": true,
         "processor": processorDropdownValue,
-        "company": company,
         "document": {
           "firstName": firstNameCap,
           "lastName": lastNameCap,
@@ -411,9 +408,15 @@ class LeadStepperState extends State<LeadStepper> {
           "address2": businessAddress["address2"],
           "city": businessAddress["city"],
           "state": businessAddress["state"],
-          "zipCode": businessAddress["zipcode"]
+          "zipCode": businessAddress["zipcode"],
         },
       };
+
+      if (UserService.isAdmin) {
+        leadInfo["company"] = company;
+      }
+
+      print(leadInfo);
 
       MutationOptions mutateOptions = MutationOptions(
         document: gql("""
@@ -454,6 +457,9 @@ class LeadStepperState extends State<LeadStepper> {
             backgroundColor: Colors.grey[600],
             textColor: Colors.white,
             fontSize: 16.0);
+        setState(() {
+          isSaveDisabled = false;
+        });
       }
     } catch (err) {
       log(err);
