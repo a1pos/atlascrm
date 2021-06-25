@@ -68,5 +68,8 @@
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
 
+        <uses-library android:name="org.apache.http.legacy" android:required="false"/>
+
+
     </application>
 </manifest>

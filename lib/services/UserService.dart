@@ -27,14 +27,19 @@ class UserService {
   static FirebaseAuth firebaseAuth = FirebaseAuth.instance;
 
   getToken() async {
-    var user = firebaseAuth.currentUser;
-    if (user == null) {
-      isAuthenticated = false;
-      employee = Employee.getEmpty();
-      return;
-    } else {
-      var idTokenResult = await user.getIdToken();
-      return idTokenResult;
+    try {
+      var user = firebaseAuth.currentUser;
+      if (user == null) {
+        isAuthenticated = false;
+        employee = Employee.getEmpty();
+        return;
+      } else {
+        var idTokenResult = await user.getIdToken();
+        return idTokenResult;
+      }
+    } catch (err) {
+      print(err);
+      throw new Error();
     }
   }
 
@@ -76,19 +81,25 @@ class UserService {
   }
 
   Future<void> signOutGoogle() async {
-    if (isAuthenticated) {
-      await googleSignIn.signOut();
-      await firebaseAuth.signOut();
+    try {
+      if (isAuthenticated) {
+        await googleSignIn.signOut();
+        await firebaseAuth.signOut();
+      }
+      isAuthenticated = false;
+    } catch (err) {
+      print(err);
+      throw new Error();
     }
-    isAuthenticated = false;
   }
 
   Future<void> linkGoogleAccount() async {
-    GqlClientFactory.setPublicGraphQLClient();
+    try {
+      GqlClientFactory.setPublicGraphQLClient();
 
-    var user = firebaseAuth.currentUser;
-    print(user);
-    MutationOptions mutateOptions = MutationOptions(document: gql("""
+      var user = firebaseAuth.currentUser;
+      print(user);
+      MutationOptions mutateOptions = MutationOptions(document: gql("""
         mutation ACTION_LINK(\$uid: String!, \$email: String!) {
           link_google_account(uid: \$uid, email: \$email) {
               employee
@@ -97,44 +108,44 @@ class UserService {
           }
         }
     """), fetchPolicy: FetchPolicy.noCache, variables: {
-      "email": user.email,
-      "uid": user.uid,
-    });
-    final QueryResult linkResult =
-        await GqlClientFactory().authGqlmutate(mutateOptions);
+        "email": user.email,
+        "uid": user.uid,
+      });
+      final QueryResult linkResult =
+          await GqlClientFactory().authGqlmutate(mutateOptions);
 
-    if (linkResult.hasException) {
-      throw (linkResult.exception);
-    } else {
-      token = linkResult.data["link_google_account"]["token"];
-      rToken = linkResult.data["link_google_account"]["refreshToken"];
-      var idTokenResult = await user.getIdToken(true);
-      print(idTokenResult);
-      var empDecoded = linkResult.data["link_google_account"]["employee"];
+      if (linkResult.hasException) {
+        throw (linkResult.exception);
+      } else {
+        token = linkResult.data["link_google_account"]["token"];
+        rToken = linkResult.data["link_google_account"]["refreshToken"];
+        var idTokenResult = await user.getIdToken(true);
+        print(idTokenResult);
+        var empDecoded = linkResult.data["link_google_account"]["employee"];
 
-      employee = Employee.fromJson(empDecoded);
-      if (employee.role == "admin" || employee.role == "sa") {
-        isAdmin = true;
-        // socketService.initWebSocketConnection();
-      } else {
-        isAdmin = false;
-      }
-      if (employee.role == "tech") {
-        isTech = true;
-        // socketService.initWebSocketConnection();
-      } else {
-        isTech = false;
-      }
-      if (employee.role == "salesmanager") {
-        isSalesManager = true;
-        // socketService.initWebSocketConnection();
-      } else {
-        isSalesManager = false;
-      }
-      GqlClientFactory.setPrivateGraphQLClient(idTokenResult);
-      String companyId = empDecoded["company"];
-      QueryOptions companyQueryOptions = QueryOptions(
-        document: gql("""
+        employee = Employee.fromJson(empDecoded);
+        if (employee.role == "admin" || employee.role == "sa") {
+          isAdmin = true;
+          // socketService.initWebSocketConnection();
+        } else {
+          isAdmin = false;
+        }
+        if (employee.role == "tech") {
+          isTech = true;
+          // socketService.initWebSocketConnection();
+        } else {
+          isTech = false;
+        }
+        if (employee.role == "salesmanager") {
+          isSalesManager = true;
+          // socketService.initWebSocketConnection();
+        } else {
+          isSalesManager = false;
+        }
+        GqlClientFactory.setPrivateGraphQLClient(idTokenResult);
+        String companyId = empDecoded["company"];
+        QueryOptions companyQueryOptions = QueryOptions(
+          document: gql("""
         query GET_COMPANY {
           company_by_pk(company: "$companyId") {
             company
@@ -142,34 +153,38 @@ class UserService {
           }
         }
       """),
-      );
+        );
 
-      final QueryResult companyResult =
-          await GqlClientFactory().authGqlquery(companyQueryOptions);
+        final QueryResult companyResult =
+            await GqlClientFactory().authGqlquery(companyQueryOptions);
 
-      if (companyResult.hasException == false) {
-        employee.companyName = companyResult.data["company_by_pk"]["title"];
-      }
+        if (companyResult.hasException == false) {
+          employee.companyName = companyResult.data["company_by_pk"]["title"];
+        }
 
-      var registrationToken = FirebaseCESService.getToken();
+        var registrationToken = FirebaseCESService.getToken();
 
-      MutationOptions notificationRegistrationMutateOptions =
-          MutationOptions(document: gql("""
+        MutationOptions notificationRegistrationMutateOptions =
+            MutationOptions(document: gql("""
         mutation REGISTER_NOTIFICATION_TOKEN(\$uid: String!, \$registration_token: String!) {
           register_notification_token(uid: \$uid, registration_token: \$registration_token) {
               message
           }
         }
     """), fetchPolicy: FetchPolicy.noCache, variables: {
-        "registration_token": registrationToken,
-        "uid": user.uid,
-      });
+          "registration_token": registrationToken,
+          "uid": user.uid,
+        });
 
-      final QueryResult notificationRegistrationResult = await GqlClientFactory
-          .client
-          .mutate(notificationRegistrationMutateOptions);
+        final QueryResult notificationRegistrationResult =
+            await GqlClientFactory.client
+                .mutate(notificationRegistrationMutateOptions);
 
-      print(notificationRegistrationResult);
+        print(notificationRegistrationResult);
+      }
+    } catch (err) {
+      print(err);
+      throw new Error();
     }
   }
 

@@ -109,89 +109,104 @@ class GqlClientFactory {
   }
 
   static refreshClient() async {
-    if (!isRefreshing) {
-      isRefreshing = true;
-      print("TRYING TO REFRESH CLIENT");
-      //set a public client so we can refresh tokens
-      setPublicGraphQLClient();
-      print("CLIENT SET TO PUBLIC");
-      var success = await UserService().exchangeRefreshToken();
-      if (success) {
-        print("TOKEN REFRESHED");
-        setPrivateGraphQLClient(UserService.token);
-        print("CLIENT SET TO PRIVATE");
-      } else {
-        print("REFRESH TOKEN TIMED OUT: SIGNING OUT");
+    try {
+      if (!isRefreshing) {
+        isRefreshing = true;
+        print("TRYING TO REFRESH CLIENT");
+        //set a public client so we can refresh tokens
+        setPublicGraphQLClient();
+        print("CLIENT SET TO PUBLIC");
+        var success = await UserService().exchangeRefreshToken();
+        if (success) {
+          print("TOKEN REFRESHED");
+          setPrivateGraphQLClient(UserService.token);
+          print("CLIENT SET TO PRIVATE");
+        } else {
+          print("REFRESH TOKEN TIMED OUT: SIGNING OUT");
+        }
+        isRefreshing = false;
       }
-      isRefreshing = false;
+    } catch (err) {
+      print(err);
+      throw new Error();
     }
   }
 
   static void setPrivateGraphQLClient(token) async {
-    Link link;
-    Link authws;
+    try {
+      Link link;
+      Link authws;
 
-    final AuthLink _authLink = AuthLink(
-      getToken: () async => 'Bearer ${UserService.token}',
-    );
+      final AuthLink _authLink = AuthLink(
+        getToken: () async => 'Bearer ${UserService.token}',
+      );
 
-    final policies = Policies(
-      cacheReread: CacheRereadPolicy.ignoreAll,
-      fetch: FetchPolicy.noCache,
-    );
+      final policies = Policies(
+        cacheReread: CacheRereadPolicy.ignoreAll,
+        fetch: FetchPolicy.noCache,
+      );
 
-    WebSocketLink _wsLink = WebSocketLink(
-      ConfigSettings.HASURA_WEBSOCKET,
-      config: SocketClientConfig(
-        autoReconnect: true,
-        inactivityTimeout: Duration(seconds: 60),
-        initialPayload: () {
-          return {
-            'headers': {'Authorization': 'Bearer ${UserService.token}'}
-          };
-        },
-      ),
-    );
+      WebSocketLink _wsLink = WebSocketLink(
+        ConfigSettings.HASURA_WEBSOCKET,
+        config: SocketClientConfig(
+          autoReconnect: true,
+          inactivityTimeout: Duration(seconds: 60),
+          initialPayload: () {
+            return {
+              'headers': {'Authorization': 'Bearer ${UserService.token}'}
+            };
+          },
+        ),
+      );
 
-    //WITHOUT ERRORLINK
-    link = _authLink.concat(_httpLink);
-    authws = _wsLink.concat(_authLink);
-    link = link.concat(authws);
-    link = Link.split(
-      (request) => request.isSubscription,
-      _wsLink,
-      link,
-    );
+      //WITHOUT ERRORLINK
+      link = _authLink.concat(_httpLink);
+      authws = _wsLink.concat(_authLink);
+      link = link.concat(authws);
+      link = Link.split(
+        (request) => request.isSubscription,
+        _wsLink,
+        link,
+      );
 
-    final GraphQLClient aCLient = GraphQLClient(
-      link: link,
-      cache: cache,
-      defaultPolicies: DefaultPolicies(
-        subscribe: policies,
-        watchQuery: policies,
-        query: policies,
-        mutate: policies,
-      ),
-    );
+      final GraphQLClient aCLient = GraphQLClient(
+        link: link,
+        cache: cache,
+        defaultPolicies: DefaultPolicies(
+          subscribe: policies,
+          watchQuery: policies,
+          query: policies,
+          mutate: policies,
+        ),
+      );
 
-    client = aCLient;
+      client = aCLient;
+    } catch (err) {
+      print(err);
+      throw new Error();
+    }
   }
 
   static void setPublicGraphQLClient() {
-    final policies = Policies(
-      cacheReread: CacheRereadPolicy.ignoreAll,
-      fetch: FetchPolicy.noCache,
-    );
+    try {
+      final policies = Policies(
+        cacheReread: CacheRereadPolicy.ignoreAll,
+        fetch: FetchPolicy.noCache,
+      );
 
-    final GraphQLClient aCLient = GraphQLClient(
-      link: _httpLink,
-      cache: cache,
-      defaultPolicies: DefaultPolicies(
-        subscribe: policies,
-        query: policies,
-        mutate: policies,
-      ),
-    );
-    client = aCLient;
+      final GraphQLClient aCLient = GraphQLClient(
+        link: _httpLink,
+        cache: cache,
+        defaultPolicies: DefaultPolicies(
+          subscribe: policies,
+          query: policies,
+          mutate: policies,
+        ),
+      );
+      client = aCLient;
+    } catch (err) {
+      print(err);
+      throw new Error();
+    }
   }
 }
