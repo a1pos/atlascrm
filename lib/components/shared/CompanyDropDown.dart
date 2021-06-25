@@ -133,61 +133,6 @@ class _CompanyDropDownState extends State<CompanyDropDown> {
             return null;
           },
         ),
-        // SearchableDropdown.single(
-        //   value: startVal,
-        //   onClear: () {
-        //     setState(() {
-        //       this.widget.callback(null);
-        //     });
-        //   },
-        //   hint: "Please choose one",
-        //   displayClearIcon: true,
-        //   searchHint: null,
-        //   isExpanded: true,
-        //   items: companies.map<DropdownMenuItem<String>>((dynamic item) {
-        //     var companyName;
-
-        //     if (item["title"] != null) {
-        //       companyName = item["title"];
-        //     } else {
-        //       companyName = "";
-        //     }
-        //     return DropdownMenuItem<String>(
-        //       value: companyName,
-        //       child: Text(
-        //         companyName,
-        //       ),
-        //     );
-        //   }).toList(),
-        //   disabledHint: startVal,
-        //   onChanged: disabled
-        //       ? null
-        //       : (newValue) {
-        //           setState(() {
-        //             var setVal;
-        //             for (var company in companies) {
-        //               var companyName;
-        //               if (company["title"] != null) {
-        //                 companyName = company["title"];
-        //               } else {
-        //                 companyName = "";
-        //               }
-        //               if (newValue == companyName) {
-        //                 setVal = company["company"];
-        //               }
-        //             }
-        //             startVal = newValue;
-        //             var returnObj = {"id": setVal, "name": newValue};
-        //             this.widget.callback(returnObj);
-        //           });
-        //         },
-        //   validator: (value) {
-        //     if (value == null) {
-        //       return "Please select a company";
-        //     }
-        //     return null;
-        //   },
-        // )
       ],
     );
   }

@@ -416,8 +416,6 @@ class LeadStepperState extends State<LeadStepper> {
         leadInfo["company"] = company;
       }
 
-      print(leadInfo);
-
       MutationOptions mutateOptions = MutationOptions(
         document: gql("""
                 mutation INSERT_LEADS(\$objects: [lead_insert_input!]!) {
@@ -781,11 +779,13 @@ class LeadStepperState extends State<LeadStepper> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: <Widget>[
-                    _currentStep > 0
+                    _currentStep >= 1
                         ? ElevatedButton.icon(
                             onPressed: () {
-                              Stepper stepper = _stepperKey.currentWidget;
-                              stepper.onStepCancel();
+                              setState(() {
+                                Stepper stepper = _stepperKey.currentWidget;
+                                stepper.onStepCancel();
+                              });
                             },
                             label: Padding(
                               padding: EdgeInsets.all(20),
