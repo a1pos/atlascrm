@@ -52,7 +52,6 @@ class _StatementUploaderState extends State<StatementUploader> {
   List<Asset> images = [];
   List imageFileList = [];
   List imageDLList = [];
-  List toEmailList = [];
   List statements = [];
 
   TextEditingController taskDateController = TextEditingController();
@@ -65,7 +64,6 @@ class _StatementUploaderState extends State<StatementUploader> {
   var leadStatus;
   var leadDocument;
   var statementId;
-  var emailType;
   var activeStatement;
   var dropdownValue;
   var activeValueString;
@@ -524,21 +522,27 @@ class _StatementUploaderState extends State<StatementUploader> {
                         children: <Widget>[
                           TextButton(
                             child: Text(
-                              'Assign',
-                              style:
-                                  TextStyle(color: Colors.green, fontSize: 17),
+                              'Cancel',
+                              style: TextStyle(
+                                color: Colors.grey[500],
+                                fontSize: 17,
+                              ),
                             ),
                             onPressed: () {
-                              addImage(result);
-                              Navigator.pop(context);
+                              Navigator.of(context).pop();
                             },
                           ),
                           TextButton(
                             child: Text(
-                              'Cancel',
-                              style: TextStyle(color: Colors.red, fontSize: 17),
+                              'Assign',
+                              style: TextStyle(
+                                fontSize: 17,
+                                color: UniversalStyles.actionColor,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                             onPressed: () {
+                              addImage(result);
                               Navigator.pop(context);
                             },
                           ),
@@ -863,7 +867,10 @@ class _StatementUploaderState extends State<StatementUploader> {
             TextButton(
               child: Text(
                 'Cancel',
-                style: TextStyle(color: Colors.grey[500], fontSize: 17),
+                style: TextStyle(
+                  color: Colors.grey[500],
+                  fontSize: 17,
+                ),
               ),
               onPressed: () {
                 Navigator.of(context).pop();
@@ -959,92 +966,13 @@ class _StatementUploaderState extends State<StatementUploader> {
         },
       );
 
-      QueryOptions settingsTypesOptions = QueryOptions(
-        document: gql("""
-        query GET_SETTINGS_EMAIL_TYPES {
-          settings_email_type {
-            settings_email_type
-            title
-          }
-        }
-      """),
-      );
-
-      final QueryResult settingsTypesResults =
-          await GqlClientFactory().authGqlquery(settingsTypesOptions);
-
-      if (settingsTypesResults != null) {
-        if (settingsTypesResults.hasException == false) {
-          settingsTypesResults.data["settings_email_type"].forEach((type) {
-            if (type["title"] == "statements") {
-              emailType = type["settings_email_type"];
-            }
-          });
-        }
-      }
-
-      QueryOptions statementEmails = QueryOptions(
-        document: gql("""
-        query GET_STATEMENT_EMAILS(\$type: uuid!, \$parentCompany: uuid!, \$userCompany: uuid!) {
-        settings_email(where: 
-        {_and: 
-        [
-          {settings_email_type: {_eq: \$type}}, 
-          {_or: [{employeeByEmployee: {company: {_eq: \$parentCompany}}}, 
-          {employeeByEmployee: {company: {_eq: \$userCompany}}}]}
-        ]}) {
-          settings_email_type
-          company
-          employee
-          employeeByEmployee {
-            document
-            company
-          }
-        }
-      }
-      """),
-        variables: {
-          "type": emailType,
-          "parentCompany": parentCompany,
-          "userCompany": UserService.employee.company,
-        },
-      );
-
-      final QueryResult statementsEmailResult =
-          await GqlClientFactory().authGqlquery(statementEmails);
-
-      if (statementsEmailResult != null) {
-        if (statementsEmailResult.hasException == false) {
-          var statementEmails = statementsEmailResult.data["settings_email"];
-
-          for (var i = 0; i < statementEmails.length; i++) {
-            if (statementEmails[i]["employeeByEmployee"] != null) {
-              toEmailList.insert(
-                i,
-                statementEmails[i]["employeeByEmployee"]["document"]["email"],
-              );
-            }
-          }
-        } else {
-          print(new Error());
-        }
-      }
-
-      if (toEmailList.length > 0) {
+      if (statementId != null && statementId != "") {
         MutationOptions mutateOptions = MutationOptions(
           document: gql("""
         mutation SEND_EMAIL(
-          \$to:[String]!, 
-          \$subject:String!, 
-          \$html:String!, 
-          \$type:String!, 
           \$statement:String!
         ){
           email_statement(
-            to:\$to, 
-            subject:\$subject, 
-            html:\$html, 
-            type:\$type, 
             statement:\$statement
           ){
             email_status
@@ -1052,13 +980,7 @@ class _StatementUploaderState extends State<StatementUploader> {
         }
         """),
           variables: {
-            "to": toEmailList,
-            "subject":
-                "New Statement For Review: ${this.widget.lead["document"]["businessName"]} - ${this.widget.lead["document"]["address"]}",
-            "html":
-                'Lead: ${this.widget.lead["document"]["businessName"]} <br />',
-            "type": "STATEMENT",
-            "statement": statementId
+            "statement": statementId,
           },
           fetchPolicy: FetchPolicy.noCache,
         );
@@ -1106,7 +1028,7 @@ class _StatementUploaderState extends State<StatementUploader> {
           isLoading = false;
         });
         Fluttertoast.showToast(
-          msg: "Failed to submit statement! No recipients in list",
+          msg: "Failed to submit statement! No Statement ID",
           toastLength: Toast.LENGTH_LONG,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.grey[600],
