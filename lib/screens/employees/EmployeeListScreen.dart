@@ -3,7 +3,9 @@ import 'package:atlascrm/components/shared/Empty.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:logger/logger.dart';
 
 class EmployeeListScreen extends StatefulWidget {
   final bool isFullScreen;
@@ -16,6 +18,18 @@ class EmployeeListScreen extends StatefulWidget {
 
 class _EmployeeListScreenState extends State<EmployeeListScreen> {
   final UserService userService = new UserService();
+
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 120,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output:
+  );
 
   bool isLoading = true;
   bool isEmpty = true;
@@ -58,33 +72,47 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
       );
     }
     final QueryResult result = await GqlClientFactory().authGqlquery(options);
-    if (result != null) {
-      if (result.hasException == false) {
-        var employeeArrDecoded = result.data["employee"];
-        if (employeeArrDecoded != null) {
-          var employeeArr = List.from(employeeArrDecoded);
-          employeeArr.sort(
-            (a, b) => a["document"]["displayName"].toString().compareTo(
-                  b["document"]["displayName"].toString(),
-                ),
-          );
-          if (employeeArr.length > 0) {
-            setState(() {
-              isEmpty = false;
-              isLoading = false;
-              employees = employeeArr;
-              employeesFull = employeeArr;
-            });
-          } else {
-            setState(() {
-              isEmpty = true;
-              isLoading = false;
-              employees = [];
-              employeesFull = [];
-            });
+    if (result.hasException == false) {
+      if (result != null) {
+        logger.i("Employee list initialized");
+        if (result.hasException == false) {
+          var employeeArrDecoded = result.data["employee"];
+          if (employeeArrDecoded != null) {
+            var employeeArr = List.from(employeeArrDecoded);
+            employeeArr.sort(
+              (a, b) => a["document"]["displayName"].toString().compareTo(
+                    b["document"]["displayName"].toString(),
+                  ),
+            );
+            if (employeeArr.length > 0) {
+              setState(() {
+                isEmpty = false;
+                isLoading = false;
+                employees = employeeArr;
+                employeesFull = employeeArr;
+              });
+            } else {
+              setState(() {
+                isEmpty = true;
+                isLoading = false;
+                employees = [];
+                employeesFull = [];
+              });
+            }
           }
         }
       }
+    } else {
+      logger
+          .e("Error in Employees List Screen: " + result.exception.toString());
+      Fluttertoast.showToast(
+        msg: "Error in Employees List Screen: " + result.exception.toString(),
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.grey[600],
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
     }
   }
 
@@ -171,6 +199,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
 
           return GestureDetector(
             onTap: () {
+              logger.i("Employee selected: " + emp["employee"]);
               Navigator.pushNamed(context, "/viewemployee",
                   arguments: emp["employee"]);
             },
@@ -201,10 +230,11 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
                       child: Text(
                         emp["document"]["displayName"] ?? "N/A",
                         style: TextStyle(
-                            fontSize: 14,
-                            color: emp["is_active"] == false
-                                ? Colors.grey[400]
-                                : Colors.black),
+                          fontSize: 14,
+                          color: emp["is_active"] == false
+                              ? Colors.grey[400]
+                              : Colors.black,
+                        ),
                       ),
                     ),
                   ),

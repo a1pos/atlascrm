@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
@@ -9,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/screens/employees/widgets/Tasks.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:logger/logger.dart';
 
 class ViewEmployeeScreen extends StatefulWidget {
   final String employeeId;
@@ -23,6 +23,18 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
   final deviceNameController = new TextEditingController();
   final deviceIdController = new TextEditingController();
   final _formKey = new GlobalKey<FormState>();
+
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 120,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output:
+  );
 
   bool isLoading = true;
 
@@ -52,8 +64,10 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
     try {
       await loadEmployeeData();
       await loadDevices();
+      logger.i("ViewEmployeeScreen initialized");
     } catch (err) {
-      log(err);
+      print("Error initializing employee data: " + err.toString());
+      logger.e("Error initializing employee data: " + err.toString());
     }
     setState(
       () {
@@ -90,7 +104,10 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
           }
         }
       },
-      (error) {},
+      (error) {
+        print("Error in employee devices sub: " + error.toString());
+        logger.e("Error in employee devices sub: " + error.toString());
+      },
       () => refreshSub(),
     );
   }
@@ -147,30 +164,40 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
           }
         }
       }
-          """),
+      """),
       fetchPolicy: FetchPolicy.noCache,
       variables: {"employee": this.widget.employeeId, "role": role},
     );
     final QueryResult result =
         await GqlClientFactory().authGqlmutate(mutateOptions);
     if (result.hasException == true) {
+      logger.e("Error updating role: " + result.exception.toString());
+
       Fluttertoast.showToast(
-          msg: result.exception.toString(),
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.grey[600],
-          textColor: Colors.white,
-          fontSize: 16.0);
-    }
-    Fluttertoast.showToast(
-        msg: "Role set to " +
-            result.data["update_employee_by_pk"]["roleByRole"]["title"] +
-            "!",
-        toastLength: Toast.LENGTH_SHORT,
+        msg: result.exception.toString(),
+        toastLength: Toast.LENGTH_LONG,
         gravity: ToastGravity.BOTTOM,
         backgroundColor: Colors.grey[600],
         textColor: Colors.white,
-        fontSize: 16.0);
+        fontSize: 16.0,
+      );
+    }
+
+    logger.i(
+      "Role set to " +
+          result.data["update_employee_by_pk"]["roleByRole"]["title"] +
+          "!",
+    );
+    Fluttertoast.showToast(
+      msg: "Role set to " +
+          result.data["update_employee_by_pk"]["roleByRole"]["title"] +
+          "!",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      backgroundColor: Colors.grey[600],
+      textColor: Colors.white,
+      fontSize: 16.0,
+    );
   }
 
   void addDeviceDialog() {
@@ -243,35 +270,42 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                     "device_id": deviceIdController.text,
                     "document": {"deviceName": deviceNameController.text}
                   };
-                  //LOGIC TO MUTATE ADD DEVICE
                   MutationOptions mutateOptions = MutationOptions(
-                      document: gql("""
+                    document: gql("""
                         mutation INSERT_ONE_EMPLOYEE_DEVICE (\$object: employee_device_insert_input!){
                           insert_employee_device_one(object: \$object){
                           employee_device
                         }
                       }
                   """),
-                      fetchPolicy: FetchPolicy.noCache,
-                      variables: {"object": newDevice});
+                    fetchPolicy: FetchPolicy.noCache,
+                    variables: {"object": newDevice},
+                  );
 
                   final QueryResult result =
                       await GqlClientFactory().authGqlmutate(mutateOptions);
 
                   if (result.hasException == true) {
+                    logger.e(
+                      "Error adding employee device: " +
+                          result.exception.toString(),
+                    );
                     Fluttertoast.showToast(
-                        msg: result.exception.toString(),
-                        toastLength: Toast.LENGTH_LONG,
-                        gravity: ToastGravity.BOTTOM,
-                        backgroundColor: Colors.grey[600],
-                        textColor: Colors.white,
-                        fontSize: 16.0);
+                      msg: result.exception.toString(),
+                      toastLength: Toast.LENGTH_LONG,
+                      gravity: ToastGravity.BOTTOM,
+                      backgroundColor: Colors.grey[600],
+                      textColor: Colors.white,
+                      fontSize: 16.0,
+                    );
                   }
 
                   deviceIdController.text = "";
                   deviceNameController.text = "";
 
                   Navigator.pop(context);
+
+                  logger.i("Device added");
 
                   Fluttertoast.showToast(
                       msg: "Device Added!",
@@ -307,10 +341,9 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
               child: Text("Confirm",
                   style: TextStyle(fontSize: 17, color: Colors.green)),
               onPressed: () async {
-                //LOGIC TO MUTATE DELETE A DEVICE
                 MutationOptions mutateOptions = MutationOptions(
                   document: gql("""
-                      mutation INSERT_ONE_EMPLOYEE_DEVICE(\$employee_device: uuid!) {
+                      mutation DELETE_ONE_EMPLOYEE_DEVICE(\$employee_device: uuid!) {
                         delete_employee_device_by_pk(employee_device: \$employee_device){
                           employee_device
                         }
@@ -324,23 +357,30 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                     await GqlClientFactory().authGqlmutate(mutateOptions);
 
                 if (result.hasException == true) {
+                  logger.e(
+                    "Error deleting employee device: " +
+                        result.exception.toString(),
+                  );
                   Fluttertoast.showToast(
-                      msg: result.exception.toString(),
-                      toastLength: Toast.LENGTH_LONG,
-                      gravity: ToastGravity.BOTTOM,
-                      backgroundColor: Colors.grey[600],
-                      textColor: Colors.white,
-                      fontSize: 16.0);
-                }
-                Navigator.pop(context);
-
-                Fluttertoast.showToast(
-                    msg: "Device Deleted!",
-                    toastLength: Toast.LENGTH_SHORT,
+                    msg: result.exception.toString(),
+                    toastLength: Toast.LENGTH_LONG,
                     gravity: ToastGravity.BOTTOM,
                     backgroundColor: Colors.grey[600],
                     textColor: Colors.white,
-                    fontSize: 16.0);
+                    fontSize: 16.0,
+                  );
+                }
+                Navigator.pop(context);
+
+                logger.i("Device deleted!");
+                Fluttertoast.showToast(
+                  msg: "Device Deleted!",
+                  toastLength: Toast.LENGTH_SHORT,
+                  gravity: ToastGravity.BOTTOM,
+                  backgroundColor: Colors.grey[600],
+                  textColor: Colors.white,
+                  fontSize: 16.0,
+                );
               },
             ),
             MaterialButton(
@@ -390,18 +430,20 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                       icon: Icons.account_box,
                       child: Column(
                         children: <Widget>[
-                          Row(children: <Widget>[
-                            Expanded(
-                              child: RoleDropDown(
-                                  value: employee["role"],
-                                  callback: (newValue) {
-                                    setState(() {
-                                      employee["role"] = newValue;
-                                    });
-                                    updateRole(newValue);
-                                  }),
-                            )
-                          ]),
+                          Row(
+                            children: <Widget>[
+                              Expanded(
+                                child: RoleDropDown(
+                                    value: employee["role"],
+                                    callback: (newValue) {
+                                      setState(() {
+                                        employee["role"] = newValue;
+                                      });
+                                      updateRole(newValue);
+                                    }),
+                              )
+                            ],
+                          ),
                           rowDivider(),
                           Row(
                             children: <Widget>[

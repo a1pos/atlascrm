@@ -3,6 +3,7 @@ import 'package:atlascrm/config/ConfigSettings.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:logger/logger.dart';
 import 'UserService.dart';
 
 class GqlClientFactory {
@@ -14,6 +15,18 @@ class GqlClientFactory {
   static GraphQLCache cache2 = GraphQLCache();
   static bool isRefreshing = false;
 
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 50,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output:
+  );
+
   UserService userService = UserService();
 
   Future<QueryResult> authGqlquery(options) async {
@@ -22,24 +35,30 @@ class GqlClientFactory {
       if (result != null) {
         if (result.hasException != false) {
           var errMsg = result.exception.toString();
-          print(errMsg);
+
+          logger.e(errMsg);
+
           if (errMsg.contains("JWTExpired")) {
             await refreshClient();
+            logger.i("JWTExpired authGqlquery: " + errMsg);
             result = await client.query(options);
           } else {
+            logger.e(errMsg);
+
             Fluttertoast.showToast(
-                msg: errMsg,
-                toastLength: Toast.LENGTH_LONG,
-                gravity: ToastGravity.BOTTOM,
-                backgroundColor: Colors.grey[600],
-                textColor: Colors.white,
-                fontSize: 16.0);
+              msg: errMsg,
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.grey[600],
+              textColor: Colors.white,
+              fontSize: 16.0,
+            );
           }
         }
       }
       return result;
     } catch (err) {
-      print(err);
+      logger.e(err);
       throw new Error();
     }
   }
@@ -50,24 +69,29 @@ class GqlClientFactory {
       if (result != null) {
         if (result.hasException != false) {
           var errMsg = result.exception.toString();
-          print(errMsg);
+
+          logger.e(errMsg);
+
           if (errMsg.contains("JWTExpired")) {
             await refreshClient();
+            logger.i("JWTExpired authGqlmutate: " + errMsg);
             result = await client.mutate(options);
           } else {
+            logger.e(errMsg);
             Fluttertoast.showToast(
-                msg: errMsg,
-                toastLength: Toast.LENGTH_LONG,
-                gravity: ToastGravity.BOTTOM,
-                backgroundColor: Colors.grey[600],
-                textColor: Colors.white,
-                fontSize: 16.0);
+              msg: errMsg,
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.grey[600],
+              textColor: Colors.white,
+              fontSize: 16.0,
+            );
           }
         }
       }
       return result;
     } catch (err) {
-      print(err);
+      logger.e(err);
       throw new Error();
     }
   }
@@ -84,50 +108,55 @@ class GqlClientFactory {
         onError: (error) async {
           var errMsg = error.toString();
 
-          print(errMsg);
           if (errMsg.contains("JWTExpired")) {
             await refreshClient();
+            logger.i("JWTExpired authGqlsubscribe: " + errMsg);
             onError(error);
             refresh();
           } else {
             onError(error);
+            logger.e(errMsg);
             Fluttertoast.showToast(
-                msg: errMsg,
-                toastLength: Toast.LENGTH_LONG,
-                gravity: ToastGravity.BOTTOM,
-                backgroundColor: Colors.grey[600],
-                textColor: Colors.white,
-                fontSize: 16.0);
+              msg: errMsg,
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.grey[600],
+              textColor: Colors.white,
+              fontSize: 16.0,
+            );
           }
         },
       );
       return subscription;
     } catch (err) {
-      print(err);
+      logger.e(err);
       throw new Error();
     }
   }
 
-  static refreshClient() async {
+  refreshClient() async {
     try {
       if (!isRefreshing) {
         isRefreshing = true;
-        print("TRYING TO REFRESH CLIENT");
+
+        logger.i("Trying to refresh client");
         //set a public client so we can refresh tokens
         setPublicGraphQLClient();
-        print("CLIENT SET TO PUBLIC");
+        logger.i("Client sent to public");
+
         var success = await UserService().exchangeRefreshToken();
         if (success) {
-          print("TOKEN REFRESHED");
+          logger.i("Token refreshed");
           setPrivateGraphQLClient(UserService.token);
-          print("CLIENT SET TO PRIVATE");
+          logger.i("CLIENT SET TO PRIVATE");
         } else {
           print("REFRESH TOKEN TIMED OUT: SIGNING OUT");
+          logger.e("Refresh token timed out: Signing Out");
         }
         isRefreshing = false;
       }
     } catch (err) {
-      print(err);
+      logger.e(err);
       throw new Error();
     }
   }
@@ -182,7 +211,7 @@ class GqlClientFactory {
 
       client = aCLient;
     } catch (err) {
-      print(err);
+      print(err.toString());
       throw new Error();
     }
   }
@@ -205,7 +234,7 @@ class GqlClientFactory {
       );
       client = aCLient;
     } catch (err) {
-      print(err);
+      print(err.toString());
       throw new Error();
     }
   }

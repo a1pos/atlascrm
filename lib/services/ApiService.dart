@@ -2,15 +2,26 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http_parser/http_parser.dart';
 import 'package:atlascrm/config/ConfigSettings.dart';
-import 'package:atlascrm/services/StorageService.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/widgets.dart';
+import 'package:logger/logger.dart';
 import 'UserService.dart';
 
 class ApiService {
-  final StorageService storageService = new StorageService();
   final String URLBASE = ConfigSettings.HOOK_API_URL;
   final int TIMEOUT = 10000;
+
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 120,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output:
+  );
 
   Future<Response> publicGet(url, data) async {
     try {
@@ -25,6 +36,7 @@ class ApiService {
         ),
       ).get(url);
     } catch (err) {
+      logger.e(err);
       throw err;
     }
   }
@@ -40,8 +52,12 @@ class ApiService {
           },
           sendTimeout: TIMEOUT,
         ),
-      ).post(url, data: jsonEncode(data));
+      ).post(
+        url,
+        data: jsonEncode(data),
+      );
     } catch (err) {
+      logger.e(err);
       throw err;
     }
   }
@@ -66,11 +82,13 @@ class ApiService {
       ).get(url);
 
       if (resp.statusCode == 401) {
+        logger.e("401 error code, logging out");
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
       }
       return resp;
     } catch (err) {
+      logger.e(err);
       if (checkAuthErrorResponse(context, err)) {
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
@@ -101,11 +119,13 @@ class ApiService {
       );
 
       if (resp.statusCode == 401) {
+        logger.e("401 error code, logging out");
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
       }
       return resp;
     } catch (err) {
+      logger.e(err);
       if (checkAuthErrorResponse(context, err)) {
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
@@ -116,6 +136,7 @@ class ApiService {
   }
 
   Future<Response> authFilePost(context, url, filePath, {isRetry: true}) async {
+    logger.i([context, url, filePath]);
     try {
       var token = UserService.token;
 
@@ -153,17 +174,25 @@ class ApiService {
       ).post(url, data: formData);
 
       if (resp.statusCode == 401) {
+        logger.e("401 error code, logging out");
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
       }
       return resp;
     } catch (err) {
+      logger.e(err);
       throw err;
     }
   }
 
   Future<Response> authFilePostWithFormData(context, url, FormData formData,
       {isRetry: true}) async {
+    Map message = {
+      "context": context,
+      "url": url,
+      "formData": formData,
+    };
+    logger.i(message);
     try {
       var token = UserService.token;
 
@@ -179,11 +208,13 @@ class ApiService {
       ).post(url, data: formData);
 
       if (resp.statusCode == 401) {
+        logger.e("401 error code, logging out");
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
       }
       return resp;
     } catch (err) {
+      logger.e(err);
       throw err;
     }
   }
@@ -234,11 +265,13 @@ class ApiService {
       ).post(url, data: formData);
 
       if (resp.statusCode == 401) {
+        logger.e("401 error code, logging out");
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
       }
       return resp;
     } catch (err) {
+      logger.e(err);
       if (checkAuthErrorResponse(context, err)) {
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
@@ -265,11 +298,13 @@ class ApiService {
       ).put(url, data: jsonEncode(data));
 
       if (resp.statusCode == 401) {
+        logger.e("401 error code, logging out");
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
       }
       return resp;
     } catch (err) {
+      logger.e(err);
       if (checkAuthErrorResponse(context, err)) {
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
@@ -296,11 +331,13 @@ class ApiService {
       ).delete(url);
 
       if (resp.statusCode == 401) {
+        logger.e("401 error code, logging out");
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
       }
       return resp;
     } catch (err) {
+      logger.e(err);
       if (checkAuthErrorResponse(context, err)) {
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
@@ -315,27 +352,14 @@ class ApiService {
       if (msg != null) {
         if (msg.response != null) {
           if (msg.response.statusCode == 401) {
+            logger.e("401 error code");
             return true;
           }
         }
       }
-    } catch (err) {}
+    } catch (err) {
+      logger.e(err);
+    }
     return false;
   }
-
-  // Future<bool> trySignInSilently(context) async {
-  //   try {
-  //     var googleSignIn = await UserService.googleSignIn.signInSilently();
-  //     var googleSignInAuthentication = await googleSignIn.authentication;
-  //     await storageService.save("token", googleSignInAuthentication.idToken);
-  //     await storageService.save(
-  //         "access_token", googleSignInAuthentication.accessToken);
-  //     UserService.currentUser = googleSignIn;
-
-  //     return true;
-  //   } catch (err) {
-  //     log(err);
-  //   }
-  //   return false;
-  // }
 }

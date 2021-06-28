@@ -26,6 +26,7 @@ import 'package:atlascrm/screens/leads/ViewLeadScreen.dart';
 import 'package:atlascrm/screens/merchants/ViewMerchantScreen.dart';
 import 'package:atlascrm/screens/tasks/ViewTaskScreen.dart';
 import 'package:atlascrm/screens/leads/uploads/StatementUploader.dart';
+import 'package:logger/logger.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -46,13 +47,26 @@ class _AtlasCRMState extends State<AtlasCRM> {
   bool isLoading = true;
   GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 50,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output:
+  );
+
   @override
   void initState() {
     super.initState();
     GqlClientFactory.setPublicGraphQLClient();
     isAuthCheck();
     UserService.firebaseAuth.authStateChanges().listen((firebaseUser) {
-      print(firebaseUser);
+      logger.i(firebaseUser);
+
       if (firebaseUser == null && UserService.isAuthenticated) {
         navigatorKey.currentState.popAndPushNamed('/logout');
       }
@@ -131,6 +145,7 @@ class _AtlasCRMState extends State<AtlasCRM> {
                 ),
           initialRoute: "/",
           onGenerateRoute: (RouteSettings settings) {
+            logger.i("Route switched to: " + settings.name);
             switch (settings.name) {
               case '/dashboard':
                 return MaterialPageRoute(

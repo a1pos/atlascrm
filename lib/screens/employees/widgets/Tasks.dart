@@ -5,6 +5,7 @@ import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:logger/logger.dart';
 
 class Tasks extends StatefulWidget {
   final employee;
@@ -22,6 +23,18 @@ class _TasksState extends State<Tasks> {
   List tasks = [];
   List activeTasks = [];
   var subscription;
+
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 120,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output:
+  );
 
   @override
   void initState() {
@@ -74,6 +87,7 @@ class _TasksState extends State<Tasks> {
       (data) {
         var tasksArrDecoded = data.data["employee_by_pk"]["tasks"];
         if (tasksArrDecoded != null && this.mounted) {
+          logger.i("Employee Tasks widget initialized");
           setState(() {
             tasks = tasksArrDecoded;
             activeTasks = tasks;
@@ -85,7 +99,10 @@ class _TasksState extends State<Tasks> {
         }
         isLoading = false;
       },
-      (error) {},
+      (error) {
+        print("Error in employee tasks widget: " + error.toString());
+        logger.e("Error in employee tasks widget: " + error.toString());
+      },
       () => refreshSub(),
     );
   }
@@ -152,11 +169,12 @@ Widget buildDLGridView(BuildContext context, list) {
                   );
                 },
                 child: TaskItem(
-                    title: task["document"]["title"],
-                    description: task["document"]["notes"],
-                    dateTime: tDate,
-                    type: tType,
-                    priority: tPriority),
+                  title: task["document"]["title"],
+                  description: task["document"]["notes"],
+                  dateTime: tDate,
+                  type: tType,
+                  priority: tPriority,
+                ),
               );
             },
           ),

@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:logger/logger.dart';
 
 class DashboardScreen extends StatefulWidget {
   @override
@@ -26,6 +27,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   final GlobalKey<TasksState> _tasksState = GlobalKey<TasksState>();
   final GlobalKey<InstallsState> _installsState = GlobalKey<InstallsState>();
+
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 120,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output:
+  );
 
   bool isLoading = true;
 
@@ -82,6 +95,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                   currentDate = getCurrentDateTime();
 
+                  logger.i("Refresh completed at " + currentDate);
                   Fluttertoast.showToast(
                     msg: "Refresh completed at " + currentDate,
                     toastLength: Toast.LENGTH_LONG,

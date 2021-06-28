@@ -5,6 +5,7 @@ import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:logger/logger.dart';
 
 class LeadsChart extends StatefulWidget {
   LeadsChart({Key key}) : super(key: key);
@@ -15,6 +16,18 @@ class LeadsChart extends StatefulWidget {
 
 class LeadsChartState extends State<LeadsChart> {
   final UserService userService = UserService();
+
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 120,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output:
+  );
 
   bool isLoading = true;
 
@@ -72,6 +85,7 @@ class LeadsChartState extends State<LeadsChart> {
     if (from == null) from = weekStart;
     if (to == null) to = today;
 
+    logger.i("Leads chart parameters set to: " + from + " to " + to);
     SubscriptionOptions leadOptions = SubscriptionOptions(
       operationName: "GET_LEAD_COUNT",
       document: gql("""
@@ -105,6 +119,7 @@ class LeadsChartState extends State<LeadsChart> {
         var incomingData = data.data["employee"];
         if (incomingData != null) {
           if (this.mounted) {
+            logger.i("Leads chart widget initialized");
             setState(() {
               graphList = incomingData;
               isLoading = false;
@@ -155,6 +170,12 @@ class LeadsChartState extends State<LeadsChart> {
     if (subscription != null) {
       await subscription.cancel();
       subscription = null;
+      logger.i("Leads chart subscription refreshed. Params set to: " +
+          from +
+          " " +
+          fromVal +
+          " to " +
+          toVal);
       initSub(fromVal, toVal);
     }
   }
@@ -186,11 +207,9 @@ class LeadsChartState extends State<LeadsChart> {
     }
 
     List<charts.Series<LeaderboardData, String>> _displayData() {
-      //
       statements = statementData;
       return [
         new charts.Series<LeaderboardData, String>(
-          //
           id: '$label: $itemTotal',
           domainFn: (LeaderboardData sales, _) => sales.person,
           measureFn: (LeaderboardData sales, _) => sales.count,
@@ -219,6 +238,7 @@ class LeadsChartState extends State<LeadsChart> {
                 }).toList(),
                 onChanged: (String newValue) {
                   setState(() {
+                    logger.i("Leads chart parameters changed: " + newValue);
                     isLoading = true;
                     timeDropdownValue = newValue;
                     refreshSub();
@@ -270,8 +290,9 @@ class BarChart extends StatelessWidget {
         vertical: false,
         behaviors: [
           charts.SeriesLegend(
-              position: charts.BehaviorPosition.bottom,
-              horizontalFirst: deviceWidth < 370 ? false : true)
+            position: charts.BehaviorPosition.bottom,
+            horizontalFirst: deviceWidth < 370 ? false : true,
+          )
         ],
         barRendererDecorator: new charts.BarLabelDecorator<String>(),
       ),

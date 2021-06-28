@@ -4,6 +4,9 @@ class UniversalStyles {
   static Color themeColor = Color.fromRGBO(54, 179, 170, 1.0);
   static Color backgroundColor = Color.fromARGB(255, 250, 251, 255);
   static Color actionColor = Color.fromRGBO(54, 179, 170, 1);
+  static Color gold = Colors.yellow[600];
+  static Color silver = Colors.grey[500];
+  static Color bronze = Colors.orange[600];
 }
 
 final ThemeData defaultTheme = _buildDefaultTheme();

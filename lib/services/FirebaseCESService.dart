@@ -10,6 +10,8 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:async';
 
+import 'package:logger/logger.dart';
+
 enum FirebaseCMType { launch, resume, backgroundMessage, message }
 
 class FirebaseCESService {
@@ -31,6 +33,18 @@ class FirebaseCESService {
 
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
+
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 120,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output:
+  );
 
   factory FirebaseCESService() {
     return _singleton;
@@ -68,7 +82,8 @@ class FirebaseCESService {
       });
 
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-        print('A new onMessageOpenedApp event was published');
+        logger.i("A new onMessageOpenedApp event was published");
+
         RemoteNotification notification = message.notification;
         AndroidNotification android = message.notification?.android;
 
@@ -102,16 +117,17 @@ class FirebaseCESService {
     return _token;
   }
 
-  static Future<void> myBackgroundMessageHandler(RemoteMessage message) async {
+  Future<void> myBackgroundMessageHandler(RemoteMessage message) async {
     await Firebase.initializeApp();
-    print("Handling a background message ${message.messageId}");
+
+    logger.i("Handling a background message ${message.messageId}");
   }
 
-  static Future<void> handleFirebaseMessage(message) async {
-    print("$message");
+  Future<void> handleFirebaseMessage(message) async {
+    logger.i("{$message}");
 
     if (message == null) return null;
-    print(message.body);
+    logger.i(message.body);
 
     var messageActionType = "IGNORE";
     if (messageActionType == null) return null;

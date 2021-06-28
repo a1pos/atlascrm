@@ -6,6 +6,7 @@ import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:logger/logger.dart';
 
 class Tasks extends StatefulWidget {
   Tasks({Key key}) : super(key: key);
@@ -24,6 +25,18 @@ class TasksState extends State<Tasks> {
   ScrollController scrollController = ScrollController();
 
   var subscription;
+
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 120,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output:
+  );
 
   @override
   void initState() {
@@ -75,6 +88,7 @@ class TasksState extends State<Tasks> {
       (data) {
         var tasksArrDecoded = data.data["employee_by_pk"]["tasks"];
         if (tasksArrDecoded != null && this.mounted) {
+          logger.i("Tasks widget initialized");
           setState(
             () {
               tasks = tasksArrDecoded;
@@ -88,7 +102,10 @@ class TasksState extends State<Tasks> {
         }
         isLoading = false;
       },
-      (error) {},
+      (error) {
+        print("Error in Tasks: " + error.toString());
+        logger.i("Error in Tasks: " + error.toString());
+      },
       () => refreshSub(),
     );
   }

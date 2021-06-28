@@ -3,6 +3,7 @@ import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:logger/logger.dart';
 
 class AuthScreen extends StatefulWidget {
   final UserService userService = new UserService();
@@ -13,6 +14,18 @@ class AuthScreen extends StatefulWidget {
 
 class _AuthScreenState extends State<AuthScreen> {
   bool isLoading = false;
+
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 50,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output:
+  );
 
   @override
   void initState() {
@@ -35,20 +48,22 @@ class _AuthScreenState extends State<AuthScreen> {
         });
         Navigator.of(context).pushReplacementNamed("/dashboard");
       } else {
+        logger.e("ERROR on handleLogin");
         throw ('ERROR');
       }
     } catch (err) {
-      print(err);
+      logger.e(err);
       setState(() {
         isLoading = false;
       });
       Fluttertoast.showToast(
-          msg: "Failed to connect!",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.grey[600],
-          textColor: Colors.white,
-          fontSize: 16.0);
+        msg: "Failed to connect!",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.grey[600],
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
     }
   }
 
@@ -71,11 +86,13 @@ class _AuthScreenState extends State<AuthScreen> {
                           style: TextStyle(fontSize: 38),
                           children: <TextSpan>[
                             TextSpan(
-                                text: "ATLAS",
-                                style: TextStyle(fontFamily: "InterBold")),
+                              text: "ATLAS",
+                              style: TextStyle(fontFamily: "InterBold"),
+                            ),
                             TextSpan(
-                                text: "CRM",
-                                style: TextStyle(fontFamily: "InterLight")),
+                              text: "CRM",
+                              style: TextStyle(fontFamily: "InterLight"),
+                            ),
                           ]),
                     ),
                     Padding(
@@ -98,7 +115,6 @@ class _AuthScreenState extends State<AuthScreen> {
                                     primary: Colors.green,
                                   ),
                                   onPressed: handleLogin,
-                                  //highlightElevation: 0,
                                   child: Padding(
                                     padding: EdgeInsets.fromLTRB(0, 10, 0, 10),
                                     child: Row(
@@ -108,7 +124,8 @@ class _AuthScreenState extends State<AuthScreen> {
                                       children: <Widget>[
                                         Image(
                                             image: AssetImage(
-                                                "assets/google_logo.png"),
+                                              "assets/google_logo.png",
+                                            ),
                                             height: 30.0),
                                         Padding(
                                           padding: EdgeInsets.all(5),

@@ -5,6 +5,7 @@ import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:logger/logger.dart';
 
 class Installs extends StatefulWidget {
   Installs({Key key}) : super(key: key);
@@ -14,6 +15,18 @@ class Installs extends StatefulWidget {
 }
 
 class InstallsState extends State<Installs> {
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 120,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output:
+  );
+
   bool isLoading = true;
   bool isEmpty = true;
 
@@ -71,6 +84,7 @@ class InstallsState extends State<Installs> {
       (data) async {
         var installsArrDecoded = data.data["v_install_table"];
         if (installsArrDecoded != null && this.mounted) {
+          logger.i("Installs widget initialized");
           setState(() {
             installs = installsArrDecoded;
             activeInstalls = installs
@@ -86,7 +100,10 @@ class InstallsState extends State<Installs> {
           }
         }
       },
-      (error) {},
+      (error) {
+        print("Error in installs widget: " + error.toString());
+        logger.e("Error in installs widget: " + error.toString());
+      },
       () => refreshSub(),
     );
   }

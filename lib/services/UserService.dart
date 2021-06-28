@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 import 'package:atlascrm/services/FirebaseCESService.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -7,6 +6,7 @@ import 'package:atlascrm/models/Employee.dart';
 import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:logger/logger.dart';
 
 class UserService {
   final GoogleSignIn googleSignIn =
@@ -26,6 +26,18 @@ class UserService {
 
   static FirebaseAuth firebaseAuth = FirebaseAuth.instance;
 
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 120,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output:
+  );
+
   getToken() async {
     try {
       var user = firebaseAuth.currentUser;
@@ -38,7 +50,7 @@ class UserService {
         return idTokenResult;
       }
     } catch (err) {
-      print(err);
+      logger.e(err);
       throw new Error();
     }
   }
@@ -68,14 +80,14 @@ class UserService {
         final User currentUser = firebaseAuth.currentUser;
         assert(user.uid == currentUser.uid);
 
-        print('signInWithGoogle succeeded: $user');
+        logger.i('signInWithGoogle succeeded: $user');
 
         await linkGoogleAccount();
 
         return true;
       }
     } catch (err) {
-      print(err);
+      logger.e(err);
     }
     return false;
   }
@@ -86,9 +98,12 @@ class UserService {
         await googleSignIn.signOut();
         await firebaseAuth.signOut();
       }
+
       isAuthenticated = false;
+
+      logger.i("User signed out");
     } catch (err) {
-      print(err);
+      logger.e(err);
       throw new Error();
     }
   }
@@ -98,7 +113,8 @@ class UserService {
       GqlClientFactory.setPublicGraphQLClient();
 
       var user = firebaseAuth.currentUser;
-      print(user);
+      logger.i(user);
+
       MutationOptions mutateOptions = MutationOptions(document: gql("""
         mutation ACTION_LINK(\$uid: String!, \$email: String!) {
           link_google_account(uid: \$uid, email: \$email) {
@@ -120,25 +136,24 @@ class UserService {
         token = linkResult.data["link_google_account"]["token"];
         rToken = linkResult.data["link_google_account"]["refreshToken"];
         var idTokenResult = await user.getIdToken(true);
-        print(idTokenResult);
+
+        logger.i("ID Token result " + idTokenResult);
+
         var empDecoded = linkResult.data["link_google_account"]["employee"];
 
         employee = Employee.fromJson(empDecoded);
         if (employee.role == "admin" || employee.role == "sa") {
           isAdmin = true;
-          // socketService.initWebSocketConnection();
         } else {
           isAdmin = false;
         }
         if (employee.role == "tech") {
           isTech = true;
-          // socketService.initWebSocketConnection();
         } else {
           isTech = false;
         }
         if (employee.role == "salesmanager") {
           isSalesManager = true;
-          // socketService.initWebSocketConnection();
         } else {
           isSalesManager = false;
         }
@@ -180,10 +195,10 @@ class UserService {
             await GqlClientFactory.client
                 .mutate(notificationRegistrationMutateOptions);
 
-        print(notificationRegistrationResult);
+        logger.i(notificationRegistrationResult);
       }
     } catch (err) {
-      print(err);
+      logger.e(err);
       throw new Error();
     }
   }
@@ -196,7 +211,7 @@ class UserService {
     try {
       return firebaseAuth.currentUser;
     } catch (err) {
-      log(err);
+      print(err);
     }
 
     return null;
@@ -217,12 +232,13 @@ class UserService {
     final QueryResult result =
         await GqlClientFactory().authGqlmutate(mutateOptions);
     if (result.hasException == true) {
-      print(result.exception.toString());
+      logger.e(result.exception.toString());
+
       try {
         signOutGoogle();
         return false;
       } catch (err) {
-        print(err);
+        logger.e(err);
         throw new Error();
       }
     } else {

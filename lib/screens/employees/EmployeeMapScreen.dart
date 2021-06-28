@@ -5,9 +5,11 @@ import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:logger/logger.dart';
 
 class EmployeeMapScreen extends StatefulWidget {
   @override
@@ -20,6 +22,18 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
   static final CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(40.907569, -79.923725),
     zoom: 13.0,
+  );
+
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 120,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output:
   );
 
   bool runOnce = true;
@@ -44,26 +58,6 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
       await subscription.cancel();
       subscription = null;
     }
-  }
-
-  LatLngBounds boundsFromLatLngList(List<LatLng> list) {
-    assert(list.isNotEmpty);
-    double x0, x1, y0, y1;
-    for (LatLng latLng in list) {
-      if (x0 == null) {
-        x0 = x1 = latLng.latitude;
-        y0 = y1 = latLng.longitude;
-      } else {
-        if (latLng.latitude > x1) x1 = latLng.latitude;
-        if (latLng.latitude < x0) x0 = latLng.latitude;
-        if (latLng.longitude > y1) y1 = latLng.longitude;
-        if (latLng.longitude < y0) y0 = latLng.longitude;
-      }
-    }
-    return LatLngBounds(
-      northeast: LatLng(x1, y1),
-      southwest: LatLng(x0, y0),
-    );
   }
 
   Future initSubListener() async {
@@ -127,6 +121,20 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
                 if (stopsArrDecoded != null) {
                   stopCount = stopsArrDecoded.toString();
                 }
+              } else {
+                logger.i(
+                  "Error in EmployeeMap stop count: " +
+                      result2.exception.toString(),
+                );
+
+                Fluttertoast.showToast(
+                  msg: result2.exception.toString(),
+                  toastLength: Toast.LENGTH_LONG,
+                  gravity: ToastGravity.BOTTOM,
+                  backgroundColor: Colors.grey[600],
+                  textColor: Colors.white,
+                  fontSize: 16.0,
+                );
               }
             }
 
@@ -151,72 +159,45 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
             var icon = await getMarkerImageFromCache(pictureUrl);
 
             if (currentEmployeeMarker.length > 0) {
-              if (this.mounted) {
-                setState(() {
-                  markers.removeAll(currentEmployeeMarker.toList());
+              markers.removeAll(currentEmployeeMarker.toList());
+            }
 
-                  markers.add(
-                    Marker(
-                      position: LatLng(
-                        location["document"]["latitude"],
-                        location["document"]["longitude"],
-                      ),
-                      markerId: markerId,
-                      infoWindow: InfoWindow(
-                        snippet: currentLocation["employeeByEmployee"]
-                                ["document"]["displayName"] +
-                            ", " +
-                            datetimeFmt +
-                            " Stops:" +
-                            stopCount,
-                        title: currentLocation["employeeByEmployee"]["document"]
-                            ["email"],
-                      ),
-                      icon: icon,
-                    ),
-                  );
-                  markerLatLngs.add(LatLng(
-                    location["document"]["latitude"],
-                    location["document"]["longitude"],
-                  ));
-                });
-              }
-            } else {
-              setState(
-                () {
-                  markers.add(
-                    Marker(
-                      position: LatLng(
-                        location["document"]["latitude"],
-                        location["document"]["longitude"],
-                      ),
-                      markerId: markerId,
-                      infoWindow: InfoWindow(
-                        snippet: currentLocation["employeeByEmployee"]
-                                ["document"]["displayName"] +
-                            ", " +
-                            datetimeFmt +
-                            " Stops:" +
-                            stopCount,
-                        title: currentLocation["employeeByEmployee"]["document"]
-                            ["email"],
-                      ),
-                      icon: icon,
-                    ),
-                  );
-                  markerLatLngs.add(
-                    LatLng(
+            if (this.mounted) {
+              setState(() {
+                markers.add(
+                  Marker(
+                    position: LatLng(
                       location["document"]["latitude"],
                       location["document"]["longitude"],
                     ),
-                  );
-                },
-              );
+                    markerId: markerId,
+                    infoWindow: InfoWindow(
+                      snippet: currentLocation["employeeByEmployee"]["document"]
+                              ["displayName"] +
+                          ", " +
+                          datetimeFmt +
+                          " Stops:" +
+                          stopCount,
+                      title: currentLocation["employeeByEmployee"]["document"]
+                          ["email"],
+                    ),
+                    icon: icon,
+                  ),
+                );
+                markerLatLngs.add(LatLng(
+                  location["document"]["latitude"],
+                  location["document"]["longitude"],
+                ));
+              });
             }
           }
         }
+        logger.i("Employee Map markers loaded");
       },
-      (error) {},
+      (error) {
+        print("Error in EmployeeMapScreen: " + error.toString());
+        logger.e("Error in EmployeeMapScreen: " + error.toString());
+      },
       () => refreshSub(),
     );
   }
@@ -305,6 +286,7 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
         onMapCreated: (GoogleMapController controller) async {
           if (!_fullScreenMapController.isCompleted) {
             _fullScreenMapController.complete(controller);
+            logger.i("EmployeeMap map loaded");
           }
         },
       ),

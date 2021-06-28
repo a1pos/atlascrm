@@ -1,6 +1,8 @@
 import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:logger/logger.dart';
 import 'package:searchable_dropdown/searchable_dropdown.dart';
 
 class RoleDropDown extends StatefulWidget {
@@ -18,6 +20,18 @@ class _RoleDropDownState extends State<RoleDropDown> {
   var roles = [];
   var disabled;
   var startVal;
+
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 120,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output:
+  );
 
   @override
   void initState() {
@@ -64,6 +78,18 @@ class _RoleDropDownState extends State<RoleDropDown> {
             startVal = role["title"];
           }
         }
+      } else {
+        logger.e(
+          "Error getting roles: " + rolesResp.exception.toString(),
+        );
+        Fluttertoast.showToast(
+          msg: rolesResp.exception.toString(),
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
       }
     }
   }
@@ -84,6 +110,7 @@ class _RoleDropDownState extends State<RoleDropDown> {
           value: startVal,
           onClear: () {
             setState(() {
+              logger.i("Role cleared for user");
               this.widget.callback("");
             });
           },
