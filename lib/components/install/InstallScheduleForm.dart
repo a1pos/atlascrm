@@ -320,12 +320,13 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
 
     if (updateInstallEmployeeByPKResult.hasException) {
       Fluttertoast.showToast(
-          msg: updateInstallEmployeeByPKResult.exception.toString(),
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.grey[600],
-          textColor: Colors.white,
-          fontSize: 16.0);
+        msg: updateInstallEmployeeByPKResult.exception.toString(),
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.grey[600],
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
     }
 
     MutationOptions updateInstallDateByPKOptions = MutationOptions(

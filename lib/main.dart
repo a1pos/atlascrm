@@ -62,6 +62,8 @@ class _AtlasCRMState extends State<AtlasCRM> {
   @override
   void initState() {
     super.initState();
+    logger.i(
+        "Application initialized, connecting to FireBase and starting PublicGQLClient");
     GqlClientFactory.setPublicGraphQLClient();
     isAuthCheck();
     UserService.firebaseAuth.authStateChanges().listen((firebaseUser) {

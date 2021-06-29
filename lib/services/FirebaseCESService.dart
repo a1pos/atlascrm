@@ -58,9 +58,10 @@ class FirebaseCESService {
 
     if (!_initialized) {
       // For iOS request permission first.
-      FirebaseMessaging.onBackgroundMessage(myBackgroundMessageHandler);
 
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        FirebaseMessaging.onBackgroundMessage(myBackgroundMessageHandler);
+
         RemoteNotification notification = message.notification;
         AndroidNotification android = message.notification?.android;
 
