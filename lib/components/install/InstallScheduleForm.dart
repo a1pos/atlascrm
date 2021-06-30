@@ -288,7 +288,7 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
     var msgLength = Toast.LENGTH_SHORT;
     var ticket;
 
-    Map ticketComment = install["document"]["text"];
+    var ticketComment = install["document"];
 
     MutationOptions updateInstallEmployeeByPKOptions = MutationOptions(
       document: gql("""
@@ -583,6 +583,7 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
             fontSize: 16.0);
       }
     }
+    Navigator.of(context).pop();
     Fluttertoast.showToast(
       msg: successMsg,
       toastLength: msgLength,
@@ -592,7 +593,6 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
       fontSize: 16.0,
     );
 
-    Navigator.pop(context);
     isSaveDisabled = false;
   }
 
@@ -723,6 +723,7 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
           fontSize: 16.0);
     }
 
+    Navigator.of(context).pop();
     Fluttertoast.showToast(
         msg: successMsg,
         toastLength: msgLength,
@@ -731,7 +732,6 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
         textColor: Colors.white,
         fontSize: 16.0);
 
-    Navigator.pop(context);
     isSaveDisabled = false;
   }
 
