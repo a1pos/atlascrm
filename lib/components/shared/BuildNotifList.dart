@@ -312,22 +312,30 @@ class _BuildNotifListState extends State<BuildNotifList> {
                   actions: <Widget>[
                     TextButton(
                       child: Text(
+                        'No',
+                        style: TextStyle(
+                          fontSize: 17,
+                          color: Colors.grey[500],
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                    TextButton(
+                      child: Text(
                         'Yes',
-                        style: TextStyle(fontSize: 17),
+                        style: TextStyle(
+                          fontSize: 17,
+                          color: UniversalStyles.actionColor,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       onPressed: () {
                         Navigator.of(context).pop();
                         dismissAll();
                       },
                     ),
-                    TextButton(
-                        child: Text(
-                          'No',
-                          style: TextStyle(fontSize: 17),
-                        ),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        })
                   ],
                 );
               },
