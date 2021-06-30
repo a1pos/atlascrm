@@ -809,8 +809,7 @@ class _StatementUploaderState extends State<StatementUploader> {
 
   Future<void> deleteImage(asset) async {
     var name = asset["name"];
-    Navigator.pop(context);
-    Navigator.pop(context);
+
     try {
       var resp = await this.widget.apiService.authDelete(context,
           "/api/upload/statement?lead=${lead["lead"]}&statement=$name", null);
@@ -823,6 +822,9 @@ class _StatementUploaderState extends State<StatementUploader> {
             statementActive = false;
           });
         }
+
+        Navigator.pop(context);
+        Navigator.pop(context);
         Fluttertoast.showToast(
           msg: "File Deleted!",
           toastLength: Toast.LENGTH_SHORT,
@@ -837,6 +839,16 @@ class _StatementUploaderState extends State<StatementUploader> {
 
           loadStatements();
         });
+      } else {
+        Navigator.pop(context);
+        Navigator.pop(context);
+        Fluttertoast.showToast(
+            msg: "Failed to delete image!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0);
       }
     } catch (err) {
       print(err);
@@ -999,6 +1011,8 @@ class _StatementUploaderState extends State<StatementUploader> {
                 isLoading = false;
               },
             );
+            Navigator.pushNamed(context, "/viewlead", arguments: lead["lead"]);
+
             Fluttertoast.showToast(
               msg: "Statement Submitted!",
               toastLength: Toast.LENGTH_SHORT,
@@ -1007,7 +1021,6 @@ class _StatementUploaderState extends State<StatementUploader> {
               textColor: Colors.white,
               fontSize: 16.0,
             );
-            Navigator.pushNamed(context, "/viewlead", arguments: lead["lead"]);
           }
         } else {
           Fluttertoast.showToast(
