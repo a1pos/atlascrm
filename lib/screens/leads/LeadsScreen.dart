@@ -50,7 +50,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
   @override
   void initState() {
     super.initState();
-    if (UserService.isAdmin) {}
+
     initLeadsData();
 
     _scrollController.addListener(() {

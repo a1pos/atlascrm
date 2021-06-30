@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'package:atlascrm/components/inventory/InventoryLocationDropDown.dart';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/services/GqlClientFactory.dart';
@@ -13,8 +12,6 @@ import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
 import 'package:flutter/material.dart';
 import 'package:dan_barcode_scan/dan_barcode_scan.dart';
-import 'package:unicorndial/unicorndial.dart';
-
 import 'InventoryAdd.dart';
 
 class InventoryScreen extends StatefulWidget {
@@ -32,12 +29,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
   ScrollController _scrollController = ScrollController();
   TextEditingController _searchController = TextEditingController();
 
-  List<UnicornButton> childButtons = [];
-
   var inventory = [];
-  var inventoryFull = [];
-  var employees = [];
-  var employeesFull = [];
   var columns = [];
 
   var currentSearch = "";
@@ -49,42 +41,12 @@ class _InventoryScreenState extends State<InventoryScreen> {
     "updated_at: desc",
     "updated_at: asc",
   ];
-  var initParams = "offset: 0, limit: 10, order_by: {updated_at: asc}";
-  var sortQuery = "updated_at: asc";
+  var initParams = "offset: 0, limit: 10, order_by: {created_at: desc}";
+  var sortQuery = "created_at: asc";
 
   @override
   void initState() {
     super.initState();
-    // childButtons = <UnicornButton>[];
-    // childButtons.add(
-    //   UnicornButton(
-    //     hasLabel: true,
-    //     labelText: "Checkout Devices",
-    //     currentButton: FloatingActionButton(
-    //       heroTag: "checkout",
-    //       backgroundColor: Colors.blueAccent,
-    //       mini: true,
-    //       child: Icon(Icons.devices),
-    //       onPressed: () {},
-    //     ),
-    //   ),
-    // );
-
-    // childButtons.add(
-    //   UnicornButton(
-    //     hasLabel: true,
-    //     labelText: "Add Device",
-    //     currentButton: FloatingActionButton(
-    //       heroTag: "add",
-    //       backgroundColor: UniversalStyles.actionColor,
-    //       mini: true,
-    //       child: Icon(Icons.add),
-    //       onPressed: () {
-    //         openAddInventoryForm();
-    //       },
-    //     ),
-    //   ),
-    // );
 
     initInventoryData();
 
@@ -99,7 +61,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
   @override
   void dispose() {
     _scrollController.dispose();
-
     super.dispose();
   }
 
@@ -108,7 +69,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
       QueryOptions options = QueryOptions(
         document: gql("""
         query INVENTORY {
-          inventory($initParams) {
+          inventory ($initParams){
             inventory
             merchantByMerchant {
               merchant
@@ -131,7 +92,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
           }
         }
       """),
-        pollInterval: Duration(seconds: 5),
       );
 
       final QueryResult result = await GqlClientFactory().authGqlquery(options);
@@ -147,7 +107,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
                   isEmpty = false;
                   isLoading = false;
                   inventory += inventoryArr;
-                  inventoryFull += inventoryArr;
                   pageNum++;
                 },
               );
@@ -157,7 +116,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
                   if (pageNum == 0) {
                     isEmpty = true;
                     inventoryArr = [];
-                    inventoryFull = [];
                   }
                   isLoading = false;
                 },
@@ -181,7 +139,11 @@ class _InventoryScreenState extends State<InventoryScreen> {
     try {
       var offsetAmount = pageNum * 10;
       var limitAmount = 10;
-      var params =
+      var params;
+
+      print(inventory.length);
+
+      params =
           'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}';
 
       if (isFiltering) {
@@ -251,7 +213,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
                   isEmpty = false;
                   isLoading = false;
                   inventory += inventoryArr;
-                  inventoryFull += inventoryArr;
                   pageNum++;
                 },
               );
@@ -261,7 +222,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
                   if (pageNum == 0) {
                     isEmpty = true;
                     inventoryArr = [];
-                    inventoryFull = [];
                   }
                   isLoading = false;
                 },
@@ -300,12 +260,13 @@ class _InventoryScreenState extends State<InventoryScreen> {
           _searchController.text = result.rawContent.toString();
         } else {
           Fluttertoast.showToast(
-              msg: "That's the MAC address!",
-              toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.grey[600],
-              textColor: Colors.white,
-              fontSize: 16.0);
+            msg: "That's the MAC address!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0,
+          );
         }
       }
     } catch (err) {
@@ -319,7 +280,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
       pageNum = 0;
       isSearching = true;
       inventory = [];
-      inventoryFull = [];
       onScroll();
     });
   }
@@ -330,7 +290,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
       pageNum = 0;
       isFiltering = true;
       inventory = [];
-      inventoryFull = [];
       onScroll();
     });
   }
@@ -342,7 +301,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
       pageNum = 0;
       isLocFiltering = true;
       inventory = [];
-      inventoryFull = [];
       onScroll();
       Navigator.pop(context);
     });
@@ -356,7 +314,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
         filterLocation = "";
         isLocFiltering = false;
         inventory = [];
-        inventoryFull = [];
       });
       onScroll();
     }
@@ -369,7 +326,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
         pageNum = 0;
         isFiltering = false;
         inventory = [];
-        inventoryFull = [];
       });
       onScroll();
     }
@@ -382,42 +338,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
       isSearching = false;
       _searchController.clear();
       inventory = [];
-      inventoryFull = [];
     });
     onScroll();
 
     FocusScope.of(context).requestFocus(new FocusNode());
-  }
-
-  Future<void> initEmployeeData() async {
-    try {
-      var resp;
-      if (resp != null) {
-        if (resp.statusCode == 200) {
-          var employeesArrDecoded = resp.data;
-          if (employeesArrDecoded != null) {
-            var employeesArr = List.from(employeesArrDecoded);
-            if (employeesArr.length > 0) {
-              setState(() {
-                employees = employeesArr;
-                employeesFull = employeesArr;
-              });
-            } else {
-              setState(() {
-                employeesArr = [];
-                employeesFull = [];
-              });
-            }
-          }
-        }
-      }
-
-      setState(() {
-        isLoading = false;
-      });
-    } catch (err) {
-      print(err);
-    }
   }
 
   void openAddInventoryForm() {
@@ -517,13 +441,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
           child: Icon(Icons.add),
           splashColor: Colors.white,
         ),
-        // UnicornDialer(
-        //   backgroundColor: Color.fromRGBO(255, 255, 255, 0.0),
-        //   parentButtonBackground: UniversalStyles.actionColor,
-        //   orientation: UnicornOrientation.VERTICAL,
-        //   parentButton: Icon(Icons.menu),
-        //   childButtons: childButtons.toList(),
-        // ),
       ),
     );
   }
@@ -609,6 +526,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                       var location;
                       var setIcon;
                       var invDate;
+
                       if (item['created_at'] != null) {
                         invDate = DateFormat("EEE, MMM d, ''yy")
                             .add_jm()
@@ -768,9 +686,11 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                   ? Divider(thickness: 2)
                                   : Container(),
                               employeeName != null && employeeName != ""
-                                  ? Text("Employee: " + employeeName,
+                                  ? Text(
+                                      "Employee: " + employeeName,
                                       style: TextStyle(),
-                                      textAlign: TextAlign.right)
+                                      textAlign: TextAlign.right,
+                                    )
                                   : Container(),
                             ],
                           ),

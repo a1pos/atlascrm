@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:atlascrm/components/inventory/InventoryHistoryList.dart';
+import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:atlascrm/components/shared/CustomAppBar.dart';
 import 'package:atlascrm/components/shared/CustomCard.dart';
 import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
@@ -8,7 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-import 'package:intl/intl.dart';
 import 'package:unicorndial/unicorndial.dart';
 import 'package:atlascrm/components/shared/MerchantDropdown.dart';
 
@@ -27,6 +28,7 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
   bool idChanged = false;
   bool isLoading = true;
   String addressText;
+  Map inventory;
 
   var serialNumberController = TextEditingController();
   var priceTierController = TextEditingController();
@@ -36,8 +38,9 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
 
   var deviceIcon;
 
-  var inventory;
+  var historyList = [];
   var inventoryDocument;
+
   var displayPhone;
   var deviceStatus = "?";
 
@@ -135,56 +138,36 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
     QueryOptions options = QueryOptions(
       document: gql("""
         query GET_INVENTORY{inventory_by_pk(inventory: "${this.widget.incoming["id"]}"){
-          inventory
-          merchantByMerchant{
-            merchant
-            document
-          }
-          is_installed
-          employeeByEmployee{
-            employee
-            document
-          }
-          id
-          serial
-          inventoryLocationByInventoryLocation{
-            name
-          }
-          inventoryPriceTierByInventoryPriceTier{
-            model
-          }
-          document
-          inventory_trackings (order_by: {created_at: asc}) {
-           inventory_tracking
-            inventoryTrackingTypeByInventoryTrackingType {
-              title
-            }
-            old_employee
-            employeeByEmployee{
+            inventory
+            merchantByMerchant{
+              merchant
               document
             }
-            created_by
-            created_at
-            merchant
-            old_merchant
-            inventoryLocationByInventoryLocation {
+            is_installed
+            employeeByEmployee{
+              employee
+              document
+            }
+            id
+            serial
+            inventoryLocationByInventoryLocation{
               name
             }
-            merchantByMerchant {
-              document
+            inventoryPriceTierByInventoryPriceTier{
+              model
             }
+            document
           }
-        }}
-            """),
+        }
+        """),
     );
 
     final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
     if (result.hasException == false) {
       var body = result.data["inventory_by_pk"];
+      var bodyDecoded = body;
       if (body != null) {
-        var bodyDecoded = body;
-
         setState(
           () {
             inventory = bodyDecoded;
@@ -267,35 +250,33 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
         }
       }
       """),
-      fetchPolicy: FetchPolicy.noCache,
-      variables: {"data": data},
+      fetchPolicy: FetchPolicy.networkOnly,
+      variables: {
+        "data": data,
+      },
     );
     final QueryResult result =
         await GqlClientFactory().authGqlmutate(mutateOptions);
 
     if (result.hasException == false) {
+      loadInventoryData();
       Fluttertoast.showToast(
-          msg: alert,
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.grey[600],
-          textColor: Colors.white,
-          fontSize: 16.0);
-      if (this.widget.incoming["origin"] == null) {
-        await initStatus();
-        await loadInventoryData();
-      } else {
-        await initStatus();
-        await loadInventoryData();
-      }
+        msg: alert,
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.grey[600],
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
     } else {
       Fluttertoast.showToast(
-          msg: result.exception.toString(),
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.grey[600],
-          textColor: Colors.white,
-          fontSize: 16.0);
+        msg: result.exception.toString(),
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.grey[600],
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
 
       print(result.exception.toString());
     }
@@ -329,21 +310,27 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('Checkout',
-                  style: TextStyle(fontSize: 17, color: Colors.green)),
+              child: Text(
+                'Checkout',
+                style: TextStyle(fontSize: 17, color: Colors.green),
+              ),
               onPressed: () {
                 if (merchantController.text != null &&
                     merchantController.text != "") {
-                  updateDevice("checkout");
+                  setState(() {
+                    updateDevice("checkout");
+                  });
+
                   Navigator.of(context).pop();
                 } else {
                   Fluttertoast.showToast(
-                      msg: "Please select a merchant",
-                      toastLength: Toast.LENGTH_SHORT,
-                      gravity: ToastGravity.BOTTOM,
-                      backgroundColor: Colors.grey[600],
-                      textColor: Colors.white,
-                      fontSize: 16.0);
+                    msg: "Please select a merchant",
+                    toastLength: Toast.LENGTH_SHORT,
+                    gravity: ToastGravity.BOTTOM,
+                    backgroundColor: Colors.grey[600],
+                    textColor: Colors.white,
+                    fontSize: 16.0,
+                  );
                 }
               },
             ),
@@ -410,12 +397,13 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
 
     if (result.hasException == true) {
       Fluttertoast.showToast(
-          msg: result.exception.toString(),
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.grey[600],
-          textColor: Colors.white,
-          fontSize: 16.0);
+        msg: result.exception.toString(),
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.grey[600],
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
     } else {
       Navigator.popAndPushNamed(context, "/inventory");
       Fluttertoast.showToast(
@@ -426,106 +414,6 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
           textColor: Colors.white,
           fontSize: 16.0);
     }
-  }
-
-  getEmployee(employeeId) async {
-    QueryOptions options = QueryOptions(
-      document: gql("""
-      query GET_EMPLOYEE_BY_PK {
-        employee_by_pk(employee: "$employeeId"){
-          displayName: document(path: "displayName")
-        }
-      }
-    """),
-    );
-
-    final QueryResult result = await GqlClientFactory().authGqlquery(options);
-
-    if (result.hasException == false) {
-      var body = result.data["employee_by_pk"];
-      if (body != null) {
-        return await body["displayName"];
-      }
-    }
-  }
-
-  Widget buildHistoryList() {
-    var historyList = [];
-    if (inventory["inventory_trackings"].length != 0) {
-      var reversed = List.from(inventory["inventory_trackings"].reversed);
-      historyList = reversed;
-    }
-    return ListView(
-      shrinkWrap: true,
-      children: List.generate(
-        historyList.length,
-        (index) {
-          var event = historyList[index];
-          var eventType =
-              event["inventoryTrackingTypeByInventoryTrackingType"]["title"];
-          var eventEmployee;
-          if (eventType == "Returned" || eventType == "Scanned In") {
-            eventEmployee = FutureBuilder(
-              future: getEmployee(event["created_by"]),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.done) {
-                  return Text(snapshot.data);
-                } else {
-                  return Text("loading");
-                }
-              },
-            );
-          } else {
-            eventEmployee =
-                Text(event["employeeByEmployee"]["document"]["displayName"]);
-          }
-          var initDate = DateTime.parse(event["created_at"]).toLocal();
-          var eventDate = DateFormat.yMd().add_jm().format(initDate);
-          var inventoryMerchant = event["merchant"];
-          var inventoryMerchantDoc = event["merchantByMerchant"];
-          var otherCompany = false;
-
-          if (inventoryMerchantDoc == null && inventoryMerchant != null) {
-            otherCompany = true;
-          }
-
-          return !otherCompany
-              ? Card(
-                  shape: new RoundedRectangleBorder(
-                      side: new BorderSide(color: Colors.grey[200], width: 2.0),
-                      borderRadius: BorderRadius.circular(4.0)),
-                  child: ListTile(
-                    isThreeLine: true,
-                    title: Text(
-                      eventType == "Returned" || eventType == "Scanned In"
-                          ? event["inventoryLocationByInventoryLocation"]
-                              ["name"]
-                          : event["merchantByMerchant"]["document"]
-                              ["leadDocument"]["businessName"],
-                      style:
-                          eventType == "Returned" || eventType == "Scanned In"
-                              ? TextStyle(color: UniversalStyles.actionColor)
-                              : null,
-                    ),
-                    subtitle: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
-                        child: eventEmployee,
-                      ),
-                    ),
-                    trailing: Column(
-                      children: <Widget>[
-                        Text(eventDate),
-                        Text(eventType),
-                      ],
-                    ),
-                  ),
-                )
-              : Container();
-        },
-      ),
-    );
   }
 
   @override
@@ -605,14 +493,15 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
                                     ),
                                   ),
                                   Expanded(
-                                      child: Padding(
-                                    padding:
-                                        const EdgeInsets.fromLTRB(10, 8, 0, 8),
-                                    child: Text(
-                                      deviceStatus,
-                                      style: TextStyle(fontSize: 15),
+                                    child: Padding(
+                                      padding: const EdgeInsets.fromLTRB(
+                                          10, 8, 0, 8),
+                                      child: Text(
+                                        deviceStatus,
+                                        style: TextStyle(fontSize: 15),
+                                      ),
                                     ),
-                                  )),
+                                  ),
                                   Expanded(
                                       child: Padding(
                                     padding:
@@ -633,7 +522,11 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
                               minHeight: 35.0,
                               maxHeight: 340.0,
                             ),
-                            child: Scrollbar(child: buildHistoryList()),
+                            child: Scrollbar(
+                              child: InventoryHistoryList(
+                                this.widget.incoming["id"],
+                              ),
+                            ),
                           ),
                         ),
                       ],

@@ -288,15 +288,7 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
     var msgLength = Toast.LENGTH_SHORT;
     var ticket;
 
-    Map ticketComment = {
-      "text": {
-        "ops": [
-          {
-            "insert": install["document"]["text"],
-          }
-        ]
-      }
-    };
+    Map ticketComment = install["document"]["text"];
 
     MutationOptions updateInstallEmployeeByPKOptions = MutationOptions(
       document: gql("""
