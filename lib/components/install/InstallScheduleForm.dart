@@ -724,12 +724,13 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
 
     if (updateTicketAssigneeResult.hasException) {
       Fluttertoast.showToast(
-          msg: updateTicketAssigneeResult.exception.toString(),
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.grey[600],
-          textColor: Colors.white,
-          fontSize: 16.0);
+        msg: updateTicketAssigneeResult.exception.toString(),
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.grey[600],
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
     }
 
     Fluttertoast.showToast(

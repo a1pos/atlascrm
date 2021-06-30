@@ -12,6 +12,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:logger/logger.dart';
 import 'package:multi_image_picker/multi_image_picker.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:path_provider/path_provider.dart';
@@ -39,6 +40,18 @@ class StatementUploader extends StatefulWidget {
 class _StatementUploaderState extends State<StatementUploader> {
   final picker = ImagePicker();
   static const platform = const MethodChannel('com.ces.atlascrm.channel');
+
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 120,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output:
+  );
 
   bool isLoading = true;
   bool isBoarded;
@@ -75,7 +88,6 @@ class _StatementUploaderState extends State<StatementUploader> {
     super.initState();
     isBoarded = false;
     checkIfBoarded(this.widget.lead["lead_status"]);
-    getParentCompany();
     loadStatements();
   }
 
@@ -107,6 +119,7 @@ class _StatementUploaderState extends State<StatementUploader> {
 
       if (result.hasException == false) {
         if (result.data != null) {
+          logger.i("Statement data loaded");
           var statementsArrDecoded = result.data["statement"];
 
           if (statementsArrDecoded != null) {
@@ -161,9 +174,15 @@ class _StatementUploaderState extends State<StatementUploader> {
             }
           }
         }
+      } else {
+        print("Error getting statement information: " +
+            result.exception.toString());
+        logger.e("Error getting statement information: " +
+            result.exception.toString());
       }
     } catch (err) {
-      print(err);
+      print("Error getting statement information: " + err.toString());
+      logger.e("Error getting statement information: " + err.toString());
     }
   }
 
@@ -193,37 +212,12 @@ class _StatementUploaderState extends State<StatementUploader> {
 
         if (leadStatus == status) {
           isBoarded = true;
+          logger.i("Lead is boarded");
         }
       } else {
-        print(new Error());
-      }
-    }
-  }
-
-  getParentCompany() async {
-    QueryOptions options = QueryOptions(
-      document: gql("""
-      query GET_PARENT_COMPANY {
-        company {
-          company
-          title
-        }
-      }
-    """),
-      fetchPolicy: FetchPolicy.noCache,
-    );
-
-    final result = await GqlClientFactory().authGqlquery(options);
-
-    if (result != null) {
-      if (result.hasException == false) {
-        result.data["company"].forEach((item) {
-          if (item["title"] == "Cutting Edge Solutions") {
-            parentCompany = item["company"];
-          }
-        });
-      } else {
-        print(new Error());
+        print("Error checking if lead boarded: " + result.exception.toString());
+        logger.e(
+            "Error checking if lead boarded: " + result.exception.toString());
       }
     }
   }
@@ -275,9 +269,13 @@ class _StatementUploaderState extends State<StatementUploader> {
         );
 
         rateReviewType = result1.data["task_type"][0]["task_type"];
+      } else {
+        print("Error getting task status: " + result0.exception.toString());
+        logger.e("Error getting task status: " + result0.exception.toString());
+
+        print("Error getting task type: " + result1.exception.toString());
+        logger.e("Error getting task type: " + result1.exception.toString());
       }
-    } else {
-      print(new Error());
     }
 
     if (!UserService.isAdmin && !UserService.isSalesManager) {
@@ -326,12 +324,16 @@ class _StatementUploaderState extends State<StatementUploader> {
                 backgroundColor: Colors.grey[600],
                 textColor: Colors.white,
                 fontSize: 16.0);
+          } else {
+            print("Error inserting task for rate review: " +
+                result.exception.toString());
+            logger.e("Error inserting task for rate review: " +
+                result.exception.toString());
           }
-        } else {
-          print(new Error());
         }
       } catch (err) {
-        print(err);
+        print("Failed to create rate review task: " + err.toString());
+        logger.e("Failed to create rate review task: " + err.toString());
         Fluttertoast.showToast(
           msg: "Failed to create task for employee!",
           toastLength: Toast.LENGTH_SHORT,
@@ -543,7 +545,7 @@ class _StatementUploaderState extends State<StatementUploader> {
                             ),
                             onPressed: () {
                               addImage(result);
-                              Navigator.pop(context);
+                              Navigator.of(context).pop();
                             },
                           ),
                         ],

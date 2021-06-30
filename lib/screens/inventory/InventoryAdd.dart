@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'package:atlascrm/components/style/UniversalStyles.dart';
 import 'package:atlascrm/services/UserService.dart';
 import 'package:atlascrm/services/GqlClientFactory.dart';
@@ -94,7 +93,7 @@ class InventoryAddState extends State<InventoryAdd> {
       );
     } else {
       if (isListed) {
-        logger.i("Inventory add serial number previously scanned");
+        logger.i("Scanned duplicate serial number");
 
         Fluttertoast.showToast(
           msg: "This serial has already been scanned!",
@@ -120,6 +119,7 @@ class InventoryAddState extends State<InventoryAdd> {
   }
 
   Future<void> scanBarcode() async {
+    FocusScope.of(context).requestFocus(new FocusNode());
     try {
       var options = ScanOptions(
         strings: {
@@ -132,8 +132,8 @@ class InventoryAddState extends State<InventoryAdd> {
       logger.i("BarcodeScanner opened");
 
       if (result.type != ResultType.Cancelled) {
-        logger.i("Device S/N added to list: " + result.rawContent.toString());
         addToList(result.rawContent.toString());
+        logger.i("Device S/N added to list: " + result.rawContent.toString());
         await scanBarcode();
       } else {
         logger.i("BarcodeScanner closed");
@@ -147,7 +147,7 @@ class InventoryAddState extends State<InventoryAdd> {
   Future<void> addDevice() async {
     try {
       if (serialList.length < 1) {
-        logger.i("No devices have been scanned");
+        logger.i("No devices scanned");
         Fluttertoast.showToast(
           msg: "No devices scanned!",
           toastLength: Toast.LENGTH_SHORT,
@@ -221,7 +221,7 @@ class InventoryAddState extends State<InventoryAdd> {
       }
 
       if (cleanPost) {
-        logger.i("Devices added on InventoryAdd");
+        logger.i(serialList.length.toString() + " Devices added");
         Fluttertoast.showToast(
           msg: "Devices Added!",
           toastLength: Toast.LENGTH_SHORT,
@@ -362,6 +362,8 @@ class InventoryAddState extends State<InventoryAdd> {
                             ? _currentStep += 1
                             : null;
                       });
+                      logger.i("Next step on stepper hit: " +
+                          _currentStep.toString());
                     } else {
                       logger.i("Tier and Location not selected");
                       Fluttertoast.showToast(
@@ -380,6 +382,8 @@ class InventoryAddState extends State<InventoryAdd> {
                         _currentStep > 0 ? _currentStep -= 1 : null;
                       },
                     );
+                    logger.i("Previous step on stepper hit: " +
+                        _currentStep.toString());
                   },
                   steps: [
                     Step(

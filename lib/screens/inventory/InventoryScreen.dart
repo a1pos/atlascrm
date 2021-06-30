@@ -132,7 +132,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
                   inventory += inventoryArr;
                   inventoryFull += inventoryArr;
                   pageNum++;
-                  print(pageNum);
                 },
               );
             } else {
@@ -250,7 +249,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
                   inventory += inventoryArr;
                   inventoryFull += inventoryArr;
                   pageNum++;
-                  print(pageNum);
                 },
               );
             } else {

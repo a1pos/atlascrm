@@ -199,6 +199,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
       await subscription.cancel();
       subscription = null;
       initInstallData();
+      logger.i("Refreshing installs subscription");
     }
   }
 
@@ -259,8 +260,16 @@ class _InstallsScreenState extends State<InstallsScreen> {
 
                   if (activeInstalls.length > 0) {
                     isEmpty = false;
+                    logger.i("Search performed for " +
+                        value.toString() +
+                        " and " +
+                        activeInstalls.length.toString() +
+                        " events found");
                   } else {
                     isEmpty = true;
+                    logger.i("Search performed for " +
+                        value.toString() +
+                        " but no events were found");
                   }
                 });
               } else {
@@ -301,6 +310,9 @@ class _InstallsScreenState extends State<InstallsScreen> {
                               });
                             }
                             fillEvents();
+                            logger.i("Active Installs switch tapped to " +
+                                value.toString() +
+                                " and events filtered");
                           },
                         ),
                         Text("Active Installs"),
@@ -334,6 +346,9 @@ class _InstallsScreenState extends State<InstallsScreen> {
                         });
                       }
                       fillEvents();
+                      logger.i("Employee filter switched to " +
+                          val.toString() +
+                          " and events filtered");
                     },
                   ),
                 ),

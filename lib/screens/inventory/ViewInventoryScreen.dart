@@ -197,6 +197,7 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
       var body = result.data["inventory_by_pk"];
       if (body != null) {
         var bodyDecoded = body;
+        logger.i("Device information loaded");
 
         setState(
           () {
@@ -340,14 +341,13 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
                 ),
                 MerchantDropDown(
                   callback: (newValue) {
-                    logger.i("Merchant selected for checkout: " +
-                        newValue.toString());
                     setState(
                       () {
                         merchantController.text = newValue["id"];
                         merchantNameController.text = newValue["name"];
                       },
                     );
+                    logger.i("Merchant selected: " + newValue["name"]);
                   },
                 )
               ],
@@ -452,7 +452,7 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
       );
     } else {
       Navigator.popAndPushNamed(context, "/inventory");
-      logger.i("Inventory device deleted");
+      logger.i("Inventory device deleted: " + inventory["inventory"]);
       Fluttertoast.showToast(
         msg: "Device deleted!",
         toastLength: Toast.LENGTH_SHORT,
@@ -518,9 +518,17 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
               future: getEmployee(event["created_by"]),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.done) {
-                  return Text(snapshot.data);
+                  if (snapshot.data != null) {
+                    return Text(snapshot.data);
+                  }
+                  return Container();
+                } else if (snapshot.hasError) {
+                  logger
+                      .e("Error getting employee" + snapshot.error.toString());
+                  return Text(
+                      "Error getting employee" + snapshot.error.toString());
                 } else {
-                  return Text("loading");
+                  return Text("loading...");
                 }
               },
             );

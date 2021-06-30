@@ -121,8 +121,6 @@ class _MerchantDropDownState extends State<MerchantDropDown> {
                       var merchantBusinessName;
                       if (merchant["businessName"] != null) {
                         merchantBusinessName = merchant["businessName"];
-                      } else if (merchant["document"]["businessName"] != null) {
-                        merchantBusinessName = merchant["businessName"];
                       } else {
                         merchantBusinessName = "";
                       }
