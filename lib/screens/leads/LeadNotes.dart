@@ -8,6 +8,7 @@ import 'dart:async';
 import 'package:intl/intl.dart';
 import 'package:atlascrm/components/shared/Empty.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:logger/logger.dart';
 
 class LeadNotes extends StatefulWidget {
   final Map object;
@@ -30,6 +31,18 @@ var leadStatus;
 var notesController = TextEditingController();
 var typeUpper;
 var type = "lead";
+
+var logger = Logger(
+  printer: PrettyPrinter(
+    methodCount: 1,
+    errorMethodCount: 8,
+    lineLength: 120,
+    colors: true,
+    printEmojis: true,
+    printTime: true,
+  ),
+  // output:
+);
 
 ScrollController _scrollController = ScrollController();
 
@@ -97,6 +110,7 @@ class _LeadNotesState extends State<LeadNotes> {
     final result = await GqlClientFactory().authGqlquery(options);
 
     if (result != null) {
+      logger.i("Lead notes loaded");
       if (result.hasException == false) {
         var notesArrDecoded = result.data["lead_note"];
         if (notesArrDecoded != null) {
@@ -111,6 +125,18 @@ class _LeadNotesState extends State<LeadNotes> {
             );
           }
         }
+      } else {
+        print("Error getting lead notes: " + result.exception.toString());
+        logger.e("Error getting lead notes: " + result.exception.toString());
+
+        Fluttertoast.showToast(
+          msg: result.exception.toString(),
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
       }
     }
   }
@@ -135,16 +161,21 @@ class _LeadNotesState extends State<LeadNotes> {
 
     final QueryResult result =
         await GqlClientFactory().authGqlmutate(mutateOptions);
-    if (result.hasException == true) {
+    if (result.hasException == false) {
+      logger.i("Note successfully added: " + sendNote["note_text"]);
+      loadNotes(this.widget.object[type]);
+    } else {
+      print("Error saving note: " + result.exception.toString());
+      logger.e("Error saving note: " + result.exception.toString());
       Fluttertoast.showToast(
-          msg: result.exception.toString(),
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.grey[600],
-          textColor: Colors.white,
-          fontSize: 16.0);
+        msg: result.exception.toString(),
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.grey[600],
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
     }
-    loadNotes(this.widget.object[type]);
   }
 
   Future<void> checkIfBoarded(status) async {
@@ -173,16 +204,30 @@ class _LeadNotesState extends State<LeadNotes> {
         });
 
         if (leadStatus == status) {
+          logger.i("Lead is boarded");
           setState(() {
             isBoarded = true;
           });
         } else {
+          logger.i("Lead is not boarded");
           setState(() {
             isBoarded = false;
           });
         }
       } else {
-        print(new Error());
+        print("Error checking if lead is boarded: " +
+            result.exception.toString());
+        logger.e("Error checking if lead is boarded: " +
+            result.exception.toString());
+        Fluttertoast.showToast(
+          msg: "Error checking if lead is boarded: " +
+              result.exception.toString(),
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
       }
     }
   }
@@ -244,6 +289,7 @@ class _LeadNotesState extends State<LeadNotes> {
                           onPressed: () {
                             if (notesController.text == null ||
                                 notesController.text == "") {
+                              logger.i("Attempted to add blank note");
                               Fluttertoast.showToast(
                                 msg: "Cannot add blank note!",
                                 toastLength: Toast.LENGTH_SHORT,
@@ -318,14 +364,17 @@ class _LeadNotesState extends State<LeadNotes> {
                                       child: Card(
                                         elevation: 2,
                                         shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(15.0)),
+                                          borderRadius:
+                                              BorderRadius.circular(15.0),
+                                        ),
                                         child: Container(
                                           child: ListTile(
                                             title: note["note_text"] != null
-                                                ? Text(note["note_text"],
+                                                ? Text(
+                                                    note["note_text"],
                                                     style:
-                                                        TextStyle(fontSize: 18))
+                                                        TextStyle(fontSize: 18),
+                                                  )
                                                 : Text(""),
                                             subtitle: Text(
                                               viewDate,

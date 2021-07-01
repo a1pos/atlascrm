@@ -10,6 +10,7 @@ import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:logger/logger.dart';
 
 class MerchantsScreen extends StatefulWidget {
   @override
@@ -24,6 +25,18 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
 
   ScrollController _scrollController = ScrollController();
   TextEditingController _searchController = TextEditingController();
+
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 120,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output:
+  );
 
   var merchants = [];
   var employees = [];
@@ -45,7 +58,7 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
   @override
   void initState() {
     super.initState();
-    initMerchantssData();
+    initMerchantsData();
 
     _scrollController.addListener(() {
       if (_scrollController.position.pixels ==
@@ -63,12 +76,14 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
 
   var initParams =
       'offset: 0, limit: 10, order_by: {merchantbusinessname: asc}';
-  Future<void> initMerchantssData() async {
+  Future<void> initMerchantsData() async {
     try {
       if (!UserService.isAdmin) {
         initParams =
             'offset: 0, limit: 10, order_by: {merchantbusinessname: asc}';
       }
+
+      logger.i(initParams);
 
       QueryOptions options = QueryOptions(
         document: gql("""
@@ -91,6 +106,7 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
 
       if (result != null) {
         if (result.hasException == false) {
+          logger.i("Merchant data loaded");
           var merchantsArrDecoded = result.data["v_merchant"];
           if (merchantsArrDecoded != null) {
             var merchantsArr = List.from(merchantsArrDecoded);
@@ -112,8 +128,11 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
             }
           }
         } else {
+          print("Error getting merchants: " + result.exception.toString());
+          logger.e("Error getting merchants: " + result.exception.toString());
+
           Fluttertoast.showToast(
-            msg: result.exception.toString(),
+            msg: "Error getting merchants: " + result.exception.toString(),
             toastLength: Toast.LENGTH_LONG,
             gravity: ToastGravity.BOTTOM,
             backgroundColor: Colors.grey[600],
@@ -126,7 +145,8 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
         isLoading = false;
       });
     } catch (err) {
-      log(err);
+      print("Error getting merchants: " + err.toString());
+      logger.e("Error getting merchants: " + err.toString());
       setState(() {
         isLoading = false;
       });
@@ -146,6 +166,8 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
         params =
             'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where:{_and:[{is_active:{_eq: true}},{$searchParams}]}';
       }
+
+      logger.i(params);
 
       QueryOptions options = QueryOptions(
         document: gql("""
@@ -168,6 +190,7 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
 
       if (result != null) {
         if (result.hasException == false) {
+          logger.i("Merchant data reloaded onScroll");
           var merchantsArrDecoded = result.data["v_merchant"];
           if (merchantsArrDecoded != null) {
             var merchantsArr = List.from(merchantsArrDecoded);
@@ -190,6 +213,21 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
               );
             }
           }
+        } else {
+          print("Error getting merchant data onScroll: " +
+              result.exception.toString());
+          logger.e("Error getting merchant data onScroll: " +
+              result.exception.toString());
+
+          Fluttertoast.showToast(
+            msg: "Error getting merchant data onScroll: " +
+                result.exception.toString(),
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0,
+          );
         }
       }
 
@@ -197,11 +235,13 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
         isLoading = false;
       });
     } catch (err) {
-      log(err);
+      print("Error getting merchant data onScroll: " + err.toString());
+      logger.e("Error getting merchant data onScroll: " + err.toString());
     }
   }
 
   Future<void> searchMerchants(searchString) async {
+    logger.i("Filtering merchants by search: " + searchString);
     setState(
       () {
         currentSearch = searchString;
@@ -214,6 +254,7 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
   }
 
   Future<void> filterByEmployee(employeeId) async {
+    logger.i("Filtering merchants by employee: " + employeeId);
     setState(() {
       filterEmployee = employeeId;
       pageNum = 0;
@@ -224,6 +265,8 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
   }
 
   Future<void> clearFilter() async {
+    logger.i("Filtering merchants cleared");
+
     if (isFiltering) {
       setState(
         () {
@@ -238,6 +281,8 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
   }
 
   Future<void> clearSearch() async {
+    logger.i("Filtering merchants by search cleared");
+
     if (isSearching) {
       setState(
         () {
@@ -253,6 +298,7 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
   }
 
   void openMerchant(merchant) {
+    logger.i("Merchant opened: " + merchant["merchantbusinessname"]);
     Navigator.pushNamed(
       context,
       "/viewmerchant",
@@ -289,8 +335,10 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
                     ].map<DropdownMenuItem<String>>((item) {
                       return DropdownMenuItem<String>(
                         value: item['value'],
-                        child: Text(item['text'],
-                            style: TextStyle(color: Colors.white)),
+                        child: Text(
+                          item['text'],
+                          style: TextStyle(color: Colors.white),
+                        ),
                       );
                     }).toList(),
                     onChanged: (newVal) {
@@ -304,6 +352,7 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
                           onScroll();
                         },
                       );
+                      logger.i("Merchant sort changed: " + sortQuery);
                     },
                   ),
                 ),
@@ -362,8 +411,10 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
                       child: IconButton(
                         icon: Icon(Icons.search, color: Colors.white),
                         onPressed: () {
-                          currentSearch = _searchController.text;
-                          searchMerchants(_searchController.text);
+                          if (_searchController.text != "") {
+                            searchMerchants(_searchController.text);
+                            currentSearch = _searchController.text;
+                          }
                         },
                       ),
                     ),

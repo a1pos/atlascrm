@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:logger/logger.dart';
 
 import 'LeadStepper.dart';
 
@@ -28,6 +29,18 @@ class _LeadsScreenState extends State<LeadsScreen> {
 
   ScrollController _scrollController = ScrollController();
   TextEditingController _searchController = TextEditingController();
+
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 120,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output:
+  );
 
   var leads = [];
   var employees = [];
@@ -93,6 +106,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
                 style: TextStyle(fontSize: 17, color: Colors.red),
               ),
               onPressed: () {
+                logger.i("Stale lead not claimed: " + lead.toString());
                 Navigator.of(context).pop();
                 openLead(lead);
               },
@@ -123,18 +137,25 @@ class _LeadsScreenState extends State<LeadsScreen> {
                     await GqlClientFactory().authGqlmutate(mutateOptions);
 
                 if (result.hasException == false) {
+                  print("Lead claimed successfully: " + lead.toString());
+                  logger.i("Lead claimed successfully: " + lead.toString());
                   Fluttertoast.showToast(
-                      msg: "Lead Claimed!",
-                      toastLength: Toast.LENGTH_SHORT,
-                      gravity: ToastGravity.BOTTOM,
-                      backgroundColor: Colors.grey[600],
-                      textColor: Colors.white,
-                      fontSize: 16.0);
+                    msg: "Lead Claimed!",
+                    toastLength: Toast.LENGTH_SHORT,
+                    gravity: ToastGravity.BOTTOM,
+                    backgroundColor: Colors.grey[600],
+                    textColor: Colors.white,
+                    fontSize: 16.0,
+                  );
                   Navigator.of(context).pop();
                   openLead(lead);
                 } else {
+                  print("Failed to claim lead: " + result.exception.toString());
+                  logger.i(
+                      "Failed to claim lead: " + result.exception.toString());
+
                   Fluttertoast.showToast(
-                    msg: "Failed to claim lead!",
+                    msg: "Failed to claim lead: " + result.exception.toString(),
                     toastLength: Toast.LENGTH_LONG,
                     gravity: ToastGravity.BOTTOM,
                     backgroundColor: Colors.grey[600],
@@ -185,6 +206,9 @@ class _LeadsScreenState extends State<LeadsScreen> {
       final result = await GqlClientFactory().authGqlquery(options);
 
       if (result != null) {
+        logger.i("Initial leads data loaded");
+        logger.i(initParams);
+
         if (result.hasException == false) {
           var leadsArrDecoded = result.data["v_lead"];
           if (leadsArrDecoded != null) {
@@ -211,8 +235,13 @@ class _LeadsScreenState extends State<LeadsScreen> {
             }
           }
         } else {
+          print("Error getting initial leads: " + result.exception.toString());
+          logger
+              .e("Error getting initial leads: " + result.exception.toString());
+
           Fluttertoast.showToast(
-              msg: result.exception.toString(),
+              msg:
+                  "Error getting initial leads: " + result.exception.toString(),
               toastLength: Toast.LENGTH_SHORT,
               gravity: ToastGravity.BOTTOM,
               backgroundColor: Colors.grey[600],
@@ -226,7 +255,9 @@ class _LeadsScreenState extends State<LeadsScreen> {
         },
       );
     } catch (err) {
-      print(err);
+      print("Error getting initial leads: " + err.toString());
+      logger.e("Error getting initial leads: " + err.toString());
+
       setState(
         () {
           isLoading = false;
@@ -276,6 +307,8 @@ class _LeadsScreenState extends State<LeadsScreen> {
         }
       }
 
+      logger.i(params);
+
       QueryOptions options = QueryOptions(
         document: gql("""
           query GET_LEADS {
@@ -298,6 +331,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
       final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
       if (result != null) {
+        logger.i("Leads data in onScroll loaded");
         if (result.hasException == false) {
           var leadsArrDecoded = result.data["v_lead"];
           if (leadsArrDecoded != null) {
@@ -323,6 +357,20 @@ class _LeadsScreenState extends State<LeadsScreen> {
               );
             }
           }
+        } else {
+          print("Error getting leads data in onScroll: " +
+              result.exception.toString());
+          logger.e("Error getting leads data in onScroll: " +
+              result.exception.toString());
+          Fluttertoast.showToast(
+            msg: "Error getting leads data in onScroll: " +
+                result.exception.toString(),
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0,
+          );
         }
       }
 
@@ -332,11 +380,15 @@ class _LeadsScreenState extends State<LeadsScreen> {
         },
       );
     } catch (err) {
-      print(err);
+      print(
+          "Error getting leads data in onScroll: " + err.exception.toString());
+      logger.e(
+          "Error getting leads data in onScroll: " + err.exception.toString());
     }
   }
 
   Future<void> searchLeads(searchString) async {
+    logger.i("Leads filtered by search: " + searchString.toString());
     setState(
       () {
         currentSearch = searchString;
@@ -349,6 +401,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
   }
 
   Future<void> filterByEmployee(employeeId) async {
+    logger.i("Leads filtered by search: " + employeeId.toString());
     setState(
       () {
         filterEmployee = employeeId;
@@ -362,6 +415,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
 
   Future<void> clearFilter() async {
     if (isFiltering) {
+      logger.i("Lead filter cleared");
       setState(
         () {
           filterEmployee = "";
@@ -376,6 +430,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
 
   Future<void> clearSearch() async {
     if (isSearching) {
+      logger.i("Lead search filter cleared");
       setState(
         () {
           pageNum = 0;
@@ -390,6 +445,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
   }
 
   Future<void> toggleStale(value) async {
+    logger.i("Lead stale filter set to " + value.toString());
     clearSearch();
     setState(
       () {
@@ -405,6 +461,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
   }
 
   void openAddLeadForm() {
+    logger.i("Add lead form opened");
     showDialog(
       barrierDismissible: false,
       context: context,
@@ -418,6 +475,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
                 Text('Add New Lead'),
                 GestureDetector(
                   onTap: () {
+                    logger.i("Add lead form closed");
                     Navigator.of(context).pop();
                   },
                   child: Icon(
@@ -443,6 +501,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
   }
 
   void openLead(lead) {
+    logger.i("Lead opened: " + lead["leadbusinessname"]);
     Navigator.pushNamed(context, "/viewlead", arguments: lead["lead"]);
   }
 
@@ -493,6 +552,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
                           onScroll();
                         },
                       );
+                      logger.i("Lead order set to " + sortQuery);
                     },
                   ),
                 ),
@@ -578,8 +638,10 @@ class _LeadsScreenState extends State<LeadsScreen> {
                       child: IconButton(
                         icon: Icon(Icons.search, color: Colors.white),
                         onPressed: () {
-                          currentSearch = _searchController.text;
-                          searchLeads(_searchController.text);
+                          if (_searchController.text.trim() != "") {
+                            currentSearch = _searchController.text;
+                            searchLeads(_searchController.text);
+                          }
                         },
                       ),
                     ),

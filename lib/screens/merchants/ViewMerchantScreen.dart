@@ -9,6 +9,7 @@ import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:logger/logger.dart';
 import 'package:maps_launcher/maps_launcher.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
@@ -38,6 +39,18 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
   String addressText;
 
   List merchantInfoEntries = [];
+
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 120,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output:
+  );
 
   var firstNameController = TextEditingController();
   var lastNameController = TextEditingController();
@@ -72,8 +85,9 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
   }
 
   Future<void> loadMerchantData(merchantId) async {
-    QueryOptions options = QueryOptions(
-      document: gql("""
+    try {
+      QueryOptions options = QueryOptions(
+        document: gql("""
       query GET_MERCHANT(\$merchant: uuid!){
         merchant_by_pk(merchant: \$merchant){
           merchant
@@ -93,112 +107,117 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
 		    }
       }
     """),
-      variables: {"merchant": merchantId},
-    );
+        variables: {"merchant": merchantId},
+      );
 
-    final QueryResult result = await GqlClientFactory().authGqlquery(options);
+      final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
-    if (result.hasException == false) {
-      var body = result.data["merchant_by_pk"];
+      if (result.hasException == false) {
+        var body = result.data["merchant_by_pk"];
 
-      if (body != null) {
-        var bodyDecoded = body;
+        if (body != null) {
+          logger.i("Merchant data loaded");
+          var bodyDecoded = body;
 
-        setState(() {
-          merchant = bodyDecoded;
-          merchantDocument = bodyDecoded["document"];
-          firstNameController.text = merchantDocument["firstName"];
-        });
+          setState(() {
+            merchant = bodyDecoded;
+            merchantDocument = bodyDecoded["document"];
+            firstNameController.text = merchantDocument["firstName"];
+          });
 
-        if (merchantDocument["leadDocument"]["address"] != null &&
-            merchantDocument["leadDocument"]["address"] != "" &&
-            merchantDocument["leadDocument"]["city"] != null &&
-            merchantDocument["leadDocument"]["city"] != "" &&
-            merchantDocument["leadDocument"]["state"] != null &&
-            merchantDocument["leadDocument"]["state"] != "" &&
-            merchantDocument["leadDocument"]["zipCode"] != null &&
-            merchantDocument["leadDocument"]["zipCode"] != "") {
-          merchantLocation = merchantDocument["leadDocument"]["address"] +
-              ", " +
-              merchantDocument["leadDocument"]["city"] +
-              ", " +
-              merchantDocument["leadDocument"]["state"] +
-              " " +
-              merchantDocument["leadDocument"]["zipCode"];
-        } else {
-          //come back to this with a loop or query for to only get address of active agreement builder
-          if (merchant['leadByLead']['agreement_builders'][0]['document']
-                      ['ApplicationInformation']['CorporateInfo']['Address1'] !=
-                  null &&
-              merchant['leadByLead']['agreement_builders'][0]['document']
-                      ['ApplicationInformation']['CorporateInfo']['Address1'] !=
-                  "") {
-            merchantLocation = merchant['leadByLead']['agreement_builders'][0]
-                        ['document']['ApplicationInformation']['CorporateInfo']
-                    ['Address1'] +
+          if (merchantDocument["leadDocument"]["address"] != null &&
+              merchantDocument["leadDocument"]["address"] != "" &&
+              merchantDocument["leadDocument"]["city"] != null &&
+              merchantDocument["leadDocument"]["city"] != "" &&
+              merchantDocument["leadDocument"]["state"] != null &&
+              merchantDocument["leadDocument"]["state"] != "" &&
+              merchantDocument["leadDocument"]["zipCode"] != null &&
+              merchantDocument["leadDocument"]["zipCode"] != "") {
+            merchantLocation = merchantDocument["leadDocument"]["address"] +
                 ", " +
-                merchant['leadByLead']['agreement_builders'][0]['document']
-                    ['ApplicationInformation']['CorporateInfo']['City'] +
+                merchantDocument["leadDocument"]["city"] +
                 ", " +
-                merchant['leadByLead']['agreement_builders'][0]['document']
-                    ['ApplicationInformation']['CorporateInfo']['State'] +
+                merchantDocument["leadDocument"]["state"] +
                 " " +
+                merchantDocument["leadDocument"]["zipCode"];
+          } else {
+            //come back to this with a loop or query for to only get address of active agreement builder
+            if (merchant['leadByLead']['agreement_builders'][0]['document']
+                            ['ApplicationInformation']['CorporateInfo']
+                        ['Address1'] !=
+                    null &&
                 merchant['leadByLead']['agreement_builders'][0]['document']
-                    ['ApplicationInformation']['CorporateInfo']['First5Zip'];
-          } else if (merchant['document']['ApplicationInformation']
+                            ['ApplicationInformation']['CorporateInfo']
+                        ['Address1'] !=
+                    "") {
+              merchantLocation = merchant['leadByLead']['agreement_builders'][0]
+                          ['document']['ApplicationInformation']
+                      ['CorporateInfo']['Address1'] +
+                  ", " +
+                  merchant['leadByLead']['agreement_builders'][0]['document']
+                      ['ApplicationInformation']['CorporateInfo']['City'] +
+                  ", " +
+                  merchant['leadByLead']['agreement_builders'][0]['document']
+                      ['ApplicationInformation']['CorporateInfo']['State'] +
+                  " " +
+                  merchant['leadByLead']['agreement_builders'][0]['document']
+                      ['ApplicationInformation']['CorporateInfo']['First5Zip'];
+            } else if (merchant['document']['ApplicationInformation']
+                            ['MpaOutletInfo']['Outlet']['BusinessInfo']
+                        ['LocationAddress1'] !=
+                    null &&
+                merchant['document']['ApplicationInformation']['MpaOutletInfo']
+                        ['Outlet']['BusinessInfo']['LocationAddress1'] !=
+                    "") {
+              merchantLocation = merchant['document']['ApplicationInformation']
                           ['MpaOutletInfo']['Outlet']['BusinessInfo']
-                      ['LocationAddress1'] !=
-                  null &&
-              merchant['document']['ApplicationInformation']['MpaOutletInfo']
-                      ['Outlet']['BusinessInfo']['LocationAddress1'] !=
-                  "") {
-            merchantLocation = merchant['document']['ApplicationInformation']
-                        ['MpaOutletInfo']['Outlet']['BusinessInfo']
-                    ['LocationAddress1'] +
-                ", " +
-                merchant['document']['ApplicationInformation']['MpaOutletInfo']
-                    ['Outlet']['BusinessInfo']['City'] +
-                ", " +
-                merchant['document']['ApplicationInformation']['MpaOutletInfo']
-                    ['Outlet']['BusinessInfo']['State'] +
-                " " +
-                merchant['document']['ApplicationInformation']['MpaOutletInfo']
-                    ['Outlet']['BusinessInfo']['First5Zip'];
-          } else if (merchant['document']['ApplicationInformation']
-                  ["CorporateInfo"]['Address1'] !=
-              null) {
-            merchantLocation = merchant['document']['ApplicationInformation']
-                    ["CorporateInfo"]['Address1'] +
-                ", " +
-                merchant['document']['ApplicationInformation']["CorporateInfo"]
-                    ['City'] +
-                ", " +
-                merchant['document']['ApplicationInformation']["CorporateInfo"]
-                    ['State'] +
-                " " +
-                merchant['document']['ApplicationInformation']["CorporateInfo"]
-                    ['First5Zip'];
+                      ['LocationAddress1'] +
+                  ", " +
+                  merchant['document']['ApplicationInformation']
+                      ['MpaOutletInfo']['Outlet']['BusinessInfo']['City'] +
+                  ", " +
+                  merchant['document']['ApplicationInformation']
+                      ['MpaOutletInfo']['Outlet']['BusinessInfo']['State'] +
+                  " " +
+                  merchant['document']['ApplicationInformation']
+                      ['MpaOutletInfo']['Outlet']['BusinessInfo']['First5Zip'];
+            } else if (merchant['document']['ApplicationInformation']
+                    ["CorporateInfo"]['Address1'] !=
+                null) {
+              merchantLocation = merchant['document']['ApplicationInformation']
+                      ["CorporateInfo"]['Address1'] +
+                  ", " +
+                  merchant['document']['ApplicationInformation']
+                      ["CorporateInfo"]['City'] +
+                  ", " +
+                  merchant['document']['ApplicationInformation']
+                      ["CorporateInfo"]['State'] +
+                  " " +
+                  merchant['document']['ApplicationInformation']
+                      ["CorporateInfo"]['First5Zip'];
+            }
           }
         }
+      } else {
+        print("Error getting merchant data: " + result.exception.toString());
+        logger.e("Error getting merchant data: " + result.exception.toString());
+        Fluttertoast.showToast(
+          msg: "Error getting merchant data: " + result.exception.toString(),
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
       }
-    } else {
-      Fluttertoast.showToast(
-        msg: result.exception.toString(),
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-        backgroundColor: Colors.grey[600],
-        textColor: Colors.white,
-        fontSize: 16.0,
-      );
-    }
 
-    setState(() {
-      isLoading = false;
-    });
+      setState(() {
+        isLoading = false;
+      });
 
-    SubscriptionOptions deviceOptions = SubscriptionOptions(
-        operationName: "GET_MERCHANT_DEVICES",
-        document: gql("""
+      SubscriptionOptions deviceOptions = SubscriptionOptions(
+          operationName: "GET_MERCHANT_DEVICES",
+          document: gql("""
           subscription GET_MERCHANT_DEVICES(\$merchant: uuid!) {
             inventory(where: {merchant: {_eq: \$merchant}}){
               serial
@@ -213,20 +232,30 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
             }
           }
             """),
-        fetchPolicy: FetchPolicy.noCache,
-        variables: {"merchant": "${this.widget.merchantId}"});
+          fetchPolicy: FetchPolicy.noCache,
+          variables: {"merchant": "${this.widget.merchantId}"});
 
-    subscription =
-        await GqlClientFactory().authGqlsubscribe(deviceOptions, (data) {
-      var devicesArrDecoded = data.data["inventory"];
-      if (devicesArrDecoded != null && this.mounted) {
-        setState(() {
-          devices = devicesArrDecoded;
-        });
-      }
-      isLoading = false;
-      inventoryLoading = false;
-    }, (error) {}, () => refreshSub());
+      subscription =
+          await GqlClientFactory().authGqlsubscribe(deviceOptions, (data) {
+        var devicesArrDecoded = data.data["inventory"];
+        if (devicesArrDecoded != null && this.mounted) {
+          logger.i("Merchant devices loaded");
+          setState(() {
+            devices = devicesArrDecoded;
+          });
+        }
+        isLoading = false;
+        inventoryLoading = false;
+      }, (error) {
+        print("Error getting merchant devices: " + error.toString());
+        logger.e("Error getting merchant devices: " + error.toString());
+      }, () => refreshSub());
+    } catch (err) {
+      print("Error getting merchant data and merchant device data: " +
+          err.toString());
+      logger.e("Error getting merchant data and merchant device data: " +
+          err.toString());
+    }
   }
 
   Future refreshSub() async {
@@ -236,6 +265,7 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
       loadMerchantData(
         this.widget.merchantId,
       );
+      logger.i("Merchant data refreshed");
     }
   }
 
@@ -260,6 +290,7 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
           var sendable = {"id": device["inventory"], "origin": "merchant"};
           return GestureDetector(
             onTap: () {
+              logger.i("Inventory opened: " + sendable["id"]);
               Navigator.pushNamed(context, "/viewinventory",
                   arguments: sendable);
             },
@@ -340,8 +371,9 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                           Text(
                                             "Email",
                                             style: TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold),
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                           )
                                         ],
                                       ),
@@ -354,8 +386,13 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                                 "") {
                                           var launchURL1 =
                                               'mailto:${merchantDocument["leadDocument"]["emailAddr"]}?subject=Followup about ${merchantDocument["leadDocument"]["businessName"]}';
+                                          logger.i("Email client opened for: " +
+                                              merchantDocument["leadDocument"]
+                                                  ["emailAddr"]);
                                           launch(launchURL1);
                                         } else {
+                                          logger.e(
+                                              "No email specified for email button");
                                           Fluttertoast.showToast(
                                               msg: "No email specified!",
                                               toastLength: Toast.LENGTH_SHORT,
@@ -376,10 +413,12 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                       child: Row(
                                         children: <Widget>[
                                           Icon(Icons.call, color: Colors.white),
-                                          Text("Call",
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold))
+                                          Text(
+                                            "Call",
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold),
+                                          )
                                         ],
                                       ),
                                       onPressed: () {
@@ -391,8 +430,15 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                                 "") {
                                           var launchURL2 =
                                               'tel:${merchantDocument["leadDocument"]["phoneNumber"]}';
+                                          logger.i(
+                                              "Phone client opening to call: " +
+                                                  merchantDocument[
+                                                          "leadDocument"]
+                                                      ["phoneNumber"]);
                                           launch(launchURL2);
                                         } else {
+                                          logger.e(
+                                              "No phone number specified for phone button");
                                           Fluttertoast.showToast(
                                               msg: "No phone number specified!",
                                               toastLength: Toast.LENGTH_SHORT,
@@ -416,16 +462,21 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                           Text(
                                             "Map",
                                             style: TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold),
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                           )
                                         ],
                                       ),
                                       onPressed: () {
                                         if (merchantLocation != null) {
+                                          logger.i("Opening map client for: " +
+                                              merchantLocation);
                                           MapsLauncher.launchQuery(
                                               merchantLocation);
                                         } else {
+                                          logger.e(
+                                              "No address specified for map button");
                                           Fluttertoast.showToast(
                                               msg: "No address specified!",
                                               toastLength: Toast.LENGTH_SHORT,
@@ -443,101 +494,97 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                           ),
                         ),
                         CustomCard(
-                            key: Key("merchantsSettings"),
-                            icon: Icons.settings,
-                            title: "Settings",
-                            child: merchant["merchant_configs"].length != 0
-                                ? Column(
-                                    children: <Widget>[
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Row(
-                                          children: <Widget>[
-                                            Text("Gift Card:",
-                                                style: TextStyle(fontSize: 16)),
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.fromLTRB(
-                                                      8, 0, 0, 0),
-                                              child: merchant["merchant_configs"]
-                                                                      [0]
-                                                                  ["document"]
-                                                              ["giftcards"]
-                                                          .toString() ==
-                                                      "true"
-                                                  ? Icon(
-                                                      Icons.done,
-                                                      size: 26,
-                                                      color: Colors.green[600],
-                                                    )
-                                                  : Icon(Icons.clear,
-                                                      color: Colors.red[600],
-                                                      size: 26),
-                                            ),
-                                          ],
-                                        ),
+                          key: Key("merchantsSettings"),
+                          icon: Icons.settings,
+                          title: "Settings",
+                          child: merchant["merchant_configs"].length != 0
+                              ? Column(
+                                  children: <Widget>[
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Row(
+                                        children: <Widget>[
+                                          Text("Gift Card:",
+                                              style: TextStyle(fontSize: 16)),
+                                          Padding(
+                                            padding: const EdgeInsets.fromLTRB(
+                                                8, 0, 0, 0),
+                                            child: merchant["merchant_configs"]
+                                                                [0]["document"]
+                                                            ["giftcards"]
+                                                        .toString() ==
+                                                    "true"
+                                                ? Icon(
+                                                    Icons.done,
+                                                    size: 26,
+                                                    color: Colors.green[600],
+                                                  )
+                                                : Icon(Icons.clear,
+                                                    color: Colors.red[600],
+                                                    size: 26),
+                                          ),
+                                        ],
                                       ),
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Row(
-                                          children: <Widget>[
-                                            Text("Cash Discounting:",
-                                                style: TextStyle(fontSize: 16)),
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.fromLTRB(
-                                                      8, 0, 0, 0),
-                                              child: merchant["merchant_configs"]
-                                                                      [0]
-                                                                  ["document"][
-                                                              "cashDiscounting"]
-                                                          .toString() ==
-                                                      "true"
-                                                  ? Icon(
-                                                      Icons.done,
-                                                      size: 26,
-                                                      color: Colors.green[600],
-                                                    )
-                                                  : Icon(Icons.clear,
-                                                      color: Colors.red[600],
-                                                      size: 26),
-                                            ),
-                                          ],
-                                        ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Row(
+                                        children: <Widget>[
+                                          Text("Cash Discounting:",
+                                              style: TextStyle(fontSize: 16)),
+                                          Padding(
+                                            padding: const EdgeInsets.fromLTRB(
+                                                8, 0, 0, 0),
+                                            child: merchant["merchant_configs"]
+                                                                [0]["document"]
+                                                            ["cashDiscounting"]
+                                                        .toString() ==
+                                                    "true"
+                                                ? Icon(
+                                                    Icons.done,
+                                                    size: 26,
+                                                    color: Colors.green[600],
+                                                  )
+                                                : Icon(Icons.clear,
+                                                    color: Colors.red[600],
+                                                    size: 26),
+                                          ),
+                                        ],
                                       ),
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Row(
-                                          children: <Widget>[
-                                            Text("Cash Discounting Percent:",
-                                                style: TextStyle(fontSize: 16)),
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.fromLTRB(
-                                                      8, 0, 0, 0),
-                                              child: merchant["merchant_configs"]
-                                                                      [0]
-                                                                  ["document"][
-                                                              "cashDiscountingPercent"]
-                                                          .toString() !=
-                                                      "null"
-                                                  ? Text(
-                                                      merchant["merchant_configs"]
-                                                                          [0]
-                                                                      ["document"][
-                                                                  "cashDiscountingPercent"]
-                                                              .toString() +
-                                                          "%",
-                                                      style: TextStyle(
-                                                          fontSize: 16))
-                                                  : Text("", style: TextStyle(fontSize: 16)),
-                                            ),
-                                          ],
-                                        ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Row(
+                                        children: <Widget>[
+                                          Text("Cash Discounting Percent:",
+                                              style: TextStyle(fontSize: 16)),
+                                          Padding(
+                                            padding: const EdgeInsets.fromLTRB(
+                                                8, 0, 0, 0),
+                                            child: merchant["merchant_configs"]
+                                                                [0]["document"][
+                                                            "cashDiscountingPercent"]
+                                                        .toString() !=
+                                                    "null"
+                                                ? Text(
+                                                    merchant["merchant_configs"]
+                                                                        [0]
+                                                                    ["document"][
+                                                                "cashDiscountingPercent"]
+                                                            .toString() +
+                                                        "%",
+                                                    style:
+                                                        TextStyle(fontSize: 16))
+                                                : Text("",
+                                                    style: TextStyle(fontSize: 16)),
+                                          ),
+                                        ],
                                       ),
-                                    ],
-                                  )
-                                : Empty("No Device Settings Found")),
+                                    ),
+                                  ],
+                                )
+                              : Empty("No Device Settings Found"),
+                        ),
                         CustomCard(
                           key: Key("merchants3"),
                           icon: Icons.devices,

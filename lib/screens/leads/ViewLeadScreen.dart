@@ -9,6 +9,7 @@ import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
 import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:logger/logger.dart';
 import 'package:maps_launcher/maps_launcher.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
@@ -61,6 +62,18 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
   bool isStale = false;
   List<LeadInfoEntry> leadInfoEntries = [];
 
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 120,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output:
+  );
+
   var lead;
   var leadStatus;
   var leadDocument;
@@ -105,12 +118,6 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
     super.dispose();
   }
 
-  void openLead(lead) {
-    Navigator.popAndPushNamed(context, "/viewlead", arguments: {
-      lead["lead"],
-    });
-  }
-
   Future<void> checkIfBoarded(status) async {
     QueryOptions options = QueryOptions(
       document: gql("""
@@ -137,16 +144,29 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
         });
 
         if (leadStatus == status) {
+          logger.i("Lead is boarded");
           setState(() {
             isBoarded = true;
           });
         } else {
+          logger.i("Lead is not boarded");
+
           setState(() {
             isBoarded = false;
           });
         }
       } else {
-        print(new Error());
+        print("Error checking lead status: " + result.exception.toString());
+        logger.e("Error checking lead status: " + result.exception.toString());
+
+        Fluttertoast.showToast(
+          msg: "Error checking lead status: " + result.exception.toString(),
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
       }
     }
   }
@@ -171,8 +191,8 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                 style: TextStyle(fontSize: 17, color: Colors.red),
               ),
               onPressed: () {
+                logger.i("Stale lead not claimed: " + lead["leadbusinessname"]);
                 Navigator.of(context).pop();
-                openLead(lead);
               },
             ),
             TextButton(
@@ -201,23 +221,32 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                     await GqlClientFactory().authGqlmutate(mutateOptions);
 
                 if (result.hasException == false) {
+                  logger.i("Stale lead claimed and updated: " +
+                      lead["leadbusinessname"]);
+
                   Fluttertoast.showToast(
-                      msg: "Lead Claimed!",
-                      toastLength: Toast.LENGTH_SHORT,
-                      gravity: ToastGravity.BOTTOM,
-                      backgroundColor: Colors.grey[600],
-                      textColor: Colors.white,
-                      fontSize: 16.0);
+                    msg: "Lead Claimed!",
+                    toastLength: Toast.LENGTH_SHORT,
+                    gravity: ToastGravity.BOTTOM,
+                    backgroundColor: Colors.grey[600],
+                    textColor: Colors.white,
+                    fontSize: 16.0,
+                  );
                   Navigator.of(context).pop();
-                  openLead(lead);
                 } else {
+                  print(
+                      "Stale lead not claimed: " + result.exception.toString());
+                  logger.e(
+                      "Stale lead not claimed: " + result.exception.toString());
+
                   Fluttertoast.showToast(
-                      msg: "Failed to claim lead!",
-                      toastLength: Toast.LENGTH_LONG,
-                      gravity: ToastGravity.BOTTOM,
-                      backgroundColor: Colors.grey[600],
-                      textColor: Colors.white,
-                      fontSize: 16.0);
+                    msg: "Failed to claim lead: " + result.exception.toString(),
+                    toastLength: Toast.LENGTH_LONG,
+                    gravity: ToastGravity.BOTTOM,
+                    backgroundColor: Colors.grey[600],
+                    textColor: Colors.white,
+                    fontSize: 16.0,
+                  );
                 }
               },
             ),
@@ -250,6 +279,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
 
       if (result.hasException == false) {
         if (result.data != null) {
+          logger.i("Lead statment data loaded");
           if (result.data["statement"][0]["document"] != null) {
             if (result.data["statement"][0]["document"]["emailSent"] != null) {
               setState(
@@ -272,9 +302,22 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
             );
           }
         }
+      } else {
+        print("Error getting statement: " + result.exception.toString());
+        logger.e("Error getting statement: " + result.exception.toString());
+
+        Fluttertoast.showToast(
+          msg: "Error getting statement: " + result.exception.toString(),
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
       }
     } catch (err) {
-      print(err);
+      print("Error getting statement: " + err.toString());
+      logger.e("Error getting statement: " + err.toString());
     }
     if (statementDirty) {
       pulseController.forward();
@@ -305,6 +348,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
     if (result.hasException == false) {
       var body = result.data["lead_by_pk"];
       isStale = result.data["lead_by_pk"]["is_stale"];
+      logger.i("Lead data loaded");
       if (body != null) {
         var bodyDecoded = body;
         checkIfBoarded(bodyDecoded["lead_status"]);
@@ -318,8 +362,19 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
           },
         );
       }
-    }
+    } else {
+      print("Error getting lead data: " + result.exception.toString());
+      logger.e("Error getting lead data: " + result.exception.toString());
 
+      Fluttertoast.showToast(
+        msg: "Error getting lead data: " + result.exception.toString(),
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.grey[600],
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+    }
     setState(() {
       isLoading = false;
     });
@@ -415,6 +470,8 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
     if (result.hasException == false) {
       await loadLeadData(this.widget.leadId);
 
+      logger.i("Lead updated: " + this.widget.leadId);
+
       Fluttertoast.showToast(
           msg: "Lead Updated!",
           toastLength: Toast.LENGTH_SHORT,
@@ -423,52 +480,17 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
           textColor: Colors.white,
           fontSize: 16.0);
     } else {
+      print("Failed to update lead: " + result.exception.toString());
+      logger.e("Failed to update lead: " + result.exception.toString());
+
       Fluttertoast.showToast(
-          msg: "Failed to udpate lead!",
+          msg: "Failed to update lead: " + result.exception.toString(),
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.grey[600],
           textColor: Colors.white,
           fontSize: 16.0);
     }
-  }
-
-  Future<void> deleteCheck(leadId) async {
-    return showDialog<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Delete this Lead?'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text('Are you sure you want to delete this lead?'),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text(
-                'Cancel',
-                style: TextStyle(fontSize: 17),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text(
-                'Delete',
-                style: TextStyle(fontSize: 17, color: Colors.red),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
   }
 
   Future<void> popCheck() async {
@@ -524,33 +546,6 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
         );
       },
     );
-  }
-
-  Widget button;
-  actionButton() {
-    if (statementDirty) {
-      setState(
-        () {
-          button = CircleAvatar(
-            radius: 25,
-            backgroundColor: Colors.red,
-            child: IconButton(
-              icon: Icon(Icons.priority_high, color: Colors.white),
-              onPressed: () {},
-            ),
-          );
-        },
-      );
-    } else {
-      setState(
-        () {
-          button = IconButton(
-            icon: Icon(Icons.done, color: Colors.white),
-            onPressed: () {},
-          );
-        },
-      );
-    }
   }
 
   @override
@@ -684,6 +679,8 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                         }
                                       },
                                     );
+                                    logger.i(
+                                        "Employee changed to: " + leadEmployee);
                                   }),
                                 ),
                               )
@@ -701,6 +698,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                 businessNameController,
                                 (val) {
                                   if (val.isEmpty) {
+                                    logger.i("No business name entered");
                                     return 'Please enter a business name';
                                   }
                                   return null;
@@ -744,6 +742,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                 firstNameController,
                                 (val) {
                                   if (val.isEmpty) {
+                                    logger.i("No contact first name added");
                                     return 'Please enter a contact first name';
                                   }
                                   return null;
@@ -763,6 +762,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                 (value) {
                                   if (value.isNotEmpty &&
                                       !value.contains('@')) {
+                                    logger.i("No valid email entered");
                                     return 'Please enter a valid email';
                                   }
                                   return null;
@@ -782,14 +782,14 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                         ),
                                       ),
                                       Expanded(
-                                          flex: 8,
-                                          child: !isStale && !isBoarded
-                                              ? TextField(
-                                                  controller:
-                                                      phoneNumberController,
-                                                )
-                                              : Text(
-                                                  phoneNumberController.text)),
+                                        flex: 8,
+                                        child: !isStale && !isBoarded
+                                            ? TextField(
+                                                controller:
+                                                    phoneNumberController,
+                                              )
+                                            : Text(phoneNumberController.text),
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -814,9 +814,9 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                                 Text(
                                                   "Email",
                                                   style: TextStyle(
-                                                      color: Colors.white,
-                                                      fontWeight:
-                                                          FontWeight.bold),
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
                                                 )
                                               ],
                                             ),
@@ -827,8 +827,14 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                                       "") {
                                                 var launchURL1 =
                                                     'mailto:${emailAddrController.text}?subject=Followup about ${businessNameController.text}';
+                                                logger.i(
+                                                    "Opening email client to send email to: " +
+                                                        emailAddrController
+                                                            .text);
                                                 launch(launchURL1);
                                               } else {
+                                                logger.i(
+                                                    "No email specified for email button click");
                                                 Fluttertoast.showToast(
                                                     msg: "No email specified!",
                                                     toastLength:
@@ -899,9 +905,9 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                                 Text(
                                                   "Map",
                                                   style: TextStyle(
-                                                      color: Colors.white,
-                                                      fontWeight:
-                                                          FontWeight.bold),
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
                                                 )
                                               ],
                                             ),
@@ -919,6 +925,8 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                                 MapsLauncher.launchQuery(
                                                     addressText);
                                               } else {
+                                                logger.i(
+                                                    "No address specified for map button click");
                                                 Fluttertoast.showToast(
                                                   msg: "No address specified!",
                                                   toastLength:
@@ -970,6 +978,8 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                           arguments: lead,
                                         );
                                       } else {
+                                        logger.i(
+                                            "Attempt to view lead tasks without claiming first");
                                         Fluttertoast.showToast(
                                             msg:
                                                 "Claim this lead to see tasks!",
@@ -1016,6 +1026,8 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                             context, "/leadnotes",
                                             arguments: lead);
                                       } else {
+                                        logger.i(
+                                            "Attempt to view lead notes without claiming first");
                                         Fluttertoast.showToast(
                                           msg: "Claim this lead to see notes!",
                                           toastLength: Toast.LENGTH_SHORT,
@@ -1062,6 +1074,8 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                       arguments: lead,
                                     );
                                   } else {
+                                    logger.i(
+                                        "Attempt to view lead statements without claiming");
                                     Fluttertoast.showToast(
                                         msg:
                                             "Claim this lead to see statements!",

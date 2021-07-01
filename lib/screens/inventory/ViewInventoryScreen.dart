@@ -314,7 +314,7 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
         await loadInventoryData();
       }
     } else {
-      logger.i("Error checking out device: " + result.exception.toString());
+      logger.e("Error checking out device: " + result.exception.toString());
       Fluttertoast.showToast(
         msg: result.exception.toString(),
         toastLength: Toast.LENGTH_LONG,

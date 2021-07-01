@@ -104,7 +104,7 @@ class TasksState extends State<Tasks> {
       },
       (error) {
         print("Error in Tasks: " + error.toString());
-        logger.i("Error in Tasks: " + error.toString());
+        logger.e("Error in Tasks: " + error.toString());
       },
       () => refreshSub(),
     );

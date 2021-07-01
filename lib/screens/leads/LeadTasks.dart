@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:atlascrm/screens/leads/LeadStepper.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:logger/logger.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import 'package:intl/intl.dart';
@@ -35,6 +36,18 @@ class _LeadTasksState extends State<LeadTasks> {
   bool isLoading = true;
   bool isEmpty = true;
   bool isBoarded;
+
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 120,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output:
+  );
 
   var tasks = [];
   var tasksFull = [];
@@ -197,9 +210,13 @@ class _LeadTasksState extends State<LeadTasks> {
           isLoading = false;
         });
         await fillEvents();
+        logger.i("Lead task data loaded and events filled");
       }
       isLoading = false;
-    }, (error) {}, () => refreshSub());
+    }, (error) {
+      print("Error in getting lead tasks: " + error.toString());
+      logger.e("Error in getting lead tasks: " + error.toString());
+    }, () => refreshSub());
   }
 
   Future refreshSub() async {
@@ -207,11 +224,11 @@ class _LeadTasksState extends State<LeadTasks> {
       await subscription.cancel();
       subscription = null;
       initTasks();
+      logger.i("Lead tasks data refreshed");
     }
   }
 
   Future<void> createTask() async {
-    var successMsg = "Task created!";
     var msgLength = Toast.LENGTH_SHORT;
     var taskEmployee = this.widget.lead["employee"]["employee"];
 
@@ -232,6 +249,7 @@ class _LeadTasksState extends State<LeadTasks> {
     final QueryResult result0 = await GqlClientFactory().authGqlquery(options);
 
     if (result0 != null) {
+      logger.i("Task status loaded");
       if (result0.hasException == false) {
         result0.data["task_status"].forEach((item) {
           if (item["title"] == "Open") {
@@ -242,7 +260,8 @@ class _LeadTasksState extends State<LeadTasks> {
         await initTasks();
       }
     } else {
-      print(new Error());
+      print("Error getting task status: " + result0.exception.toString());
+      logger.e("Error getting task status: " + result0.exception.toString());
     }
     var saveDate = DateTime.parse(taskDateController.text).toUtc();
     var saveDateFormat = DateFormat("yyyy-MM-dd HH:mm").format(saveDate);
@@ -280,27 +299,42 @@ class _LeadTasksState extends State<LeadTasks> {
 
       if (result != null) {
         if (result.hasException == false) {
+          logger.i(
+            "Task successfully created for " +
+                data["lead"].toString() +
+                " for a " +
+                taskTypeDropdownValue.toString() +
+                " at " +
+                data["date"].toString(),
+          );
+
           Fluttertoast.showToast(
-              msg: successMsg,
-              toastLength: msgLength,
-              gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.grey[600],
-              textColor: Colors.white,
-              fontSize: 16.0);
+            msg: "Task successfully created!",
+            toastLength: msgLength,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0,
+          );
 
           await initTasks();
         }
       } else {
-        print(new Error());
-      }
-    } catch (err) {
-      Fluttertoast.showToast(
-          msg: "Failed to create task for employee!",
-          toastLength: Toast.LENGTH_SHORT,
+        print("Error inserting task: " + result.exception.toString());
+        logger.e("Error inserting task: " + result.exception.toString());
+
+        Fluttertoast.showToast(
+          msg: "Error inserting task: " + result.exception.toString(),
+          toastLength: Toast.LENGTH_LONG,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.grey[600],
           textColor: Colors.white,
-          fontSize: 16.0);
+          fontSize: 16.0,
+        );
+      }
+    } catch (err) {
+      print("Error inserting task: " + err.toString());
+      logger.e("Error inserting task: " + err.toString());
     }
     _formKey.currentState.reset();
   }
@@ -330,16 +364,25 @@ class _LeadTasksState extends State<LeadTasks> {
         });
 
         if (leadStatus == status) {
-          setState(() {
-            isBoarded = true;
-          });
+          isBoarded = true;
+          logger.i("Lead is boarded");
         } else {
           setState(() {
             isBoarded = false;
           });
+          logger.i("Lead is not boarded");
         }
       } else {
-        print(new Error());
+        print("Error checking lead status: " + result.exception.toString());
+        logger.e("Error checking lead status: " + result.exception.toString());
+        Fluttertoast.showToast(
+          msg: "Error inserting task: " + result.exception.toString(),
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
       }
     }
   }
@@ -366,6 +409,7 @@ class _LeadTasksState extends State<LeadTasks> {
   }
 
   Future<void> openAddTaskForm() async {
+    logger.i("Add task form opened");
     await showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -378,6 +422,7 @@ class _LeadTasksState extends State<LeadTasks> {
                     'Cancel',
                   ),
                   onPressed: () {
+                    logger.i("Add task form closed");
                     Navigator.of(context).pop();
                   },
                 ),
@@ -434,6 +479,8 @@ class _LeadTasksState extends State<LeadTasks> {
                                           taskTypeDropdownValue = val;
                                         },
                                       );
+                                      logger.i("Task type changed: " +
+                                          val.toString());
                                     }),
                                   ),
                                   Divider(
@@ -447,6 +494,8 @@ class _LeadTasksState extends State<LeadTasks> {
                                           taskPriorityDropdownValue = val;
                                         },
                                       );
+                                      logger.i("Task priorty level changed: " +
+                                          val.toString());
                                     },
                                   ),
                                   Divider(
@@ -457,6 +506,7 @@ class _LeadTasksState extends State<LeadTasks> {
                                         FocusScope.of(context).nextFocus(),
                                     validator: (value) {
                                       if (value.isEmpty) {
+                                        logger.i("No title entered");
                                         return 'Please enter a title';
                                       }
                                       return null;
@@ -474,6 +524,7 @@ class _LeadTasksState extends State<LeadTasks> {
                                         FocusScope.of(context).nextFocus(),
                                     validator: (DateTime dateTime) {
                                       if (dateTime == null) {
+                                        logger.i("No date selected");
                                         return 'Please select a date';
                                       }
                                       return null;
@@ -559,27 +610,28 @@ class _LeadTasksState extends State<LeadTasks> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: UniversalStyles.backgroundColor,
-        appBar: CustomAppBar(
-          key: Key("leadTaskAppBar"),
-          title: Text(
-              "Tasks for: " + this.widget.lead["document"]["businessName"]),
-        ),
-        body: isLoading
-            ? CenteredLoadingSpinner()
-            : Container(
-                padding: EdgeInsets.all(10),
-                child: getTasks(),
-              ),
-        floatingActionButton: isBoarded
-            ? Container()
-            : FloatingActionButton(
-                onPressed: openAddTaskForm,
-                backgroundColor: UniversalStyles.actionColor,
-                foregroundColor: Colors.white,
-                child: Icon(Icons.add),
-                splashColor: Colors.white,
-              ));
+      backgroundColor: UniversalStyles.backgroundColor,
+      appBar: CustomAppBar(
+        key: Key("leadTaskAppBar"),
+        title:
+            Text("Tasks for: " + this.widget.lead["document"]["businessName"]),
+      ),
+      body: isLoading
+          ? CenteredLoadingSpinner()
+          : Container(
+              padding: EdgeInsets.all(10),
+              child: getTasks(),
+            ),
+      floatingActionButton: isBoarded
+          ? Container()
+          : FloatingActionButton(
+              onPressed: openAddTaskForm,
+              backgroundColor: UniversalStyles.actionColor,
+              foregroundColor: Colors.white,
+              child: Icon(Icons.add),
+              splashColor: Colors.white,
+            ),
+    );
   }
 
   Widget taskList() {
