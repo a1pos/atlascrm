@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:round2crm/components/shared/NotificationCenter.dart';
 import 'package:round2crm/components/style/UniversalStyles.dart';
 import 'package:round2crm/services/UserService.dart';
@@ -116,6 +117,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     },
                   ),
             UserService.isTech ||
+                    UserService.isCorporateTech ||
                     UserService.isAdmin ||
                     UserService.isSalesManager
                 ? ListTile(
@@ -134,7 +136,9 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     },
                   )
                 : Container(),
-            UserService.isTech || UserService.isAdmin
+            UserService.isTech ||
+                    UserService.isCorporateTech ||
+                    UserService.isAdmin
                 ? ListTile(
                     leading: Icon(
                       Icons.business_center,
@@ -151,7 +155,9 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     },
                   )
                 : Container(),
-            UserService.isTech || UserService.isAdmin
+            UserService.isTech ||
+                    UserService.isCorporateTech ||
+                    UserService.isAdmin
                 ? ListTile(
                     leading: Icon(
                       Icons.build,
@@ -168,7 +174,9 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     },
                   )
                 : Text(""),
-            UserService.isAdmin || UserService.isSalesManager
+            UserService.isAdmin ||
+                    UserService.isSalesManager ||
+                    UserService.isCorporateTech
                 ? ListTile(
                     leading: Icon(
                       Icons.account_box,

@@ -24,10 +24,11 @@ class ApiService {
   );
 
   Future<Response> publicGet(url, data) async {
+    logger.i("Connecting to: " + URLBASE.toString());
     try {
       return await Dio(
         BaseOptions(
-          baseUrl: ConfigSettings.HOOK_API_URL,
+          baseUrl: URLBASE,
           responseType: ResponseType.json,
           headers: {
             "Content-Type": "application/json",
@@ -36,16 +37,18 @@ class ApiService {
         ),
       ).get(url);
     } catch (err) {
-      logger.e(err);
+      logger.e(err.toString());
       throw err;
     }
   }
 
   Future<Response> publicPost(url, data) async {
     try {
+      logger.i("Connecting to: " + URLBASE.toString());
+
       return await Dio(
         BaseOptions(
-          baseUrl: ConfigSettings.HOOK_API_URL,
+          baseUrl: URLBASE,
           responseType: ResponseType.json,
           headers: {
             "Content-Type": "application/json",
@@ -57,18 +60,20 @@ class ApiService {
         data: jsonEncode(data),
       );
     } catch (err) {
-      logger.e(err);
+      logger.e(err.toString());
       throw err;
     }
   }
 
   Future<Response> authGet(context, url, {isRetry: false}) async {
     try {
+      logger.i("Connecting to: " + URLBASE.toString());
+
       var token = UserService.token;
 
       var resp = await Dio(
         BaseOptions(
-          baseUrl: ConfigSettings.HOOK_API_URL,
+          baseUrl: URLBASE,
           responseType: ResponseType.json,
           headers: {
             "Content-Type": "application/json",
@@ -88,7 +93,7 @@ class ApiService {
       }
       return resp;
     } catch (err) {
-      logger.e(err);
+      logger.e(err.toString());
       if (checkAuthErrorResponse(context, err)) {
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
@@ -101,6 +106,8 @@ class ApiService {
   Future<Response> authPost(context, url, data,
       {isFile = false, isRetry: false}) async {
     try {
+      logger.i("Connecting to: " + URLBASE.toString());
+
       var token = UserService.token;
 
       var resp = await Dio(
@@ -125,7 +132,7 @@ class ApiService {
       }
       return resp;
     } catch (err) {
-      logger.e(err);
+      logger.e(err.toString());
       if (checkAuthErrorResponse(context, err)) {
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
@@ -137,6 +144,8 @@ class ApiService {
 
   Future<Response> authFilePost(context, url, filePath, {isRetry: true}) async {
     try {
+      logger.i("Connecting to: " + URLBASE.toString());
+
       logger.i("Context: " +
           context.toString() +
           ", \nUrl: " +
@@ -197,8 +206,10 @@ class ApiService {
       "url": url,
       "formData": formData,
     };
-    logger.i(message);
+    logger.i(message.toString());
     try {
+      logger.i("Connecting to: " + URLBASE.toString());
+
       var token = UserService.token;
 
       var resp = await Dio(
@@ -227,6 +238,8 @@ class ApiService {
   Future<Response> authFilesPost(context, url, filePaths,
       {isRetry: true, fileName: "file"}) async {
     try {
+      logger.i("Connecting to: " + URLBASE.toString());
+
       var token = UserService.token;
 
       var formData = FormData();
@@ -288,6 +301,8 @@ class ApiService {
 
   Future<Response> authPut(context, url, data, {isRetry: false}) async {
     try {
+      logger.i("Connecting to: " + URLBASE.toString());
+
       var token = UserService.token;
 
       var resp = await Dio(
@@ -309,7 +324,7 @@ class ApiService {
       }
       return resp;
     } catch (err) {
-      logger.e(err);
+      logger.e(err.toString());
       if (checkAuthErrorResponse(context, err)) {
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
@@ -321,6 +336,8 @@ class ApiService {
 
   Future<Response> authDelete(context, url, data, {isRetry: false}) async {
     try {
+      logger.i("Connecting to: " + URLBASE.toString());
+
       var token = UserService.token;
 
       var resp = await Dio(
@@ -342,7 +359,7 @@ class ApiService {
       }
       return resp;
     } catch (err) {
-      logger.e(err);
+      logger.e(err.toString());
       if (checkAuthErrorResponse(context, err)) {
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
@@ -354,6 +371,8 @@ class ApiService {
 
   bool checkAuthErrorResponse(context, msg) {
     try {
+      logger.i("Connecting to: " + URLBASE.toString());
+
       if (msg != null) {
         if (msg.response != null) {
           if (msg.response.statusCode == 401) {
@@ -363,7 +382,7 @@ class ApiService {
         }
       }
     } catch (err) {
-      logger.e(err);
+      logger.e(err.toString());
     }
     return false;
   }

@@ -7,16 +7,20 @@ import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:logger/logger.dart';
+import 'package:round2crm/config/ConfigSettings.dart';
 
 class UserService {
   final GoogleSignIn googleSignIn =
       GoogleSignIn(scopes: ['https://www.googleapis.com/auth/calendar']);
+
+  final String URLBASE = ConfigSettings.HOOK_API_URL;
 
   static Employee employee;
 
   static bool isAdmin = false;
   static bool isTech = false;
   static bool isSalesManager = false;
+  static bool isCorporateTech = false;
   static bool isAuthenticated = false;
 
   static String token;
@@ -50,7 +54,7 @@ class UserService {
         return idTokenResult;
       }
     } catch (err) {
-      logger.e(err);
+      logger.e(err.toString());
       throw new Error();
     }
   }
@@ -87,7 +91,7 @@ class UserService {
         return true;
       }
     } catch (err) {
-      logger.e(err);
+      logger.e(err.toString());
     }
     return false;
   }
@@ -103,7 +107,7 @@ class UserService {
 
       logger.i("User signed out");
     } catch (err) {
-      logger.e(err);
+      logger.e(err.toString());
       throw new Error();
     }
   }
@@ -112,10 +116,16 @@ class UserService {
     try {
       GqlClientFactory.setPublicGraphQLClient();
 
+      logger.i("Connecting to hooks API: " + URLBASE.toString());
+      logger.i("Connecting to Hasura: " + ConfigSettings.HASURA_URL.toString());
+      logger.i("Connecting to Websocket: " +
+          ConfigSettings.HASURA_WEBSOCKET.toString());
+
       var user = firebaseAuth.currentUser;
       logger.i(user);
 
-      MutationOptions mutateOptions = MutationOptions(document: gql("""
+      MutationOptions mutateOptions = MutationOptions(
+        document: gql("""
         mutation ACTION_LINK(\$uid: String!, \$email: String!) {
           link_google_account(uid: \$uid, email: \$email) {
               employee
@@ -123,25 +133,34 @@ class UserService {
               refreshToken
           }
         }
-    """), fetchPolicy: FetchPolicy.noCache, variables: {
-        "email": user.email,
-        "uid": user.uid,
-      });
+    """),
+        fetchPolicy: FetchPolicy.noCache,
+        variables: {
+          "email": user.email,
+          "uid": user.uid,
+        },
+      );
       final QueryResult linkResult =
           await GqlClientFactory().authGqlmutate(mutateOptions);
 
       if (linkResult.hasException) {
+        print(
+            "Error linking google account: " + linkResult.exception.toString());
+        logger.e(
+            "Error linking google account: " + linkResult.exception.toString());
         throw (linkResult.exception);
       } else {
         token = linkResult.data["link_google_account"]["token"];
         rToken = linkResult.data["link_google_account"]["refreshToken"];
         var idTokenResult = await user.getIdToken(true);
 
-        logger.i("ID Token result " + idTokenResult);
+        logger.i("ID Token result: " + idTokenResult);
 
         var empDecoded = linkResult.data["link_google_account"]["employee"];
 
         employee = Employee.fromJson(empDecoded);
+        logger.i("Employee role: " + employee.role.toString());
+
         if (employee.role == "admin" || employee.role == "sa") {
           isAdmin = true;
         } else {
@@ -152,11 +171,18 @@ class UserService {
         } else {
           isTech = false;
         }
+        if (employee.role == "corporate_tech") {
+          isCorporateTech = true;
+        } else {
+          isCorporateTech = false;
+        }
+
         if (employee.role == "salesmanager") {
           isSalesManager = true;
         } else {
           isSalesManager = false;
         }
+
         GqlClientFactory.setPrivateGraphQLClient(idTokenResult);
         String companyId = empDecoded["company"];
         QueryOptions companyQueryOptions = QueryOptions(
@@ -198,7 +224,7 @@ class UserService {
         logger.i(notificationRegistrationResult);
       }
     } catch (err) {
-      logger.e(err);
+      logger.e(err.toString());
       throw new Error();
     }
   }
@@ -211,7 +237,7 @@ class UserService {
     try {
       return firebaseAuth.currentUser;
     } catch (err) {
-      print(err);
+      print(err.toString());
     }
 
     return null;
@@ -238,7 +264,7 @@ class UserService {
         signOutGoogle();
         return false;
       } catch (err) {
-        logger.e(err);
+        logger.e(err.toString());
         throw new Error();
       }
     } else {

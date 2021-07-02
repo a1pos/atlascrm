@@ -58,7 +58,7 @@ class GqlClientFactory {
       }
       return result;
     } catch (err) {
-      logger.e(err);
+      logger.e(err.toString());
       throw new Error();
     }
   }
@@ -91,7 +91,7 @@ class GqlClientFactory {
       }
       return result;
     } catch (err) {
-      logger.e(err);
+      logger.e(err.toString());
       throw new Error();
     }
   }
@@ -110,7 +110,7 @@ class GqlClientFactory {
 
           if (errMsg.contains("JWTExpired")) {
             await refreshClient();
-            logger.i("JWTExpired authGqlsubscribe: " + errMsg);
+            logger.e("JWTExpired authGqlsubscribe: " + errMsg);
             onError(error);
             refresh();
           } else {
@@ -129,7 +129,7 @@ class GqlClientFactory {
       );
       return subscription;
     } catch (err) {
-      logger.e(err);
+      logger.e(err.toString());
       throw new Error();
     }
   }
@@ -156,7 +156,7 @@ class GqlClientFactory {
         isRefreshing = false;
       }
     } catch (err) {
-      logger.e(err);
+      logger.e(err.toString());
       throw new Error();
     }
   }

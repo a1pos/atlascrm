@@ -262,9 +262,7 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
     if (subscription != null) {
       await subscription.cancel();
       subscription = null;
-      loadMerchantData(
-        this.widget.merchantId,
-      );
+      loadMerchantData(this.widget.merchantId);
       logger.i("Merchant data refreshed");
     }
   }

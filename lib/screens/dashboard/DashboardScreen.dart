@@ -89,7 +89,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   _leadsChartState.currentState.parentRefresh();
                   _tasksState.currentState.refreshSub();
 
-                  if (UserService.isTech || UserService.isAdmin) {
+                  if (UserService.isTech ||
+                      UserService.isCorporateTech ||
+                      UserService.isAdmin) {
                     _installsState.currentState.refreshSub();
                   }
 
@@ -197,7 +199,9 @@ class DashboardCards extends StatelessWidget {
                   ),
                 ),
               ),
-              UserService.isAdmin || UserService.isTech
+              UserService.isAdmin ||
+                      UserService.isTech ||
+                      UserService.isCorporateTech
                   ? CustomCard(
                       key: Key("Installs"),
                       title: "Installs",

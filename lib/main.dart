@@ -67,8 +67,6 @@ class _Round2CRMState extends State<Round2CRM> {
     GqlClientFactory.setPublicGraphQLClient();
     isAuthCheck();
     UserService.firebaseAuth.authStateChanges().listen((firebaseUser) {
-      logger.i(firebaseUser);
-
       if (firebaseUser == null && UserService.isAuthenticated) {
         navigatorKey.currentState.popAndPushNamed('/logout');
       }

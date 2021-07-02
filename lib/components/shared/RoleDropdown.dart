@@ -68,6 +68,7 @@ class _RoleDropDownState extends State<RoleDropDown> {
         var rolesArrDecoded = rolesResp.data["role"];
         if (rolesArrDecoded != null) {
           if (this.mounted) {
+            logger.i("Role data loaded for dropdown");
             setState(() {
               roles = rolesArrDecoded;
             });
@@ -83,7 +84,7 @@ class _RoleDropDownState extends State<RoleDropDown> {
           "Error getting roles: " + rolesResp.exception.toString(),
         );
         Fluttertoast.showToast(
-          msg: rolesResp.exception.toString(),
+          msg: "Error getting roles: " + rolesResp.exception.toString(),
           toastLength: Toast.LENGTH_LONG,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.grey[600],
@@ -143,6 +144,7 @@ class _RoleDropDownState extends State<RoleDropDown> {
                       }
                     }
                     startVal = setVal;
+                    logger.i("Role changed on dropdown: " + startVal);
                     this.widget.callback(setVal);
                   });
                 },

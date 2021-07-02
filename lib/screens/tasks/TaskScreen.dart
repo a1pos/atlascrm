@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:logger/logger.dart';
 import 'package:round2crm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:round2crm/components/style/UniversalStyles.dart';
 import 'package:round2crm/components/lead/LeadDropDown.dart';
@@ -14,7 +15,6 @@ import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:round2crm/screens/leads/LeadStepper.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
@@ -37,6 +37,18 @@ class _TaskScreenState extends State<TaskScreen> {
   List tasks = [];
   List tasksFull = [];
   List activeTasks = [];
+
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 120,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output:
+  );
 
   var taskTitleController = TextEditingController();
   var taskDescController = TextEditingController();
@@ -181,9 +193,13 @@ class _TaskScreenState extends State<TaskScreen> {
           isLoading = false;
         });
         await fillEvents();
+        logger.i("Tasks data loaded and events filled");
       }
       isLoading = false;
-    }, (error) {}, () => refreshSub());
+    }, (error) {
+      print("Error getting tasks: " + error.toString());
+      logger.e("Error getting tasks: " + error.toString());
+    }, () => refreshSub());
   }
 
   Future refreshSub() async {
@@ -191,6 +207,7 @@ class _TaskScreenState extends State<TaskScreen> {
       await subscription.cancel();
       subscription = null;
       initTasks();
+      logger.i("Tasks data refreshed");
     }
   }
 
@@ -226,9 +243,19 @@ class _TaskScreenState extends State<TaskScreen> {
         });
 
         await initTasks();
+      } else {
+        print("Error getting task status: " + result0.exception.toString());
+        logger.e("Error getting task status: " + result0.exception.toString());
+
+        Fluttertoast.showToast(
+          msg: "Error getting task status: " + result0.exception.toString(),
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
       }
-    } else {
-      print(new Error());
     }
     var saveDate = DateTime.parse(taskDateController.text).toUtc();
     var saveDateFormat = DateFormat("yyyy-MM-dd HH:mm").format(saveDate);
@@ -247,7 +274,8 @@ class _TaskScreenState extends State<TaskScreen> {
     };
 
     try {
-      MutationOptions options = MutationOptions(document: gql("""
+      MutationOptions options = MutationOptions(
+        document: gql("""
         mutation INSERT_TASK(\$data: [task_insert_input!]! = {}) {
           insert_task(objects: \$data) {
             returning {
@@ -255,7 +283,10 @@ class _TaskScreenState extends State<TaskScreen> {
             }
           }
         }
-            """), fetchPolicy: FetchPolicy.noCache, variables: {"data": data});
+            """),
+        fetchPolicy: FetchPolicy.noCache,
+        variables: {"data": data},
+      );
 
       final QueryResult result =
           await GqlClientFactory().authGqlmutate(options);
@@ -263,51 +294,38 @@ class _TaskScreenState extends State<TaskScreen> {
       if (result != null) {
         if (result.hasException == false) {
           Fluttertoast.showToast(
-              msg: successMsg,
-              toastLength: msgLength,
-              gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.grey[600],
-              textColor: Colors.white,
-              fontSize: 16.0);
+            msg: successMsg,
+            toastLength: msgLength,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0,
+          );
 
           await initTasks();
+          logger.i("Task successfully added and task data reloaded");
+        } else {
+          print("Error inserting new task: " + result.exception.toString());
+          logger.e("Error inserting new task: " + result.exception.toString());
+          Fluttertoast.showToast(
+            msg: "Error inserting new task: " + result.exception.toString(),
+            toastLength: msgLength,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0,
+          );
         }
-      } else {
-        print(new Error());
       }
     } catch (err) {
-      print(err);
-      Fluttertoast.showToast(
-          msg: "Failed to create task for employee!",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.grey[600],
-          textColor: Colors.white,
-          fontSize: 16.0);
+      print("Error inserting new task: " + err.toString());
+      logger.e("Error inserting new task: " + err.toString());
     }
     _formKey.currentState.reset();
   }
 
-  void openAddLeadForm() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Add New Lead'),
-          contentPadding: EdgeInsets.all(0),
-          content: Container(
-            width: MediaQuery.of(context).size.width,
-            height: MediaQuery.of(context).size.height,
-            child: LeadStepper(successCallback: () {
-              initTasks();
-            }),
-          ),
-        );
-      },
-    );
-  }
-
   Future<void> openAddTaskForm() async {
+    logger.i("Add task form opened");
     await showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -320,6 +338,7 @@ class _TaskScreenState extends State<TaskScreen> {
                     'Cancel',
                   ),
                   onPressed: () {
+                    logger.i("Add task form closed");
                     Navigator.of(context).pop();
                   },
                 ),
@@ -371,6 +390,8 @@ class _TaskScreenState extends State<TaskScreen> {
                                                 leadDropdownValue = null;
                                                 employeeDropdownValue = val;
                                               });
+                                              logger.i("Employee changed to: " +
+                                                  employeeDropdownValue);
                                             }),
                                           )
                                         : Container(),
@@ -384,6 +405,8 @@ class _TaskScreenState extends State<TaskScreen> {
                                       setState(() {
                                         taskTypeDropdownValue = val;
                                       });
+                                      logger.i("Task type changed to: " +
+                                          taskTypeDropdownValue);
                                     }),
                                   ),
                                   Divider(
@@ -395,6 +418,8 @@ class _TaskScreenState extends State<TaskScreen> {
                                       setState(() {
                                         taskPriorityDropdownValue = val;
                                       });
+                                      logger.i("Task priorty changed to: " +
+                                          taskPriorityDropdownValue);
                                     },
                                   ),
                                   Divider(
@@ -417,6 +442,9 @@ class _TaskScreenState extends State<TaskScreen> {
                                                   setState(() {
                                                     leadDropdownValue = val;
                                                   });
+                                                  logger.i(
+                                                      "Lead value changed: " +
+                                                          leadDropdownValue);
                                                 },
                                               ),
                                       ),
@@ -427,6 +455,7 @@ class _TaskScreenState extends State<TaskScreen> {
                                         FocusScope.of(context).nextFocus(),
                                     validator: (value) {
                                       if (value.isEmpty) {
+                                        logger.i("No title entered");
                                         return 'Please enter a title';
                                       }
                                       return null;
@@ -444,6 +473,7 @@ class _TaskScreenState extends State<TaskScreen> {
                                         FocusScope.of(context).nextFocus(),
                                     validator: (DateTime dateTime) {
                                       if (dateTime == null) {
+                                        logger.i("No date entered");
                                         return 'Please select a date';
                                       }
                                       return null;
@@ -550,71 +580,6 @@ class _TaskScreenState extends State<TaskScreen> {
     );
   }
 
-  Widget taskList() {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          TextField(
-            decoration: InputDecoration(
-              labelText: "Search Tasks",
-            ),
-            onChanged: (value) {
-              if (value.isNotEmpty) {
-                var filtered = tasksFull.where((e) {
-                  String title = e["document"]["title"];
-                  String notes = e["document"]["notes"];
-
-                  return (title != null || title != ""
-                      ? title.toLowerCase().contains(value.toLowerCase()) ||
-                          notes.toLowerCase().contains(value.toLowerCase())
-                      : false);
-                }).toList();
-
-                setState(() {
-                  activeTasks = filtered.toList();
-                  isEmpty = false;
-                });
-              } else {
-                setState(() {
-                  activeTasks = [];
-                  isEmpty = true;
-                  fillEvents();
-                });
-              }
-            },
-          ),
-          _buildCalendar(),
-          isEmpty
-              ? Empty("No Active Tasks today")
-              : Column(
-                  children: activeTasks.map((t) {
-                    var tDate;
-                    if (t['date'] != null) {
-                      tDate = DateFormat("EEE, MMM d, ''yy")
-                          .add_jm()
-                          .format(DateTime.parse(t['date']).toLocal());
-                    } else {
-                      tDate = "";
-                    }
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.pushNamed(context, "/viewtask",
-                            arguments: t["task"]);
-                      },
-                      child: TaskItem(
-                          title: t["document"]["title"],
-                          description: t["document"]["notes"],
-                          dateTime: tDate,
-                          type: t["taskTypeByTaskType"]["title"],
-                          priority: t["priority"]),
-                    );
-                  }).toList(),
-                ),
-        ],
-      ),
-    );
-  }
-
   Widget getTasks() {
     return SingleChildScrollView(
       child: Column(
@@ -625,6 +590,7 @@ class _TaskScreenState extends State<TaskScreen> {
             ),
             onChanged: (value) {
               if (value.isNotEmpty) {
+                logger.i("Tasks filtered by search: " + value.toString());
                 var filtered = tasksFull.where((e) {
                   String title = e["document"]["title"];
                   String notes = e["document"]["notes"];
@@ -671,6 +637,7 @@ class _TaskScreenState extends State<TaskScreen> {
                     }
                     return GestureDetector(
                       onTap: () {
+                        logger.i("Task opened: " + t["task"]);
                         Navigator.pushNamed(context, "/viewtask",
                             arguments: t["task"]);
                       },

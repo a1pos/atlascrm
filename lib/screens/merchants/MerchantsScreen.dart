@@ -297,7 +297,7 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
   }
 
   void openMerchant(merchant) {
-    logger.i("Merchant opened: " + merchant["merchantbusinessname"]);
+    logger.i("Merchant opened: " + merchant["merchant"]);
     Navigator.pushNamed(
       context,
       "/viewmerchant",
