@@ -1,14 +1,14 @@
-import 'package:atlascrm/components/style/UniversalStyles.dart';
-import 'package:atlascrm/services/UserService.dart';
-import 'package:atlascrm/services/GqlClientFactory.dart';
+import 'package:round2crm/components/style/UniversalStyles.dart';
+import 'package:round2crm/services/UserService.dart';
+import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter/foundation.dart';
-import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
+import 'package:round2crm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
 import 'package:dan_barcode_scan/dan_barcode_scan.dart';
-import 'package:atlascrm/components/inventory/InventoryLocationDropDown.dart';
-import 'package:atlascrm/components/inventory/InventoryPriceTierDropDown.dart';
+import 'package:round2crm/components/inventory/InventoryLocationDropDown.dart';
+import 'package:round2crm/components/inventory/InventoryPriceTierDropDown.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:logger/logger.dart';
 

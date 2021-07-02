@@ -1,5 +1,5 @@
-import 'package:atlascrm/services/ApiService.dart';
-import 'package:atlascrm/services/GqlClientFactory.dart';
+import 'package:round2crm/services/ApiService.dart';
+import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';

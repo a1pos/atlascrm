@@ -1,9 +1,9 @@
 import 'dart:async';
-import 'package:atlascrm/services/FirebaseCESService.dart';
+import 'package:round2crm/services/FirebaseCESService.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:atlascrm/models/Employee.dart';
-import 'package:atlascrm/services/GqlClientFactory.dart';
+import 'package:round2crm/models/Employee.dart';
+import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:logger/logger.dart';

@@ -1,4 +1,4 @@
-import 'package:atlascrm/services/GqlClientFactory.dart';
+import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:logger/logger.dart';

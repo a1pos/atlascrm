@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:http_parser/http_parser.dart';
-import 'package:atlascrm/config/ConfigSettings.dart';
+import 'package:round2crm/config/ConfigSettings.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/widgets.dart';
 import 'package:logger/logger.dart';
@@ -136,8 +136,13 @@ class ApiService {
   }
 
   Future<Response> authFilePost(context, url, filePath, {isRetry: true}) async {
-    logger.i([context, url, filePath]);
     try {
+      logger.i("Context: " +
+          context.toString() +
+          ", \nUrl: " +
+          url.toString() +
+          ", \nfilePath: " +
+          filePath.toString());
       var token = UserService.token;
 
       var type = "application";
@@ -180,8 +185,8 @@ class ApiService {
       }
       return resp;
     } catch (err) {
-      logger.e(err);
-      throw err;
+      logger.e("Error posting file: " + err.toString());
+      throw "Error posting file: " + err.toString();
     }
   }
 
@@ -214,8 +219,8 @@ class ApiService {
       }
       return resp;
     } catch (err) {
-      logger.e(err);
-      throw err;
+      logger.e("Error posting files with form data: " + err.toString());
+      throw "Error posting files with form data: " + err.toString();
     }
   }
 
@@ -271,12 +276,12 @@ class ApiService {
       }
       return resp;
     } catch (err) {
-      logger.e(err);
+      logger.e("Error posting files: " + err.toString());
       if (checkAuthErrorResponse(context, err)) {
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
       } else {
-        throw err;
+        throw "Error posting files: " + err.toString();
       }
     }
   }

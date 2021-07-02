@@ -1,6 +1,6 @@
-import 'package:atlascrm/components/shared/LoadingScreen.dart';
-import 'package:atlascrm/components/style/UniversalStyles.dart';
-import 'package:atlascrm/services/UserService.dart';
+import 'package:round2crm/components/shared/LoadingScreen.dart';
+import 'package:round2crm/components/style/UniversalStyles.dart';
+import 'package:round2crm/services/UserService.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:logger/logger.dart';
@@ -86,7 +86,7 @@ class _AuthScreenState extends State<AuthScreen> {
                           style: TextStyle(fontSize: 38),
                           children: <TextSpan>[
                             TextSpan(
-                              text: "ATLAS",
+                              text: "ROUND2",
                               style: TextStyle(fontFamily: "InterBold"),
                             ),
                             TextSpan(
@@ -105,7 +105,7 @@ class _AuthScreenState extends State<AuthScreen> {
                           child: Column(
                             children: <Widget>[
                               Image(
-                                  image: AssetImage("assets/a1logo_blk.png"),
+                                  image: AssetImage("assets/r2logo_blk.png"),
                                   height: 80.0),
                               Padding(
                                 padding:

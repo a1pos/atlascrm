@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_webservice/places.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
+import 'package:round2crm/components/shared/CenteredLoadingSpinner.dart';
 
 const kGoogleApiKey = "AIzaSyB-rMAdwtIjM7s_4Lb8SdRXAfhbiLTVl7s";
 

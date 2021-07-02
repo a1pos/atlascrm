@@ -1,31 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-import 'package:atlascrm/services/GqlClientFactory.dart';
-import 'package:atlascrm/services/UserService.dart';
-import 'package:atlascrm/components/shared/LoadingScreen.dart';
-import 'package:atlascrm/components/shared/SlideRightRoute.dart';
-import 'package:atlascrm/components/style/UniversalStyles.dart';
-import 'package:atlascrm/screens/auth/AuthScreen.dart';
-import 'package:atlascrm/screens/dashboard/DashboardScreen.dart';
-import 'package:atlascrm/screens/employees/EmployeeListScreen.dart';
-import 'package:atlascrm/screens/employees/EmployeeMapHistoryScreen.dart';
-import 'package:atlascrm/screens/employees/EmployeeMapScreen.dart';
-import 'package:atlascrm/screens/employees/EmployeesManagementScreen.dart';
-import 'package:atlascrm/services/FirebaseCESService.dart';
-import 'package:atlascrm/screens/leads/LeadNotes.dart';
-import 'package:atlascrm/screens/leads/LeadTasks.dart';
-import 'package:atlascrm/screens/leads/LeadsScreen.dart';
-import 'package:atlascrm/screens/inventory/InventoryScreen.dart';
-import 'package:atlascrm/screens/installs/InstallsScreen.dart';
-import 'package:atlascrm/screens/merchants/MerchantsScreen.dart';
-import 'package:atlascrm/screens/tasks/TaskScreen.dart';
-import 'package:atlascrm/screens/employees/ViewEmployeeScreen.dart';
-import 'package:atlascrm/screens/inventory/ViewInventoryScreen.dart';
-import 'package:atlascrm/screens/leads/ViewLeadScreen.dart';
-import 'package:atlascrm/screens/merchants/ViewMerchantScreen.dart';
-import 'package:atlascrm/screens/tasks/ViewTaskScreen.dart';
-import 'package:atlascrm/screens/leads/uploads/StatementUploader.dart';
+import 'package:round2crm/services/GqlClientFactory.dart';
+import 'package:round2crm/services/UserService.dart';
+import 'package:round2crm/components/shared/LoadingScreen.dart';
+import 'package:round2crm/components/shared/SlideRightRoute.dart';
+import 'package:round2crm/components/style/UniversalStyles.dart';
+import 'package:round2crm/screens/auth/AuthScreen.dart';
+import 'package:round2crm/screens/dashboard/DashboardScreen.dart';
+import 'package:round2crm/screens/employees/EmployeeListScreen.dart';
+import 'package:round2crm/screens/employees/EmployeeMapHistoryScreen.dart';
+import 'package:round2crm/screens/employees/EmployeeMapScreen.dart';
+import 'package:round2crm/screens/employees/EmployeesManagementScreen.dart';
+import 'package:round2crm/services/FirebaseCESService.dart';
+import 'package:round2crm/screens/leads/LeadNotes.dart';
+import 'package:round2crm/screens/leads/LeadTasks.dart';
+import 'package:round2crm/screens/leads/LeadsScreen.dart';
+import 'package:round2crm/screens/inventory/InventoryScreen.dart';
+import 'package:round2crm/screens/installs/InstallsScreen.dart';
+import 'package:round2crm/screens/merchants/MerchantsScreen.dart';
+import 'package:round2crm/screens/tasks/TaskScreen.dart';
+import 'package:round2crm/screens/employees/ViewEmployeeScreen.dart';
+import 'package:round2crm/screens/inventory/ViewInventoryScreen.dart';
+import 'package:round2crm/screens/leads/ViewLeadScreen.dart';
+import 'package:round2crm/screens/merchants/ViewMerchantScreen.dart';
+import 'package:round2crm/screens/tasks/ViewTaskScreen.dart';
+import 'package:round2crm/screens/leads/uploads/StatementUploader.dart';
 import 'package:logger/logger.dart';
 
 Future<void> main() async {
@@ -33,17 +33,17 @@ Future<void> main() async {
 
   await FirebaseCESService().init();
 
-  runApp(AtlasCRM());
+  runApp(Round2CRM());
 }
 
 final UserService userService = new UserService();
 
-class AtlasCRM extends StatefulWidget {
+class Round2CRM extends StatefulWidget {
   @override
-  _AtlasCRMState createState() => _AtlasCRMState();
+  _Round2CRMState createState() => _Round2CRMState();
 }
 
-class _AtlasCRMState extends State<AtlasCRM> {
+class _Round2CRMState extends State<Round2CRM> {
   bool isLoading = true;
   GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -135,7 +135,7 @@ class _AtlasCRMState extends State<AtlasCRM> {
       client: ValueNotifier<GraphQLClient>(GqlClientFactory.client),
       child: CacheProvider(
         child: MaterialApp(
-          title: 'ATLAS CRM',
+          title: 'Round2 CRM',
           theme: defaultTheme,
           home: UserService.isAuthenticated
               ? DashboardScreen()
@@ -176,7 +176,7 @@ class _AtlasCRMState extends State<AtlasCRM> {
                 break;
               case "/logout":
                 handleLogoutRoute();
-                return MaterialPageRoute(builder: (context) => AtlasCRM());
+                return MaterialPageRoute(builder: (context) => Round2CRM());
                 break;
               case '/viewlead':
                 return SlideRightRoute(

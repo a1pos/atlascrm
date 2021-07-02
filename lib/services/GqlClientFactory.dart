@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:atlascrm/config/ConfigSettings.dart';
+import 'package:round2crm/config/ConfigSettings.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';

@@ -1,11 +1,11 @@
-import 'package:atlascrm/services/UserService.dart';
-import 'package:atlascrm/services/GqlClientFactory.dart';
+import 'package:round2crm/services/UserService.dart';
+import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'package:atlascrm/services/ApiService.dart';
+import 'package:round2crm/services/ApiService.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-import 'package:atlascrm/components/shared/BuildNotifList.dart';
+import 'package:round2crm/components/shared/BuildNotifList.dart';
 
 class NotificationCenter extends StatefulWidget {
   final ApiService apiService = new ApiService();
