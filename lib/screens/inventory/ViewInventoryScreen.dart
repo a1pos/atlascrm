@@ -298,7 +298,12 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
         await GqlClientFactory().authGqlmutate(mutateOptions);
 
     if (result.hasException == false) {
-      logger.i(alert);
+      logger.i(alert +
+          " Merchant: " +
+          merchantNameController.text +
+          " (" +
+          merchantController.text +
+          ")");
       Fluttertoast.showToast(
           msg: alert,
           toastLength: Toast.LENGTH_SHORT,

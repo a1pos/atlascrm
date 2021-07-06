@@ -280,13 +280,22 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
       if (result.hasException == false) {
         if (result.data != null) {
           logger.i("Lead statment data loaded");
-          if (result.data["statement"][0]["document"] != null) {
-            if (result.data["statement"][0]["document"]["emailSent"] != null) {
-              setState(
-                () {
-                  statementComplete = true;
-                },
-              );
+          var statementBody = result.data["statement"];
+          if (statementBody.length > 0) {
+            if (statementBody[0]["document"] != null) {
+              if (statementBody[0]["document"]["emailSent"] != null) {
+                setState(
+                  () {
+                    statementComplete = true;
+                  },
+                );
+              } else {
+                setState(
+                  () {
+                    statementDirty = true;
+                  },
+                );
+              }
             } else {
               setState(
                 () {
@@ -294,12 +303,6 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                 },
               );
             }
-          } else {
-            setState(
-              () {
-                statementDirty = true;
-              },
-            );
           }
         }
       } else {

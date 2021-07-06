@@ -1,5 +1,4 @@
 import 'dart:ui';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:round2crm/components/shared/NotificationCenter.dart';
 import 'package:round2crm/components/style/UniversalStyles.dart';
 import 'package:round2crm/services/UserService.dart';

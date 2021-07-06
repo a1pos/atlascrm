@@ -501,7 +501,8 @@ class _LeadsScreenState extends State<LeadsScreen> {
   }
 
   void openLead(lead) {
-    logger.i("Lead opened: " + lead["leadbusinessname"]);
+    logger.i(
+        "Lead opened: " + lead["leadbusinessname"] + " (" + lead["lead"] + ")");
     Navigator.pushNamed(context, "/viewlead", arguments: lead["lead"]);
   }
 

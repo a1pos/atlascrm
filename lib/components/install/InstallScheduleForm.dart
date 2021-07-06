@@ -107,6 +107,7 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
                                           employeeDropdownValue = val;
                                         });
                                       },
+                                      roles: ["tech", "corporate_tech"],
                                     )
                                   : Container(),
                         ),

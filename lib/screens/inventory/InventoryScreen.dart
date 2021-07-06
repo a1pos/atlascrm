@@ -601,7 +601,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                   clearFilter();
                 }
               },
-              role: "tech",
+              roles: ["tech", "corporate_tech"],
             ),
           ),
           isEmpty

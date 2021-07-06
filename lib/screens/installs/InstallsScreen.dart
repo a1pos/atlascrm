@@ -350,6 +350,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
                           val.toString() +
                           " and events filtered");
                     },
+                    roles: ["tech", "corporate_tech"],
                   ),
                 ),
               ],
