@@ -111,6 +111,7 @@ class _RoleDropDownState extends State<RoleDropDown> {
           value: startVal,
           onClear: () {
             setState(() {
+              startVal = null;
               logger.i("Role cleared for user");
               this.widget.callback("");
             });

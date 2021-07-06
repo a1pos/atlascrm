@@ -86,6 +86,7 @@ class _InventoryPriceTierDropDownState
         SearchableDropdown.single(
           value: startVal,
           onClear: () {
+            startVal = null;
             setState(() {
               this.widget.callback("");
             });

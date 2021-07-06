@@ -1,3 +1,4 @@
+import 'package:logger/logger.dart';
 import 'package:round2crm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:round2crm/components/style/UniversalStyles.dart';
 import 'package:round2crm/services/UserService.dart';
@@ -26,6 +27,18 @@ class _BuildNotifListState extends State<BuildNotifList> {
   var notifications = [];
   var notificationsDisplay = [];
   var subscription;
+
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 120,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output:
+  );
 
   @override
   void initState() {
@@ -71,6 +84,7 @@ class _BuildNotifListState extends State<BuildNotifList> {
       (data) {
         var notificationsArrDecoded = data.data["notification"];
         if (notificationsArrDecoded != null && this.mounted) {
+          logger.i("Notifications loaded in notifications center");
           setState(
             () {
               isLoading = false;
@@ -89,7 +103,10 @@ class _BuildNotifListState extends State<BuildNotifList> {
           }
         }
       },
-      (error) {},
+      (error) {
+        print("Error in loading notifications: " + error.toString());
+        logger.e("Error in loading notifications: " + error.toString());
+      },
       () => refreshSub(),
     );
   }
@@ -98,6 +115,8 @@ class _BuildNotifListState extends State<BuildNotifList> {
     if (subscription != null) {
       await subscription.cancel();
       subscription = null;
+      getNotifications();
+      logger.i("Notifications refreshed");
     }
   }
 
@@ -119,6 +138,7 @@ class _BuildNotifListState extends State<BuildNotifList> {
         await GqlClientFactory().authGqlmutate(mutateOptions);
 
     if (result.hasException == false) {
+      logger.i("Notification marked as read: " + notification.toString());
       Fluttertoast.showToast(
           msg: "Notification Marked as Read!",
           toastLength: Toast.LENGTH_SHORT,
@@ -128,8 +148,14 @@ class _BuildNotifListState extends State<BuildNotifList> {
           fontSize: 16.0);
       getNotifications();
     } else {
+      print(
+          "Error marking notification as read: " + result.exception.toString());
+      logger.e(
+          "Error marking notification as read: " + result.exception.toString());
+
       Fluttertoast.showToast(
-          msg: "Failed to update Notifications!",
+          msg: "Failed to mark notification as read: " +
+              result.exception.toString(),
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.grey[600],
@@ -139,6 +165,7 @@ class _BuildNotifListState extends State<BuildNotifList> {
 
     notifCount--;
     if (notifCount == 0) {
+      logger.i("Notification count 0, closing notifications panel");
       Navigator.of(context).pop();
     }
   }
@@ -161,22 +188,30 @@ class _BuildNotifListState extends State<BuildNotifList> {
         await GqlClientFactory().authGqlmutate(mutateOptions);
 
     if (result.hasException == false) {
+      logger.i("Notifications marked as read");
       Fluttertoast.showToast(
-          msg: "Notifications Marked as Read!",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.grey[600],
-          textColor: Colors.white,
-          fontSize: 16.0);
+        msg: "Notifications Marked as Read!",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.grey[600],
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
       Navigator.of(context).pop();
     } else {
+      print("Error marking all notifications as read: " +
+          result.exception.toString());
+      logger.e("Error marking all notifications as read: " +
+          result.exception.toString());
       Fluttertoast.showToast(
-          msg: "Failed to update Notifications!",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.grey[600],
-          textColor: Colors.white,
-          fontSize: 16.0);
+        msg: "Error marking all notifications as read: " +
+            result.exception.toString(),
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.grey[600],
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
     }
   }
 
@@ -201,7 +236,9 @@ class _BuildNotifListState extends State<BuildNotifList> {
                           elevation: 3,
                           shape: new RoundedRectangleBorder(
                             side: new BorderSide(
-                                color: Colors.black26, width: .5),
+                              color: Colors.black26,
+                              width: .5,
+                            ),
                             borderRadius: BorderRadius.circular(4.0),
                           ),
                           child: Column(
@@ -249,8 +286,11 @@ class _BuildNotifListState extends State<BuildNotifList> {
                                     child: IconButton(
                                       padding: EdgeInsets.all(0),
                                       alignment: Alignment.centerLeft,
-                                      icon: Icon(Icons.clear,
-                                          color: Colors.black26, size: 20),
+                                      icon: Icon(
+                                        Icons.clear,
+                                        color: Colors.black26,
+                                        size: 20,
+                                      ),
                                       onPressed: () {
                                         markOneAsRead(
                                             notification["notification"]);
@@ -273,10 +313,28 @@ class _BuildNotifListState extends State<BuildNotifList> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(
-        'Notifications: ${notifCount.toString()}',
-        style: TextStyle(fontWeight: FontWeight.bold),
-      ),
+      title: Padding(
+          padding: EdgeInsets.fromLTRB(0, 0, 0, 7.5),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Text(
+                'Notifications: ${notifCount.toString()}',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              GestureDetector(
+                onTap: () {
+                  logger.i("Notifications panel closed");
+                  Navigator.of(context).pop();
+                },
+                child: Icon(
+                  Icons.close_rounded,
+                  color: Colors.grey[750],
+                  size: 30.0,
+                ),
+              ),
+            ],
+          )),
       content: StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
         return Column(
@@ -293,57 +351,59 @@ class _BuildNotifListState extends State<BuildNotifList> {
         );
       }),
       actions: <Widget>[
-        MaterialButton(
-          padding: EdgeInsets.all(5),
-          color: UniversalStyles.actionColor,
-          onPressed: () async {
-            return showDialog<void>(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  title: Text('Dismiss Notifications'),
-                  content: SingleChildScrollView(
-                    child: ListBody(
-                      children: <Widget>[
-                        Text("Dismiss all notifications?"),
-                      ],
-                    ),
-                  ),
-                  actions: <Widget>[
-                    TextButton(
-                      child: Text(
-                        'Yes',
-                        style: TextStyle(fontSize: 17),
-                      ),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        dismissAll();
-                      },
-                    ),
-                    TextButton(
-                        child: Text(
-                          'No',
-                          style: TextStyle(fontSize: 17),
+        notifCount > 0
+            ? MaterialButton(
+                padding: EdgeInsets.all(5),
+                color: UniversalStyles.actionColor,
+                onPressed: () async {
+                  return showDialog<void>(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text('Dismiss Notifications'),
+                        content: SingleChildScrollView(
+                          child: ListBody(
+                            children: <Widget>[
+                              Text("Dismiss all notifications?"),
+                            ],
+                          ),
                         ),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        })
+                        actions: <Widget>[
+                          TextButton(
+                            child: Text(
+                              'Yes',
+                              style: TextStyle(fontSize: 17),
+                            ),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              dismissAll();
+                            },
+                          ),
+                          TextButton(
+                              child: Text(
+                                'No',
+                                style: TextStyle(fontSize: 17),
+                              ),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              })
+                        ],
+                      );
+                    },
+                  );
+                },
+                child: Row(
+                  children: <Widget>[
+                    Text(
+                      'Dismiss All',
+                      style: TextStyle(
+                        color: Colors.white,
+                      ),
+                    ),
                   ],
-                );
-              },
-            );
-          },
-          child: Row(
-            children: <Widget>[
-              Text(
-                'Dismiss All',
-                style: TextStyle(
-                  color: Colors.white,
                 ),
-              ),
-            ],
-          ),
-        ),
+              )
+            : Container(),
       ],
     );
   }

@@ -1,3 +1,4 @@
+import 'package:logger/logger.dart';
 import 'package:round2crm/services/UserService.dart';
 import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
@@ -24,6 +25,18 @@ class _NotificationCenterState extends State<NotificationCenter> {
   var notifications = [];
   var notificationsDisplay = [];
   var subscription;
+
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 120,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output:
+  );
 
   @override
   void initState() {
@@ -70,9 +83,15 @@ class _NotificationCenterState extends State<NotificationCenter> {
           setState(() {
             notifCountIcon = notificationsArrDecoded.length;
           });
+          logger.i("Notification center data initialized, " +
+              notifCountIcon.toString() +
+              " notifications loaded");
         }
       },
-      (error) {},
+      (error) {
+        print("Error in notifications center: " + error.toString());
+        logger.e("Error in notifications center: " + error.toString());
+      },
       () => refreshSub(),
     );
   }
@@ -81,6 +100,8 @@ class _NotificationCenterState extends State<NotificationCenter> {
     if (subscription != null) {
       await subscription.cancel();
       subscription = null;
+      initNotificationsSub();
+      logger.i("Notifications center data refreshed");
     }
   }
 
@@ -102,27 +123,36 @@ class _NotificationCenterState extends State<NotificationCenter> {
         await GqlClientFactory().authGqlmutate(mutateOptions);
 
     if (result.hasException == false) {
+      logger.i("Notifications marked as read");
       Fluttertoast.showToast(
-          msg: "Notifications Marked as Read!",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.grey[600],
-          textColor: Colors.white,
-          fontSize: 16.0);
+        msg: "Notifications Marked as Read!",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.grey[600],
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
       Navigator.of(context).pop();
     } else {
+      print("Failed to update notifications: " + result.exception.toString());
+      logger
+          .e("Failed to update notifications: " + result.exception.toString());
+
       Fluttertoast.showToast(
-          msg: "Failed to update Notifications!",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.grey[600],
-          textColor: Colors.white,
-          fontSize: 16.0);
+        msg: "Failed to update Notifications: " + result.exception.toString(),
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.grey[600],
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
     }
   }
 
   void openNotificationPanel() {
+    logger.i("Notification panel opened");
     showDialog(
+      barrierDismissible: false,
       context: context,
       builder: (BuildContext context) {
         return BuildNotifList();

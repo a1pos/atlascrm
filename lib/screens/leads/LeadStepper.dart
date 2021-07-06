@@ -224,6 +224,8 @@ class LeadStepperState extends State<LeadStepper> {
                   nextButtonDisabled = false;
                 },
               );
+              logger.i(
+                  "Location value field set to: " + locationValue.toString());
             } else {
               setState(
                 () {
@@ -242,6 +244,9 @@ class LeadStepperState extends State<LeadStepper> {
                   nextStep();
                 },
               );
+
+              logger.i(
+                  "Location value field set to: " + locationValue.toString());
             }
           }
         } else {
@@ -331,6 +336,8 @@ class LeadStepperState extends State<LeadStepper> {
                   visible = false;
                 });
                 logger.i(
+                    "Location value field set to: " + locationValue.toString());
+                logger.i(
                     "Place suggestions did not return a place, address check manually built: " +
                         mixedReplyCheck.toString());
               } else {
@@ -350,6 +357,8 @@ class LeadStepperState extends State<LeadStepper> {
                       nextButtonDisabled = false;
                     },
                   );
+                  logger.i("Location value field set to: " +
+                      locationValue.toString());
                   logger.i(
                     "No verified address returned, requesting business address to be input manually",
                   );

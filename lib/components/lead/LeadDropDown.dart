@@ -1,3 +1,5 @@
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:logger/logger.dart';
 import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
@@ -21,6 +23,18 @@ class _LeadDropDownState extends State<LeadDropDown> {
   var leads = [];
   var disabled;
   var startVal;
+
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 120,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output:
+  );
 
   @override
   void initState() {
@@ -64,6 +78,7 @@ class _LeadDropDownState extends State<LeadDropDown> {
       var leadsArrDecoded;
       if (result != null) {
         if (result.hasException == false) {
+          logger.i("Leads loaded for lead dropdown");
           if (this.widget.employeeId == null) {
             leadsArrDecoded = result.data["lead"];
           } else {
@@ -81,6 +96,21 @@ class _LeadDropDownState extends State<LeadDropDown> {
               startVal = lead["document"]["businessName"];
             }
           }
+        } else {
+          print("Error loading leads for dropdown: " +
+              result.exception.toString());
+          logger.e("Error loading leads for dropdown: " +
+              result.exception.toString());
+
+          Fluttertoast.showToast(
+            msg: "Error loading leads for dropdown: " +
+                result.exception.toString(),
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0,
+          );
         }
       }
     }
@@ -107,6 +137,7 @@ class _LeadDropDownState extends State<LeadDropDown> {
           value: startVal,
           onClear: () {
             setState(() {
+              startVal = null;
               this.widget.callback(null);
             });
           },
@@ -131,16 +162,29 @@ class _LeadDropDownState extends State<LeadDropDown> {
           onChanged: disabled
               ? null
               : (newValue) {
-                  setState(() {
-                    var setVal;
-                    for (var lead in leads) {
-                      if (newValue == lead["document"]["businessName"]) {
-                        setVal = lead["lead"];
+                  if (newValue != null) {
+                    setState(() {
+                      var setVal;
+                      for (var lead in leads) {
+                        if (newValue == lead["document"]["businessName"]) {
+                          setVal = lead["lead"];
+                        }
                       }
-                    }
-                    startVal = newValue;
-                    this.widget.callback(setVal);
-                  });
+                      startVal = newValue;
+                      this.widget.callback(setVal);
+                      logger.i("Lead dropdown value set: " +
+                          newValue +
+                          " (" +
+                          setVal.toString() +
+                          ")");
+                    });
+                  } else {
+                    setState(() {
+                      startVal = null;
+                      this.widget.callback(null);
+                    });
+                    logger.i("Lead dropdown value cleared");
+                  }
                 },
         )
       ],

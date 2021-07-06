@@ -1,3 +1,5 @@
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:logger/logger.dart';
 import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
@@ -19,6 +21,18 @@ class _MerchantDropDownState extends State<MerchantDropDown> {
   var merchants = [];
   var disabled;
   var startVal;
+
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 120,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output:
+  );
 
   @override
   void initState() {
@@ -53,6 +67,7 @@ class _MerchantDropDownState extends State<MerchantDropDown> {
         var merchantsArrDecoded = result.data["merchant"];
         if (merchantsArrDecoded != null) {
           if (this.mounted) {
+            logger.i("Merchant data loaded for dropdown");
             merchantsArrDecoded.sort((a, b) => a["businessName"]
                 .toString()
                 .toUpperCase()
@@ -69,7 +84,20 @@ class _MerchantDropDownState extends State<MerchantDropDown> {
           }
         }
       } else {
-        print("GRAPHQL ERROR: " + result.exception.toString());
+        print("Error getting merchant data for dropdown: " +
+            result.exception.toString());
+        logger.e("Error getting merchant data for dropdown: " +
+            result.exception.toString());
+
+        Fluttertoast.showToast(
+          msg: "Error getting merchant data for dropdown: " +
+              result.exception.toString(),
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
       }
     }
   }
@@ -90,6 +118,7 @@ class _MerchantDropDownState extends State<MerchantDropDown> {
           value: startVal,
           onClear: () {
             setState(() {
+              startVal = null;
               this.widget.callback(null);
             });
           },
@@ -126,6 +155,11 @@ class _MerchantDropDownState extends State<MerchantDropDown> {
                       }
                       if (newValue == merchantBusinessName) {
                         setVal = merchant["merchant"];
+                        logger.i("Merchant changed to: " +
+                            merchantBusinessName +
+                            " (" +
+                            setVal.toString() +
+                            ")");
                       }
                     }
                     startVal = newValue;

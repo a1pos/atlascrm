@@ -114,6 +114,7 @@ class InstallsState extends State<Installs> {
       subscription = null;
       _scrollController.animateTo(0,
           duration: Duration(milliseconds: 500), curve: Curves.fastOutSlowIn);
+      logger.i("Installs widget refreshed");
       initInstalls();
     }
   }

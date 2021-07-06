@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:package_info/package_info.dart';
 import 'package:round2crm/services/FirebaseCESService.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -57,6 +58,14 @@ class UserService {
       logger.e(err.toString());
       throw new Error();
     }
+  }
+
+  Future<String> getVersionNumber() async {
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    String version = packageInfo.version;
+
+    logger.i("App version: " + version);
+    return version;
   }
 
   Future<bool> signInWithGoogle() async {
@@ -154,6 +163,7 @@ class UserService {
         rToken = linkResult.data["link_google_account"]["refreshToken"];
         var idTokenResult = await user.getIdToken(true);
 
+        getVersionNumber();
         logger.i("ID Token result: " + idTokenResult);
 
         var empDecoded = linkResult.data["link_google_account"]["employee"];

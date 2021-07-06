@@ -111,6 +111,7 @@ class _TasksState extends State<Tasks> {
     if (subscription != null) {
       await subscription.cancel();
       subscription = null;
+      logger.i("Employee tasks widget refreshed");
       initTasks();
     }
   }

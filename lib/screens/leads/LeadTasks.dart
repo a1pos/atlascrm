@@ -10,7 +10,6 @@ import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:round2crm/screens/leads/LeadStepper.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:logger/logger.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -387,45 +386,16 @@ class _LeadTasksState extends State<LeadTasks> {
     }
   }
 
-  void openAddLeadForm() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Add New Lead'),
-          contentPadding: EdgeInsets.all(0),
-          content: Container(
-            width: MediaQuery.of(context).size.width,
-            height: MediaQuery.of(context).size.height,
-            child: LeadStepper(
-              successCallback: () {
-                initTasks();
-              },
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   Future<void> openAddTaskForm() async {
     logger.i("Add task form opened");
     await showDialog(
+      barrierDismissible: false,
       context: context,
       builder: (BuildContext context) {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
               actions: <Widget>[
-                MaterialButton(
-                  child: Text(
-                    'Cancel',
-                  ),
-                  onPressed: () {
-                    logger.i("Add task form closed");
-                    Navigator.of(context).pop();
-                  },
-                ),
                 !isSaveDisabled
                     ? MaterialButton(
                         child: Text(
@@ -449,9 +419,35 @@ class _LeadTasksState extends State<LeadTasks> {
                       )
                     : Container(),
               ],
-              title: Text(
-                'Add New Task for ' +
-                    this.widget.lead["document"]["businessName"],
+              title: Padding(
+                padding: EdgeInsets.fromLTRB(0, 0, 0, 7.5),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Flexible(
+                      child: Container(
+                        padding: EdgeInsets.only(right: 13.0),
+                        child: Text(
+                          'Add New Task for ' +
+                              this.widget.lead["document"]["businessName"],
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                    Container(),
+                    GestureDetector(
+                      onTap: () {
+                        logger.i("Add task form closed");
+                        Navigator.of(context).pop();
+                      },
+                      child: Icon(
+                        Icons.close_rounded,
+                        color: Colors.grey[750],
+                        size: 30.0,
+                      ),
+                    ),
+                  ],
+                ),
               ),
               content: Form(
                 key: _formKey,

@@ -440,11 +440,32 @@ class _InventoryScreenState extends State<InventoryScreen> {
   }
 
   void openAddInventoryForm() {
+    logger.i("Add device form opened");
     showDialog(
+      barrierDismissible: false,
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Add New Devices'),
+          title: Padding(
+            padding: EdgeInsets.fromLTRB(0, 0, 0, 7.5),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Text('Add New Devices'),
+                GestureDetector(
+                  onTap: () {
+                    logger.i("Add device form closed");
+                    Navigator.of(context).pop();
+                  },
+                  child: Icon(
+                    Icons.close_rounded,
+                    color: Colors.grey[750],
+                    size: 30.0,
+                  ),
+                ),
+              ],
+            ),
+          ),
           contentPadding: EdgeInsets.all(0),
           content: Container(
             width: MediaQuery.of(context).size.width,

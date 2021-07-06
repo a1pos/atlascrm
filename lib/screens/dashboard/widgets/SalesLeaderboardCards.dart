@@ -149,6 +149,7 @@ class SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
       subscription = null;
       _scrollController.animateTo(0,
           duration: Duration(milliseconds: 500), curve: Curves.fastOutSlowIn);
+      logger.i("Sales leaderboard cards refreshed");
       initSub();
     }
   }

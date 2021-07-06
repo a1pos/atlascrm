@@ -85,6 +85,7 @@ class _InventoryLocationDropDownState extends State<InventoryLocationDropDown> {
           value: startVal,
           onClear: () {
             setState(() {
+              startVal = null;
               this.widget.callback(null);
             });
           },

@@ -104,6 +104,7 @@ class _DeviceDropDownState extends State<DeviceDropDown> {
           value: startVal,
           onClear: () {
             setState(() {
+              startVal = null;
               this.widget.callback("");
             });
           },

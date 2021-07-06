@@ -54,10 +54,13 @@ class _AuthScreenState extends State<AuthScreen> {
         throw ('ERROR');
       }
     } catch (err) {
-      logger.e(err.toString());
       setState(() {
         isLoading = false;
       });
+
+      print("Failed to connect: " + err.toString());
+      logger.e("Failed to connect: " + err.toString());
+
       Fluttertoast.showToast(
         msg: "Failed to connect!",
         toastLength: Toast.LENGTH_SHORT,

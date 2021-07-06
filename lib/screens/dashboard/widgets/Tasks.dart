@@ -116,7 +116,7 @@ class TasksState extends State<Tasks> {
       subscription = null;
       scrollController.animateTo(0,
           duration: Duration(milliseconds: 500), curve: Curves.fastOutSlowIn);
-
+      logger.i("Tasks refreshed");
       initTasks();
     }
   }

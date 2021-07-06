@@ -352,7 +352,9 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
                         merchantNameController.text = newValue["name"];
                       },
                     );
-                    logger.i("Merchant selected: " + newValue["name"]);
+                    if (newValue[0] != null) {
+                      logger.i("Merchant selected: " + newValue["name"]);
+                    }
                   },
                 )
               ],

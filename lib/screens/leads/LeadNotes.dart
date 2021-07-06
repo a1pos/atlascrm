@@ -110,9 +110,11 @@ class _LeadNotesState extends State<LeadNotes> {
     final result = await GqlClientFactory().authGqlquery(options);
 
     if (result != null) {
-      logger.i("Lead notes loaded");
       if (result.hasException == false) {
         var notesArrDecoded = result.data["lead_note"];
+        logger.i("Lead notes loaded. " +
+            notesArrDecoded.length.toString() +
+            " notes loaded");
         if (notesArrDecoded != null) {
           var notesArr = List.from(notesArrDecoded);
           if (notesArr.length > 0) {

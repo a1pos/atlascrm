@@ -121,6 +121,7 @@ class _ProcessorDropDownState extends State<ProcessorDropDown> {
           value: startVal,
           onClear: () {
             setState(() {
+              startVal = null;
               this.widget.callback(null);
             });
           },

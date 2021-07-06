@@ -333,15 +333,6 @@ class _TaskScreenState extends State<TaskScreen> {
           builder: (context, setState) {
             return AlertDialog(
               actions: <Widget>[
-                MaterialButton(
-                  child: Text(
-                    'Cancel',
-                  ),
-                  onPressed: () {
-                    logger.i("Add task form closed");
-                    Navigator.of(context).pop();
-                  },
-                ),
                 !isSaveDisabled
                     ? MaterialButton(
                         child: Text(
@@ -365,7 +356,26 @@ class _TaskScreenState extends State<TaskScreen> {
                       )
                     : Container(),
               ],
-              title: Text('Add New Task'),
+              title: Padding(
+                padding: EdgeInsets.fromLTRB(0, 0, 0, 7.5),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Text('Add New Devices'),
+                    GestureDetector(
+                      onTap: () {
+                        logger.i("Add device form closed");
+                        Navigator.of(context).pop();
+                      },
+                      child: Icon(
+                        Icons.close_rounded,
+                        color: Colors.grey[750],
+                        size: 30.0,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               content: Form(
                 key: _formKey,
                 child: SingleChildScrollView(
@@ -439,12 +449,14 @@ class _TaskScreenState extends State<TaskScreen> {
                                                         .employee.employee,
                                                 value: leadDropdownValue,
                                                 callback: (val) {
-                                                  setState(() {
-                                                    leadDropdownValue = val;
-                                                  });
-                                                  logger.i(
-                                                      "Lead value changed: " +
-                                                          leadDropdownValue);
+                                                  if (val != null) {
+                                                    setState(() {
+                                                      leadDropdownValue = val;
+                                                    });
+                                                    logger.i(
+                                                        "Lead value changed: " +
+                                                            leadDropdownValue);
+                                                  }
                                                 },
                                               ),
                                       ),

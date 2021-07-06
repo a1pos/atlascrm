@@ -54,7 +54,7 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
 
   Future<void> initEmployees() async {
     QueryOptions options;
-    if (this.widget.roles.length > 0) {
+    if (this.widget.roles != null) {
       for (var role in this.widget.roles) {
         roleTitleString += '{roleByRole: {title: {_ilike: "$role"}}}, ';
       }
@@ -89,6 +89,7 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
         var employeeArrDecoded = result.data["employee"];
         if (employeeArrDecoded != null) {
           if (this.mounted) {
+            logger.i("Employee data loaded");
             employeeArrDecoded.sort(
               (a, b) => a["displayName"]
                   .toString()
@@ -140,6 +141,7 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
           value: startVal,
           onClear: () {
             setState(() {
+              startVal = null;
               this.widget.callback(null);
             });
           },
