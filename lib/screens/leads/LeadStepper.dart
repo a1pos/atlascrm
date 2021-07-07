@@ -66,7 +66,6 @@ class LeadStepperState extends State<LeadStepper> {
   };
 
   String formattedAddressCheck;
-  String businessNameCapitalized;
   var shortAddressCheck;
 
   var firstNameController = TextEditingController();
@@ -131,8 +130,7 @@ class LeadStepperState extends State<LeadStepper> {
             .replaceAll(RegExp("[^0-9]"), "");
       }
     } else {
-      businessName = businessNameController.text;
-      businessName = capitalizeBusinessName(businessName);
+      businessName = businessNameController.text.trim();
       phoneNumb = phoneNumberController.text;
     }
 
@@ -184,7 +182,10 @@ class LeadStepperState extends State<LeadStepper> {
             setState(() {
               nextButtonDisabled = true;
               businessNameController.clear();
-              businessPhoneNumber.clear();
+              phoneNumberController.clear();
+              address2Controller.clear();
+              processorDropdownValue = null;
+              locationValue = "";
             });
 
             dupeLead(message);
@@ -236,39 +237,6 @@ class LeadStepperState extends State<LeadStepper> {
       }
     } catch (err) {
       log(err);
-    }
-  }
-
-  String capitalizeBusinessName(String name) {
-    if (name == null) {
-      return null;
-    }
-
-    if (name.length <= 1) {
-      return name.toUpperCase();
-    }
-
-    final List<String> names = name.split(' ');
-
-    final capitalizedNames = names.map((bizName) {
-      final String firstLetterinName = bizName.substring(0, 1).toUpperCase();
-      final String remainingLettersinName = bizName.substring(1);
-
-      return '$firstLetterinName$remainingLettersinName';
-    });
-
-    return capitalizedNames.join(' ');
-  }
-
-  String capitalizeContactName(String first, String last) {
-    if (last != "" && last != null) {
-      first = first[0].toUpperCase() + first.substring(1);
-      last = last[0].toUpperCase() + last.substring(1);
-
-      var name = first + ", " + last;
-      return name.trim();
-    } else {
-      return first[0].toUpperCase() + first.substring(1);
     }
   }
 
@@ -375,22 +343,15 @@ class LeadStepperState extends State<LeadStepper> {
   Future<void> addLead() async {
     try {
       String businessNameTrim = businessNameController.text.trim();
-      String firstName = firstNameController.text;
-      String lastName = lastNameController.text;
+      String firstName = firstNameController.text.trim();
+      String lastName = lastNameController.text.trim();
       var company = companyController.text;
 
-      String rawNumber = phoneNumberController.text;
+      String rawNumber = phoneNumberController.text.trim();
       var filteredNumber = rawNumber.replaceAll(RegExp("[^0-9]"), "");
 
-      var nameCap = capitalizeContactName(firstName, lastName);
-      var firstNameCap, lastNameCap;
-
-      firstNameCap = nameCap.split(", ")[0];
-
-      if (lastName != "" && lastName != null) {
-        lastNameCap = nameCap.split(", ")[1];
-      } else {
-        lastNameCap = "";
+      if (lastName != "" && lastName == null) {
+        lastName = "";
       }
 
       var leadInfo = {
@@ -398,12 +359,12 @@ class LeadStepperState extends State<LeadStepper> {
         "is_active": true,
         "processor": processorDropdownValue,
         "document": {
-          "firstName": firstNameCap,
-          "lastName": lastNameCap,
-          "emailAddr": emailAddrController.text,
+          "firstName": firstName,
+          "lastName": lastName,
+          "emailAddr": emailAddrController.text.trim(),
           "phoneNumber": filteredNumber,
           "businessName": businessNameTrim,
-          "dbaName": dbaNameController.text,
+          "dbaName": dbaNameController.text.trim(),
           "address": businessAddress["address"],
           "address2": businessAddress["address2"],
           "city": businessAddress["city"],
