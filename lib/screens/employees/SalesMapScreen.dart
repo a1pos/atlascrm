@@ -64,19 +64,22 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
     SubscriptionOptions options = SubscriptionOptions(
       operationName: "GET_EMPLOYEE_LOCATIONS",
       document: gql("""
-        subscription GET_EMPLOYEE_LOCATIONS {   
-          employee_device(where: {employeeByEmployee: {is_active: {_eq: true}}}) {
+        subscription GET_EMPLOYEE_LOCATIONS {
+          employee_device(where: 
+            {_and: [
+              {employeeByEmployee: {is_active: {_eq: true}}}, 
+              {employeeByEmployee: {roleByRole: {title: {_eq: "sales"}}}}
+            ]
+            }) {
             device_id
             employee
-            employee_locations(
-              limit: 1
-              order_by: { created_at: desc_nulls_last }
-            ) {
+            employee_locations(limit: 1, order_by: {created_at: desc_nulls_last}) {
               document
               created_at
             }
             employeeByEmployee {
               document
+              is_active
             }
           }
         }

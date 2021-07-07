@@ -143,6 +143,10 @@ class _InstallsScreenState extends State<InstallsScreen> {
             isEmpty = false;
           }
         });
+        logger.i("Day selected: " +
+            daySelected.toString() +
+            ", events found on day: " +
+            activeInstalls.length.toString());
       },
     );
   }

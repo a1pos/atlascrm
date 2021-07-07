@@ -61,7 +61,6 @@ class FirebaseCESService {
 
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         FirebaseMessaging.onBackgroundMessage(myBackgroundMessageHandler);
-
         RemoteNotification notification = message.notification;
         AndroidNotification android = message.notification?.android;
 

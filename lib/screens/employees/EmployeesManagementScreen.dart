@@ -56,9 +56,9 @@ class _EmployeesManagementScreenState extends State<EmployeesManagementScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
                                 MgmtTile(
-                                  text: "Employee Map",
+                                  text: "Sales Map",
                                   icon: Icons.zoom_out_map,
-                                  route: "/employeemap",
+                                  route: "/salesmap",
                                 ),
                               ],
                             ),

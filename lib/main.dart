@@ -10,7 +10,7 @@ import 'package:round2crm/screens/auth/AuthScreen.dart';
 import 'package:round2crm/screens/dashboard/DashboardScreen.dart';
 import 'package:round2crm/screens/employees/EmployeeListScreen.dart';
 import 'package:round2crm/screens/employees/EmployeeMapHistoryScreen.dart';
-import 'package:round2crm/screens/employees/EmployeeMapScreen.dart';
+import 'package:round2crm/screens/employees/SalesMapScreen.dart';
 import 'package:round2crm/screens/employees/EmployeesManagementScreen.dart';
 import 'package:round2crm/services/FirebaseCESService.dart';
 import 'package:round2crm/screens/leads/LeadNotes.dart';
@@ -196,7 +196,7 @@ class _Round2CRMState extends State<Round2CRM> {
                   builder: (context) => EmployeesManagementScreen(),
                 );
                 break;
-              case '/employeemap':
+              case '/salesmap':
                 return SlideRightRoute(
                   page: EmployeeMapScreen(),
                 );

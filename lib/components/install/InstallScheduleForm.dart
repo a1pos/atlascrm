@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:logger/logger.dart';
 import 'package:round2crm/components/install/InstallItem.dart';
 import 'package:round2crm/components/shared/EmployeeDropDown.dart';
 import 'package:round2crm/components/style/UniversalStyles.dart';
@@ -33,6 +34,18 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
 
   Map data;
 
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 120,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output:
+  );
+
   var installDateController = TextEditingController();
   var employeeDropdownValue;
 
@@ -53,6 +66,11 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
               ? UserService.employee.employee
               : installList['employee'];
         });
+        logger.i("Install schedule form opened for: " +
+            installList["merchantbusinessname"] +
+            " (" +
+            installList["merchant"] +
+            ")");
         showDialog(
             context: context,
             builder: (BuildContext context) {
@@ -61,6 +79,7 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
                   MaterialButton(
                     child: Text('Cancel'),
                     onPressed: () {
+                      logger.i("Install schedule form closed");
                       Navigator.pop(context);
                     },
                   ),
@@ -98,24 +117,27 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: <Widget>[
                         Container(
-                          child:
-                              UserService.isAdmin || UserService.isSalesManager
-                                  ? EmployeeDropDown(
-                                      value: installList['employee'] ?? "",
-                                      callback: (val) {
-                                        setState(() {
-                                          employeeDropdownValue = val;
-                                        });
-                                      },
-                                      roles: ["tech", "corporate_tech"],
-                                    )
-                                  : Container(),
+                          child: UserService.isAdmin ||
+                                  UserService.isSalesManager ||
+                                  UserService.isCorporateTech
+                              ? EmployeeDropDown(
+                                  value: installList['employee'] ?? "",
+                                  callback: (val) {
+                                    setState(() {
+                                      employeeDropdownValue = val;
+                                    });
+                                  },
+                                  roles: ["tech", "corporate_tech"],
+                                )
+                              : Container(),
                         ),
                         DateTimeField(
                           onEditingComplete: () =>
                               FocusScope.of(context).nextFocus(),
                           validator: (DateTime dateTime) {
                             if (dateTime == null) {
+                              logger.i(
+                                  "Attempted to schedule install without a date and time");
                               return 'Please select a date';
                             }
                             return null;
@@ -141,8 +163,12 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
                                   currentValue ?? DateTime.now(),
                                 ),
                               );
+                              logger.i("Date selected for:install: " +
+                                  DateTimeField.combine(date, time).toString());
                               return DateTimeField.combine(date, time);
                             } else {
+                              logger.i("Date selected for:install: " +
+                                  currentValue.toString());
                               return currentValue;
                             }
                           },
@@ -197,8 +223,22 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
             ticketStatus = item["ticket_status"];
           }
         });
+        print("Loaded ticket status: " + ticketStatus.toString());
+        logger.i("Loaded ticket status: " + ticketStatus.toString());
       } else {
-        print(new Error());
+        print("Error getting ticket status: " +
+            ticketStatusResult.exception.toString());
+        logger.e("Error getting ticket status: " +
+            ticketStatusResult.exception.toString());
+        Fluttertoast.showToast(
+          msg: "Error getting ticket status: " +
+              ticketStatusResult.exception.toString(),
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
       }
     }
 
@@ -223,8 +263,24 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
             ticketCategory = item["ticket_category"];
           }
         });
+
+        print("Ticket category loaded: " + ticketCategory.toString());
+        logger.i("Ticket category loaded: " + ticketCategory.toString());
       } else {
-        print(new Error());
+        print("Error getting ticket category: " +
+            ticketCategoryResult.exception.toString());
+        logger.e("Error getting ticket category: " +
+            ticketCategoryResult.exception.toString());
+
+        Fluttertoast.showToast(
+          msg: "Error getting ticket category: " +
+              ticketCategoryResult.exception.toString(),
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
       }
     }
 
@@ -249,12 +305,29 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
       if (installDocumentResult.hasException == false) {
         install["document"] =
             installDocumentResult.data["install"][0]["document"];
+        print("Install document loaded for: " + installID.toString());
+        logger.i("Install document loaded for: " + installID.toString());
 
         if (installDocumentResult.data["install"][0]["ticket"] != null) {
           ticket = installDocumentResult.data["install"][0]["ticket"];
+          print("Ticket previously created: " + ticket.toString());
+          logger.i("Ticket previously created: " + ticket.toString());
         }
       } else {
-        print(new Error());
+        print("Error getting install document: " +
+            installDocumentResult.exception.toString());
+        logger.e("Error getting install document: " +
+            installDocumentResult.exception.toString());
+
+        Fluttertoast.showToast(
+          msg: "Error getting install document: " +
+              installDocumentResult.exception.toString(),
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
       }
     }
 
@@ -289,15 +362,7 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
     var msgLength = Toast.LENGTH_SHORT;
     var ticket;
 
-    Map ticketComment = {
-      "text": {
-        "ops": [
-          {
-            "insert": install["document"]["text"],
-          }
-        ]
-      }
-    };
+    Map ticketComment = install["document"];
 
     MutationOptions updateInstallEmployeeByPKOptions = MutationOptions(
       document: gql("""
@@ -319,15 +384,32 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
     final QueryResult updateInstallEmployeeByPKResult = await GqlClientFactory()
         .authGqlmutate(updateInstallEmployeeByPKOptions);
 
-    if (updateInstallEmployeeByPKResult.hasException) {
-      Fluttertoast.showToast(
-        msg: updateInstallEmployeeByPKResult.exception.toString(),
-        toastLength: Toast.LENGTH_LONG,
-        gravity: ToastGravity.BOTTOM,
-        backgroundColor: Colors.grey[600],
-        textColor: Colors.white,
-        fontSize: 16.0,
-      );
+    if (updateInstallEmployeeByPKResult != null) {
+      if (updateInstallEmployeeByPKResult.hasException == false) {
+        print("Updated install employee by pk: " +
+            data['employee'].toString() +
+            " for: " +
+            data['install']);
+        logger.i("Updated install employee by pk: " +
+            data['employee'].toString() +
+            " for: " +
+            data['install']);
+      } else {
+        print("Error updating install employee by pk: " +
+            updateInstallEmployeeByPKResult.exception.toString());
+        logger.e("Error updating install by pk: " +
+            updateInstallEmployeeByPKResult.exception.toString());
+
+        Fluttertoast.showToast(
+          msg: "Error updating install by pk: " +
+              updateInstallEmployeeByPKResult.exception.toString(),
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
+      }
     }
 
     MutationOptions updateInstallDateByPKOptions = MutationOptions(
@@ -350,14 +432,32 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
     final QueryResult updateInstallDateByPKResult =
         await GqlClientFactory().authGqlmutate(updateInstallDateByPKOptions);
 
-    if (updateInstallDateByPKResult.hasException) {
-      Fluttertoast.showToast(
-          msg: updateInstallDateByPKResult.exception.toString(),
+    if (updateInstallDateByPKResult != null) {
+      if (updateInstallDateByPKResult.hasException == false) {
+        print("Updated install date by pk: " +
+            data['date'].toString() +
+            " for: " +
+            data['install'].toString());
+        logger.i("Updated install date by pk: " +
+            data['date'].toString() +
+            " for: " +
+            data['install'].toString());
+      } else {
+        print("Error updating install date by pk: " +
+            updateInstallDateByPKResult.exception.toString());
+        logger.e("Error updating install by pk: " +
+            updateInstallDateByPKResult.exception.toString());
+
+        Fluttertoast.showToast(
+          msg: "Error updating install by pk: " +
+              updateInstallDateByPKResult.exception.toString(),
           toastLength: Toast.LENGTH_LONG,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.grey[600],
           textColor: Colors.white,
-          fontSize: 16.0);
+          fontSize: 16.0,
+        );
+      }
     }
 
     MutationOptions insertTicketOptions = MutationOptions(
@@ -372,8 +472,8 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
             objects: {
               date: \$date
               document: \$document
-              ticket_status: \$ticket_status
               is_active: \$is_active
+              ticket_status: \$ticket_status
             }
           ) {
             returning {
@@ -393,14 +493,30 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
     final QueryResult insertTicketResult =
         await GqlClientFactory().authGqlmutate(insertTicketOptions);
 
-    if (insertTicketResult.hasException) {
-      Fluttertoast.showToast(
-          msg: insertTicketResult.exception.toString(),
+    if (insertTicketResult != null) {
+      if (insertTicketResult.hasException == false) {
+        print("Created new ticket: " +
+            insertTicketResult.data["insert_ticket"]["returning"][0]["ticket"]
+                .toString());
+        logger.i("Created new ticket: " +
+            insertTicketResult.data["insert_ticket"]["returning"][0]["ticket"]
+                .toString());
+      } else {
+        print("Error creating new ticket: " +
+            insertTicketResult.exception.toString());
+        logger.e("Error creating new ticket: " +
+            insertTicketResult.exception.toString());
+
+        Fluttertoast.showToast(
+          msg: "Error creating new ticket: " +
+              insertTicketResult.exception.toString(),
           toastLength: Toast.LENGTH_LONG,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.grey[600],
           textColor: Colors.white,
-          fontSize: 16.0);
+          fontSize: 16.0,
+        );
+      }
     }
 
     ticket = insertTicketResult.data["insert_ticket"]["returning"][0]["ticket"];
@@ -426,14 +542,36 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
     final QueryResult insertAssigneeResult =
         await GqlClientFactory().authGqlmutate(insertAssigneeOptions);
 
-    if (insertAssigneeResult.hasException) {
-      Fluttertoast.showToast(
-          msg: insertAssigneeResult.exception.toString(),
+    if (insertAssigneeResult != null) {
+      if (insertAssigneeResult.hasException == false) {
+        print("Inserted ticket assignee: " +
+            data['employee'].toString() +
+            " for: " +
+            ticket.toString());
+        logger.i("Inserted ticket assignee: " +
+            data['employee'].toString() +
+            " for: " +
+            ticket.toString());
+      } else {
+        print("Error inserting ticket assignee: " +
+            insertAssigneeResult.exception.toString() +
+            " for: " +
+            ticket.toString());
+        logger.e("Error inserting ticket assignee: " +
+            insertAssigneeResult.exception.toString() +
+            " for: " +
+            ticket.toString());
+
+        Fluttertoast.showToast(
+          msg: "Error inserting ticket assignee: " +
+              insertAssigneeResult.exception.toString(),
           toastLength: Toast.LENGTH_LONG,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.grey[600],
           textColor: Colors.white,
-          fontSize: 16.0);
+          fontSize: 16.0,
+        );
+      }
     }
 
     MutationOptions insertTicketMerchantOptions = MutationOptions(
@@ -457,14 +595,36 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
     final QueryResult insertTicketMerchantResult =
         await GqlClientFactory().authGqlmutate(insertTicketMerchantOptions);
 
-    if (insertTicketMerchantResult.hasException) {
-      Fluttertoast.showToast(
-          msg: insertTicketMerchantResult.exception.toString(),
+    if (insertTicketMerchantResult != null) {
+      if (insertTicketMerchantResult.hasException == false) {
+        print("Inserted ticket merchant: " +
+            data['merchant'].toString() +
+            " for: " +
+            ticket.toString());
+        logger.i("Inserted ticket merchant: " +
+            data['merchant'].toString() +
+            " for: " +
+            ticket.toString());
+      } else {
+        print("Error inserting ticket merchant: " +
+            insertTicketMerchantResult.exception.toString() +
+            " for: " +
+            ticket.toString());
+        logger.e("Error inserting ticket merchant: " +
+            insertTicketMerchantResult.exception.toString() +
+            " for: " +
+            ticket.toString());
+
+        Fluttertoast.showToast(
+          msg: "Error inserting ticket merchant: " +
+              insertTicketMerchantResult.exception.toString(),
           toastLength: Toast.LENGTH_LONG,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.grey[600],
           textColor: Colors.white,
-          fontSize: 16.0);
+          fontSize: 16.0,
+        );
+      }
     }
 
     MutationOptions insertTicketLabelOptions = MutationOptions(
@@ -488,14 +648,36 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
     final QueryResult insertTicketLabelResult =
         await GqlClientFactory().authGqlmutate(insertTicketLabelOptions);
 
-    if (insertTicketLabelResult.hasException) {
-      Fluttertoast.showToast(
-          msg: insertTicketMerchantResult.exception.toString(),
+    if (insertTicketLabelResult != null) {
+      if (insertTicketLabelResult.hasException == false) {
+        print("Inserted ticket label: " +
+            data['ticket_category'].toString() +
+            " for: " +
+            ticket.toString());
+        logger.i("Inserted ticket label: " +
+            data['ticket_category'].toString() +
+            " for: " +
+            ticket.toString());
+      } else {
+        print("Error inserting ticket label: " +
+            insertTicketLabelResult.exception.toString() +
+            " for: " +
+            ticket.toString());
+        logger.e("Error inserting ticket label: " +
+            insertTicketLabelResult.exception.toString() +
+            " for: " +
+            ticket.toString());
+
+        Fluttertoast.showToast(
+          msg: "Error inserting ticket label: " +
+              insertTicketLabelResult.exception.toString(),
           toastLength: Toast.LENGTH_LONG,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.grey[600],
           textColor: Colors.white,
-          fontSize: 16.0);
+          fontSize: 16.0,
+        );
+      }
     }
 
     MutationOptions updateInstallOptions = MutationOptions(
@@ -518,14 +700,32 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
     final QueryResult updateInstallResult =
         await GqlClientFactory().authGqlmutate(updateInstallOptions);
 
-    if (updateInstallResult.hasException) {
-      Fluttertoast.showToast(
-          msg: updateInstallResult.exception.toString(),
+    if (updateInstallResult != null) {
+      if (updateInstallResult.hasException == false) {
+        print("Inserted ticket into install record: " +
+            ticket.toString() +
+            " for: " +
+            data['install']);
+        logger.i("Inserted ticket into install record: " +
+            ticket.toString() +
+            " for: " +
+            data['install']);
+      } else {
+        print("Error inserting ticket into install record: " +
+            updateInstallResult.exception.toString());
+        logger.e("Error inserting ticket into install record: " +
+            updateInstallResult.exception.toString());
+
+        Fluttertoast.showToast(
+          msg: "Error inserting ticket into install record: " +
+              updateInstallResult.exception.toString(),
           toastLength: Toast.LENGTH_LONG,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.grey[600],
           textColor: Colors.white,
-          fontSize: 16.0);
+          fontSize: 16.0,
+        );
+      }
     }
 
     if (install['document'] != null) {
@@ -553,14 +753,36 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
       final QueryResult insertTicketCommentResult =
           await GqlClientFactory().authGqlmutate(insertTicketCommentOptions);
 
-      if (insertTicketCommentResult.hasException) {
-        Fluttertoast.showToast(
-            msg: updateInstallResult.exception.toString(),
+      if (insertTicketCommentResult != null) {
+        if (insertTicketCommentResult.hasException == false) {
+          print("Inserted initial ticket comment: " +
+              ticketComment.toString() +
+              " for: " +
+              ticket.toString());
+          logger.i("Inserted initial ticket comment: " +
+              ticketComment.toString() +
+              " for: " +
+              ticket.toString());
+        } else {
+          print("Error inserting initial ticket comment: " +
+              insertTicketCommentResult.exception.toString() +
+              " for: " +
+              ticket.toString());
+          logger.e("Error inserting initial ticket comment: " +
+              insertTicketCommentResult.exception.toString() +
+              " for: " +
+              ticket.toString());
+
+          Fluttertoast.showToast(
+            msg: "Error inserting initial ticket comment: " +
+                insertTicketCommentResult.exception.toString(),
             toastLength: Toast.LENGTH_LONG,
             gravity: ToastGravity.BOTTOM,
             backgroundColor: Colors.grey[600],
             textColor: Colors.white,
-            fontSize: 16.0);
+            fontSize: 16.0,
+          );
+        }
       }
 
       MutationOptions updateInstallByPKOptions = MutationOptions(
@@ -583,16 +805,32 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
       final QueryResult updateInstallByPKResult =
           await GqlClientFactory().authGqlmutate(updateInstallByPKOptions);
 
-      if (updateInstallByPKResult.hasException) {
-        Fluttertoast.showToast(
-            msg: updateInstallResult.exception.toString(),
+      if (updateInstallByPKResult != null) {
+        if (updateInstallByPKResult.hasException == false) {
+          print("Updated install to set ticket created to true for: " +
+              data['install'].toString());
+          logger.i("Updated install to set ticket created to true for: " +
+              data['install'].toString());
+        } else {
+          print("Error updating install to set ticket to true: " +
+              updateInstallByPKResult.exception.toString());
+          logger.e("Error updating install to set ticket to true: " +
+              updateInstallByPKResult.exception.toString());
+
+          Fluttertoast.showToast(
+            msg: "Error updating install to set ticket to true: " +
+                updateInstallByPKResult.exception.toString(),
             toastLength: Toast.LENGTH_LONG,
             gravity: ToastGravity.BOTTOM,
             backgroundColor: Colors.grey[600],
             textColor: Colors.white,
-            fontSize: 16.0);
+            fontSize: 16.0,
+          );
+        }
       }
     }
+    print(successMsg);
+    logger.i(successMsg);
     Fluttertoast.showToast(
       msg: successMsg,
       toastLength: msgLength,
@@ -630,15 +868,32 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
     final QueryResult updateInstallDateByPKResult =
         await GqlClientFactory().authGqlmutate(updateInstallDateByPKOptions);
 
-    if (updateInstallDateByPKResult.hasException) {
-      print(updateInstallDateByPKResult);
-      Fluttertoast.showToast(
-          msg: updateInstallDateByPKResult.exception.toString(),
+    if (updateInstallDateByPKResult != null) {
+      if (updateInstallDateByPKResult.hasException == false) {
+        print("Updated install date to " +
+            data['date'].toString() +
+            " for: " +
+            data['install']);
+        logger.i("Updated install date to " +
+            data['date'].toString() +
+            " for: " +
+            data['install']);
+      } else {
+        print("Error updating install date: " +
+            updateInstallDateByPKResult.exception.toString());
+        logger.e("Error updating install date: " +
+            updateInstallDateByPKResult.exception.toString());
+
+        Fluttertoast.showToast(
+          msg: "Error updating install date: " +
+              updateInstallDateByPKResult.exception.toString(),
           toastLength: Toast.LENGTH_LONG,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.grey[600],
           textColor: Colors.white,
-          fontSize: 16.0);
+          fontSize: 16.0,
+        );
+      }
     }
 
     MutationOptions updateInstallEmployeeByPKOptions = MutationOptions(
@@ -661,14 +916,32 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
     final QueryResult updateInstallEmployeeByPKResult = await GqlClientFactory()
         .authGqlmutate(updateInstallEmployeeByPKOptions);
 
-    if (updateInstallEmployeeByPKResult.hasException) {
-      Fluttertoast.showToast(
-          msg: updateInstallEmployeeByPKResult.exception.toString(),
+    if (updateInstallEmployeeByPKResult != null) {
+      if (updateInstallEmployeeByPKResult.hasException == false) {
+        print("Updated install employee: " +
+            data['employee'].toString() +
+            " for: " +
+            data['install'].toString());
+        logger.i("Updated install employee: " +
+            data['employee'].toString() +
+            " for: " +
+            data['install'].toString());
+      } else {
+        print("Error updating install employee: " +
+            updateInstallEmployeeByPKResult.exception.toString());
+        logger.e("Error updating install employee: " +
+            updateInstallEmployeeByPKResult.exception.toString());
+
+        Fluttertoast.showToast(
+          msg: "Error updating install employee: " +
+              updateInstallEmployeeByPKResult.exception.toString(),
           toastLength: Toast.LENGTH_LONG,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.grey[600],
           textColor: Colors.white,
-          fontSize: 16.0);
+          fontSize: 16.0,
+        );
+      }
     }
 
     MutationOptions updateTicketDateByPKOptions = MutationOptions(
@@ -691,14 +964,32 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
     final QueryResult updateTicketDateByPKResult =
         await GqlClientFactory().authGqlmutate(updateTicketDateByPKOptions);
 
-    if (updateTicketDateByPKResult.hasException) {
-      Fluttertoast.showToast(
-          msg: updateTicketDateByPKResult.exception.toString(),
+    if (updateTicketDateByPKResult != null) {
+      if (updateTicketDateByPKResult.hasException == false) {
+        print("Updated ticket date: " +
+            data['date'].toString() +
+            " for: " +
+            data['ticket'].toString());
+        logger.i("Updated ticket date: " +
+            data['date'].toString() +
+            " for: " +
+            data['ticket'].toString());
+      } else {
+        print("Error updating ticket date: " +
+            updateTicketDateByPKResult.exception.toString());
+        logger.e("Error updating ticket date: " +
+            updateTicketDateByPKResult.exception.toString());
+
+        Fluttertoast.showToast(
+          msg: "Error updating ticket date: " +
+              updateTicketDateByPKResult.exception.toString(),
           toastLength: Toast.LENGTH_LONG,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.grey[600],
           textColor: Colors.white,
-          fontSize: 16.0);
+          fontSize: 16.0,
+        );
+      }
     }
 
     MutationOptions updateTicketAssigneeOptions = MutationOptions(
@@ -723,24 +1014,44 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
     final QueryResult updateTicketAssigneeResult =
         await GqlClientFactory().authGqlmutate(updateTicketAssigneeOptions);
 
-    if (updateTicketAssigneeResult.hasException) {
-      Fluttertoast.showToast(
-        msg: updateTicketAssigneeResult.exception.toString(),
-        toastLength: Toast.LENGTH_LONG,
-        gravity: ToastGravity.BOTTOM,
-        backgroundColor: Colors.grey[600],
-        textColor: Colors.white,
-        fontSize: 16.0,
-      );
+    if (updateTicketAssigneeResult != null) {
+      if (updateTicketAssigneeResult.hasException == false) {
+        print("Updated ticket assignee: " +
+            data['employee'].toString() +
+            " for: " +
+            data['ticket'].toString());
+        logger.i("Updated ticket assignee: " +
+            data['employee'].toString() +
+            " for: " +
+            data['ticket'].toString());
+      } else {
+        print("Error updating ticket assignee: " +
+            updateTicketAssigneeResult.exception.toString());
+        logger.e("Error updating ticket assignee: " +
+            updateTicketAssigneeResult.exception.toString());
+
+        Fluttertoast.showToast(
+          msg: "Error updating ticket assignee: " +
+              updateTicketAssigneeResult.exception.toString(),
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
+      }
     }
 
+    print(successMsg);
+    logger.i(successMsg);
     Fluttertoast.showToast(
-        msg: successMsg,
-        toastLength: msgLength,
-        gravity: ToastGravity.BOTTOM,
-        backgroundColor: Colors.grey[600],
-        textColor: Colors.white,
-        fontSize: 16.0);
+      msg: successMsg,
+      toastLength: msgLength,
+      gravity: ToastGravity.BOTTOM,
+      backgroundColor: Colors.grey[600],
+      textColor: Colors.white,
+      fontSize: 16.0,
+    );
 
     Navigator.pop(context);
     isSaveDisabled = false;
