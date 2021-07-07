@@ -9,6 +9,8 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:logger/logger.dart';
 import 'package:round2crm/config/ConfigSettings.dart';
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 
 class UserService {
   final GoogleSignIn googleSignIn =
@@ -32,16 +34,21 @@ class UserService {
   static FirebaseAuth firebaseAuth = FirebaseAuth.instance;
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 120,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output:
+    printer: PrefixPrinter(SimpleLogPrinter()),
+    output: CustomOutput(),
   );
+
+  // var logger = Logger(
+  //   printer: PrettyPrinter(
+  //     methodCount: 1,
+  //     errorMethodCount: 8,
+  //     lineLength: 120,
+  //     colors: true,
+  //     printEmojis: true,
+  //     printTime: true,
+  //   ),
+  //   output: CustomOutput(),
+  // );
 
   getToken() async {
     try {
@@ -131,7 +138,9 @@ class UserService {
           ConfigSettings.HASURA_WEBSOCKET.toString());
 
       var user = firebaseAuth.currentUser;
-      logger.i(user);
+
+      print(user);
+      logger.i("User: " + user.displayName.toString() + " (" + user.uid + ")");
 
       MutationOptions mutateOptions = MutationOptions(
         document: gql("""
@@ -231,7 +240,10 @@ class UserService {
             await GqlClientFactory.client
                 .mutate(notificationRegistrationMutateOptions);
 
-        logger.i(notificationRegistrationResult);
+        logger.i("Registration token result: " +
+            notificationRegistrationResult.data['register_notification_token']
+                    ['message']
+                .toString());
       }
     } catch (err) {
       logger.e(err.toString());
