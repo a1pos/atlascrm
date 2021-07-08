@@ -46,14 +46,16 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
   var businessNameController = TextEditingController();
   var dbaController = TextEditingController();
   var businessAddressController = TextEditingController();
-  var notesController = TextEditingController();
-  var merchantSourceController = TextEditingController();
 
   var merchant;
   var merchantDocument;
-  var displayPhone;
+  var merchantAgreement;
   var devices = [];
   var merchantLocation = "";
+  var merchantPhoneNumber;
+  var merchantContact;
+  var merchantEmail;
+  var merchantID;
   var subscription;
 
   @override
@@ -72,118 +74,117 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
   }
 
   Future<void> loadMerchantData(merchantId) async {
-    QueryOptions options = QueryOptions(
-      document: gql("""
-      query GET_MERCHANT(\$merchant: uuid!){
-        merchant_by_pk(merchant: \$merchant){
-          merchant
-          merchant_configs {
+    try {
+      QueryOptions options = QueryOptions(
+        document: gql("""
+        query GET_MERCHANT_BY_PK(\$merchant: uuid!) {
+          merchant_by_pk(merchant: \$merchant) {
+            merchant
+            merchant_id
+            merchant_status
+            lead
             document
-          }
-          document
-          employee: employeeByEmployee{
-            employee
-            displayName:document(path:"displayName")
-          }
-          leadByLead {
-            agreement_builders {
+            merchantPricingTypeByMerchantPricingType {
+              text
+            }
+            merchant_configs {
               document
             }
+            leadByLead {
+              rate_reviews(order_by: { created_at: desc }) {
+                rate_review
+              }
+              agreement_builders(order_by: { created_at: desc }) {
+                agreement_builder
+                document
+                created_at
+              }
+            }
+            employeeByEmployee {
+              employee
+              document
+            }
+            inventories(where: { is_installed: { _eq: true } }) {
+              inventoryPriceTierByInventoryPriceTier {
+                model
+              }
+              serial
+              inventory
+            }
           }
-		    }
-      }
+        }
     """),
-      variables: {"merchant": merchantId},
-    );
+        variables: {"merchant": merchantId},
+      );
 
-    final QueryResult result = await GqlClientFactory().authGqlquery(options);
+      final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
-    if (result.hasException == false) {
-      var body = result.data["merchant_by_pk"];
+      if (result.hasException == false) {
+        var body = result.data["merchant_by_pk"];
 
-      if (body != null) {
-        var bodyDecoded = body;
+        if (body != null) {
+          var bodyDecoded = body;
 
-        setState(() {
-          merchant = bodyDecoded;
-          merchantDocument = bodyDecoded["document"];
-          firstNameController.text = merchantDocument["firstName"];
-        });
+          setState(() {
+            merchant = bodyDecoded;
+            merchantDocument = bodyDecoded["document"];
+            merchantAgreement = merchant["leadByLead"]["agreement_builders"][0]
+                ["document"]["ApplicationInformation"];
 
-        if (merchantDocument["leadDocument"]["address"] != null &&
-            merchantDocument["leadDocument"]["address"] != "" &&
-            merchantDocument["leadDocument"]["city"] != null &&
-            merchantDocument["leadDocument"]["city"] != "" &&
-            merchantDocument["leadDocument"]["state"] != null &&
-            merchantDocument["leadDocument"]["state"] != "" &&
-            merchantDocument["leadDocument"]["zipCode"] != null &&
-            merchantDocument["leadDocument"]["zipCode"] != "") {
-          merchantLocation = merchantDocument["leadDocument"]["address"] +
-              ", " +
-              merchantDocument["leadDocument"]["city"] +
-              ", " +
-              merchantDocument["leadDocument"]["state"] +
-              " " +
-              merchantDocument["leadDocument"]["zipCode"];
-        } else {
-          //come back to this with a loop or query for to only get address of active agreement builder
-          if (merchant['leadByLead']['agreement_builders'][0]['document']
-                      ['ApplicationInformation']['CorporateInfo']['Address1'] !=
-                  null &&
-              merchant['leadByLead']['agreement_builders'][0]['document']
-                      ['ApplicationInformation']['CorporateInfo']['Address1'] !=
-                  "") {
-            merchantLocation = merchant['leadByLead']['agreement_builders'][0]
-                        ['document']['ApplicationInformation']['CorporateInfo']
-                    ['Address1'] +
-                ", " +
-                merchant['leadByLead']['agreement_builders'][0]['document']
-                    ['ApplicationInformation']['CorporateInfo']['City'] +
-                ", " +
-                merchant['leadByLead']['agreement_builders'][0]['document']
-                    ['ApplicationInformation']['CorporateInfo']['State'] +
-                " " +
-                merchant['leadByLead']['agreement_builders'][0]['document']
-                    ['ApplicationInformation']['CorporateInfo']['First5Zip'];
-          } else if (merchant['document']['ApplicationInformation']
-                          ['MpaOutletInfo']['Outlet']['BusinessInfo']
-                      ['LocationAddress1'] !=
-                  null &&
-              merchant['document']['ApplicationInformation']['MpaOutletInfo']
-                      ['Outlet']['BusinessInfo']['LocationAddress1'] !=
-                  "") {
-            merchantLocation = merchant['document']['ApplicationInformation']
-                        ['MpaOutletInfo']['Outlet']['BusinessInfo']
-                    ['LocationAddress1'] +
-                ", " +
-                merchant['document']['ApplicationInformation']['MpaOutletInfo']
-                    ['Outlet']['BusinessInfo']['City'] +
-                ", " +
-                merchant['document']['ApplicationInformation']['MpaOutletInfo']
-                    ['Outlet']['BusinessInfo']['State'] +
-                " " +
-                merchant['document']['ApplicationInformation']['MpaOutletInfo']
-                    ['Outlet']['BusinessInfo']['First5Zip'];
-          } else if (merchant['document']['ApplicationInformation']
-                  ["CorporateInfo"]['Address1'] !=
-              null) {
-            merchantLocation = merchant['document']['ApplicationInformation']
-                    ["CorporateInfo"]['Address1'] +
-                ", " +
-                merchant['document']['ApplicationInformation']["CorporateInfo"]
-                    ['City'] +
-                ", " +
-                merchant['document']['ApplicationInformation']["CorporateInfo"]
-                    ['State'] +
-                " " +
-                merchant['document']['ApplicationInformation']["CorporateInfo"]
-                    ['First5Zip'];
+            if (merchantDocument["leadDocument"]["phoneNumber"] != null &&
+                merchantDocument["leadDocument"]["phoneNumber"] != "" &&
+                merchantDocument["leadDocument"]["phoneNumber"] !=
+                    "0000000000") {
+              merchantPhoneNumber = merchantDocument["leadDocument"]
+                      ["phoneNumber"]
+                  .replaceAllMapped(RegExp(r'(\d{3})(\d{3})(\d+)'),
+                      (Match m) => "(${m[1]}) ${m[2]}-${m[3]}");
+            } else {
+              merchantPhoneNumber = "";
+            }
+
+            merchantContact =
+                merchantAgreement["CorporateInfo"]["CorporateContact"];
+            merchantEmail = merchantAgreement["MpaOutletInfo"]["Outlet"]
+                ["BusinessInfo"]["BusinessEmailAddress"];
+            merchantID = merchant["merchant_id"];
+          });
+
+          if (merchantAgreement.length > 0) {
+            if (merchantAgreement['CorporateInfo']['Address1'] != null &&
+                merchantAgreement['CorporateInfo']['Address1'] != "") {
+              merchantLocation = merchantAgreement['CorporateInfo']
+                      ['Address1'] +
+                  ", " +
+                  merchantAgreement['CorporateInfo']['City'] +
+                  ", " +
+                  merchantAgreement['CorporateInfo']['State'] +
+                  " " +
+                  merchantAgreement['CorporateInfo']['First5Zip'];
+            } else if (merchant['document']['MpaOutletInfo']['Outlet']
+                        ['BusinessInfo']['LocationAddress1'] !=
+                    null &&
+                merchant['document']['MpaOutletInfo']['Outlet']['BusinessInfo']
+                        ['LocationAddress1'] !=
+                    "") {
+              merchantLocation = merchant['document']['MpaOutletInfo']['Outlet']
+                      ['BusinessInfo']['LocationAddress1'] +
+                  ", " +
+                  merchant['document']['MpaOutletInfo']['Outlet']
+                      ['BusinessInfo']['City'] +
+                  ", " +
+                  merchant['document']['MpaOutletInfo']['Outlet']
+                      ['BusinessInfo']['State'] +
+                  " " +
+                  merchant['document']['MpaOutletInfo']['Outlet']
+                      ['BusinessInfo']['First5Zip'];
+            }
           }
         }
       }
-    } else {
+    } catch (err) {
       Fluttertoast.showToast(
-        msg: result.exception.toString(),
+        msg: err.toString(),
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.BOTTOM,
         backgroundColor: Colors.grey[600],
@@ -276,6 +277,13 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
     );
   }
 
+  String encodeQueryParameters(Map<String, String> params) {
+    return params.entries
+        .map((e) =>
+            '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+        .join('&');
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -311,17 +319,25 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                           child: Column(
                             children: <Widget>[
                               showInfoRow(
+                                "Contact",
+                                merchantContact,
+                              ),
+                              showInfoRow(
                                 "Address",
                                 merchantLocation,
                               ),
                               showInfoRow(
-                                  "Email",
-                                  merchantDocument["leadDocument"]
-                                      ["emailAddr"]),
+                                "Email",
+                                merchantEmail,
+                              ),
                               showInfoRow(
-                                  "Phone",
-                                  merchantDocument["leadDocument"]
-                                      ["phoneNumber"]),
+                                "Phone",
+                                merchantPhoneNumber,
+                              ),
+                              showInfoRow(
+                                "MID",
+                                merchantID,
+                              ),
                               Divider(),
                               Wrap(
                                 alignment: WrapAlignment.center,
@@ -345,24 +361,45 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                           )
                                         ],
                                       ),
-                                      onPressed: () {
-                                        if (merchantDocument["leadDocument"]
-                                                    ["emailAddr"] !=
-                                                null &&
-                                            merchantDocument["leadDocument"]
-                                                    ["emailAddr"] !=
-                                                "") {
-                                          var launchURL1 =
-                                              'mailto:${merchantDocument["leadDocument"]["emailAddr"]}?subject=Followup about ${merchantDocument["leadDocument"]["businessName"]}';
-                                          launch(launchURL1);
+                                      onPressed: () async {
+                                        if (merchantEmail != null &&
+                                            merchantEmail != "") {
+                                          final Uri emailLaunchUri = Uri(
+                                            scheme: 'mailto',
+                                            path: '$merchantEmail',
+                                            query: encodeQueryParameters(<
+                                                String, String>{
+                                              'subject':
+                                                  'Followup about ${merchantDocument["leadDocument"]["businessName"]}'
+                                            }),
+                                          );
+
+                                          await canLaunch(
+                                                  emailLaunchUri.toString())
+                                              ? launch(
+                                                  emailLaunchUri.toString())
+                                              : Fluttertoast.showToast(
+                                                  msg:
+                                                      "Could not launch email url: " +
+                                                          emailLaunchUri
+                                                              .toString(),
+                                                  toastLength:
+                                                      Toast.LENGTH_LONG,
+                                                  gravity: ToastGravity.BOTTOM,
+                                                  backgroundColor:
+                                                      Colors.grey[600],
+                                                  textColor: Colors.white,
+                                                  fontSize: 16.0,
+                                                );
                                         } else {
                                           Fluttertoast.showToast(
-                                              msg: "No email specified!",
-                                              toastLength: Toast.LENGTH_SHORT,
-                                              gravity: ToastGravity.BOTTOM,
-                                              backgroundColor: Colors.grey[600],
-                                              textColor: Colors.white,
-                                              fontSize: 16.0);
+                                            msg: "No email specified!",
+                                            toastLength: Toast.LENGTH_SHORT,
+                                            gravity: ToastGravity.BOTTOM,
+                                            backgroundColor: Colors.grey[600],
+                                            textColor: Colors.white,
+                                            fontSize: 16.0,
+                                          );
                                         }
                                       },
                                     ),
@@ -382,24 +419,37 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                                   fontWeight: FontWeight.bold))
                                         ],
                                       ),
-                                      onPressed: () {
-                                        if (merchantDocument["leadDocument"]
-                                                    ["phoneNumber"] !=
-                                                null &&
-                                            merchantDocument["leadDocument"]
-                                                    ["phoneNumber"] !=
-                                                "") {
-                                          var launchURL2 =
-                                              'tel:${merchantDocument["leadDocument"]["phoneNumber"]}';
-                                          launch(launchURL2);
+                                      onPressed: () async {
+                                        if (merchantPhoneNumber != null &&
+                                            merchantPhoneNumber != "") {
+                                          var phoneLaunchURL =
+                                              'tel:$merchantPhoneNumber';
+                                          await canLaunch(
+                                                  phoneLaunchURL.toString())
+                                              ? launch(
+                                                  phoneLaunchURL.toString())
+                                              : Fluttertoast.showToast(
+                                                  msg:
+                                                      "Could not launch phone url: " +
+                                                          phoneLaunchURL
+                                                              .toString(),
+                                                  toastLength:
+                                                      Toast.LENGTH_LONG,
+                                                  gravity: ToastGravity.BOTTOM,
+                                                  backgroundColor:
+                                                      Colors.grey[600],
+                                                  textColor: Colors.white,
+                                                  fontSize: 16.0,
+                                                );
                                         } else {
                                           Fluttertoast.showToast(
-                                              msg: "No phone number specified!",
-                                              toastLength: Toast.LENGTH_SHORT,
-                                              gravity: ToastGravity.BOTTOM,
-                                              backgroundColor: Colors.grey[600],
-                                              textColor: Colors.white,
-                                              fontSize: 16.0);
+                                            msg: "No phone number specified!",
+                                            toastLength: Toast.LENGTH_SHORT,
+                                            gravity: ToastGravity.BOTTOM,
+                                            backgroundColor: Colors.grey[600],
+                                            textColor: Colors.white,
+                                            fontSize: 16.0,
+                                          );
                                         }
                                       },
                                     ),
@@ -421,10 +471,27 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                           )
                                         ],
                                       ),
-                                      onPressed: () {
+                                      onPressed: () async {
                                         if (merchantLocation != null) {
-                                          MapsLauncher.launchQuery(
-                                              merchantLocation);
+                                          try {
+                                            MapsLauncher.launchQuery(
+                                                merchantLocation);
+                                          } catch (err) {
+                                            print("Could not launch map url: " +
+                                                merchantLocation.toString());
+
+                                            Fluttertoast.showToast(
+                                              msg:
+                                                  "Could not launch map url: " +
+                                                      merchantLocation
+                                                          .toString(),
+                                              toastLength: Toast.LENGTH_LONG,
+                                              gravity: ToastGravity.BOTTOM,
+                                              backgroundColor: Colors.grey[600],
+                                              textColor: Colors.white,
+                                              fontSize: 16.0,
+                                            );
+                                          }
                                         } else {
                                           Fluttertoast.showToast(
                                               msg: "No address specified!",

@@ -72,18 +72,23 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
 
       QueryOptions options = QueryOptions(
         document: gql("""
-          query GET_MERCHANTS {
-            v_merchant($initParams) {
-              updated_at
-              merchant
-              merchantfirstname
-              merchantlastname
-              merchantemailaddress
-              merchantdbaname
-              merchantbusinessname
-              merchantphonenumber
-            }
+        query GET_MERCHANTS {
+          v_merchant($initParams) {
+            merchant
+            merchantfirstname
+            merchantlastname
+            merchantemailaddress
+            merchantbusinessname
+            city
+            merchant_id
+            merchantphonenumber
+            lead
+            is_active
+            company_name
+            boarded_date
+            employeefullname
           }
+        }
       """),
       );
 
@@ -153,12 +158,17 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
             v_merchant($params) {
               updated_at
               merchant
+              merchant_id
               merchantfirstname
               merchantlastname
               merchantemailaddress
               merchantdbaname
               merchantbusinessname
               merchantphonenumber
+              lead
+              is_active
+              company_name
+              boarded_date
             }
           }
       """),
@@ -382,7 +392,6 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
                       (merchant) {
                         var fullName = "";
                         var businessName = "";
-                        var dbaName = "";
                         var email = "";
                         var phone = "";
 
@@ -397,14 +406,13 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
                         if (merchant["merchantbusinessname"] != null) {
                           businessName = merchant["merchantbusinessname"];
                         }
-                        if (merchant["merchantdbaname"] != null) {
-                          dbaName = merchant["merchantdbaname"];
-                        }
                         if (merchant["merchantemailaddress"] != null) {
                           email = merchant["merchantemailaddress"];
                         }
                         if (merchant["merchantphonenumber"] != null) {
-                          phone = merchant["merchantphonenumber"];
+                          phone = merchant["merchantphonenumber"]
+                              .replaceAllMapped(RegExp(r'(\d{3})(\d{3})(\d+)'),
+                                  (Match m) => "(${m[1]}) ${m[2]}-${m[3]}");
                         }
 
                         return GestureDetector(
@@ -426,15 +434,6 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.end,
                                       children: <Widget>[
-                                        Padding(
-                                          padding: EdgeInsets.all(5),
-                                          child: Text(
-                                            'DBA:',
-                                            style: TextStyle(
-                                              fontSize: 15,
-                                            ),
-                                          ),
-                                        ),
                                         Padding(
                                           padding: EdgeInsets.all(5),
                                           child: Text(
@@ -471,15 +470,6 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: <Widget>[
-                                          Padding(
-                                            padding: EdgeInsets.all(5),
-                                            child: Text(
-                                              dbaName,
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                              ),
-                                            ),
-                                          ),
                                           Padding(
                                             padding: EdgeInsets.all(5),
                                             child: Text(
