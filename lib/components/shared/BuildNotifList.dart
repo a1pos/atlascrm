@@ -8,6 +8,8 @@ import 'dart:async';
 import 'package:round2crm/services/ApiService.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 import 'package:simple_moment/simple_moment.dart';
 import 'Empty.dart';
 
@@ -29,15 +31,8 @@ class _BuildNotifListState extends State<BuildNotifList> {
   var subscription;
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 120,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output:
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   @override

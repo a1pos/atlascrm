@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:logger/logger.dart';
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 
 class Tasks extends StatefulWidget {
   Tasks({Key key}) : super(key: key);
@@ -27,15 +29,8 @@ class TasksState extends State<Tasks> {
   var subscription;
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 120,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output:
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   @override
@@ -103,7 +98,7 @@ class TasksState extends State<Tasks> {
         isLoading = false;
       },
       (error) {
-        print("Error in Tasks: " + error.toString());
+        debugPrint("Error in Tasks: " + error.toString());
         logger.e("Error in Tasks: " + error.toString());
       },
       () => refreshSub(),
@@ -140,6 +135,11 @@ class TasksState extends State<Tasks> {
 }
 
 Widget buildDLGridView(BuildContext context, list, scrollController) {
+  var logger = Logger(
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
+  );
+
   return list.length == 0
       ? Empty("No Active Tasks found")
       : ListView(
@@ -169,15 +169,17 @@ Widget buildDLGridView(BuildContext context, list, scrollController) {
               }
               return GestureDetector(
                 onTap: () {
+                  logger.i("Opening task: $task['task']");
                   Navigator.pushNamed(context, "/viewtask",
                       arguments: task["task"]);
                 },
                 child: TaskItem(
-                    title: task["document"]["title"],
-                    description: task["document"]["notes"],
-                    dateTime: tDate,
-                    type: tType,
-                    priority: tPriority),
+                  title: task["document"]["title"],
+                  description: task["document"]["notes"],
+                  dateTime: tDate,
+                  type: tType,
+                  priority: tPriority,
+                ),
               );
             },
           ),

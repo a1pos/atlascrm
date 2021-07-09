@@ -6,6 +6,8 @@ import 'package:round2crm/services/UserService.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 
 class LeadsChart extends StatefulWidget {
   LeadsChart({Key key}) : super(key: key);
@@ -18,15 +20,8 @@ class LeadsChartState extends State<LeadsChart> {
   final UserService userService = UserService();
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 120,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output:
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   bool isLoading = true;

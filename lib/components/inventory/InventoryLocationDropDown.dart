@@ -80,7 +80,7 @@ class _InventoryLocationDropDownState extends State<InventoryLocationDropDown> {
           }
         }
       } else {
-        print("Error loading Inventory locations for dropdown: " +
+        debugPrint("Error loading Inventory locations for dropdown: " +
             result.exception.toString());
         logger.e("Error loading Inventory locations for dropdown: " +
             result.exception.toString());

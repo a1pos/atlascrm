@@ -3,6 +3,8 @@ import 'package:logger/logger.dart';
 import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 
 class TaskTypeDropDown extends StatefulWidget {
   final String employeeId;
@@ -19,15 +21,8 @@ class _TaskTypeDropDownState extends State<TaskTypeDropDown> {
   var types = [];
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 120,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output:
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   @override
@@ -69,7 +64,8 @@ class _TaskTypeDropDownState extends State<TaskTypeDropDown> {
             result.exception.toString());
 
         Fluttertoast.showToast(
-          msg: "Error getting task types for dropdown: " +result.exception.toString(),
+          msg: "Error getting task types for dropdown: " +
+              result.exception.toString(),
           toastLength: Toast.LENGTH_LONG,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.grey[600],

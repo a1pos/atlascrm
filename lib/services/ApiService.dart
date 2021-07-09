@@ -5,6 +5,8 @@ import 'package:round2crm/config/ConfigSettings.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/widgets.dart';
 import 'package:logger/logger.dart';
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 import 'UserService.dart';
 
 class ApiService {
@@ -12,15 +14,8 @@ class ApiService {
   final int TIMEOUT = 10000;
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 120,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output:
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   Future<Response> publicGet(url, data) async {

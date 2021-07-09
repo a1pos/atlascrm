@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:package_info/package_info.dart';
 import 'package:round2crm/services/FirebaseCESService.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -34,21 +35,9 @@ class UserService {
   static FirebaseAuth firebaseAuth = FirebaseAuth.instance;
 
   var logger = Logger(
-    printer: PrefixPrinter(SimpleLogPrinter()),
+    printer: SimpleLogPrinter(),
     output: CustomOutput(),
   );
-
-  // var logger = Logger(
-  //   printer: PrettyPrinter(
-  //     methodCount: 1,
-  //     errorMethodCount: 8,
-  //     lineLength: 120,
-  //     colors: true,
-  //     printEmojis: true,
-  //     printTime: true,
-  //   ),
-  //   output: CustomOutput(),
-  // );
 
   getToken() async {
     try {
@@ -101,6 +90,7 @@ class UserService {
         assert(user.uid == currentUser.uid);
 
         logger.i('signInWithGoogle succeeded: $user');
+        debugPrint('signInWithGoogle succeeded: $user');
 
         await linkGoogleAccount();
 
@@ -108,6 +98,7 @@ class UserService {
       }
     } catch (err) {
       logger.e(err.toString());
+      debugPrint(err.toString());
     }
     return false;
   }
@@ -122,8 +113,10 @@ class UserService {
       isAuthenticated = false;
 
       logger.i("User signed out");
+      debugPrint("User signed out");
     } catch (err) {
       logger.e(err.toString());
+      debugPrint(err.toString());
       throw new Error();
     }
   }
@@ -139,8 +132,8 @@ class UserService {
 
       var user = firebaseAuth.currentUser;
 
-      print(user);
       logger.i("User: " + user.displayName.toString() + " (" + user.uid + ")");
+      getVersionNumber();
 
       MutationOptions mutateOptions = MutationOptions(
         document: gql("""
@@ -162,7 +155,7 @@ class UserService {
           await GqlClientFactory().authGqlmutate(mutateOptions);
 
       if (linkResult.hasException) {
-        print(
+        debugPrint(
             "Error linking google account: " + linkResult.exception.toString());
         logger.e(
             "Error linking google account: " + linkResult.exception.toString());
@@ -171,9 +164,7 @@ class UserService {
         token = linkResult.data["link_google_account"]["token"];
         rToken = linkResult.data["link_google_account"]["refreshToken"];
         var idTokenResult = await user.getIdToken(true);
-
-        getVersionNumber();
-        logger.i("ID Token result: " + idTokenResult);
+        debugPrint("ID Token result: " + idTokenResult);
 
         var empDecoded = linkResult.data["link_google_account"]["employee"];
 
@@ -240,13 +231,14 @@ class UserService {
             await GqlClientFactory.client
                 .mutate(notificationRegistrationMutateOptions);
 
-        logger.i("Registration token result: " +
+        debugPrint("Registration token result: " +
             notificationRegistrationResult.data['register_notification_token']
                     ['message']
                 .toString());
       }
     } catch (err) {
       logger.e(err.toString());
+      debugPrint(err.toString());
       throw new Error();
     }
   }
@@ -259,7 +251,7 @@ class UserService {
     try {
       return firebaseAuth.currentUser;
     } catch (err) {
-      print(err.toString());
+      debugPrint(err.toString());
     }
 
     return null;
@@ -287,6 +279,7 @@ class UserService {
         return false;
       } catch (err) {
         logger.e(err.toString());
+        debugPrint(err.toString());
         throw new Error();
       }
     } else {

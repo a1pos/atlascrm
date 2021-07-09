@@ -12,16 +12,4 @@ class ConfigSettings {
   static String HASURA_WEBSOCKET = kReleaseMode
       ? "wss://hasura-prod.atlascrm.us/v1/graphql"
       : "wss://hasura-dev.atlascrm.us/v1/graphql";
-
-  // static String GOOGLE_TOKEN = "";
-
-  // static String ACCESS_TOKEN = "";
-
-  // getGoogleToken() {
-  //   return GOOGLE_TOKEN;
-  // }
-
-  // getAccessToken() {
-  //   return ACCESS_TOKEN;
-  // }
 }

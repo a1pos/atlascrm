@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_webservice/places.dart';
 import 'package:flutter_google_places/flutter_google_places.dart';
 import 'package:logger/logger.dart';
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 
 const kGoogleApiKey = "AIzaSyB-rMAdwtIjM7s_4Lb8SdRXAfhbiLTVl7s";
 
@@ -32,15 +34,8 @@ String locationText;
 var locationTextController = TextEditingController();
 
 var logger = Logger(
-  printer: PrettyPrinter(
-    methodCount: 1,
-    errorMethodCount: 8,
-    lineLength: 120,
-    colors: true,
-    printEmojis: true,
-    printTime: true,
-  ),
-  // output:
+  printer: SimpleLogPrinter(),
+  output: CustomOutput(),
 );
 
 class _AddressSearchState extends State<AddressSearch> {
