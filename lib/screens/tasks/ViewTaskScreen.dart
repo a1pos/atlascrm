@@ -90,7 +90,8 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
           }
         });
       } else {
-        print("Error getting task status: " + result0.exception.toString());
+        debugPrint(
+            "Error getting task status: " + result0.exception.toString());
         logger.e("Error getting task status: " + result0.exception.toString());
         Fluttertoast.showToast(
           msg: "Error getting task status: " + result0.exception.toString(),
@@ -161,7 +162,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
         });
       }
     } else {
-      print("Error getting task data: " + result.exception.toString());
+      debugPrint("Error getting task data: " + result.exception.toString());
       logger.e("Error getting task data: " + result.exception.toString());
 
       Fluttertoast.showToast(
@@ -257,7 +258,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
           Navigator.pop(context);
         }
       } else {
-        print("Error updating task: " + result.exception.toString());
+        debugPrint("Error updating task: " + result.exception.toString());
         logger.e("Error updating task: " + result.exception.toString());
 
         Fluttertoast.showToast(
@@ -270,7 +271,7 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
         );
       }
     } catch (err) {
-      print("Error updating task: " + err.toString());
+      debugPrint("Error updating task: " + err.toString());
       logger.e("Error updating task: " + err.toString());
     }
   }

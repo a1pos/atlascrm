@@ -76,7 +76,8 @@ class _DeviceDropDownState extends State<DeviceDropDown> {
           }
         }
       } else {
-        print("Error in DeviceDropdown: " + devicesResp.exception.toString());
+        debugPrint(
+            "Error in DeviceDropdown: " + devicesResp.exception.toString());
         logger
             .e("Error in DeviceDropdown: " + devicesResp.exception.toString());
       }

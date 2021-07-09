@@ -79,7 +79,7 @@ class _MerchantDropDownState extends State<MerchantDropDown> {
           }
         }
       } else {
-        print("Error getting merchant data for dropdown: " +
+        debugPrint("Error getting merchant data for dropdown: " +
             result.exception.toString());
         logger.e("Error getting merchant data for dropdown: " +
             result.exception.toString());

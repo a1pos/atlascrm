@@ -61,7 +61,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
       await loadDevices();
       logger.i("ViewEmployeeScreen initialized");
     } catch (err) {
-      print("Error initializing employee data: " + err.toString());
+      debugPrint("Error initializing employee data: " + err.toString());
       logger.e("Error initializing employee data: " + err.toString());
     }
     setState(
@@ -100,7 +100,7 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
         }
       },
       (error) {
-        print("Error in employee devices sub: " + error.toString());
+        debugPrint("Error in employee devices sub: " + error.toString());
         logger.e("Error in employee devices sub: " + error.toString());
       },
       () => refreshSub(),

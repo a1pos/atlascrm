@@ -145,7 +145,7 @@ class GqlClientFactory {
           setPrivateGraphQLClient(UserService.token);
           logger.i("CLIENT SET TO PRIVATE");
         } else {
-          print("REFRESH TOKEN TIMED OUT: SIGNING OUT");
+          debugPrint("REFRESH TOKEN TIMED OUT: SIGNING OUT");
           logger.e("Refresh token timed out: Signing Out");
         }
         isRefreshing = false;
@@ -206,7 +206,7 @@ class GqlClientFactory {
 
       client = aCLient;
     } catch (err) {
-      print(err.toString());
+      debugPrint(err.toString());
       throw new Error();
     }
   }
@@ -229,7 +229,7 @@ class GqlClientFactory {
       );
       client = aCLient;
     } catch (err) {
-      print(err.toString());
+      debugPrint(err.toString());
       throw new Error();
     }
   }

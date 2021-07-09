@@ -190,10 +190,10 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
             }
           }
         }
-        logger.i("Employee Map markers loaded");
+        logger.i("Sales Map markers loaded");
       },
       (error) {
-        print("Error in EmployeeMapScreen: " + error.toString());
+        debugPrint("Error in EmployeeMapScreen: " + error.toString());
         logger.e("Error in EmployeeMapScreen: " + error.toString());
       },
       () => refreshSub(),
@@ -260,7 +260,8 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
         return BitmapDescriptor.fromBytes(resizedMarkerImageBytes);
       }
     } catch (e) {
-      print(e);
+      debugPrint("Error getting marker image from cache: " + e.toString());
+      logger.e("Error getting marker image from cache: " + e.toString());
     }
 
     return await BitmapDescriptor.fromAssetImage(
@@ -272,7 +273,7 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
     return Scaffold(
       appBar: CustomAppBar(
         key: Key("employeeMapAppBar"),
-        title: Text("Employee Map"),
+        title: Text("Sales Map"),
       ),
       body: GoogleMap(
         key: Key("liveMap"),

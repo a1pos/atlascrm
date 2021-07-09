@@ -161,7 +161,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
         },
       );
     } catch (err) {
-      print("Error getting Inventory: " + err.toString());
+      debugPrint("Error getting Inventory: " + err.toString());
       logger.e("Error getting Inventory: " + err.toString());
     }
   }
@@ -268,7 +268,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
         },
       );
     } catch (err) {
-      print("Error refreshing inventory onScroll" + err.toString());
+      debugPrint("Error refreshing inventory onScroll" + err.toString());
       logger.e("Error refreshing inventory onScroll" + err.toString());
     }
   }
@@ -313,7 +313,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
         logger.i("BarcodeScanner closed");
       }
     } catch (err) {
-      print("Error searching Inventory by barcode: " + err.toString());
+      debugPrint("Error searching Inventory by barcode: " + err.toString());
       logger.e("Error searching Inventory by barcode: " + err.toString());
     }
   }
@@ -429,7 +429,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
         isLoading = false;
       });
     } catch (err) {
-      print("Error getting employee data: " + err.toString());
+      debugPrint("Error getting employee data: " + err.toString());
       logger.e("Error getting employee data: " + err.toString());
     }
   }

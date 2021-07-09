@@ -84,7 +84,7 @@ class _NotificationCenterState extends State<NotificationCenter> {
         }
       },
       (error) {
-        print("Error in notifications center: " + error.toString());
+        debugPrint("Error in notifications center: " + error.toString());
         logger.e("Error in notifications center: " + error.toString());
       },
       () => refreshSub(),
@@ -129,7 +129,8 @@ class _NotificationCenterState extends State<NotificationCenter> {
       );
       Navigator.of(context).pop();
     } else {
-      print("Failed to update notifications: " + result.exception.toString());
+      debugPrint(
+          "Failed to update notifications: " + result.exception.toString());
       logger
           .e("Failed to update notifications: " + result.exception.toString());
 

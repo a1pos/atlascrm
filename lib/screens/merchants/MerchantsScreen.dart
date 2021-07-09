@@ -122,7 +122,7 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
             }
           }
         } else {
-          print("Error getting merchants: " + result.exception.toString());
+          debugPrint("Error getting merchants: " + result.exception.toString());
           logger.e("Error getting merchants: " + result.exception.toString());
 
           Fluttertoast.showToast(
@@ -139,7 +139,7 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
         isLoading = false;
       });
     } catch (err) {
-      print("Error getting merchants: " + err.toString());
+      debugPrint("Error getting merchants: " + err.toString());
       logger.e("Error getting merchants: " + err.toString());
       setState(() {
         isLoading = false;
@@ -208,7 +208,7 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
             }
           }
         } else {
-          print("Error getting merchant data onScroll: " +
+          debugPrint("Error getting merchant data onScroll: " +
               result.exception.toString());
           logger.e("Error getting merchant data onScroll: " +
               result.exception.toString());
@@ -229,7 +229,7 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
         isLoading = false;
       });
     } catch (err) {
-      print("Error getting merchant data onScroll: " + err.toString());
+      debugPrint("Error getting merchant data onScroll: " + err.toString());
       logger.e("Error getting merchant data onScroll: " + err.toString());
     }
   }

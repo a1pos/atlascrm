@@ -194,7 +194,8 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
           }
         }
       } else {
-        print("Error getting merchant data: " + result.exception.toString());
+        debugPrint(
+            "Error getting merchant data: " + result.exception.toString());
         logger.e("Error getting merchant data: " + result.exception.toString());
         Fluttertoast.showToast(
           msg: "Error getting merchant data: " + result.exception.toString(),
@@ -242,11 +243,11 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
         isLoading = false;
         inventoryLoading = false;
       }, (error) {
-        print("Error getting merchant devices: " + error.toString());
+        debugPrint("Error getting merchant devices: " + error.toString());
         logger.e("Error getting merchant devices: " + error.toString());
       }, () => refreshSub());
     } catch (err) {
-      print("Error getting merchant data and merchant device data: " +
+      debugPrint("Error getting merchant data and merchant device data: " +
           err.toString());
       logger.e("Error getting merchant data and merchant device data: " +
           err.toString());

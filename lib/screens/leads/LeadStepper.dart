@@ -245,12 +245,13 @@ class LeadStepperState extends State<LeadStepper> {
             }
           }
         } else {
-          print("Error checking existing lead: " + result.exception.toString());
+          debugPrint(
+              "Error checking existing lead: " + result.exception.toString());
           logger.e("Error existing lead: " + result.exception.toString());
         }
       }
     } catch (err) {
-      print("Error checking existing lead: " + err.exception.toString());
+      debugPrint("Error checking existing lead: " + err.exception.toString());
       logger.e("Error existing lead: " + err.exception.toString());
     }
   }
@@ -373,7 +374,7 @@ class LeadStepperState extends State<LeadStepper> {
                 }
               }
             } else {
-              print("Place suggestion from Google did not return a value");
+              debugPrint("Place suggestion from Google did not return a value");
               logger.e("Place suggestion from Google did not return a value");
             }
           },
@@ -486,7 +487,7 @@ class LeadStepperState extends State<LeadStepper> {
 
         await this.widget.successCallback();
       } else {
-        print("Failed to add lead: " + result.exception.toString());
+        debugPrint("Failed to add lead: " + result.exception.toString());
         logger.e("Failed to add lead: " + result.exception.toString());
 
         Fluttertoast.showToast(
@@ -501,7 +502,7 @@ class LeadStepperState extends State<LeadStepper> {
         });
       }
     } catch (err) {
-      print("Failed to add lead: " + err.toString());
+      debugPrint("Failed to add lead: " + err.toString());
       logger.e("Failed to add lead: " + err.toString());
     }
     isSaveDisabled = false;
@@ -872,7 +873,7 @@ class LeadStepperState extends State<LeadStepper> {
                                   Stepper stepper = _stepperKey.currentWidget;
                                   stepper.onStepContinue();
                                 } else {
-                                  print("No address entered");
+                                  debugPrint("No address entered");
                                   logger.i("No address entered");
                                   Fluttertoast.showToast(
                                     msg: "Please Enter an Address!",

@@ -99,7 +99,7 @@ class _BuildNotifListState extends State<BuildNotifList> {
         }
       },
       (error) {
-        print("Error in loading notifications: " + error.toString());
+        debugPrint("Error in loading notifications: " + error.toString());
         logger.e("Error in loading notifications: " + error.toString());
       },
       () => refreshSub(),
@@ -143,7 +143,7 @@ class _BuildNotifListState extends State<BuildNotifList> {
           fontSize: 16.0);
       getNotifications();
     } else {
-      print(
+      debugPrint(
           "Error marking notification as read: " + result.exception.toString());
       logger.e(
           "Error marking notification as read: " + result.exception.toString());
@@ -194,7 +194,7 @@ class _BuildNotifListState extends State<BuildNotifList> {
       );
       Navigator.of(context).pop();
     } else {
-      print("Error marking all notifications as read: " +
+      debugPrint("Error marking all notifications as read: " +
           result.exception.toString());
       logger.e("Error marking all notifications as read: " +
           result.exception.toString());

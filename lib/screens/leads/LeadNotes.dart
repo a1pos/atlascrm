@@ -123,7 +123,7 @@ class _LeadNotesState extends State<LeadNotes> {
           }
         }
       } else {
-        print("Error getting lead notes: " + result.exception.toString());
+        debugPrint("Error getting lead notes: " + result.exception.toString());
         logger.e("Error getting lead notes: " + result.exception.toString());
 
         Fluttertoast.showToast(
@@ -162,7 +162,7 @@ class _LeadNotesState extends State<LeadNotes> {
       logger.i("Note successfully added: " + sendNote["note_text"]);
       loadNotes(this.widget.object[type]);
     } else {
-      print("Error saving note: " + result.exception.toString());
+      debugPrint("Error saving note: " + result.exception.toString());
       logger.e("Error saving note: " + result.exception.toString());
       Fluttertoast.showToast(
         msg: result.exception.toString(),
@@ -212,7 +212,7 @@ class _LeadNotesState extends State<LeadNotes> {
           });
         }
       } else {
-        print("Error checking if lead is boarded: " +
+        debugPrint("Error checking if lead is boarded: " +
             result.exception.toString());
         logger.e("Error checking if lead is boarded: " +
             result.exception.toString());

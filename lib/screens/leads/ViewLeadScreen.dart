@@ -151,7 +151,8 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
           });
         }
       } else {
-        print("Error checking lead status: " + result.exception.toString());
+        debugPrint(
+            "Error checking lead status: " + result.exception.toString());
         logger.e("Error checking lead status: " + result.exception.toString());
 
         Fluttertoast.showToast(
@@ -229,7 +230,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                   );
                   Navigator.of(context).pop();
                 } else {
-                  print(
+                  debugPrint(
                       "Stale lead not claimed: " + result.exception.toString());
                   logger.e(
                       "Stale lead not claimed: " + result.exception.toString());
@@ -301,7 +302,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
           }
         }
       } else {
-        print("Error getting statement: " + result.exception.toString());
+        debugPrint("Error getting statement: " + result.exception.toString());
         logger.e("Error getting statement: " + result.exception.toString());
 
         Fluttertoast.showToast(
@@ -314,7 +315,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
         );
       }
     } catch (err) {
-      print("Error getting statement: " + err.toString());
+      debugPrint("Error getting statement: " + err.toString());
       logger.e("Error getting statement: " + err.toString());
     }
     if (statementDirty) {
@@ -361,7 +362,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
         );
       }
     } else {
-      print("Error getting lead data: " + result.exception.toString());
+      debugPrint("Error getting lead data: " + result.exception.toString());
       logger.e("Error getting lead data: " + result.exception.toString());
 
       Fluttertoast.showToast(
@@ -478,7 +479,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
           textColor: Colors.white,
           fontSize: 16.0);
     } else {
-      print("Failed to update lead: " + result.exception.toString());
+      debugPrint("Failed to update lead: " + result.exception.toString());
       logger.e("Failed to update lead: " + result.exception.toString());
 
       Fluttertoast.showToast(

@@ -208,7 +208,7 @@ class _LeadTasksState extends State<LeadTasks> {
       }
       isLoading = false;
     }, (error) {
-      print("Error in getting lead tasks: " + error.toString());
+      debugPrint("Error in getting lead tasks: " + error.toString());
       logger.e("Error in getting lead tasks: " + error.toString());
     }, () => refreshSub());
   }
@@ -254,7 +254,7 @@ class _LeadTasksState extends State<LeadTasks> {
         await initTasks();
       }
     } else {
-      print("Error getting task status: " + result0.exception.toString());
+      debugPrint("Error getting task status: " + result0.exception.toString());
       logger.e("Error getting task status: " + result0.exception.toString());
     }
     var saveDate = DateTime.parse(taskDateController.text).toUtc();
@@ -314,7 +314,7 @@ class _LeadTasksState extends State<LeadTasks> {
           await initTasks();
         }
       } else {
-        print("Error inserting task: " + result.exception.toString());
+        debugPrint("Error inserting task: " + result.exception.toString());
         logger.e("Error inserting task: " + result.exception.toString());
 
         Fluttertoast.showToast(
@@ -327,7 +327,7 @@ class _LeadTasksState extends State<LeadTasks> {
         );
       }
     } catch (err) {
-      print("Error inserting task: " + err.toString());
+      debugPrint("Error inserting task: " + err.toString());
       logger.e("Error inserting task: " + err.toString());
     }
     _formKey.currentState.reset();
@@ -367,7 +367,8 @@ class _LeadTasksState extends State<LeadTasks> {
           logger.i("Lead is not boarded");
         }
       } else {
-        print("Error checking lead status: " + result.exception.toString());
+        debugPrint(
+            "Error checking lead status: " + result.exception.toString());
         logger.e("Error checking lead status: " + result.exception.toString());
         Fluttertoast.showToast(
           msg: "Error inserting task: " + result.exception.toString(),

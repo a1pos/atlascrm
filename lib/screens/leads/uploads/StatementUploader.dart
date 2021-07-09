@@ -170,13 +170,13 @@ class _StatementUploaderState extends State<StatementUploader> {
           }
         }
       } else {
-        print("Error getting statement information: " +
+        debugPrint("Error getting statement information: " +
             result.exception.toString());
         logger.e("Error getting statement information: " +
             result.exception.toString());
       }
     } catch (err) {
-      print("Error getting statement information: " + err.toString());
+      debugPrint("Error getting statement information: " + err.toString());
       logger.e("Error getting statement information: " + err.toString());
     }
   }
@@ -210,7 +210,8 @@ class _StatementUploaderState extends State<StatementUploader> {
           logger.i("Lead is boarded");
         }
       } else {
-        print("Error checking if lead boarded: " + result.exception.toString());
+        debugPrint(
+            "Error checking if lead boarded: " + result.exception.toString());
         logger.e(
             "Error checking if lead boarded: " + result.exception.toString());
       }
@@ -266,10 +267,11 @@ class _StatementUploaderState extends State<StatementUploader> {
 
         rateReviewType = result1.data["task_type"][0]["task_type"];
       } else {
-        print("Error getting task status: " + result0.exception.toString());
+        debugPrint(
+            "Error getting task status: " + result0.exception.toString());
         logger.e("Error getting task status: " + result0.exception.toString());
 
-        print("Error getting task type: " + result1.exception.toString());
+        debugPrint("Error getting task type: " + result1.exception.toString());
         logger.e("Error getting task type: " + result1.exception.toString());
       }
     }
@@ -327,14 +329,14 @@ class _StatementUploaderState extends State<StatementUploader> {
               fontSize: 16.0,
             );
           } else {
-            print("Error inserting task for rate review: " +
+            debugPrint("Error inserting task for rate review: " +
                 result.exception.toString());
             logger.e("Error inserting task for rate review: " +
                 result.exception.toString());
           }
         }
       } catch (err) {
-        print("Failed to create rate review task: " + err.toString());
+        debugPrint("Failed to create rate review task: " + err.toString());
         logger.e("Failed to create rate review task: " + err.toString());
         Fluttertoast.showToast(
           msg: "Failed to create task for employee!",
@@ -864,7 +866,7 @@ class _StatementUploaderState extends State<StatementUploader> {
         });
       }
     } catch (err) {
-      print("Failed to delete image: " + err.toString());
+      debugPrint("Failed to delete image: " + err.toString());
       logger.e("Failed to delete image: " + err.toString());
       Fluttertoast.showToast(
           msg: "Failed to delete image!",
@@ -969,7 +971,7 @@ class _StatementUploaderState extends State<StatementUploader> {
         }
       }
     } catch (err) {
-      print("Failed to download images: " + err.toString());
+      debugPrint("Failed to download images: " + err.toString());
       logger.e("Failed to download images: " + err.toString());
       Fluttertoast.showToast(
         msg: "Failed to download images!",
@@ -1041,7 +1043,8 @@ class _StatementUploaderState extends State<StatementUploader> {
             Navigator.pushNamed(context, "/viewlead", arguments: lead["lead"]);
           }
         } else {
-          print("Failed to submit statment: " + result.exception.toString());
+          debugPrint(
+              "Failed to submit statment: " + result.exception.toString());
           logger.e("Failed to submit statment: " + result.exception.toString());
           Fluttertoast.showToast(
             msg: "Failed to submit statement! Error: " +
@@ -1060,7 +1063,8 @@ class _StatementUploaderState extends State<StatementUploader> {
         setState(() {
           isLoading = false;
         });
-        print("Failed to submit statement because there is no Statement ID");
+        debugPrint(
+            "Failed to submit statement because there is no Statement ID");
         logger.e("Failed to submit statement because there is no Statement ID");
 
         Fluttertoast.showToast(
@@ -1073,7 +1077,7 @@ class _StatementUploaderState extends State<StatementUploader> {
         );
       }
     } catch (err) {
-      print("Error submitting statement: " + err.toString());
+      debugPrint("Error submitting statement: " + err.toString());
       logger.e("Error submitting statement: " + err.toString());
 
       setState(() {
@@ -1168,7 +1172,7 @@ class _StatementUploaderState extends State<StatementUploader> {
         isLoading = false;
       });
 
-      print("Error adding image: " + err.toString());
+      debugPrint("Error adding image: " + err.toString());
       logger.e("Error adding image: " + err.toString());
     }
   }

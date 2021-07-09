@@ -134,7 +134,7 @@ class InventoryAddState extends State<InventoryAdd> {
         logger.i("BarcodeScanner closed");
       }
     } catch (err) {
-      print("Error scanning barcode: " + err.toString());
+      debugPrint("Error scanning barcode: " + err.toString());
       logger.e("Error scanning barcode: " + err.toString());
     }
   }
@@ -237,7 +237,7 @@ class InventoryAddState extends State<InventoryAdd> {
         );
       }
     } catch (err) {
-      print("Error adding device: " + err.toString());
+      debugPrint("Error adding device: " + err.toString());
       logger.e("Error adding device: " + err.toString());
     }
   }

@@ -132,7 +132,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
                     await GqlClientFactory().authGqlmutate(mutateOptions);
 
                 if (result.hasException == false) {
-                  print("Lead claimed successfully: " + lead.toString());
+                  debugPrint("Lead claimed successfully: " + lead.toString());
                   logger.i("Lead claimed successfully: " + lead.toString());
                   Fluttertoast.showToast(
                     msg: "Lead Claimed!",
@@ -145,7 +145,8 @@ class _LeadsScreenState extends State<LeadsScreen> {
                   Navigator.of(context).pop();
                   openLead(lead);
                 } else {
-                  print("Failed to claim lead: " + result.exception.toString());
+                  debugPrint(
+                      "Failed to claim lead: " + result.exception.toString());
                   logger.i(
                       "Failed to claim lead: " + result.exception.toString());
 
@@ -230,7 +231,8 @@ class _LeadsScreenState extends State<LeadsScreen> {
             }
           }
         } else {
-          print("Error getting initial leads: " + result.exception.toString());
+          debugPrint(
+              "Error getting initial leads: " + result.exception.toString());
           logger
               .e("Error getting initial leads: " + result.exception.toString());
 
@@ -250,7 +252,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
         },
       );
     } catch (err) {
-      print("Error getting initial leads: " + err.toString());
+      debugPrint("Error getting initial leads: " + err.toString());
       logger.e("Error getting initial leads: " + err.toString());
 
       setState(
@@ -353,7 +355,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
             }
           }
         } else {
-          print("Error getting leads data in onScroll: " +
+          debugPrint("Error getting leads data in onScroll: " +
               result.exception.toString());
           logger.e("Error getting leads data in onScroll: " +
               result.exception.toString());
@@ -375,7 +377,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
         },
       );
     } catch (err) {
-      print(
+      debugPrint(
           "Error getting leads data in onScroll: " + err.exception.toString());
       logger.e(
           "Error getting leads data in onScroll: " + err.exception.toString());

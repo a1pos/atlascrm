@@ -79,7 +79,7 @@ class _CompanyDropDownState extends State<CompanyDropDown> {
           }
         }
       } else {
-        print("Error getting companies for dropdown: " +
+        debugPrint("Error getting companies for dropdown: " +
             result.exception.toString());
         logger.e("Error getting companies for dropdown: " +
             result.exception.toString());

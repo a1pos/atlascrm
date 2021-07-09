@@ -192,7 +192,7 @@ class _TaskScreenState extends State<TaskScreen> {
       }
       isLoading = false;
     }, (error) {
-      print("Error getting tasks: " + error.toString());
+      debugPrint("Error getting tasks: " + error.toString());
       logger.e("Error getting tasks: " + error.toString());
     }, () => refreshSub());
   }
@@ -239,7 +239,8 @@ class _TaskScreenState extends State<TaskScreen> {
 
         await initTasks();
       } else {
-        print("Error getting task status: " + result0.exception.toString());
+        debugPrint(
+            "Error getting task status: " + result0.exception.toString());
         logger.e("Error getting task status: " + result0.exception.toString());
 
         Fluttertoast.showToast(
@@ -300,7 +301,8 @@ class _TaskScreenState extends State<TaskScreen> {
           await initTasks();
           logger.i("Task successfully added and task data reloaded");
         } else {
-          print("Error inserting new task: " + result.exception.toString());
+          debugPrint(
+              "Error inserting new task: " + result.exception.toString());
           logger.e("Error inserting new task: " + result.exception.toString());
           Fluttertoast.showToast(
             msg: "Error inserting new task: " + result.exception.toString(),
@@ -313,7 +315,7 @@ class _TaskScreenState extends State<TaskScreen> {
         }
       }
     } catch (err) {
-      print("Error inserting new task: " + err.toString());
+      debugPrint("Error inserting new task: " + err.toString());
       logger.e("Error inserting new task: " + err.toString());
     }
     _formKey.currentState.reset();

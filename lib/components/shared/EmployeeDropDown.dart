@@ -101,7 +101,7 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
           }
         }
       } else {
-        print(
+        debugPrint(
             "Error getting employees by role: " + result.exception.toString());
         logger.e(
             "Error getting employees by role: " + result.exception.toString());

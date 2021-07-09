@@ -132,9 +132,9 @@ class FirebaseCESService {
         return null;
         break;
       case "CAMERA_LINK":
-        print("OPEN THE CAMERA");
+        debugPrint("OPEN THE CAMERA");
         var result = await platform.invokeMethod("openCamera");
-        print("FILE URI: $result");
+        debugPrint("FILE URI: $result");
 
         var options = MutationOptions(
             document: gql("""
@@ -163,10 +163,10 @@ class FirebaseCESService {
 
           await GqlClientFactory().authGqlmutate(options);
           if (resp.statusCode != 200) {
-            print(resp);
+            debugPrint(resp.toString());
           }
         } catch (err) {
-          print(err);
+          debugPrint(err.toString());
         }
         break;
     }

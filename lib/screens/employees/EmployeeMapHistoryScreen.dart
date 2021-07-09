@@ -140,7 +140,7 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
             latLngs.add(latLng);
 
             logger.i(
-              "Employee Map History route loaded for: " +
+              "Sales Map History route loaded for: " +
                   deviceIdController.text +
                   " on " +
                   startDate.toString(),
@@ -263,7 +263,7 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
               },
             );
             logger.i(
-              "Employee Map History stops loaded for: " +
+              "Sales Map History stops loaded for: " +
                   deviceIdController.text +
                   " on " +
                   startDate.toString(),
@@ -410,6 +410,11 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
 }
 
 Future<BitmapDescriptor> getMarkerImageFromCache(pictureUrl) async {
+  var logger = Logger(
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
+  );
+
   try {
     Uint8List markerImageBytes;
 
@@ -441,7 +446,8 @@ Future<BitmapDescriptor> getMarkerImageFromCache(pictureUrl) async {
       return BitmapDescriptor.fromBytes(resizedMarkerImageBytes);
     }
   } catch (e) {
-    print(e);
+    debugPrint("Error getting marker image from cache: " + e.toString());
+    logger.e("Error getting marker image from cache: " + e.toString());
   }
 
   return await BitmapDescriptor.fromAssetImage(

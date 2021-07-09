@@ -78,7 +78,7 @@ class _InventoryPriceTierDropDownState
           }
         }
       } else {
-        print("Error loading inventory price tiers for dropdown: " +
+        debugPrint("Error loading inventory price tiers for dropdown: " +
             locationsResp.exception.toString());
         logger.e("Error loading inventory price tiers for dropdown: " +
             locationsResp.exception.toString());

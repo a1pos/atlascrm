@@ -10,6 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 
 class InstallScheduleForm extends StatefulWidget {
   final dynamic installList;
@@ -35,15 +37,8 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
   Map data;
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 120,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output:
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   var installDateController = TextEditingController();
@@ -60,125 +55,142 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
   Widget installForm(viewDate, installList) {
     return GestureDetector(
       onTap: () {
-        setState(() {
-          installDateController.text = viewDate;
-          employeeDropdownValue = UserService.isTech
-              ? UserService.employee.employee
-              : installList['employee'];
-        });
-        logger.i("Install schedule form opened for: " +
-            installList["merchantbusinessname"] +
-            " (" +
-            installList["merchant"] +
-            ")");
-        showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                actions: <Widget>[
-                  MaterialButton(
-                    child: Text('Cancel'),
-                    onPressed: () {
-                      logger.i("Install schedule form closed");
-                      Navigator.pop(context);
-                    },
+        if (installList["merchantbusinessname"] == "" ||
+            installList["merchant"] == "") {
+          logger.e("No merchant name or id");
+          debugPrint("No merchant name or id");
+
+          Fluttertoast.showToast(
+            msg: "No merchant name or id!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0,
+          );
+        } else {
+          setState(() {
+            installDateController.text = viewDate;
+            employeeDropdownValue = UserService.isTech
+                ? UserService.employee.employee
+                : installList['employee'];
+          });
+          logger.i("Install schedule form opened for: " +
+              installList["merchantbusinessname"] +
+              " (" +
+              installList["merchant"] +
+              ")");
+
+          showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  actions: <Widget>[
+                    MaterialButton(
+                      child: Text('Cancel'),
+                      onPressed: () {
+                        logger.i("Install schedule form closed");
+                        Navigator.pop(context);
+                      },
+                    ),
+                    !isSaveDisabled
+                        ? MaterialButton(
+                            child: installList['date'] != null
+                                ? Text(
+                                    'Update',
+                                    style: TextStyle(color: Colors.white),
+                                  )
+                                : Text(
+                                    'Schedule',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                            color: UniversalStyles.actionColor,
+                            onPressed: () async {
+                              if (_formKey.currentState.validate()) {
+                                setState(() {
+                                  isSaveDisabled = true;
+                                });
+                                await changeInstall(installList);
+                              }
+                            },
+                          )
+                        : Container(),
+                  ],
+                  title: Text(
+                    installList["merchantbusinessname"],
+                    style: TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  !isSaveDisabled
-                      ? MaterialButton(
-                          child: installList['date'] != null
-                              ? Text(
-                                  'Update',
-                                  style: TextStyle(color: Colors.white),
-                                )
-                              : Text(
-                                  'Schedule',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                          color: UniversalStyles.actionColor,
-                          onPressed: () async {
-                            if (_formKey.currentState.validate()) {
-                              setState(() {
-                                isSaveDisabled = true;
-                              });
-                              await changeInstall(installList);
-                            }
-                          },
-                        )
-                      : Container(),
-                ],
-                title: Text(
-                  installList["merchantbusinessname"],
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                content: Form(
-                  key: _formKey,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: <Widget>[
-                        Container(
-                          child: UserService.isAdmin ||
-                                  UserService.isSalesManager ||
-                                  UserService.isCorporateTech
-                              ? EmployeeDropDown(
-                                  value: installList['employee'] ?? "",
-                                  callback: (val) {
-                                    setState(() {
-                                      employeeDropdownValue = val;
-                                    });
-                                  },
-                                  roles: ["tech", "corporate_tech"],
-                                )
-                              : Container(),
-                        ),
-                        DateTimeField(
-                          onEditingComplete: () =>
-                              FocusScope.of(context).nextFocus(),
-                          validator: (DateTime dateTime) {
-                            if (dateTime == null) {
-                              logger.i(
-                                  "Attempted to schedule install without a date and time");
-                              return 'Please select a date';
-                            }
-                            return null;
-                          },
-                          decoration:
-                              InputDecoration(labelText: "Install Date"),
-                          format: DateFormat("yyyy-MM-dd HH:mm"),
-                          controller: installDateController,
-                          initialValue: this.widget.unscheduled
-                              ? null
-                              : DateTime.parse(viewDate),
-                          onShowPicker: (context, currentValue) async {
-                            final date = await showDatePicker(
-                              context: context,
-                              firstDate: DateTime(1900),
-                              initialDate: currentValue ?? initDate,
-                              lastDate: DateTime(2100),
-                            );
-                            if (date != null) {
-                              final time = await showTimePicker(
+                  content: Form(
+                    key: _formKey,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: <Widget>[
+                          Container(
+                            child: UserService.isAdmin ||
+                                    UserService.isSalesManager ||
+                                    UserService.isCorporateTech
+                                ? EmployeeDropDown(
+                                    value: installList['employee'] ?? "",
+                                    callback: (val) {
+                                      setState(() {
+                                        employeeDropdownValue = val;
+                                      });
+                                    },
+                                    roles: ["tech", "corporate_tech"],
+                                  )
+                                : Container(),
+                          ),
+                          DateTimeField(
+                            onEditingComplete: () =>
+                                FocusScope.of(context).nextFocus(),
+                            validator: (DateTime dateTime) {
+                              if (dateTime == null) {
+                                logger.i(
+                                    "Attempted to schedule install without a date and time");
+                                return 'Please select a date';
+                              }
+                              return null;
+                            },
+                            decoration:
+                                InputDecoration(labelText: "Install Date"),
+                            format: DateFormat("yyyy-MM-dd HH:mm"),
+                            controller: installDateController,
+                            initialValue: this.widget.unscheduled
+                                ? null
+                                : DateTime.parse(viewDate),
+                            onShowPicker: (context, currentValue) async {
+                              final date = await showDatePicker(
                                 context: context,
-                                initialTime: TimeOfDay.fromDateTime(
-                                  currentValue ?? DateTime.now(),
-                                ),
+                                firstDate: DateTime(1900),
+                                initialDate: currentValue ?? initDate,
+                                lastDate: DateTime(2100),
                               );
-                              logger.i("Date selected for:install: " +
-                                  DateTimeField.combine(date, time).toString());
-                              return DateTimeField.combine(date, time);
-                            } else {
-                              logger.i("Date selected for:install: " +
-                                  currentValue.toString());
-                              return currentValue;
-                            }
-                          },
-                        )
-                      ],
+                              if (date != null) {
+                                final time = await showTimePicker(
+                                  context: context,
+                                  initialTime: TimeOfDay.fromDateTime(
+                                    currentValue ?? DateTime.now(),
+                                  ),
+                                );
+                                logger.i("Date selected for:install: " +
+                                    DateTimeField.combine(date, time)
+                                        .toString());
+                                return DateTimeField.combine(date, time);
+                              } else {
+                                logger.i("Date selected for:install: " +
+                                    currentValue.toString());
+                                return currentValue;
+                              }
+                            },
+                          )
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              );
-            });
+                );
+              });
+        }
       },
       child: InstallItem(
         merchant: installList["merchantbusinessname"],

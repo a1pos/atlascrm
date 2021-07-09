@@ -188,7 +188,7 @@ class _InstallsScreenState extends State<InstallsScreen> {
       }
       isLoading = false;
     }, (error) {
-      print("Error initializing installs: " + error.toString());
+      debugPrint("Error initializing installs: " + error.toString());
       logger.e("Error initializing installs: " + error.toString());
     }, () => refreshSub());
   }

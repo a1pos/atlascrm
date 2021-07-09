@@ -83,7 +83,8 @@ class _ProcessorDropDownState extends State<ProcessorDropDown> {
           }
         }
       } else {
-        print("Error getting processor data: " + result.exception.toString());
+        debugPrint(
+            "Error getting processor data: " + result.exception.toString());
         logger
             .e("Error getting processor data: " + result.exception.toString());
 
