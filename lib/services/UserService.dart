@@ -95,7 +95,6 @@ class UserService {
         assert(user.uid == currentUser.uid);
 
         logger.i('signInWithGoogle succeeded: $user');
-        debugPrint('signInWithGoogle succeeded: $user');
 
         await linkGoogleAccount();
 

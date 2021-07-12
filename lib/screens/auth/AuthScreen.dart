@@ -58,7 +58,6 @@ class _AuthScreenState extends State<AuthScreen> {
         isLoading = false;
       });
 
-      debugPrint("Failed to connect: " + err.toString());
       logger.e("Failed to connect: " + err.toString());
 
       Fluttertoast.showToast(
