@@ -12,8 +12,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
-import 'package:round2crm/utils/CustomOutput.dart';
-import 'package:round2crm/utils/LogPrinter.dart';
 
 class EmployeeMapHistoryScreen extends StatefulWidget {
   final Map employee;
@@ -31,8 +29,15 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
   final List<LatLng> markerLatLngs = [];
 
   var logger = Logger(
-    printer: SimpleLogPrinter(),
-    output: CustomOutput(),
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 50,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output: CustomOuput(),
   );
 
   bool isLoading = true;
@@ -411,8 +416,15 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
 
 Future<BitmapDescriptor> getMarkerImageFromCache(pictureUrl) async {
   var logger = Logger(
-    printer: SimpleLogPrinter(),
-    output: CustomOutput(),
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 50,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output: CustomOuput(),
   );
 
   try {

@@ -3,8 +3,7 @@ import 'package:logger/logger.dart';
 import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-import 'package:round2crm/utils/CustomOutput.dart';
-import 'package:round2crm/utils/LogPrinter.dart';
+
 import 'package:searchable_dropdown/searchable_dropdown.dart';
 
 class EmployeeDropDown extends StatefulWidget {
@@ -33,8 +32,15 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
   var employees = [];
 
   var logger = Logger(
-    printer: SimpleLogPrinter(),
-    output: CustomOutput(),
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 50,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output: CustomOuput(),
   );
 
   @override

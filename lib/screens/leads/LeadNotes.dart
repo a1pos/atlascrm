@@ -9,8 +9,6 @@ import 'package:intl/intl.dart';
 import 'package:round2crm/components/shared/Empty.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:logger/logger.dart';
-import 'package:round2crm/utils/CustomOutput.dart';
-import 'package:round2crm/utils/LogPrinter.dart';
 
 class LeadNotes extends StatefulWidget {
   final Map object;
@@ -35,8 +33,15 @@ var typeUpper;
 var type = "lead";
 
 var logger = Logger(
-  printer: SimpleLogPrinter(),
-  output: CustomOutput(),
+  printer: PrettyPrinter(
+    methodCount: 1,
+    errorMethodCount: 8,
+    lineLength: 50,
+    colors: true,
+    printEmojis: true,
+    printTime: true,
+  ),
+  // output: CustomOuput(),
 );
 
 ScrollController _scrollController = ScrollController();

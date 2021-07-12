@@ -16,8 +16,7 @@ import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-import 'package:round2crm/utils/CustomOutput.dart';
-import 'package:round2crm/utils/LogPrinter.dart';
+
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 
@@ -41,8 +40,15 @@ class _TaskScreenState extends State<TaskScreen> {
   List activeTasks = [];
 
   var logger = Logger(
-    printer: SimpleLogPrinter(),
-    output: CustomOutput(),
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 50,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output: CustomOuput(),
   );
 
   var taskTitleController = TextEditingController();

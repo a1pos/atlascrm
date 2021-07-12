@@ -11,8 +11,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:async';
 
 import 'package:logger/logger.dart';
-import 'package:round2crm/utils/CustomOutput.dart';
-import 'package:round2crm/utils/LogPrinter.dart';
 
 enum FirebaseCMType { launch, resume, backgroundMessage, message }
 
@@ -37,8 +35,15 @@ class FirebaseCESService {
       FlutterLocalNotificationsPlugin();
 
   var logger = Logger(
-    printer: SimpleLogPrinter(),
-    output: CustomOutput(),
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 50,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output: CustomOuput(),
   );
 
   factory FirebaseCESService() {

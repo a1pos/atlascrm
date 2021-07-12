@@ -11,8 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:logger/logger.dart';
 import 'package:maps_launcher/maps_launcher.dart';
-import 'package:round2crm/utils/CustomOutput.dart';
-import 'package:round2crm/utils/LogPrinter.dart';
+
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
 
@@ -65,8 +64,15 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
   List<LeadInfoEntry> leadInfoEntries = [];
 
   var logger = Logger(
-    printer: SimpleLogPrinter(),
-    output: CustomOutput(),
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 50,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output: CustomOuput(),
   );
 
   var lead;

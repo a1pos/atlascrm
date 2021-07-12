@@ -6,8 +6,6 @@ import 'package:round2crm/services/UserService.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
-import 'package:round2crm/utils/CustomOutput.dart';
-import 'package:round2crm/utils/LogPrinter.dart';
 
 class SalesLeaderboardCards extends StatefulWidget {
   SalesLeaderboardCards({Key key}) : super(key: key);
@@ -20,8 +18,15 @@ class SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
   final UserService userService = UserService();
 
   var logger = Logger(
-    printer: SimpleLogPrinter(),
-    output: CustomOutput(),
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 50,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output: CustomOuput(),
   );
 
   final _pageController = PageController(viewportFraction: .8);

@@ -3,8 +3,6 @@ import 'package:google_maps_webservice/places.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:logger/logger.dart';
 import 'package:round2crm/components/shared/CenteredLoadingSpinner.dart';
-import 'package:round2crm/utils/CustomOutput.dart';
-import 'package:round2crm/utils/LogPrinter.dart';
 
 const kGoogleApiKey = "AIzaSyB-rMAdwtIjM7s_4Lb8SdRXAfhbiLTVl7s";
 
@@ -28,8 +26,15 @@ final searchScaffoldKey = GlobalKey<ScaffoldState>();
 var locationTextController = TextEditingController();
 
 var logger = Logger(
-  printer: SimpleLogPrinter(),
-  output: CustomOutput(),
+  printer: PrettyPrinter(
+    methodCount: 1,
+    errorMethodCount: 8,
+    lineLength: 50,
+    colors: true,
+    printEmojis: true,
+    printTime: true,
+  ),
+  // output: CustomOuput(),
 );
 
 class _PlacesSuggestionsState extends State<PlacesSuggestions> {

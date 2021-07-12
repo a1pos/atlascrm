@@ -12,8 +12,6 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:logger/logger.dart';
-import 'package:round2crm/utils/CustomOutput.dart';
-import 'package:round2crm/utils/LogPrinter.dart';
 
 class DashboardScreen extends StatefulWidget {
   @override
@@ -31,8 +29,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final GlobalKey<InstallsState> _installsState = GlobalKey<InstallsState>();
 
   var logger = Logger(
-    printer: SimpleLogPrinter(),
-    output: CustomOutput(),
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 50,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output: CustomOuput(),
   );
 
   bool isLoading = true;

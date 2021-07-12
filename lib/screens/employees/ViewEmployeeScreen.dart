@@ -9,8 +9,6 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:round2crm/screens/employees/widgets/Tasks.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:logger/logger.dart';
-import 'package:round2crm/utils/CustomOutput.dart';
-import 'package:round2crm/utils/LogPrinter.dart';
 
 class ViewEmployeeScreen extends StatefulWidget {
   final String employeeId;
@@ -27,8 +25,15 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
   final _formKey = new GlobalKey<FormState>();
 
   var logger = Logger(
-    printer: SimpleLogPrinter(),
-    output: CustomOutput(),
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 50,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output: CustomOuput(),
   );
 
   bool isLoading = true;

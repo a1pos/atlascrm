@@ -25,8 +25,6 @@ import 'package:round2crm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:round2crm/services/ApiService.dart';
 
 import 'package:round2crm/components/shared/CustomAppBar.dart';
-import 'package:round2crm/utils/CustomOutput.dart';
-import 'package:round2crm/utils/LogPrinter.dart';
 
 class StatementUploader extends StatefulWidget {
   final ApiService apiService = new ApiService();
@@ -44,8 +42,15 @@ class _StatementUploaderState extends State<StatementUploader> {
   static const platform = const MethodChannel('com.ces.atlascrm.channel');
 
   var logger = Logger(
-    printer: SimpleLogPrinter(),
-    output: CustomOutput(),
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 50,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output: CustomOuput(),
   );
 
   bool isLoading = true;
