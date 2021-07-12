@@ -1,7 +1,7 @@
 import 'dart:ui';
-import 'package:atlascrm/components/shared/NotificationCenter.dart';
-import 'package:atlascrm/components/style/UniversalStyles.dart';
-import 'package:atlascrm/services/UserService.dart';
+import 'package:round2crm/components/shared/NotificationCenter.dart';
+import 'package:round2crm/components/style/UniversalStyles.dart';
+import 'package:round2crm/services/UserService.dart';
 import 'package:flutter/material.dart';
 
 class CustomDrawer extends StatefulWidget {
@@ -54,7 +54,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                       style: TextStyle(fontSize: 22),
                       children: <TextSpan>[
                         TextSpan(
-                            text: "ATLAS",
+                            text: "ROUND2",
                             style: TextStyle(fontFamily: "InterBold")),
                         TextSpan(
                             text: "CRM",
@@ -116,6 +116,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     },
                   ),
             UserService.isTech ||
+                    UserService.isCorporateTech ||
                     UserService.isAdmin ||
                     UserService.isSalesManager
                 ? ListTile(
@@ -134,7 +135,9 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     },
                   )
                 : Container(),
-            UserService.isTech || UserService.isAdmin
+            UserService.isTech ||
+                    UserService.isCorporateTech ||
+                    UserService.isAdmin
                 ? ListTile(
                     leading: Icon(
                       Icons.business_center,
@@ -151,7 +154,9 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     },
                   )
                 : Container(),
-            UserService.isTech || UserService.isAdmin
+            UserService.isTech ||
+                    UserService.isCorporateTech ||
+                    UserService.isAdmin
                 ? ListTile(
                     leading: Icon(
                       Icons.build,
@@ -168,7 +173,9 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     },
                   )
                 : Text(""),
-            UserService.isAdmin || UserService.isSalesManager
+            UserService.isAdmin ||
+                    UserService.isSalesManager ||
+                    UserService.isCorporateTech
                 ? ListTile(
                     leading: Icon(
                       Icons.account_box,

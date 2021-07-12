@@ -1,8 +1,9 @@
-import 'package:atlascrm/components/shared/LoadingScreen.dart';
-import 'package:atlascrm/components/style/UniversalStyles.dart';
-import 'package:atlascrm/services/UserService.dart';
+import 'package:round2crm/components/shared/LoadingScreen.dart';
+import 'package:round2crm/components/style/UniversalStyles.dart';
+import 'package:round2crm/services/UserService.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:logger/logger.dart';
 
 class AuthScreen extends StatefulWidget {
   final UserService userService = new UserService();
@@ -14,6 +15,18 @@ class AuthScreen extends StatefulWidget {
 class _AuthScreenState extends State<AuthScreen> {
   bool isLoading = false;
 
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 50,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output: CustomOuput(),
+  );
+
   @override
   void initState() {
     super.initState();
@@ -22,6 +35,7 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   void handleLogin() async {
+    logger.i("User attempting to login");
     setState(() {
       isLoading = true;
     });
@@ -33,22 +47,28 @@ class _AuthScreenState extends State<AuthScreen> {
           isLoading = false;
           UserService.isAuthenticated = true;
         });
+        logger.i("User successfully logged in using Google");
         Navigator.of(context).pushReplacementNamed("/dashboard");
       } else {
+        logger.e("ERROR on handleLogin");
         throw ('ERROR');
       }
     } catch (err) {
-      print(err);
       setState(() {
         isLoading = false;
       });
+
+      debugPrint("Failed to connect: " + err.toString());
+      logger.e("Failed to connect: " + err.toString());
+
       Fluttertoast.showToast(
-          msg: "Failed to connect!",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.grey[600],
-          textColor: Colors.white,
-          fontSize: 16.0);
+        msg: "Failed to connect!",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.grey[600],
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
     }
   }
 
@@ -71,11 +91,13 @@ class _AuthScreenState extends State<AuthScreen> {
                           style: TextStyle(fontSize: 38),
                           children: <TextSpan>[
                             TextSpan(
-                                text: "ATLAS",
-                                style: TextStyle(fontFamily: "InterBold")),
+                              text: "ROUND2",
+                              style: TextStyle(fontFamily: "InterBold"),
+                            ),
                             TextSpan(
-                                text: "CRM",
-                                style: TextStyle(fontFamily: "InterLight")),
+                              text: "CRM",
+                              style: TextStyle(fontFamily: "InterLight"),
+                            ),
                           ]),
                     ),
                     Padding(
@@ -88,7 +110,7 @@ class _AuthScreenState extends State<AuthScreen> {
                           child: Column(
                             children: <Widget>[
                               Image(
-                                  image: AssetImage("assets/a1logo_blk.png"),
+                                  image: AssetImage("assets/r2logo_blk.png"),
                                   height: 80.0),
                               Padding(
                                 padding:
@@ -98,7 +120,6 @@ class _AuthScreenState extends State<AuthScreen> {
                                     primary: Colors.green,
                                   ),
                                   onPressed: handleLogin,
-                                  //highlightElevation: 0,
                                   child: Padding(
                                     padding: EdgeInsets.fromLTRB(0, 10, 0, 10),
                                     child: Row(
@@ -108,7 +129,8 @@ class _AuthScreenState extends State<AuthScreen> {
                                       children: <Widget>[
                                         Image(
                                             image: AssetImage(
-                                                "assets/google_logo.png"),
+                                              "assets/google_logo.png",
+                                            ),
                                             height: 30.0),
                                         Padding(
                                           padding: EdgeInsets.all(5),

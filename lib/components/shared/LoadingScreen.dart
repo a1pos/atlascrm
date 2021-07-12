@@ -1,4 +1,4 @@
-import 'package:atlascrm/components/style/UniversalStyles.dart';
+import 'package:round2crm/components/style/UniversalStyles.dart';
 import 'package:flutter/material.dart';
 
 class LoadingScreen extends StatefulWidget {

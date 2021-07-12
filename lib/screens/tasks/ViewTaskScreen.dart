@@ -1,11 +1,12 @@
-import 'package:atlascrm/components/lead/LeadDropDown.dart';
-import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
-import 'package:atlascrm/components/shared/CustomAppBar.dart';
-import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
-import 'package:atlascrm/components/style/UniversalStyles.dart';
-import 'package:atlascrm/components/task/TaskPriorityDropDown.dart';
-import 'package:atlascrm/components/task/TaskTypeDropDown.dart';
-import 'package:atlascrm/services/GqlClientFactory.dart';
+import 'package:logger/logger.dart';
+import 'package:round2crm/components/lead/LeadDropDown.dart';
+import 'package:round2crm/components/shared/CenteredClearLoadingScreen.dart';
+import 'package:round2crm/components/shared/CustomAppBar.dart';
+import 'package:round2crm/components/shared/EmployeeDropDown.dart';
+import 'package:round2crm/components/style/UniversalStyles.dart';
+import 'package:round2crm/components/task/TaskPriorityDropDown.dart';
+import 'package:round2crm/components/task/TaskTypeDropDown.dart';
+import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -28,6 +29,18 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
   DateTime initDate;
   DateTime taskDate;
   TimeOfDay initTime;
+
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 50,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output: CustomOuput(),
+  );
 
   var taskTitleController = TextEditingController();
   var taskDateController = TextEditingController();
@@ -81,15 +94,25 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
             closedStatus = item["task_status"];
           }
         });
+      } else {
+        debugPrint(
+            "Error getting task status: " + result0.exception.toString());
+        logger.e("Error getting task status: " + result0.exception.toString());
+        Fluttertoast.showToast(
+          msg: "Error getting task status: " + result0.exception.toString(),
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
       }
-    } else {
-      print(new Error());
     }
   }
 
   Future<void> loadTaskData() async {
     QueryOptions options = QueryOptions(
-        document: gql("""
+      document: gql("""
       query GET_TASK{
         task_by_pk(task: "${this.widget.taskId}"){
           task
@@ -107,14 +130,16 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
         }
       }
       """),
-        fetchPolicy: FetchPolicy.noCache,
-        cacheRereadPolicy: CacheRereadPolicy.ignoreAll);
+      fetchPolicy: FetchPolicy.noCache,
+      cacheRereadPolicy: CacheRereadPolicy.ignoreAll,
+    );
 
     final QueryResult result = await GqlClientFactory().authGqlquery(options);
     if (result.hasException == false) {
       var body = result.data["task_by_pk"];
       if (body != null) {
         var bodyDecoded = body;
+        logger.i("Task data loaded");
 
         if (bodyDecoded["date"] != null) {
           initDate = DateTime.parse(bodyDecoded["date"]).toLocal();
@@ -142,8 +167,11 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
         });
       }
     } else {
+      debugPrint("Error getting task data: " + result.exception.toString());
+      logger.e("Error getting task data: " + result.exception.toString());
+
       Fluttertoast.showToast(
-          msg: result.exception.toString(),
+          msg: "Error getting task data: " + result.exception.toString(),
           toastLength: Toast.LENGTH_LONG,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.grey[600],
@@ -159,13 +187,15 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
   Future<void> updateTask(complete) async {
     try {
       if (taskDateController.text == null || taskDateController.text == "") {
+        logger.i("Date not entered for updating task");
         Fluttertoast.showToast(
-            msg: "Date is required!",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.grey[600],
-            textColor: Colors.white,
-            fontSize: 16.0);
+          msg: "Date is required!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
         return;
       } else {
         taskDate = DateTime.parse(taskDateController.text).toUtc();
@@ -229,66 +259,26 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
                   textColor: Colors.white,
                   fontSize: 16.0);
           await loadTaskData();
+          logger.i("Task updated successfully and task data reloaded");
           Navigator.pop(context);
         }
       } else {
+        debugPrint("Error updating task: " + result.exception.toString());
+        logger.e("Error updating task: " + result.exception.toString());
+
         Fluttertoast.showToast(
-            msg: result.exception.toString(),
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.grey[600],
-            textColor: Colors.white,
-            fontSize: 16.0);
-        throw new Error();
+          msg: "Error updating task: " + result.exception.toString(),
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
       }
     } catch (err) {
-      print(err);
+      debugPrint("Error updating task: " + err.toString());
+      logger.e("Error updating task: " + err.toString());
     }
-  }
-
-  Future<void> deleteCheck() async {
-    return showDialog<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Delete this Task?'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text('Are you sure you want to delete this task?'),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Delete',
-                  style: TextStyle(fontSize: 17, color: Colors.red)),
-              onPressed: () {
-                deleteTask();
-
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text('Cancel', style: TextStyle(fontSize: 17)),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> deleteTask() async {
-    Fluttertoast.showToast(
-        msg: "This happens on delete",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-        backgroundColor: Colors.grey[600],
-        textColor: Colors.white,
-        fontSize: 16.0);
   }
 
   @override
@@ -320,13 +310,15 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
                       callback: ((val) {
                         setState(() {
                           val = null;
+                          logger.e("Employee cannot be changed for tasks");
                           Fluttertoast.showToast(
-                              msg: "Employee can not be changed for tasks!",
-                              toastLength: Toast.LENGTH_SHORT,
-                              gravity: ToastGravity.BOTTOM,
-                              backgroundColor: Colors.grey[600],
-                              textColor: Colors.white,
-                              fontSize: 16.0);
+                            msg: "Employee can not be changed for tasks!",
+                            toastLength: Toast.LENGTH_SHORT,
+                            gravity: ToastGravity.BOTTOM,
+                            backgroundColor: Colors.grey[600],
+                            textColor: Colors.white,
+                            fontSize: 16.0,
+                          );
                         });
                       }),
                     ),
@@ -340,6 +332,8 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
                           taskTypeDropdownValue = val;
                           changeButton();
                         });
+                        logger.i("Task type changed and button changed: " +
+                            taskTypeDropdownValue.toString());
                       }),
                     ),
                     Divider(
@@ -352,6 +346,8 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
                           taskPriorityDropdownValue = val;
                           changeButton();
                         });
+                        logger.i("Task priority changed and button changed: " +
+                            taskPriorityDropdownValue.toString());
                       },
                     ),
                     Divider(
@@ -362,15 +358,18 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
                         Expanded(
                           flex: 8,
                           child: LeadDropDown(
-                              value: leadDropdownValue,
-                              callback: (val) {
-                                setState(() {
-                                  leadDropdownValue = val;
-                                  changeButton();
-                                });
-                              },
-                              employeeId: employeeDropdownValue,
-                              disabled: true),
+                            value: leadDropdownValue,
+                            callback: (val) {
+                              setState(() {
+                                leadDropdownValue = val;
+                                changeButton();
+                              });
+                              logger.i(
+                                  "Lead value changed: " + leadDropdownValue);
+                            },
+                            employeeId: employeeDropdownValue,
+                            disabled: true,
+                          ),
                         ),
                       ],
                     ),

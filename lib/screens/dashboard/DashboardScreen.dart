@@ -1,16 +1,17 @@
-import 'package:atlascrm/components/shared/CustomAppBar.dart';
-import 'package:atlascrm/components/shared/CustomCard.dart';
-import 'package:atlascrm/components/shared/CustomDrawer.dart';
-import 'package:atlascrm/components/shared/AppVersion.dart';
-import 'package:atlascrm/screens/dashboard/widgets/Installs.dart';
-import 'package:atlascrm/screens/dashboard/widgets/LeadsChart.dart';
-import 'package:atlascrm/screens/dashboard/widgets/SalesLeaderboardCards.dart';
-import 'package:atlascrm/screens/dashboard/widgets/Tasks.dart';
-import 'package:atlascrm/services/UserService.dart';
+import 'package:round2crm/components/shared/CustomAppBar.dart';
+import 'package:round2crm/components/shared/CustomCard.dart';
+import 'package:round2crm/components/shared/CustomDrawer.dart';
+import 'package:round2crm/components/shared/AppVersion.dart';
+import 'package:round2crm/screens/dashboard/widgets/Installs.dart';
+import 'package:round2crm/screens/dashboard/widgets/LeadsChart.dart';
+import 'package:round2crm/screens/dashboard/widgets/SalesLeaderboardCards.dart';
+import 'package:round2crm/screens/dashboard/widgets/Tasks.dart';
+import 'package:round2crm/services/UserService.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:logger/logger.dart';
 
 class DashboardScreen extends StatefulWidget {
   @override
@@ -26,6 +27,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   final GlobalKey<TasksState> _tasksState = GlobalKey<TasksState>();
   final GlobalKey<InstallsState> _installsState = GlobalKey<InstallsState>();
+
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 50,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output: CustomOuput(),
+  );
 
   bool isLoading = true;
 
@@ -78,12 +91,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   _leadsChartState.currentState.parentRefresh();
                   _tasksState.currentState.refreshSub();
 
-                  if (UserService.isTech || UserService.isAdmin) {
+                  if (UserService.isTech ||
+                      UserService.isCorporateTech ||
+                      UserService.isAdmin) {
                     _installsState.currentState.refreshSub();
                   }
 
                   currentDate = getCurrentDateTime();
 
+                  logger.i("Refresh completed at " + currentDate);
                   Fluttertoast.showToast(
                     msg: "Refresh completed at " + currentDate,
                     toastLength: Toast.LENGTH_LONG,
@@ -185,7 +201,9 @@ class DashboardCards extends StatelessWidget {
                   ),
                 ),
               ),
-              UserService.isAdmin || UserService.isTech
+              UserService.isAdmin ||
+                      UserService.isTech ||
+                      UserService.isCorporateTech
                   ? CustomCard(
                       key: Key("Installs"),
                       title: "Installs",

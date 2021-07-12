@@ -1,15 +1,17 @@
 import 'dart:async';
-import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
-import 'package:atlascrm/components/shared/CustomAppBar.dart';
-import 'package:atlascrm/components/shared/CustomCard.dart';
-import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
-import 'package:atlascrm/components/shared/Empty.dart';
-import 'package:atlascrm/components/style/UniversalStyles.dart';
-import 'package:atlascrm/services/GqlClientFactory.dart';
+import 'package:round2crm/components/shared/CenteredLoadingSpinner.dart';
+import 'package:round2crm/components/shared/CustomAppBar.dart';
+import 'package:round2crm/components/shared/CustomCard.dart';
+import 'package:round2crm/components/shared/CenteredClearLoadingScreen.dart';
+import 'package:round2crm/components/shared/Empty.dart';
+import 'package:round2crm/components/style/UniversalStyles.dart';
+import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:logger/logger.dart';
 import 'package:maps_launcher/maps_launcher.dart';
+
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
 
@@ -38,6 +40,18 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
   String addressText;
 
   List merchantInfoEntries = [];
+
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 50,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output: CustomOuput(),
+  );
 
   var firstNameController = TextEditingController();
   var lastNameController = TextEditingController();
@@ -181,6 +195,18 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
             }
           }
         }
+      } else {
+        debugPrint(
+            "Error getting merchant data: " + result.exception.toString());
+        logger.e("Error getting merchant data: " + result.exception.toString());
+        Fluttertoast.showToast(
+          msg: "Error getting merchant data: " + result.exception.toString(),
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
       }
     } catch (err) {
       Fluttertoast.showToast(
@@ -221,22 +247,25 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
         await GqlClientFactory().authGqlsubscribe(deviceOptions, (data) {
       var devicesArrDecoded = data.data["inventory"];
       if (devicesArrDecoded != null && this.mounted) {
+        logger.i("Merchant devices loaded");
         setState(() {
           devices = devicesArrDecoded;
         });
       }
       isLoading = false;
       inventoryLoading = false;
-    }, (error) {}, () => refreshSub());
+    }, (error) {
+      debugPrint("Error getting merchant devices: " + error.toString());
+      logger.e("Error getting merchant devices: " + error.toString());
+    }, () => refreshSub());
   }
 
   Future refreshSub() async {
     if (subscription != null) {
       await subscription.cancel();
       subscription = null;
-      loadMerchantData(
-        this.widget.merchantId,
-      );
+      loadMerchantData(this.widget.merchantId);
+      logger.i("Merchant data refreshed");
     }
   }
 
@@ -261,6 +290,7 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
           var sendable = {"id": device["inventory"], "origin": "merchant"};
           return GestureDetector(
             onTap: () {
+              logger.i("Inventory opened: " + sendable["id"]);
               Navigator.pushNamed(context, "/viewinventory",
                   arguments: sendable);
             },
@@ -356,8 +386,9 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                           Text(
                                             "Email",
                                             style: TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold),
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                           )
                                         ],
                                       ),
@@ -392,6 +423,8 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                                   fontSize: 16.0,
                                                 );
                                         } else {
+                                          logger.e(
+                                              "No email specified for email button");
                                           Fluttertoast.showToast(
                                             msg: "No email specified!",
                                             toastLength: Toast.LENGTH_SHORT,
@@ -413,10 +446,12 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                       child: Row(
                                         children: <Widget>[
                                           Icon(Icons.call, color: Colors.white),
-                                          Text("Call",
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold))
+                                          Text(
+                                            "Call",
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold),
+                                          )
                                         ],
                                       ),
                                       onPressed: () async {
@@ -442,6 +477,8 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                                   fontSize: 16.0,
                                                 );
                                         } else {
+                                          logger.e(
+                                              "No phone number specified for phone button");
                                           Fluttertoast.showToast(
                                             msg: "No phone number specified!",
                                             toastLength: Toast.LENGTH_SHORT,
@@ -466,8 +503,9 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                           Text(
                                             "Map",
                                             style: TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold),
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                           )
                                         ],
                                       ),
@@ -493,6 +531,8 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                             );
                                           }
                                         } else {
+                                          logger.e(
+                                              "No address specified for map button");
                                           Fluttertoast.showToast(
                                               msg: "No address specified!",
                                               toastLength: Toast.LENGTH_SHORT,
@@ -510,101 +550,97 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                           ),
                         ),
                         CustomCard(
-                            key: Key("merchantsSettings"),
-                            icon: Icons.settings,
-                            title: "Settings",
-                            child: merchant["merchant_configs"].length != 0
-                                ? Column(
-                                    children: <Widget>[
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Row(
-                                          children: <Widget>[
-                                            Text("Gift Card:",
-                                                style: TextStyle(fontSize: 16)),
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.fromLTRB(
-                                                      8, 0, 0, 0),
-                                              child: merchant["merchant_configs"]
-                                                                      [0]
-                                                                  ["document"]
-                                                              ["giftcards"]
-                                                          .toString() ==
-                                                      "true"
-                                                  ? Icon(
-                                                      Icons.done,
-                                                      size: 26,
-                                                      color: Colors.green[600],
-                                                    )
-                                                  : Icon(Icons.clear,
-                                                      color: Colors.red[600],
-                                                      size: 26),
-                                            ),
-                                          ],
-                                        ),
+                          key: Key("merchantsSettings"),
+                          icon: Icons.settings,
+                          title: "Settings",
+                          child: merchant["merchant_configs"].length != 0
+                              ? Column(
+                                  children: <Widget>[
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Row(
+                                        children: <Widget>[
+                                          Text("Gift Card:",
+                                              style: TextStyle(fontSize: 16)),
+                                          Padding(
+                                            padding: const EdgeInsets.fromLTRB(
+                                                8, 0, 0, 0),
+                                            child: merchant["merchant_configs"]
+                                                                [0]["document"]
+                                                            ["giftcards"]
+                                                        .toString() ==
+                                                    "true"
+                                                ? Icon(
+                                                    Icons.done,
+                                                    size: 26,
+                                                    color: Colors.green[600],
+                                                  )
+                                                : Icon(Icons.clear,
+                                                    color: Colors.red[600],
+                                                    size: 26),
+                                          ),
+                                        ],
                                       ),
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Row(
-                                          children: <Widget>[
-                                            Text("Cash Discounting:",
-                                                style: TextStyle(fontSize: 16)),
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.fromLTRB(
-                                                      8, 0, 0, 0),
-                                              child: merchant["merchant_configs"]
-                                                                      [0]
-                                                                  ["document"][
-                                                              "cashDiscounting"]
-                                                          .toString() ==
-                                                      "true"
-                                                  ? Icon(
-                                                      Icons.done,
-                                                      size: 26,
-                                                      color: Colors.green[600],
-                                                    )
-                                                  : Icon(Icons.clear,
-                                                      color: Colors.red[600],
-                                                      size: 26),
-                                            ),
-                                          ],
-                                        ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Row(
+                                        children: <Widget>[
+                                          Text("Cash Discounting:",
+                                              style: TextStyle(fontSize: 16)),
+                                          Padding(
+                                            padding: const EdgeInsets.fromLTRB(
+                                                8, 0, 0, 0),
+                                            child: merchant["merchant_configs"]
+                                                                [0]["document"]
+                                                            ["cashDiscounting"]
+                                                        .toString() ==
+                                                    "true"
+                                                ? Icon(
+                                                    Icons.done,
+                                                    size: 26,
+                                                    color: Colors.green[600],
+                                                  )
+                                                : Icon(Icons.clear,
+                                                    color: Colors.red[600],
+                                                    size: 26),
+                                          ),
+                                        ],
                                       ),
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Row(
-                                          children: <Widget>[
-                                            Text("Cash Discounting Percent:",
-                                                style: TextStyle(fontSize: 16)),
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.fromLTRB(
-                                                      8, 0, 0, 0),
-                                              child: merchant["merchant_configs"]
-                                                                      [0]
-                                                                  ["document"][
-                                                              "cashDiscountingPercent"]
-                                                          .toString() !=
-                                                      "null"
-                                                  ? Text(
-                                                      merchant["merchant_configs"]
-                                                                          [0]
-                                                                      ["document"][
-                                                                  "cashDiscountingPercent"]
-                                                              .toString() +
-                                                          "%",
-                                                      style: TextStyle(
-                                                          fontSize: 16))
-                                                  : Text("", style: TextStyle(fontSize: 16)),
-                                            ),
-                                          ],
-                                        ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Row(
+                                        children: <Widget>[
+                                          Text("Cash Discounting Percent:",
+                                              style: TextStyle(fontSize: 16)),
+                                          Padding(
+                                            padding: const EdgeInsets.fromLTRB(
+                                                8, 0, 0, 0),
+                                            child: merchant["merchant_configs"]
+                                                                [0]["document"][
+                                                            "cashDiscountingPercent"]
+                                                        .toString() !=
+                                                    "null"
+                                                ? Text(
+                                                    merchant["merchant_configs"]
+                                                                        [0]
+                                                                    ["document"][
+                                                                "cashDiscountingPercent"]
+                                                            .toString() +
+                                                        "%",
+                                                    style:
+                                                        TextStyle(fontSize: 16))
+                                                : Text("",
+                                                    style: TextStyle(fontSize: 16)),
+                                          ),
+                                        ],
                                       ),
-                                    ],
-                                  )
-                                : Empty("No Device Settings Found")),
+                                    ),
+                                  ],
+                                )
+                              : Empty("No Device Settings Found"),
+                        ),
                         CustomCard(
                           key: Key("merchants3"),
                           icon: Icons.devices,

@@ -1,7 +1,7 @@
-import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
-import 'package:atlascrm/components/style/UniversalStyles.dart';
-import 'package:atlascrm/config/ConfigSettings.dart';
-import 'package:atlascrm/services/GqlClientFactory.dart';
+import 'package:round2crm/components/shared/EmployeeDropDown.dart';
+import 'package:round2crm/components/style/UniversalStyles.dart';
+import 'package:round2crm/config/ConfigSettings.dart';
+import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -12,18 +12,19 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:logger/logger.dart';
 import 'package:multi_image_picker/multi_image_picker.dart';
-import 'package:atlascrm/services/UserService.dart';
+import 'package:round2crm/services/UserService.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:http/http.dart' as http;
-import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
-import 'package:atlascrm/services/ApiService.dart';
+import 'package:round2crm/components/shared/CenteredLoadingSpinner.dart';
+import 'package:round2crm/services/ApiService.dart';
 
-import 'package:atlascrm/components/shared/CustomAppBar.dart';
+import 'package:round2crm/components/shared/CustomAppBar.dart';
 
 class StatementUploader extends StatefulWidget {
   final ApiService apiService = new ApiService();
@@ -39,6 +40,18 @@ class StatementUploader extends StatefulWidget {
 class _StatementUploaderState extends State<StatementUploader> {
   final picker = ImagePicker();
   static const platform = const MethodChannel('com.ces.round2crm.channel');
+
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 50,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output: CustomOuput(),
+  );
 
   bool isLoading = true;
   bool isBoarded;
@@ -75,7 +88,6 @@ class _StatementUploaderState extends State<StatementUploader> {
     super.initState();
     isBoarded = false;
     checkIfBoarded(this.widget.lead["lead_status"]);
-    getParentCompany();
     loadStatements();
   }
 
@@ -106,6 +118,7 @@ class _StatementUploaderState extends State<StatementUploader> {
       final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
       if (result.hasException == false) {
+        logger.i("Statement data loaded");
         if (result.data != null) {
           var statementsArrDecoded = result.data["statement"];
 
@@ -161,9 +174,15 @@ class _StatementUploaderState extends State<StatementUploader> {
             }
           }
         }
+      } else {
+        debugPrint("Error getting statement information: " +
+            result.exception.toString());
+        logger.e("Error getting statement information: " +
+            result.exception.toString());
       }
     } catch (err) {
-      print(err);
+      debugPrint("Error getting statement information: " + err.toString());
+      logger.e("Error getting statement information: " + err.toString());
     }
   }
 
@@ -193,37 +212,13 @@ class _StatementUploaderState extends State<StatementUploader> {
 
         if (leadStatus == status) {
           isBoarded = true;
+          logger.i("Lead is boarded");
         }
       } else {
-        print(new Error());
-      }
-    }
-  }
-
-  getParentCompany() async {
-    QueryOptions options = QueryOptions(
-      document: gql("""
-      query GET_PARENT_COMPANY {
-        company {
-          company
-          title
-        }
-      }
-    """),
-      fetchPolicy: FetchPolicy.noCache,
-    );
-
-    final result = await GqlClientFactory().authGqlquery(options);
-
-    if (result != null) {
-      if (result.hasException == false) {
-        result.data["company"].forEach((item) {
-          if (item["title"] == "Cutting Edge Solutions") {
-            parentCompany = item["company"];
-          }
-        });
-      } else {
-        print(new Error());
+        debugPrint(
+            "Error checking if lead boarded: " + result.exception.toString());
+        logger.e(
+            "Error checking if lead boarded: " + result.exception.toString());
       }
     }
   }
@@ -266,6 +261,7 @@ class _StatementUploaderState extends State<StatementUploader> {
 
     if (result0 != null && result1 != null) {
       if (result0.hasException == false && result0.hasException == false) {
+        logger.i("Task status and type loaded");
         result0.data["task_status"].forEach(
           (item) {
             if (item["title"] == "Open") {
@@ -275,9 +271,14 @@ class _StatementUploaderState extends State<StatementUploader> {
         );
 
         rateReviewType = result1.data["task_type"][0]["task_type"];
+      } else {
+        debugPrint(
+            "Error getting task status: " + result0.exception.toString());
+        logger.e("Error getting task status: " + result0.exception.toString());
+
+        debugPrint("Error getting task type: " + result1.exception.toString());
+        logger.e("Error getting task type: " + result1.exception.toString());
       }
-    } else {
-      print(new Error());
     }
 
     if (!UserService.isAdmin && !UserService.isSalesManager) {
@@ -319,19 +320,29 @@ class _StatementUploaderState extends State<StatementUploader> {
 
         if (result != null) {
           if (result.hasException == false) {
+            logger.i("Task for rate review successfully scheduled for " +
+                data["lead"].toString() +
+                " on " +
+                data["date"].toString());
+
             Fluttertoast.showToast(
-                msg: successMsg,
-                toastLength: msgLength,
-                gravity: ToastGravity.BOTTOM,
-                backgroundColor: Colors.grey[600],
-                textColor: Colors.white,
-                fontSize: 16.0);
+              msg: successMsg.toString(),
+              toastLength: msgLength,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.grey[600],
+              textColor: Colors.white,
+              fontSize: 16.0,
+            );
+          } else {
+            debugPrint("Error inserting task for rate review: " +
+                result.exception.toString());
+            logger.e("Error inserting task for rate review: " +
+                result.exception.toString());
           }
-        } else {
-          print(new Error());
         }
       } catch (err) {
-        print(err);
+        debugPrint("Failed to create rate review task: " + err.toString());
+        logger.e("Failed to create rate review task: " + err.toString());
         Fluttertoast.showToast(
           msg: "Failed to create task for employee!",
           toastLength: Toast.LENGTH_SHORT,
@@ -388,6 +399,8 @@ class _StatementUploaderState extends State<StatementUploader> {
                               controller: taskDateController,
                               validator: (DateTime dateTime) {
                                 if (dateTime == null) {
+                                  logger.i(
+                                      "No date specified for date rate review date picker");
                                   return 'Please select a date';
                                 }
                                 return null;
@@ -427,6 +440,7 @@ class _StatementUploaderState extends State<StatementUploader> {
                                   TextStyle(color: Colors.white, fontSize: 17),
                             ),
                             onPressed: () {
+                              logger.i("Statement exited without being sent");
                               Navigator.pushNamed(
                                 context,
                                 "/viewlead",
@@ -456,6 +470,8 @@ class _StatementUploaderState extends State<StatementUploader> {
                                   Navigator.pop(context);
                                   uploadComplete();
                                 } else {
+                                  logger.i(
+                                      "No task date specified for rate review presentation");
                                   Fluttertoast.showToast(
                                     msg: "Please select a date/time!",
                                     toastLength: Toast.LENGTH_SHORT,
@@ -511,6 +527,7 @@ class _StatementUploaderState extends State<StatementUploader> {
                           value: statementEmployee,
                           callback: (value) {
                             statementEmployee = value;
+                            logger.i("Employee selected: " + value.toString());
                           },
                         ),
                       ),
@@ -529,6 +546,7 @@ class _StatementUploaderState extends State<StatementUploader> {
                               ),
                             ),
                             onPressed: () {
+                              logger.i("Statement re-assignment cancelled");
                               Navigator.of(context).pop();
                             },
                           ),
@@ -542,8 +560,10 @@ class _StatementUploaderState extends State<StatementUploader> {
                               ),
                             ),
                             onPressed: () {
+                              logger.i("Statement assigned to new employee: " +
+                                  statementEmployee.toString());
                               addImage(result);
-                              Navigator.pop(context);
+                              Navigator.of(context).pop();
                             },
                           ),
                         ],
@@ -652,7 +672,10 @@ class _StatementUploaderState extends State<StatementUploader> {
     setState(() {
       path = midPath;
     });
-    if (!mounted) return;
+    if (!mounted) {
+      logger.e("PDF not displaying correctly because it is not mounted");
+      return;
+    }
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -746,11 +769,18 @@ class _StatementUploaderState extends State<StatementUploader> {
       children: List.generate(
         imageDLList.length,
         (index) {
+          logger.i("Image gallery built with " +
+              imageDLList.length.toString() +
+              " images");
           Map imgFile = imageDLList[index];
           var stringLen = imgFile["url"].length;
           var extendo = imgFile["url"].substring(stringLen - 3, stringLen);
           return GestureDetector(
             onTap: () {
+              logger.i("Gallery image selected \ntype: " +
+                  extendo.toString() +
+                  ", \nfile: " +
+                  imgFile.toString());
               if (extendo == "pdf") {
                 viewPdf(
                   imgFile,
@@ -815,12 +845,14 @@ class _StatementUploaderState extends State<StatementUploader> {
           "/api/upload/statement?lead=${lead["lead"]}&statement=$name", null);
 
       if (resp.statusCode == 200) {
+        logger.i("File deleted " + asset.toString());
         if (imageDLList.length == 1) {
           setState(() {
             dirtyFlag = false;
             uploadsComplete = false;
             statementActive = false;
           });
+          logger.i("Gallery list now has 0 images in it, resetting flags");
         }
 
         Navigator.pop(context);
@@ -851,7 +883,8 @@ class _StatementUploaderState extends State<StatementUploader> {
             fontSize: 16.0);
       }
     } catch (err) {
-      print(err);
+      debugPrint("Failed to delete image: " + err.toString());
+      logger.e("Failed to delete image: " + err.toString());
       Fluttertoast.showToast(
           msg: "Failed to delete image!",
           toastLength: Toast.LENGTH_SHORT,
@@ -885,6 +918,7 @@ class _StatementUploaderState extends State<StatementUploader> {
                 ),
               ),
               onPressed: () {
+                logger.i("Delete check canceled for " + asset.toString());
                 Navigator.of(context).pop();
                 Navigator.of(context).pop();
               },
@@ -928,6 +962,7 @@ class _StatementUploaderState extends State<StatementUploader> {
 
       if (result.hasException == false) {
         if (result.data != null) {
+          logger.i("Statement image data loaded");
           for (var imgUrl in result.data["lead_photos"]["photos"]) {
             var url =
                 "${ConfigSettings.HOOK_API_URL}/uploads/statement/$imgUrl";
@@ -953,14 +988,16 @@ class _StatementUploaderState extends State<StatementUploader> {
         }
       }
     } catch (err) {
-      print(err);
+      debugPrint("Failed to download images: " + err.toString());
+      logger.e("Failed to download images: " + err.toString());
       Fluttertoast.showToast(
-          msg: "Failed to download images!",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.grey[600],
-          textColor: Colors.white,
-          fontSize: 16.0);
+        msg: "Failed to download images!",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.grey[600],
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
 
       setState(
         () {
@@ -1013,6 +1050,7 @@ class _StatementUploaderState extends State<StatementUploader> {
             );
             Navigator.pushNamed(context, "/viewlead", arguments: lead["lead"]);
 
+            logger.i("Statement submitted successfully");
             Fluttertoast.showToast(
               msg: "Statement Submitted!",
               toastLength: Toast.LENGTH_SHORT,
@@ -1023,6 +1061,9 @@ class _StatementUploaderState extends State<StatementUploader> {
             );
           }
         } else {
+          debugPrint(
+              "Failed to submit statment: " + result.exception.toString());
+          logger.e("Failed to submit statment: " + result.exception.toString());
           Fluttertoast.showToast(
             msg: "Failed to submit statement! Error: " +
                 result.exception.toString(),
@@ -1040,6 +1081,10 @@ class _StatementUploaderState extends State<StatementUploader> {
         setState(() {
           isLoading = false;
         });
+        debugPrint(
+            "Failed to submit statement because there is no Statement ID");
+        logger.e("Failed to submit statement because there is no Statement ID");
+
         Fluttertoast.showToast(
           msg: "Failed to submit statement! No Statement ID",
           toastLength: Toast.LENGTH_LONG,
@@ -1050,12 +1095,14 @@ class _StatementUploaderState extends State<StatementUploader> {
         );
       }
     } catch (err) {
-      print(err);
+      debugPrint("Error submitting statement: " + err.toString());
+      logger.e("Error submitting statement: " + err.toString());
+
       setState(() {
         isLoading = false;
       });
       Fluttertoast.showToast(
-        msg: "Failed to submit statement!",
+        msg: "Failed to submit statement!" + err.toString(),
         toastLength: Toast.LENGTH_LONG,
         gravity: ToastGravity.BOTTOM,
         backgroundColor: Colors.grey[600],
@@ -1094,13 +1141,15 @@ class _StatementUploaderState extends State<StatementUploader> {
 
       if (resp != null) {
         if (resp.statusCode == 200) {
+          logger.i("File uploaded successfully");
           Fluttertoast.showToast(
-              msg: "File Uploaded!",
-              toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.grey[600],
-              textColor: Colors.white,
-              fontSize: 16.0);
+            msg: "File Uploaded!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0,
+          );
 
           var imgUrl = resp.data["name"];
           var url = "${ConfigSettings.HOOK_API_URL}/uploads/statement/$imgUrl";
@@ -1110,6 +1159,7 @@ class _StatementUploaderState extends State<StatementUploader> {
             loadStatements();
           } else {
             imageDLList.add({"name": imgUrl, "url": url});
+            logger.i("Uploaded file added to list: " + imgUrl.toString());
           }
           setState(() {
             statementId = resp.data["statement"];
@@ -1120,13 +1170,15 @@ class _StatementUploaderState extends State<StatementUploader> {
             emailSent = false;
           });
         } else {
+          logger.e("Failed to upload file" + resp.err);
           Fluttertoast.showToast(
-              msg: "Failed to upload file!",
-              toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.grey[600],
-              textColor: Colors.white,
-              fontSize: 16.0);
+            msg: "Failed to upload file!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0,
+          );
         }
       } else {
         setState(() {
@@ -1137,7 +1189,9 @@ class _StatementUploaderState extends State<StatementUploader> {
       setState(() {
         isLoading = false;
       });
-      print(err);
+
+      debugPrint("Error adding image: " + err.toString());
+      logger.e("Error adding image: " + err.toString());
     }
   }
 
@@ -1150,10 +1204,12 @@ class _StatementUploaderState extends State<StatementUploader> {
           setState(() {
             prompt = true;
           });
+          logger.i("User will be prompted on leave");
         } else {
           setState(() {
             prompt = false;
           });
+          logger.i("User will not be prompted on leave");
         }
 
         leaveCheck();
@@ -1194,6 +1250,7 @@ class _StatementUploaderState extends State<StatementUploader> {
                                 : () async {
                                     var result = await platform
                                         .invokeMethod("openMedia");
+                                    logger.i("Media library channel invoked");
                                     if (UserService.isAdmin ||
                                         UserService.isSalesManager) {
                                       if (imageDLList.length == 0) {
@@ -1228,6 +1285,7 @@ class _StatementUploaderState extends State<StatementUploader> {
                               : () async {
                                   var result =
                                       await platform.invokeMethod("openCamera");
+                                  logger.i("Camera channel invoked");
                                   if (UserService.isAdmin ||
                                       UserService.isSalesManager) {
                                     if (imageDLList.length == 0) {
@@ -1266,6 +1324,7 @@ class _StatementUploaderState extends State<StatementUploader> {
                                             type: FileType.custom,
                                             allowMultiple: false,
                                             allowedExtensions: ['pdf']);
+                                    logger.i("File picker invoked");
                                     if (UserService.isAdmin ||
                                         UserService.isSalesManager) {
                                       if (imageDLList.length == 0) {
@@ -1312,6 +1371,7 @@ class _StatementUploaderState extends State<StatementUploader> {
                               hint: Text("View Past Statements"),
                               items: statements.map<DropdownMenuItem<String>>(
                                 (dynamic value) {
+                                  logger.i("Statements dropdown populated");
                                   var dateSubmitted =
                                       DateTime.parse(value["created_at"])
                                           .toUtc();
@@ -1346,18 +1406,27 @@ class _StatementUploaderState extends State<StatementUploader> {
                                         statementActive = false;
                                         emailSent = true;
                                         dirtyFlag = false;
+                                        logger.i(
+                                            "Inactive statement selected: " +
+                                                valueString);
                                       } else {
+                                        logger.i("Active statement selected: " +
+                                            valueString);
                                         if (value["document"] != null) {
                                           if (value["document"]["emailSent"] ==
                                               true) {
                                             emailSent = true;
                                             uploadsComplete = true;
                                             statementActive = false;
+                                            logger.i(
+                                                "Active statement email has previously been sent");
                                           }
                                         } else {
                                           emailSent = false;
                                           uploadsComplete = false;
                                           statementActive = true;
+                                          logger.i(
+                                              "Active statement email has not been sent yet");
                                         }
                                         statementId = value["statement"];
                                         inactiveSelected = false;
@@ -1367,9 +1436,10 @@ class _StatementUploaderState extends State<StatementUploader> {
                                 },
                               ).toList(),
                               onChanged: (newValue) {
+                                logger.i("Dropdown value changed: " +
+                                    newValue.toString());
                                 setState(
                                   () {
-                                    // isLoading = true;
                                     dropdownValue = newValue;
                                     imageDLList = [];
                                     loadImages();

@@ -1,16 +1,16 @@
-import 'dart:developer';
-import 'package:atlascrm/components/style/UniversalStyles.dart';
-import 'package:atlascrm/services/UserService.dart';
-import 'package:atlascrm/services/GqlClientFactory.dart';
+import 'package:round2crm/components/style/UniversalStyles.dart';
+import 'package:round2crm/services/UserService.dart';
+import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter/foundation.dart';
-import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
+import 'package:round2crm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
 import 'package:dan_barcode_scan/dan_barcode_scan.dart';
-import 'package:atlascrm/components/inventory/InventoryLocationDropDown.dart';
-import 'package:atlascrm/components/inventory/InventoryPriceTierDropDown.dart';
+import 'package:round2crm/components/inventory/InventoryLocationDropDown.dart';
+import 'package:round2crm/components/inventory/InventoryPriceTierDropDown.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:logger/logger.dart';
 
 class InventoryAdd extends StatefulWidget {
   InventoryAdd();
@@ -29,6 +29,18 @@ class InventoryAddState extends State<InventoryAdd> {
   final UserService userService = UserService();
   final _formKey = GlobalKey<FormState>();
   final _stepperKey = GlobalKey<FormState>();
+
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 50,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output: CustomOuput(),
+  );
 
   List serialList = [];
 
@@ -81,26 +93,33 @@ class InventoryAddState extends State<InventoryAdd> {
       );
     } else {
       if (isListed) {
+        logger.i("Scanned duplicate serial number");
+
         Fluttertoast.showToast(
-            msg: "This serial has already been scanned!",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.grey[600],
-            textColor: Colors.white,
-            fontSize: 16.0);
+          msg: "This serial has already been scanned!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
       } else if (isMac) {
+        logger.i("Inventory add MAC address scanned");
+
         Fluttertoast.showToast(
-            msg: "That's the MAC address!",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.grey[600],
-            textColor: Colors.white,
-            fontSize: 16.0);
+          msg: "That's the MAC address!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
       }
     }
   }
 
   Future<void> scanBarcode() async {
+    FocusScope.of(context).requestFocus(new FocusNode());
     try {
       var options = ScanOptions(
         strings: {
@@ -110,26 +129,33 @@ class InventoryAddState extends State<InventoryAdd> {
         },
       );
       var result = await BarcodeScanner.scan(options: options);
+      logger.i("BarcodeScanner opened");
 
       if (result.type != ResultType.Cancelled) {
         addToList(result.rawContent.toString());
+        logger.i("Device S/N added to list: " + result.rawContent.toString());
         await scanBarcode();
+      } else {
+        logger.i("BarcodeScanner closed");
       }
     } catch (err) {
-      log(err);
+      debugPrint("Error scanning barcode: " + err.toString());
+      logger.e("Error scanning barcode: " + err.toString());
     }
   }
 
   Future<void> addDevice() async {
     try {
       if (serialList.length < 1) {
+        logger.i("No devices scanned");
         Fluttertoast.showToast(
-            msg: "No devices scanned!",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.grey[600],
-            textColor: Colors.white,
-            fontSize: 16.0);
+          msg: "No devices scanned!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
         return null;
       }
       bool cleanPost = true;
@@ -170,6 +196,17 @@ class InventoryAddState extends State<InventoryAdd> {
                 cleanPost = false;
               },
             );
+            logger.e(
+              "Error adding inventory device: " + result.exception.toString(),
+            );
+            Fluttertoast.showToast(
+              msg: result.exception.toString(),
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.grey[600],
+              textColor: Colors.white,
+              fontSize: 16.0,
+            );
           }
         } else {
           setState(
@@ -182,23 +219,31 @@ class InventoryAddState extends State<InventoryAdd> {
           return null;
         }
       }
-      cleanPost
-          ? Fluttertoast.showToast(
-              msg: "Devices Added!",
-              toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.grey[600],
-              textColor: Colors.white,
-              fontSize: 16.0)
-          : Fluttertoast.showToast(
-              msg: "Some of these devices already exist!",
-              toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.grey[600],
-              textColor: Colors.white,
-              fontSize: 16.0);
+
+      if (cleanPost) {
+        logger.i(serialList.length.toString() + " Devices added");
+        Fluttertoast.showToast(
+          msg: "Devices Added!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
+      } else {
+        logger.i("Some of the scanned devices already exist");
+        Fluttertoast.showToast(
+          msg: "Some of these devices already exist!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
+      }
     } catch (err) {
-      log(err);
+      debugPrint("Error adding device: " + err.toString());
+      logger.e("Error adding device: " + err.toString());
     }
   }
 
@@ -228,12 +273,16 @@ class InventoryAddState extends State<InventoryAdd> {
                     shape: isAdded
                         ? new RoundedRectangleBorder(
                             side: new BorderSide(
-                                color: Colors.green[200], width: 2.0),
+                              color: Colors.green[200],
+                              width: 2.0,
+                            ),
                             borderRadius: BorderRadius.circular(4.0),
                           )
                         : new RoundedRectangleBorder(
                             side: new BorderSide(
-                                color: Colors.red[200], width: 2.0),
+                              color: Colors.red[200],
+                              width: 2.0,
+                            ),
                             borderRadius: BorderRadius.circular(4.0),
                           ),
                     child: ListTile(
@@ -254,6 +303,9 @@ class InventoryAddState extends State<InventoryAdd> {
                         onPressed: () {
                           setState(
                             () {
+                              logger.i(
+                                  "Scanned Device S/N removed from list: " +
+                                      device["serial"]);
                               serialList.removeWhere(
                                 (item) => item["serial"] == device["serial"],
                               );
@@ -310,14 +362,18 @@ class InventoryAddState extends State<InventoryAdd> {
                             ? _currentStep += 1
                             : null;
                       });
+                      logger.i("Next step on stepper hit: " +
+                          _currentStep.toString());
                     } else {
+                      logger.i("Tier and Location not selected");
                       Fluttertoast.showToast(
-                          msg: "Please Select a Tier and Location!",
-                          toastLength: Toast.LENGTH_SHORT,
-                          gravity: ToastGravity.BOTTOM,
-                          backgroundColor: Colors.grey[600],
-                          textColor: Colors.white,
-                          fontSize: 16.0);
+                        msg: "Please Select a Tier and Location!",
+                        toastLength: Toast.LENGTH_SHORT,
+                        gravity: ToastGravity.BOTTOM,
+                        backgroundColor: Colors.grey[600],
+                        textColor: Colors.white,
+                        fontSize: 16.0,
+                      );
                     }
                   },
                   onStepCancel: () {
@@ -326,6 +382,8 @@ class InventoryAddState extends State<InventoryAdd> {
                         _currentStep > 0 ? _currentStep -= 1 : null;
                       },
                     );
+                    logger.i("Previous step on stepper hit: " +
+                        _currentStep.toString());
                   },
                   steps: [
                     Step(
@@ -500,6 +558,7 @@ class InventoryAddState extends State<InventoryAdd> {
 
   bool validationPassed() {
     if (_formKey.currentState.validate()) {
+      logger.i("Inventory add stepper validated");
       return true;
     }
     return false;

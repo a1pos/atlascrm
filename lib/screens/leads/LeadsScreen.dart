@@ -1,16 +1,18 @@
-import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
-import 'package:atlascrm/components/shared/CustomAppBar.dart';
-import 'package:atlascrm/components/shared/CustomCard.dart';
-import 'package:atlascrm/components/shared/CustomDrawer.dart';
-import 'package:atlascrm/components/shared/EmployeeDropDown.dart';
-import 'package:atlascrm/components/shared/Empty.dart';
-import 'package:atlascrm/components/style/UniversalStyles.dart';
-import 'package:atlascrm/services/UserService.dart';
-import 'package:atlascrm/services/GqlClientFactory.dart';
+import 'package:round2crm/components/shared/CenteredLoadingSpinner.dart';
+import 'package:round2crm/components/shared/CustomAppBar.dart';
+import 'package:round2crm/components/shared/CustomCard.dart';
+import 'package:round2crm/components/shared/CustomDrawer.dart';
+import 'package:round2crm/components/shared/EmployeeDropDown.dart';
+import 'package:round2crm/components/shared/Empty.dart';
+import 'package:round2crm/components/style/UniversalStyles.dart';
+import 'package:round2crm/services/UserService.dart';
+import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:logger/logger.dart';
+
 
 import 'LeadStepper.dart';
 
@@ -28,6 +30,18 @@ class _LeadsScreenState extends State<LeadsScreen> {
 
   ScrollController _scrollController = ScrollController();
   TextEditingController _searchController = TextEditingController();
+
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 50,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output: CustomOuput(),
+  );
 
   var leads = [];
   var employees = [];
@@ -93,6 +107,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
                 style: TextStyle(fontSize: 17, color: Colors.red),
               ),
               onPressed: () {
+                logger.i("Stale lead not claimed: " + lead.toString());
                 Navigator.of(context).pop();
                 openLead(lead);
               },
@@ -123,18 +138,26 @@ class _LeadsScreenState extends State<LeadsScreen> {
                     await GqlClientFactory().authGqlmutate(mutateOptions);
 
                 if (result.hasException == false) {
+                  debugPrint("Lead claimed successfully: " + lead.toString());
+                  logger.i("Lead claimed successfully: " + lead.toString());
                   Fluttertoast.showToast(
-                      msg: "Lead Claimed!",
-                      toastLength: Toast.LENGTH_SHORT,
-                      gravity: ToastGravity.BOTTOM,
-                      backgroundColor: Colors.grey[600],
-                      textColor: Colors.white,
-                      fontSize: 16.0);
+                    msg: "Lead Claimed!",
+                    toastLength: Toast.LENGTH_SHORT,
+                    gravity: ToastGravity.BOTTOM,
+                    backgroundColor: Colors.grey[600],
+                    textColor: Colors.white,
+                    fontSize: 16.0,
+                  );
                   Navigator.of(context).pop();
                   openLead(lead);
                 } else {
+                  debugPrint(
+                      "Failed to claim lead: " + result.exception.toString());
+                  logger.i(
+                      "Failed to claim lead: " + result.exception.toString());
+
                   Fluttertoast.showToast(
-                    msg: "Failed to claim lead!",
+                    msg: "Failed to claim lead: " + result.exception.toString(),
                     toastLength: Toast.LENGTH_LONG,
                     gravity: ToastGravity.BOTTOM,
                     backgroundColor: Colors.grey[600],
@@ -185,6 +208,9 @@ class _LeadsScreenState extends State<LeadsScreen> {
       final result = await GqlClientFactory().authGqlquery(options);
 
       if (result != null) {
+        logger.i("Initial leads data loaded");
+        logger.i(initParams);
+
         if (result.hasException == false) {
           var leadsArrDecoded = result.data["v_lead"];
           if (leadsArrDecoded != null) {
@@ -211,8 +237,14 @@ class _LeadsScreenState extends State<LeadsScreen> {
             }
           }
         } else {
+          debugPrint(
+              "Error getting initial leads: " + result.exception.toString());
+          logger
+              .e("Error getting initial leads: " + result.exception.toString());
+
           Fluttertoast.showToast(
-              msg: result.exception.toString(),
+              msg:
+                  "Error getting initial leads: " + result.exception.toString(),
               toastLength: Toast.LENGTH_SHORT,
               gravity: ToastGravity.BOTTOM,
               backgroundColor: Colors.grey[600],
@@ -226,7 +258,9 @@ class _LeadsScreenState extends State<LeadsScreen> {
         },
       );
     } catch (err) {
-      print(err);
+      debugPrint("Error getting initial leads: " + err.toString());
+      logger.e("Error getting initial leads: " + err.toString());
+
       setState(
         () {
           isLoading = false;
@@ -276,6 +310,8 @@ class _LeadsScreenState extends State<LeadsScreen> {
         }
       }
 
+      logger.i(params);
+
       QueryOptions options = QueryOptions(
         document: gql("""
           query GET_LEADS {
@@ -298,6 +334,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
       final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
       if (result != null) {
+        logger.i("Leads data in onScroll loaded");
         if (result.hasException == false) {
           var leadsArrDecoded = result.data["v_lead"];
           if (leadsArrDecoded != null) {
@@ -323,6 +360,20 @@ class _LeadsScreenState extends State<LeadsScreen> {
               );
             }
           }
+        } else {
+          debugPrint("Error getting leads data in onScroll: " +
+              result.exception.toString());
+          logger.e("Error getting leads data in onScroll: " +
+              result.exception.toString());
+          Fluttertoast.showToast(
+            msg: "Error getting leads data in onScroll: " +
+                result.exception.toString(),
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.grey[600],
+            textColor: Colors.white,
+            fontSize: 16.0,
+          );
         }
       }
 
@@ -332,11 +383,15 @@ class _LeadsScreenState extends State<LeadsScreen> {
         },
       );
     } catch (err) {
-      print(err);
+      debugPrint(
+          "Error getting leads data in onScroll: " + err.exception.toString());
+      logger.e(
+          "Error getting leads data in onScroll: " + err.exception.toString());
     }
   }
 
   Future<void> searchLeads(searchString) async {
+    logger.i("Leads filtered by search: " + searchString.toString());
     setState(
       () {
         currentSearch = searchString;
@@ -349,6 +404,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
   }
 
   Future<void> filterByEmployee(employeeId) async {
+    logger.i("Leads filtered by search: " + employeeId.toString());
     setState(
       () {
         filterEmployee = employeeId;
@@ -362,6 +418,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
 
   Future<void> clearFilter() async {
     if (isFiltering) {
+      logger.i("Lead filter cleared");
       setState(
         () {
           filterEmployee = "";
@@ -376,6 +433,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
 
   Future<void> clearSearch() async {
     if (isSearching) {
+      logger.i("Lead search filter cleared");
       setState(
         () {
           pageNum = 0;
@@ -390,6 +448,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
   }
 
   Future<void> toggleStale(value) async {
+    logger.i("Lead stale filter set to " + value.toString());
     clearSearch();
     setState(
       () {
@@ -405,6 +464,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
   }
 
   void openAddLeadForm() {
+    logger.i("Add lead form opened");
     showDialog(
       barrierDismissible: false,
       context: context,
@@ -418,6 +478,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
                 Text('Add New Lead'),
                 GestureDetector(
                   onTap: () {
+                    logger.i("Add lead form closed");
                     Navigator.of(context).pop();
                   },
                   child: Icon(
@@ -443,6 +504,8 @@ class _LeadsScreenState extends State<LeadsScreen> {
   }
 
   void openLead(lead) {
+    logger.i(
+        "Lead opened: " + lead["leadbusinessname"] + " (" + lead["lead"] + ")");
     Navigator.pushNamed(context, "/viewlead", arguments: lead["lead"]);
   }
 
@@ -493,6 +556,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
                           onScroll();
                         },
                       );
+                      logger.i("Lead order set to " + sortQuery);
                     },
                   ),
                 ),
@@ -578,8 +642,10 @@ class _LeadsScreenState extends State<LeadsScreen> {
                       child: IconButton(
                         icon: Icon(Icons.search, color: Colors.white),
                         onPressed: () {
-                          currentSearch = _searchController.text;
-                          searchLeads(_searchController.text);
+                          if (_searchController.text.trim() != "") {
+                            currentSearch = _searchController.text;
+                            searchLeads(_searchController.text);
+                          }
                         },
                       ),
                     ),

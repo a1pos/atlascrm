@@ -1,4 +1,4 @@
-name: atlascrm
+name: round2crm
 description: A new Flutter project.
 
 # The following defines the version and build number for your application.
@@ -19,6 +19,12 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  graphql_flutter:
+    git:
+      url: https://github.com/psrcek/graphql-flutter.git
+      ref: 821dd3c0433f8f41de8146311c3f889dfae5f50d
+      path: packages/graphql_flutter
+      publish_to: none
   charts_flutter: ^0.10.0
   confetti: ^0.5.2
   cupertino_icons: ^1.0.2
@@ -44,18 +50,12 @@ dependencies:
   google_maps_flutter: ^0.5.21+15
   google_maps_webservice: ^0.0.20-nullsafety.3
   google_sign_in: ^4.1.1
-  #graphql_flutter: ^4.0.1
-  graphql_flutter:
-    git: #!https://github.com/zino-app/graphql-flutter/issues/856
-      url: https://github.com/psrcek/graphql-flutter.git
-      ref: 821dd3c0433f8f41de8146311c3f889dfae5f50d
-      path: packages/graphql_flutter
-      publish_to: none
   http_parser: ^4.0.0
   image: ^3.0.1
   image_picker: ^0.7.4
   intl: ^0.17.0
   loading_animations: ^2.1.0
+  logger: ^1.0.0
   maps_launcher: ^2.0.0
   multi_image_picker: ^4.6.7
   package_info: ^2.0.0
@@ -82,7 +82,7 @@ dev_dependencies:
 flutter_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/a1logo_blk.png"
+  image_path: "assets/r2logo_blk.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -98,8 +98,7 @@ flutter:
     - assets/google_logo.png
     - assets/home.png
     - assets/car.png
-    - assets/a1logo_blk.png
-    - assets/a1logo_wht.png
+    - assets/r2logo_blk.png
     - assets/pdf_thumbnail.png
     - assets/disabled_user.png
     - assets/globe-PS.gif

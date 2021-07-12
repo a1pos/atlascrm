@@ -1,6 +1,9 @@
-import 'package:atlascrm/services/GqlClientFactory.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:logger/logger.dart';
+import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+
 import 'package:searchable_dropdown/searchable_dropdown.dart';
 
 class InventoryPriceTierDropDown extends StatefulWidget {
@@ -22,6 +25,18 @@ class _InventoryPriceTierDropDownState
   var locations = [];
   var disabled;
   var startVal;
+
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 50,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output: CustomOuput(),
+  );
 
   @override
   void initState() {
@@ -57,6 +72,7 @@ class _InventoryPriceTierDropDownState
         var locationsArrDecoded = locationsResp.data["inventory_price_tier"];
         if (locationsArrDecoded != null) {
           if (this.mounted) {
+            logger.i("Inventory price tiers loaded");
             setState(() {
               locations = locationsArrDecoded;
             });
@@ -67,6 +83,21 @@ class _InventoryPriceTierDropDownState
             startVal = location["model"];
           }
         }
+      } else {
+        debugPrint("Error loading inventory price tiers for dropdown: " +
+            locationsResp.exception.toString());
+        logger.e("Error loading inventory price tiers for dropdown: " +
+            locationsResp.exception.toString());
+
+        Fluttertoast.showToast(
+          msg: "Error loading inventory price tiers for dropdown: " +
+              locationsResp.exception.toString(),
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
       }
     }
   }
@@ -86,6 +117,7 @@ class _InventoryPriceTierDropDownState
         SearchableDropdown.single(
           value: startVal,
           onClear: () {
+            startVal = null;
             setState(() {
               this.widget.callback("");
             });
@@ -111,16 +143,29 @@ class _InventoryPriceTierDropDownState
           onChanged: disabled
               ? null
               : (newValue) {
-                  setState(() {
-                    var setVal;
-                    for (var location in locations) {
-                      if (newValue == location["model"]) {
-                        setVal = location["inventory_price_tier"];
+                  if (newValue != null) {
+                    setState(() {
+                      var setVal;
+                      for (var location in locations) {
+                        if (newValue == location["model"]) {
+                          setVal = location["inventory_price_tier"];
+                        }
                       }
-                    }
-                    startVal = setVal;
-                    this.widget.callback(setVal);
-                  });
+                      startVal = setVal;
+                      this.widget.callback(setVal);
+                      logger.i("Changed inventory price tier: " +
+                          newValue +
+                          " (" +
+                          setVal +
+                          ")");
+                    });
+                  } else {
+                    setState(() {
+                      startVal = null;
+                      this.widget.callback(null);
+                    });
+                    logger.i("Inventory price dropdown value cleared");
+                  }
                 },
         )
       ],

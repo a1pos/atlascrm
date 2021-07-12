@@ -1,4 +1,6 @@
-import 'package:atlascrm/services/GqlClientFactory.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:logger/logger.dart';
+import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 
@@ -15,6 +17,18 @@ class TaskTypeDropDown extends StatefulWidget {
 
 class _TaskTypeDropDownState extends State<TaskTypeDropDown> {
   var types = [];
+
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 50,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output: CustomOuput(),
+  );
 
   @override
   void initState() {
@@ -46,7 +60,23 @@ class _TaskTypeDropDownState extends State<TaskTypeDropDown> {
           setState(() {
             types = taskTypesArrDecoded;
           });
+          logger.i("Task types loaded for dropdown");
         }
+      } else {
+        print("Error getting task types for dropdown: " +
+            result.exception.toString());
+        logger.e("Error getting task types for dropdown: " +
+            result.exception.toString());
+
+        Fluttertoast.showToast(
+          msg: "Error getting task types for dropdown: " +
+              result.exception.toString(),
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
       }
     }
   }
@@ -66,6 +96,7 @@ class _TaskTypeDropDownState extends State<TaskTypeDropDown> {
         DropdownButtonFormField<String>(
           validator: (value) {
             if (value == null) {
+              logger.i("No task type selected for dropdown");
               return 'Please select a task type';
             }
             return null;
@@ -92,6 +123,7 @@ class _TaskTypeDropDownState extends State<TaskTypeDropDown> {
             );
           }).toList(),
           onChanged: (newValue) {
+            logger.i("Task type value changed in ");
             this.widget.callback(newValue);
           },
         ),

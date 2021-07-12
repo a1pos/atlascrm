@@ -1,5 +1,5 @@
-import 'package:atlascrm/services/ApiService.dart';
-import 'package:atlascrm/services/GqlClientFactory.dart';
+import 'package:round2crm/services/ApiService.dart';
+import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -9,6 +9,8 @@ import 'package:flutter/widgets.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:async';
+
+import 'package:logger/logger.dart';
 
 enum FirebaseCMType { launch, resume, backgroundMessage, message }
 
@@ -32,6 +34,18 @@ class FirebaseCESService {
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 50,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output: CustomOuput(),
+  );
+
   factory FirebaseCESService() {
     return _singleton;
   }
@@ -44,9 +58,9 @@ class FirebaseCESService {
 
     if (!_initialized) {
       // For iOS request permission first.
-      FirebaseMessaging.onBackgroundMessage(myBackgroundMessageHandler);
 
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        FirebaseMessaging.onBackgroundMessage(myBackgroundMessageHandler);
         RemoteNotification notification = message.notification;
         AndroidNotification android = message.notification?.android;
 
@@ -68,7 +82,8 @@ class FirebaseCESService {
       });
 
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-        print('A new onMessageOpenedApp event was published');
+        logger.i("A new onMessageOpenedApp event was published");
+
         RemoteNotification notification = message.notification;
         AndroidNotification android = message.notification?.android;
 
@@ -102,16 +117,17 @@ class FirebaseCESService {
     return _token;
   }
 
-  static Future<void> myBackgroundMessageHandler(RemoteMessage message) async {
+  Future<void> myBackgroundMessageHandler(RemoteMessage message) async {
     await Firebase.initializeApp();
-    print("Handling a background message ${message.messageId}");
+
+    logger.i("Handling a background message ${message.messageId}");
   }
 
-  static Future<void> handleFirebaseMessage(message) async {
-    print("$message");
+  Future<void> handleFirebaseMessage(message) async {
+    logger.i("{$message}");
 
     if (message == null) return null;
-    print(message.body);
+    logger.i(message.body);
 
     var messageActionType = "IGNORE";
     if (messageActionType == null) return null;
@@ -121,9 +137,9 @@ class FirebaseCESService {
         return null;
         break;
       case "CAMERA_LINK":
-        print("OPEN THE CAMERA");
+        debugPrint("OPEN THE CAMERA");
         var result = await platform.invokeMethod("openCamera");
-        print("FILE URI: $result");
+        debugPrint("FILE URI: $result");
 
         var options = MutationOptions(
             document: gql("""
@@ -152,10 +168,10 @@ class FirebaseCESService {
 
           await GqlClientFactory().authGqlmutate(options);
           if (resp.statusCode != 200) {
-            print(resp);
+            debugPrint(resp.toString());
           }
         } catch (err) {
-          print(err);
+          debugPrint(err.toString());
         }
         break;
     }

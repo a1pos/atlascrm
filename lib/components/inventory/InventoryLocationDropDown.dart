@@ -1,4 +1,6 @@
-import 'package:atlascrm/services/GqlClientFactory.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:logger/logger.dart';
+import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:searchable_dropdown/searchable_dropdown.dart';
@@ -21,6 +23,18 @@ class _InventoryLocationDropDownState extends State<InventoryLocationDropDown> {
   var locations = [];
   var disabled;
   var startVal;
+
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 120,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output:
+  );
 
   @override
   void initState() {
@@ -65,6 +79,21 @@ class _InventoryLocationDropDownState extends State<InventoryLocationDropDown> {
             startVal = location["name"];
           }
         }
+      } else {
+        debugPrint("Error loading Inventory locations for dropdown: " +
+            result.exception.toString());
+        logger.e("Error loading Inventory locations for dropdown: " +
+            result.exception.toString());
+
+        Fluttertoast.showToast(
+          msg: "Error loading Inventory locations for dropdown: " +
+              result.exception.toString(),
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
       }
     }
   }
@@ -85,6 +114,7 @@ class _InventoryLocationDropDownState extends State<InventoryLocationDropDown> {
           value: startVal,
           onClear: () {
             setState(() {
+              startVal = null;
               this.widget.callback(null);
             });
           },

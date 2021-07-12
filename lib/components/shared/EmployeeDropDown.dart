@@ -1,13 +1,16 @@
-import 'package:atlascrm/services/GqlClientFactory.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:logger/logger.dart';
+import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+
 import 'package:searchable_dropdown/searchable_dropdown.dart';
 
 class EmployeeDropDown extends StatefulWidget {
   final bool disabled;
   final bool displayClear;
   final Function callback;
-  final String role;
+  final List roles;
   final String employeeId;
   final String value;
   final String caption;
@@ -16,7 +19,7 @@ class EmployeeDropDown extends StatefulWidget {
       {this.employeeId,
       this.callback,
       this.value,
-      this.role,
+      this.roles,
       this.disabled = false,
       this.displayClear = true,
       this.caption = "Employee"});
@@ -28,6 +31,18 @@ class EmployeeDropDown extends StatefulWidget {
 class _EmployeeDropDownState extends State<EmployeeDropDown> {
   var employees = [];
 
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 50,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output: CustomOuput(),
+  );
+
   @override
   void initState() {
     super.initState();
@@ -36,12 +51,18 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
   }
 
   var startVal;
+  String roleTitleString = "";
 
   Future<void> initEmployees() async {
     QueryOptions options;
+    if (this.widget.roles != null) {
+      for (var role in this.widget.roles) {
+        roleTitleString += '{roleByRole: {title: {_ilike: "$role"}}}, ';
+      }
+    }
 
     options = QueryOptions(
-      document: this.widget.role == null ? gql("""
+      document: this.widget.roles == null ? gql("""
         query GET_EMPLOYEES {
           employee (where: {is_active: {_eq: true}}) {
             employee
@@ -50,27 +71,31 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
         }
       """) : gql("""
       query GET_EMPLOYEES {
-        employee(where: {_and: [{is_active: {_eq: true}}, {roleByRole: {title: {_ilike: "${this.widget.role}"}}}]}) {
-          employee
-          displayName: document(path: "displayName")
+          employee(where: {_and: [{is_active: {_eq: true}}, 
+            {_or: 
+              [
+                $roleTitleString
+              ]
+            }]}) {
+            employee
+            displayName: document(path: "displayName")
+          }
         }
-      }
       """),
     );
 
     final QueryResult result = await GqlClientFactory().authGqlquery(options);
-
     if (result != null) {
       if (result.hasException == false) {
         var employeeArrDecoded = result.data["employee"];
         if (employeeArrDecoded != null) {
           if (this.mounted) {
+            logger.i("Employee data loaded");
             employeeArrDecoded.sort(
               (a, b) => a["displayName"]
                   .toString()
                   .compareTo(b["displayName"].toString()),
             );
-
             setState(() {
               employees = employeeArrDecoded;
             });
@@ -81,6 +106,21 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
             startVal = employee["displayName"];
           }
         }
+      } else {
+        debugPrint(
+            "Error getting employees by role: " + result.exception.toString());
+        logger.e(
+            "Error getting employees by role: " + result.exception.toString());
+
+        Fluttertoast.showToast(
+          msg:
+              "Error getting employees by role: " + result.exception.toString(),
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
       }
     }
   }
@@ -102,6 +142,7 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
           value: startVal,
           onClear: () {
             setState(() {
+              startVal = null;
               this.widget.callback(null);
             });
           },
@@ -135,6 +176,16 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
                           setVal = employee["employee"];
                         }
                       }
+
+                      logger.i("Employee changed to: " +
+                          newValue +
+                          " in role(s): " +
+                          this.widget.roles.toString());
+                    } else {
+                      newValue = "";
+                      logger.i("Employee filter cleared " +
+                          "in role(s): " +
+                          this.widget.roles.toString());
                     }
                     startVal = newValue;
                     this.widget.callback(setVal);

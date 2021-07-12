@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_webservice/places.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
+import 'package:logger/logger.dart';
+import 'package:round2crm/components/shared/CenteredLoadingSpinner.dart';
 
 const kGoogleApiKey = "AIzaSyB-rMAdwtIjM7s_4Lb8SdRXAfhbiLTVl7s";
 
@@ -24,6 +25,18 @@ final homeScaffoldKey = GlobalKey<ScaffoldState>();
 final searchScaffoldKey = GlobalKey<ScaffoldState>();
 var locationTextController = TextEditingController();
 
+var logger = Logger(
+  printer: PrettyPrinter(
+    methodCount: 1,
+    errorMethodCount: 8,
+    lineLength: 50,
+    colors: true,
+    printEmojis: true,
+    printTime: true,
+  ),
+  // output: CustomOuput(),
+);
+
 class _PlacesSuggestionsState extends State<PlacesSuggestions> {
   @override
   void initState() {
@@ -43,6 +56,8 @@ class _PlacesSuggestionsState extends State<PlacesSuggestions> {
       PlacesDetailsResponse respo = await _places.getDetailsByPlaceId(placeId);
       PlaceDetails placeDetails = respo.result;
       List placeAddress = placeDetails.addressComponents;
+
+      logger.i("Place selected on place suggestions: " + placeId.toString());
 
       Map addressInfo = {
         "address": "",
@@ -90,6 +105,7 @@ class _PlacesSuggestionsState extends State<PlacesSuggestions> {
 
       this.widget.onPlaceSelect(mixedReply);
     } else {
+      logger.e("Couldn't find place id");
       Fluttertoast.showToast(
           msg: "Couldn't find place id!",
           toastLength: Toast.LENGTH_SHORT,
@@ -102,6 +118,7 @@ class _PlacesSuggestionsState extends State<PlacesSuggestions> {
   }
 
   Future<void> notListed(addrObj) async {
+    logger.i("Not listed selected for: " + addrObj.toString());
     this.widget.onPlaceSelect(addrObj);
     Navigator.of(context).pop();
   }
@@ -122,7 +139,9 @@ class _PlacesSuggestionsState extends State<PlacesSuggestions> {
                           child: Text(
                             "Nearby Businesses",
                             style: TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.bold),
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                         Divider(),
@@ -179,9 +198,10 @@ class _PlacesSuggestionsState extends State<PlacesSuggestions> {
                               title: Text(
                                 "Not Listed",
                                 style: TextStyle(
-                                    color: Colors.blue,
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold),
+                                  color: Colors.blue,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ),

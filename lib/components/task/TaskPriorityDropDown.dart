@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 
 class TaskPriorityDropDown extends StatefulWidget {
   final String employeeId;
@@ -17,6 +18,18 @@ class _TaskPriorityDropDownState extends State<TaskPriorityDropDown> {
     {"value": "1", "text": "Medium"},
     {"value": "0", "text": "Low"},
   ];
+
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 50,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output: CustomOuput(),
+  );
 
   @override
   void initState() {
@@ -38,6 +51,7 @@ class _TaskPriorityDropDownState extends State<TaskPriorityDropDown> {
         DropdownButtonFormField<String>(
           validator: (value) {
             if (value == null) {
+              logger.i("No task priority selected for dropdown");
               return 'Please select a task priority';
             }
             return null;
@@ -52,6 +66,8 @@ class _TaskPriorityDropDownState extends State<TaskPriorityDropDown> {
             );
           }).toList(),
           onChanged: (newValue) {
+            logger.i(
+                "Task priority dropdown value changed: " + newValue.toString());
             this.widget.callback(newValue);
           },
         ),

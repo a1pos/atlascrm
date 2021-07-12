@@ -1,6 +1,9 @@
-import 'package:atlascrm/services/GqlClientFactory.dart';
+import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:logger/logger.dart';
+
 import 'package:searchable_dropdown/searchable_dropdown.dart';
 
 class RoleDropDown extends StatefulWidget {
@@ -18,6 +21,18 @@ class _RoleDropDownState extends State<RoleDropDown> {
   var roles = [];
   var disabled;
   var startVal;
+
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 50,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output: CustomOuput(),
+  );
 
   @override
   void initState() {
@@ -54,6 +69,7 @@ class _RoleDropDownState extends State<RoleDropDown> {
         var rolesArrDecoded = rolesResp.data["role"];
         if (rolesArrDecoded != null) {
           if (this.mounted) {
+            logger.i("Role data loaded for dropdown");
             setState(() {
               roles = rolesArrDecoded;
             });
@@ -64,6 +80,18 @@ class _RoleDropDownState extends State<RoleDropDown> {
             startVal = role["title"];
           }
         }
+      } else {
+        logger.e(
+          "Error getting roles: " + rolesResp.exception.toString(),
+        );
+        Fluttertoast.showToast(
+          msg: "Error getting roles: " + rolesResp.exception.toString(),
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
       }
     }
   }
@@ -84,6 +112,8 @@ class _RoleDropDownState extends State<RoleDropDown> {
           value: startVal,
           onClear: () {
             setState(() {
+              startVal = null;
+              logger.i("Role cleared for user");
               this.widget.callback("");
             });
           },
@@ -116,6 +146,7 @@ class _RoleDropDownState extends State<RoleDropDown> {
                       }
                     }
                     startVal = setVal;
+                    logger.i("Role changed on dropdown: " + startVal);
                     this.widget.callback(setVal);
                   });
                 },

@@ -1,22 +1,35 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:http_parser/http_parser.dart';
-import 'package:atlascrm/config/ConfigSettings.dart';
-import 'package:atlascrm/services/StorageService.dart';
+import 'package:round2crm/config/ConfigSettings.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/widgets.dart';
+import 'package:logger/logger.dart';
+
 import 'UserService.dart';
 
 class ApiService {
-  final StorageService storageService = new StorageService();
   final String URLBASE = ConfigSettings.HOOK_API_URL;
   final int TIMEOUT = 10000;
 
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 50,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output: CustomOuput(),
+  );
+
   Future<Response> publicGet(url, data) async {
+    logger.i("Connecting to: " + URLBASE.toString());
     try {
       return await Dio(
         BaseOptions(
-          baseUrl: ConfigSettings.HOOK_API_URL,
+          baseUrl: URLBASE,
           responseType: ResponseType.json,
           headers: {
             "Content-Type": "application/json",
@@ -25,34 +38,43 @@ class ApiService {
         ),
       ).get(url);
     } catch (err) {
+      logger.e(err.toString());
       throw err;
     }
   }
 
   Future<Response> publicPost(url, data) async {
     try {
+      logger.i("Connecting to: " + URLBASE.toString());
+
       return await Dio(
         BaseOptions(
-          baseUrl: ConfigSettings.HOOK_API_URL,
+          baseUrl: URLBASE,
           responseType: ResponseType.json,
           headers: {
             "Content-Type": "application/json",
           },
           sendTimeout: TIMEOUT,
         ),
-      ).post(url, data: jsonEncode(data));
+      ).post(
+        url,
+        data: jsonEncode(data),
+      );
     } catch (err) {
+      logger.e(err.toString());
       throw err;
     }
   }
 
   Future<Response> authGet(context, url, {isRetry: false}) async {
     try {
+      logger.i("Connecting to: " + URLBASE.toString());
+
       var token = UserService.token;
 
       var resp = await Dio(
         BaseOptions(
-          baseUrl: ConfigSettings.HOOK_API_URL,
+          baseUrl: URLBASE,
           responseType: ResponseType.json,
           headers: {
             "Content-Type": "application/json",
@@ -66,11 +88,13 @@ class ApiService {
       ).get(url);
 
       if (resp.statusCode == 401) {
+        logger.e("401 error code, logging out");
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
       }
       return resp;
     } catch (err) {
+      logger.e(err.toString());
       if (checkAuthErrorResponse(context, err)) {
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
@@ -83,6 +107,8 @@ class ApiService {
   Future<Response> authPost(context, url, data,
       {isFile = false, isRetry: false}) async {
     try {
+      logger.i("Connecting to: " + URLBASE.toString());
+
       var token = UserService.token;
 
       var resp = await Dio(
@@ -101,11 +127,13 @@ class ApiService {
       );
 
       if (resp.statusCode == 401) {
+        logger.e("401 error code, logging out");
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
       }
       return resp;
     } catch (err) {
+      logger.e(err.toString());
       if (checkAuthErrorResponse(context, err)) {
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
@@ -117,6 +145,14 @@ class ApiService {
 
   Future<Response> authFilePost(context, url, filePath, {isRetry: true}) async {
     try {
+      logger.i("Connecting to: " + URLBASE.toString());
+
+      logger.i("Context: " +
+          context.toString() +
+          ", \nUrl: " +
+          url.toString() +
+          ", \nfilePath: " +
+          filePath.toString());
       var token = UserService.token;
 
       var type = "application";
@@ -153,18 +189,28 @@ class ApiService {
       ).post(url, data: formData);
 
       if (resp.statusCode == 401) {
+        logger.e("401 error code, logging out");
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
       }
       return resp;
     } catch (err) {
-      throw err;
+      logger.e("Error posting file: " + err.toString());
+      throw "Error posting file: " + err.toString();
     }
   }
 
   Future<Response> authFilePostWithFormData(context, url, FormData formData,
       {isRetry: true}) async {
+    Map message = {
+      "context": context,
+      "url": url,
+      "formData": formData,
+    };
+    logger.i(message.toString());
     try {
+      logger.i("Connecting to: " + URLBASE.toString());
+
       var token = UserService.token;
 
       var resp = await Dio(
@@ -179,18 +225,22 @@ class ApiService {
       ).post(url, data: formData);
 
       if (resp.statusCode == 401) {
+        logger.e("401 error code, logging out");
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
       }
       return resp;
     } catch (err) {
-      throw err;
+      logger.e("Error posting files with form data: " + err.toString());
+      throw "Error posting files with form data: " + err.toString();
     }
   }
 
   Future<Response> authFilesPost(context, url, filePaths,
       {isRetry: true, fileName: "file"}) async {
     try {
+      logger.i("Connecting to: " + URLBASE.toString());
+
       var token = UserService.token;
 
       var formData = FormData();
@@ -234,22 +284,26 @@ class ApiService {
       ).post(url, data: formData);
 
       if (resp.statusCode == 401) {
+        logger.e("401 error code, logging out");
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
       }
       return resp;
     } catch (err) {
+      logger.e("Error posting files: " + err.toString());
       if (checkAuthErrorResponse(context, err)) {
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
       } else {
-        throw err;
+        throw "Error posting files: " + err.toString();
       }
     }
   }
 
   Future<Response> authPut(context, url, data, {isRetry: false}) async {
     try {
+      logger.i("Connecting to: " + URLBASE.toString());
+
       var token = UserService.token;
 
       var resp = await Dio(
@@ -265,11 +319,13 @@ class ApiService {
       ).put(url, data: jsonEncode(data));
 
       if (resp.statusCode == 401) {
+        logger.e("401 error code, logging out");
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
       }
       return resp;
     } catch (err) {
+      logger.e(err.toString());
       if (checkAuthErrorResponse(context, err)) {
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
@@ -281,6 +337,8 @@ class ApiService {
 
   Future<Response> authDelete(context, url, data, {isRetry: false}) async {
     try {
+      logger.i("Connecting to: " + URLBASE.toString());
+
       var token = UserService.token;
 
       var resp = await Dio(
@@ -296,11 +354,13 @@ class ApiService {
       ).delete(url);
 
       if (resp.statusCode == 401) {
+        logger.e("401 error code, logging out");
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
       }
       return resp;
     } catch (err) {
+      logger.e(err.toString());
       if (checkAuthErrorResponse(context, err)) {
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
@@ -312,30 +372,19 @@ class ApiService {
 
   bool checkAuthErrorResponse(context, msg) {
     try {
+      logger.i("Connecting to: " + URLBASE.toString());
+
       if (msg != null) {
         if (msg.response != null) {
           if (msg.response.statusCode == 401) {
+            logger.e("401 error code");
             return true;
           }
         }
       }
-    } catch (err) {}
+    } catch (err) {
+      logger.e(err.toString());
+    }
     return false;
   }
-
-  // Future<bool> trySignInSilently(context) async {
-  //   try {
-  //     var googleSignIn = await UserService.googleSignIn.signInSilently();
-  //     var googleSignInAuthentication = await googleSignIn.authentication;
-  //     await storageService.save("token", googleSignInAuthentication.idToken);
-  //     await storageService.save(
-  //         "access_token", googleSignInAuthentication.accessToken);
-  //     UserService.currentUser = googleSignIn;
-
-  //     return true;
-  //   } catch (err) {
-  //     log(err);
-  //   }
-  //   return false;
-  // }
 }

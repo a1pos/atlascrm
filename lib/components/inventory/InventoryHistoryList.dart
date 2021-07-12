@@ -1,12 +1,11 @@
 import 'dart:async';
-import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
-import 'package:atlascrm/components/shared/Notes.dart';
-import 'package:atlascrm/components/style/UniversalStyles.dart';
-import 'package:atlascrm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
-import 'package:atlascrm/services/ApiService.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:round2crm/components/shared/CenteredLoadingSpinner.dart';
+import 'package:round2crm/components/style/UniversalStyles.dart';
+import 'package:round2crm/services/ApiService.dart';
+import 'package:round2crm/services/GqlClientFactory.dart';
 
 class InventoryHistoryList extends StatefulWidget {
   final ApiService apiService = new ApiService();
@@ -21,6 +20,7 @@ class InventoryHistoryList extends StatefulWidget {
 class _InventoryHistoryListState extends State<InventoryHistoryList> {
   bool isLoading = true;
   var historyList = [];
+  var subscription;
 
   @override
   void initState() {

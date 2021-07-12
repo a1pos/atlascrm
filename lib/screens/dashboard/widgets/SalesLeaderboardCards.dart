@@ -1,10 +1,11 @@
-import 'package:atlascrm/components/style/UniversalStyles.dart';
-import 'package:atlascrm/services/GqlClientFactory.dart';
+import 'package:round2crm/components/style/UniversalStyles.dart';
+import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
-import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
-import 'package:atlascrm/services/UserService.dart';
+import 'package:round2crm/components/shared/CenteredLoadingSpinner.dart';
+import 'package:round2crm/services/UserService.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:logger/logger.dart';
 
 class SalesLeaderboardCards extends StatefulWidget {
   SalesLeaderboardCards({Key key}) : super(key: key);
@@ -15,6 +16,19 @@ class SalesLeaderboardCards extends StatefulWidget {
 
 class SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
   final UserService userService = UserService();
+
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 50,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output: CustomOuput(),
+  );
+
   final _pageController = PageController(viewportFraction: .8);
   final currencyFmt = new NumberFormat("#,##0", "en_US");
 
@@ -34,7 +48,11 @@ class SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
 
   bool isLoading = true;
 
-  List starColors = [Colors.yellow[600], Colors.grey[500], Colors.orange[600]];
+  List starColors = [
+    UniversalStyles.gold,
+    UniversalStyles.silver,
+    UniversalStyles.bronze
+  ];
 
   ScrollController _scrollController = ScrollController();
 
@@ -108,6 +126,7 @@ class SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
       (data) {
         var incomingData = data.data["v_leaderboard"];
         if (incomingData != null) {
+          logger.i("Sales Leaderboard Cards widget initialized");
           if (this.mounted) {
             setState(() {
               graphList = incomingData;
@@ -117,7 +136,8 @@ class SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
         }
       },
       (error) {
-        print("found error: " + error.toString() + " in front end");
+        debugPrint("Error in Sales Leaderboard Cards: " + error.toString());
+        logger.e("Error in Sales Leaderboard Cards: " + error.toString());
       },
       () => refreshSub(),
     );
@@ -129,6 +149,7 @@ class SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
       subscription = null;
       _scrollController.animateTo(0,
           duration: Duration(milliseconds: 500), curve: Curves.fastOutSlowIn);
+      logger.i("Sales leaderboard cards refreshed");
       initSub();
     }
   }
@@ -187,14 +208,16 @@ class SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
       child: Column(
         children: <Widget>[
           ListTile(
-              title: Text(
-                graphFinal[index]["name"],
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 22,
-                    color: Color.fromRGBO(144, 97, 249, 1)),
+            title: Text(
+              graphFinal[index]["name"],
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 22,
+                color: Color.fromRGBO(144, 97, 249, 1),
               ),
-              trailing: trailingWidget),
+            ),
+            trailing: trailingWidget,
+          ),
           Padding(
             padding: const EdgeInsets.all(15.0),
             child: Stack(
@@ -473,39 +496,39 @@ class SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
             child: Card(
               elevation: 2,
               shape: RoundedRectangleBorder(
-                  side: BorderSide(color: borderColor, width: 2.0),
-                  borderRadius: BorderRadius.circular(4.0)),
+                side: BorderSide(color: borderColor, width: 2.0),
+                borderRadius: BorderRadius.circular(4.0),
+              ),
               child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundImage: employeeImage.image,
-                    maxRadius: 20,
-                  ),
-                  title: Text(employee["name"]),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: <Widget>[
-                          Text(
-                            "Agreements: ",
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          Text(employee["agreements"].toString()),
-                        ],
-                      ),
-                      Row(
-                        children: <Widget>[
-                          Text(
-                            "\$" +
-                                currencyFmt
-                                    .format(employee["volume"])
-                                    .toString(),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  trailing: trailingWidget),
+                leading: CircleAvatar(
+                  backgroundImage: employeeImage.image,
+                  maxRadius: 20,
+                ),
+                title: Text(employee["name"]),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: <Widget>[
+                        Text(
+                          "Agreements: ",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        Text(employee["agreements"].toString()),
+                      ],
+                    ),
+                    Row(
+                      children: <Widget>[
+                        Text(
+                          "\$" +
+                              currencyFmt.format(employee["volume"]).toString(),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                trailing: trailingWidget,
+              ),
             ),
           );
         },
@@ -673,12 +696,14 @@ class SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
       }
     }
 
-    return Column(children: <Widget>[
-      isLoading
-          ? Expanded(
-              child: CenteredLoadingSpinner(),
-            )
-          : Expanded(child: buildDLGridView()),
-    ]);
+    return Column(
+      children: <Widget>[
+        isLoading
+            ? Expanded(
+                child: CenteredLoadingSpinner(),
+              )
+            : Expanded(child: buildDLGridView()),
+      ],
+    );
   }
 }

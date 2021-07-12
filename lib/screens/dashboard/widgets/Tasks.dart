@@ -1,11 +1,12 @@
-import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
-import 'package:atlascrm/components/shared/Empty.dart';
-import 'package:atlascrm/components/task/TaskItem.dart';
-import 'package:atlascrm/services/UserService.dart';
-import 'package:atlascrm/services/GqlClientFactory.dart';
+import 'package:round2crm/components/shared/CenteredLoadingSpinner.dart';
+import 'package:round2crm/components/shared/Empty.dart';
+import 'package:round2crm/components/task/TaskItem.dart';
+import 'package:round2crm/services/UserService.dart';
+import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:logger/logger.dart';
 
 class Tasks extends StatefulWidget {
   Tasks({Key key}) : super(key: key);
@@ -24,6 +25,18 @@ class TasksState extends State<Tasks> {
   ScrollController scrollController = ScrollController();
 
   var subscription;
+
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 50,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output: CustomOuput(),
+  );
 
   @override
   void initState() {
@@ -75,6 +88,7 @@ class TasksState extends State<Tasks> {
       (data) {
         var tasksArrDecoded = data.data["employee_by_pk"]["tasks"];
         if (tasksArrDecoded != null && this.mounted) {
+          logger.i("Tasks widget initialized");
           setState(
             () {
               tasks = tasksArrDecoded;
@@ -88,7 +102,10 @@ class TasksState extends State<Tasks> {
         }
         isLoading = false;
       },
-      (error) {},
+      (error) {
+        debugPrint("Error in Tasks: " + error.toString());
+        logger.e("Error in Tasks: " + error.toString());
+      },
       () => refreshSub(),
     );
   }
@@ -99,7 +116,7 @@ class TasksState extends State<Tasks> {
       subscription = null;
       scrollController.animateTo(0,
           duration: Duration(milliseconds: 500), curve: Curves.fastOutSlowIn);
-
+      logger.i("Tasks refreshed");
       initTasks();
     }
   }
@@ -123,6 +140,18 @@ class TasksState extends State<Tasks> {
 }
 
 Widget buildDLGridView(BuildContext context, list, scrollController) {
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 50,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output: CustomOuput(),
+  );
+
   return list.length == 0
       ? Empty("No Active Tasks found")
       : ListView(
@@ -152,15 +181,17 @@ Widget buildDLGridView(BuildContext context, list, scrollController) {
               }
               return GestureDetector(
                 onTap: () {
+                  logger.i("Opening task: $task['task']");
                   Navigator.pushNamed(context, "/viewtask",
                       arguments: task["task"]);
                 },
                 child: TaskItem(
-                    title: task["document"]["title"],
-                    description: task["document"]["notes"],
-                    dateTime: tDate,
-                    type: tType,
-                    priority: tPriority),
+                  title: task["document"]["title"],
+                  description: task["document"]["notes"],
+                  dateTime: tDate,
+                  type: tType,
+                  priority: tPriority,
+                ),
               );
             },
           ),

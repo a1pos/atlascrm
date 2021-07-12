@@ -1,4 +1,6 @@
-import 'package:atlascrm/services/GqlClientFactory.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:logger/logger.dart';
+import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 
@@ -19,6 +21,18 @@ class _CompanyDropDownState extends State<CompanyDropDown> {
   var disabled;
   var startVal;
   String companyDropdownVal = "";
+
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 50,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output: CustomOuput(),
+  );
 
   @override
   void initState() {
@@ -50,6 +64,7 @@ class _CompanyDropDownState extends State<CompanyDropDown> {
 
     if (result != null) {
       if (result.hasException == false) {
+        logger.i("Company data loaded for dropdown");
         var companiesArrDecoded = result.data["v_company"];
         if (companiesArrDecoded != null) {
           if (this.mounted) {
@@ -69,7 +84,20 @@ class _CompanyDropDownState extends State<CompanyDropDown> {
           }
         }
       } else {
-        print("GRAPHQL ERROR: " + result.exception.toString());
+        debugPrint("Error getting companies for dropdown: " +
+            result.exception.toString());
+        logger.e("Error getting companies for dropdown: " +
+            result.exception.toString());
+
+        Fluttertoast.showToast(
+          msg: "Error getting companies for dropdown: " +
+              result.exception.toString(),
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
       }
     }
   }
@@ -124,6 +152,7 @@ class _CompanyDropDownState extends State<CompanyDropDown> {
                     startVal = newValue;
                     var returnObj = {"id": setVal, "name": newValue};
                     this.widget.callback(returnObj);
+                    logger.i("Company changed: " + newValue);
                   });
                 },
           validator: (value) {

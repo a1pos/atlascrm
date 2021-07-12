@@ -1,16 +1,17 @@
 import 'dart:async';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
-import 'package:atlascrm/components/shared/CenteredClearLoadingScreen.dart';
-import 'package:atlascrm/components/shared/CustomAppBar.dart';
-import 'package:atlascrm/components/shared/DeviceDropdown.dart';
-import 'package:atlascrm/services/GqlClientFactory.dart';
+import 'package:round2crm/components/shared/CenteredClearLoadingScreen.dart';
+import 'package:round2crm/components/shared/CustomAppBar.dart';
+import 'package:round2crm/components/shared/DeviceDropdown.dart';
+import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:logger/logger.dart';
 
 class EmployeeMapHistoryScreen extends StatefulWidget {
   final Map employee;
@@ -26,6 +27,18 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
   final Set<Marker> _markers = new Set<Marker>();
   final Set<Polyline> _polyline = new Set<Polyline>();
   final List<LatLng> markerLatLngs = [];
+
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 50,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output: CustomOuput(),
+  );
 
   bool isLoading = true;
 
@@ -50,23 +63,6 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
         isLoading = false;
       },
     );
-  }
-
-  LatLngBounds boundsFromLatLngList(List<LatLng> list) {
-    assert(list.isNotEmpty);
-    double x0, x1, y0, y1;
-    for (LatLng latLng in list) {
-      if (x0 == null) {
-        x0 = x1 = latLng.latitude;
-        y0 = y1 = latLng.longitude;
-      } else {
-        if (latLng.latitude > x1) x1 = latLng.latitude;
-        if (latLng.latitude < x0) x0 = latLng.latitude;
-        if (latLng.longitude > y1) y1 = latLng.longitude;
-        if (latLng.longitude < y0) y0 = latLng.longitude;
-      }
-    }
-    return LatLngBounds(northeast: LatLng(x1, y1), southwest: LatLng(x0, y0));
   }
 
   Future<void> loadMarkerHistory(DateTime startDate) async {
@@ -147,6 +143,13 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
               location["location_document"]["longitude"],
             );
             latLngs.add(latLng);
+
+            logger.i(
+              "Sales Map History route loaded for: " +
+                  deviceIdController.text +
+                  " on " +
+                  startDate.toString(),
+            );
 
             setState(
               () {
@@ -246,7 +249,9 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
                       UniqueKey().toString(),
                     ),
                     infoWindow: InfoWindow(
-                        title: stopTime, snippet: "Duration: " + stop["delta"]),
+                      title: stopTime,
+                      snippet: "Duration: " + stop["delta"],
+                    ),
                   ),
                 );
               }
@@ -262,9 +267,32 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
                 _markers.addAll(markers);
               },
             );
+            logger.i(
+              "Sales Map History stops loaded for: " +
+                  deviceIdController.text +
+                  " on " +
+                  startDate.toString(),
+            );
+          } else {
+            Fluttertoast.showToast(
+              msg: countResult.exception.toString(),
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.grey[600],
+              textColor: Colors.white,
+              fontSize: 16.0,
+            );
+            logger.e(
+              "Error in EmployeeMapHistory stops count: " +
+                  countResult.toString(),
+            );
           }
         }
       } else {
+        logger.e(
+          "Error on EmployeeMapHistory route: " + result.exception.toString(),
+        );
+
         Fluttertoast.showToast(
             msg: result.exception.toString(),
             toastLength: Toast.LENGTH_SHORT,
@@ -340,6 +368,10 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
                                       lastDate: new DateTime(2040));
                                   if (picked != null) {
                                     currentDate = picked;
+                                    logger.i(
+                                      "Date selected on EmployeeHistoryMap: " +
+                                          picked.toString(),
+                                    );
                                     await loadMarkerHistory(picked);
                                   }
                                 }
@@ -371,6 +403,7 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
                     onMapCreated: (GoogleMapController controller) async {
                       if (!_fullScreenMapController2.isCompleted) {
                         _fullScreenMapController2.complete(controller);
+                        logger.i("EmployeeMapHistory map loaded");
                       }
                     },
                   ),
@@ -382,6 +415,18 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
 }
 
 Future<BitmapDescriptor> getMarkerImageFromCache(pictureUrl) async {
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 50,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output: CustomOuput(),
+  );
+
   try {
     Uint8List markerImageBytes;
 
@@ -413,7 +458,8 @@ Future<BitmapDescriptor> getMarkerImageFromCache(pictureUrl) async {
       return BitmapDescriptor.fromBytes(resizedMarkerImageBytes);
     }
   } catch (e) {
-    print(e);
+    debugPrint("Error getting marker image from cache: " + e.toString());
+    logger.e("Error getting marker image from cache: " + e.toString());
   }
 
   return await BitmapDescriptor.fromAssetImage(

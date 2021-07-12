@@ -1,10 +1,11 @@
-import 'package:atlascrm/components/install/InstallScheduleForm.dart';
-import 'package:atlascrm/components/shared/CenteredLoadingSpinner.dart';
-import 'package:atlascrm/components/shared/Empty.dart';
-import 'package:atlascrm/services/GqlClientFactory.dart';
+import 'package:round2crm/components/install/InstallScheduleForm.dart';
+import 'package:round2crm/components/shared/CenteredLoadingSpinner.dart';
+import 'package:round2crm/components/shared/Empty.dart';
+import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:logger/logger.dart';
 
 class Installs extends StatefulWidget {
   Installs({Key key}) : super(key: key);
@@ -14,6 +15,18 @@ class Installs extends StatefulWidget {
 }
 
 class InstallsState extends State<Installs> {
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 50,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output: CustomOuput(),
+  );
+
   bool isLoading = true;
   bool isEmpty = true;
 
@@ -71,6 +84,7 @@ class InstallsState extends State<Installs> {
       (data) async {
         var installsArrDecoded = data.data["v_install_table"];
         if (installsArrDecoded != null && this.mounted) {
+          logger.i("Installs widget initialized");
           setState(() {
             installs = installsArrDecoded;
             activeInstalls = installs
@@ -86,7 +100,10 @@ class InstallsState extends State<Installs> {
           }
         }
       },
-      (error) {},
+      (error) {
+        debugPrint("Error in installs widget: " + error.toString());
+        logger.e("Error in installs widget: " + error.toString());
+      },
       () => refreshSub(),
     );
   }
@@ -97,6 +114,7 @@ class InstallsState extends State<Installs> {
       subscription = null;
       _scrollController.animateTo(0,
           duration: Duration(milliseconds: 500), curve: Curves.fastOutSlowIn);
+      logger.i("Installs widget refreshed");
       initInstalls();
     }
   }

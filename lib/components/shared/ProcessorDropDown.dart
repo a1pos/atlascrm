@@ -1,6 +1,9 @@
-import 'package:atlascrm/services/GqlClientFactory.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:logger/logger.dart';
+import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+
 import 'package:searchable_dropdown/searchable_dropdown.dart';
 
 class ProcessorDropDown extends StatefulWidget {
@@ -29,6 +32,18 @@ class _ProcessorDropDownState extends State<ProcessorDropDown> {
   var processors = [];
   var disabled;
   var startVal;
+
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 50,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output: CustomOuput(),
+  );
 
   @override
   void initState() {
@@ -73,6 +88,20 @@ class _ProcessorDropDownState extends State<ProcessorDropDown> {
             startVal = processor["name"];
           }
         }
+      } else {
+        debugPrint(
+            "Error getting processor data: " + result.exception.toString());
+        logger
+            .e("Error getting processor data: " + result.exception.toString());
+
+        Fluttertoast.showToast(
+          msg: "Error getting processors: " + result.exception.toString(),
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey[600],
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
       }
     }
   }
@@ -94,6 +123,7 @@ class _ProcessorDropDownState extends State<ProcessorDropDown> {
           value: startVal,
           onClear: () {
             setState(() {
+              startVal = null;
               this.widget.callback(null);
             });
           },

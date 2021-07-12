@@ -1,9 +1,9 @@
-import 'package:atlascrm/components/shared/CustomAppBar.dart';
-import 'package:atlascrm/components/shared/CustomCard.dart';
-import 'package:atlascrm/components/shared/CustomDrawer.dart';
-import 'package:atlascrm/components/style/UniversalStyles.dart';
-import 'package:atlascrm/screens/employees/EmployeeListScreen.dart';
-import 'package:atlascrm/screens/employees/widgets/MgmtTile.dart';
+import 'package:round2crm/components/shared/CustomAppBar.dart';
+import 'package:round2crm/components/shared/CustomCard.dart';
+import 'package:round2crm/components/shared/CustomDrawer.dart';
+import 'package:round2crm/components/style/UniversalStyles.dart';
+import 'package:round2crm/screens/employees/EmployeeListScreen.dart';
+import 'package:round2crm/screens/employees/widgets/MgmtTile.dart';
 import 'package:flutter/material.dart';
 
 class EmployeesManagementScreen extends StatefulWidget {
@@ -56,9 +56,9 @@ class _EmployeesManagementScreenState extends State<EmployeesManagementScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
                                 MgmtTile(
-                                  text: "Employee Map",
+                                  text: "Sales Map",
                                   icon: Icons.zoom_out_map,
-                                  route: "/employeemap",
+                                  route: "/salesmap",
                                 ),
                               ],
                             ),

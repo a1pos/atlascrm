@@ -1,6 +1,8 @@
-import 'package:atlascrm/services/GqlClientFactory.dart';
+import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:logger/logger.dart';
+
 import 'package:searchable_dropdown/searchable_dropdown.dart';
 
 class DeviceDropDown extends StatefulWidget {
@@ -19,6 +21,18 @@ class _DeviceDropDownState extends State<DeviceDropDown> {
   var devices = [];
   var disabled;
   var startVal;
+
+  var logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 1,
+      errorMethodCount: 8,
+      lineLength: 50,
+      colors: true,
+      printEmojis: true,
+      printTime: true,
+    ),
+    // output: CustomOuput(),
+  );
 
   @override
   void initState() {
@@ -56,6 +70,7 @@ class _DeviceDropDownState extends State<DeviceDropDown> {
         var devicesArrDecoded = devicesResp.data["employee_device"];
         if (devicesArrDecoded != null) {
           if (this.mounted) {
+            logger.i("Devices dropdown loaded");
             setState(() {
               devices = devicesArrDecoded;
             });
@@ -66,6 +81,11 @@ class _DeviceDropDownState extends State<DeviceDropDown> {
             startVal = device["deviceName"];
           }
         }
+      } else {
+        debugPrint(
+            "Error in DeviceDropdown: " + devicesResp.exception.toString());
+        logger
+            .e("Error in DeviceDropdown: " + devicesResp.exception.toString());
       }
     }
   }
@@ -86,6 +106,7 @@ class _DeviceDropDownState extends State<DeviceDropDown> {
           value: startVal,
           onClear: () {
             setState(() {
+              startVal = null;
               this.widget.callback("");
             });
           },
@@ -117,8 +138,10 @@ class _DeviceDropDownState extends State<DeviceDropDown> {
                         setVal = device["device_id"];
                       }
                     }
+
                     startVal = setVal;
                     this.widget.callback(setVal);
+                    logger.i("Device changed: " + newValue);
                   });
                 },
         )
