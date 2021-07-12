@@ -55,6 +55,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    FocusScope.of(context).requestFocus(new FocusNode());
+
     return WillPopScope(
       onWillPop: () async {
         return false;

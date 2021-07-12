@@ -9,6 +9,8 @@ class LoadingScreen extends StatefulWidget {
 class _LoadingScreenState extends State<LoadingScreen> {
   @override
   Widget build(BuildContext context) {
+    FocusScope.of(context).requestFocus(new FocusNode());
+
     return Scaffold(
       backgroundColor: UniversalStyles.themeColor,
       body: Container(

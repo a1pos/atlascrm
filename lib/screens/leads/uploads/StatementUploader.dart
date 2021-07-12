@@ -38,7 +38,7 @@ class StatementUploader extends StatefulWidget {
 
 class _StatementUploaderState extends State<StatementUploader> {
   final picker = ImagePicker();
-  static const platform = const MethodChannel('com.ces.atlascrm.channel');
+  static const platform = const MethodChannel('com.ces.round2crm.channel');
 
   bool isLoading = true;
   bool isBoarded;

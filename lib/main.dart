@@ -115,6 +115,8 @@ class _AtlasCRMState extends State<AtlasCRM> {
   }
 
   Widget getHomeScreen(context) {
+    FocusScope.of(context).requestFocus(new FocusNode());
+
     return GraphQLProvider(
       client: ValueNotifier<GraphQLClient>(GqlClientFactory.client),
       child: CacheProvider(

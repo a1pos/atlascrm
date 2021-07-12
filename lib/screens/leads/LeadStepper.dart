@@ -34,6 +34,7 @@ class LeadStepperState extends State<LeadStepper> {
   bool nextButtonDisabled = true;
   bool placeSelect = false;
   bool visible = false;
+  bool validStreetAddress = true;
 
   List<GlobalKey<FormState>> _formKeys = [
     GlobalKey<FormState>(),
@@ -82,6 +83,7 @@ class LeadStepperState extends State<LeadStepper> {
   var businessPhoneNumber = TextEditingController();
   var address1Controller = TextEditingController();
   var address2Controller = TextEditingController();
+  var manualAddress2Controller = TextEditingController();
   var cityController = TextEditingController();
   var stateController = TextEditingController();
   var zipController = TextEditingController();
@@ -274,6 +276,7 @@ class LeadStepperState extends State<LeadStepper> {
                   isAddress = true;
                   nextButtonDisabled = false;
                   visible = false;
+                  validStreetAddress = true;
                 });
               } else {
                 if (val["address"]["address"] == "") {
@@ -283,11 +286,14 @@ class LeadStepperState extends State<LeadStepper> {
                       cityController.text = val["address"]["city"];
                       stateController.text = val["address"]["state"];
                       zipController.text = val["address"]["zipcode"];
+                      manualAddress2Controller.text =
+                          val["address"]["address2"];
                       businessNameController.text = val["place"].name;
                       phoneNumberController
                           .updateText(val["place"].formattedPhoneNumber);
                       isAddress = true;
                       visible = true;
+                      validStreetAddress = false;
                       placeSelect = true;
                       nextButtonDisabled = false;
                     },
@@ -303,6 +309,8 @@ class LeadStepperState extends State<LeadStepper> {
                   );
                 } else {
                   visible = false;
+                  validStreetAddress = true;
+
                   placeSelect = true;
                   addressCheck(val);
                 }
@@ -465,20 +473,28 @@ class LeadStepperState extends State<LeadStepper> {
                 )
               : Column(
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
-                      child: AddressSearch(
-                        onAddressChange: (val) {
-                          nearbySelect(val);
-                        },
-                        returnNearby: true,
-                        locationValue: locationValue,
+                    Visibility(
+                      visible: validStreetAddress,
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
+                            child: AddressSearch(
+                              onAddressChange: (val) {
+                                nearbySelect(val);
+                              },
+                              returnNearby: true,
+                              locationValue: locationValue,
+                            ),
+                          ),
+                          TextFormField(
+                            decoration: InputDecoration(
+                              labelText: "Address 2 (optional)",
+                            ),
+                            controller: address2Controller,
+                          ),
+                        ],
                       ),
-                    ),
-                    TextFormField(
-                      decoration:
-                          InputDecoration(labelText: "Address 2 (optional)"),
-                      controller: address2Controller,
                     ),
                     Visibility(
                       visible: visible,
@@ -496,6 +512,12 @@ class LeadStepperState extends State<LeadStepper> {
                               return null;
                             },
                             textCapitalization: TextCapitalization.words,
+                          ),
+                          TextFormField(
+                            decoration: InputDecoration(
+                              labelText: "Address 2 (optional)",
+                            ),
+                            controller: manualAddress2Controller,
                           ),
                           TextFormField(
                             decoration: InputDecoration(
@@ -702,7 +724,7 @@ class LeadStepperState extends State<LeadStepper> {
                             } else if (visible == true) {
                               addressInfoCheck = {
                                 "address": address1Controller.text,
-                                "address2": address2Controller.text,
+                                "address2": manualAddress2Controller.text,
                                 "city": cityController.text,
                                 "state": stateController.text,
                                 "zipcode": zipController.text,
