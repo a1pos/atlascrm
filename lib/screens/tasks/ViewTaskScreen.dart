@@ -1,4 +1,3 @@
-import 'package:logger/logger.dart';
 import 'package:round2crm/components/lead/LeadDropDown.dart';
 import 'package:round2crm/components/shared/CenteredClearLoadingScreen.dart';
 import 'package:round2crm/components/shared/CustomAppBar.dart';
@@ -12,6 +11,9 @@ import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:logger/logger.dart';
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 
 class ViewTaskScreen extends StatefulWidget {
   final String taskId;
@@ -31,15 +33,8 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
   TimeOfDay initTime;
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 50,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output: CustomOuput(),
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   var taskTitleController = TextEditingController();

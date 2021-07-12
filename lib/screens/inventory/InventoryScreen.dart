@@ -13,9 +13,9 @@ import 'package:round2crm/components/shared/Empty.dart';
 import 'package:flutter/material.dart';
 import 'package:dan_barcode_scan/dan_barcode_scan.dart';
 import 'package:logger/logger.dart';
-
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 import 'package:unicorndial/unicorndial.dart';
-
 import 'InventoryAdd.dart';
 
 class InventoryScreen extends StatefulWidget {
@@ -36,15 +36,8 @@ class _InventoryScreenState extends State<InventoryScreen> {
   List<UnicornButton> childButtons = [];
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 50,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output: CustomOuput(),
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   var inventory = [];

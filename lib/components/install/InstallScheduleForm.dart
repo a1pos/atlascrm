@@ -1,5 +1,4 @@
 import 'dart:ui';
-import 'package:logger/logger.dart';
 import 'package:round2crm/components/install/InstallItem.dart';
 import 'package:round2crm/components/shared/EmployeeDropDown.dart';
 import 'package:round2crm/components/style/UniversalStyles.dart';
@@ -10,6 +9,9 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:logger/logger.dart';
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 
 class InstallScheduleForm extends StatefulWidget {
   final dynamic installList;
@@ -35,15 +37,8 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
   Map data;
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 50,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output: CustomOuput(),
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   var installDateController = TextEditingController();

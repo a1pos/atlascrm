@@ -23,7 +23,8 @@ import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:http/http.dart' as http;
 import 'package:round2crm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:round2crm/services/ApiService.dart';
-
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 import 'package:round2crm/components/shared/CustomAppBar.dart';
 
 class StatementUploader extends StatefulWidget {
@@ -42,15 +43,8 @@ class _StatementUploaderState extends State<StatementUploader> {
   static const platform = const MethodChannel('com.ces.round2crm.channel');
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 50,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output: CustomOuput(),
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   bool isLoading = true;

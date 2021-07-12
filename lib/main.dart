@@ -27,6 +27,8 @@ import 'package:round2crm/screens/merchants/ViewMerchantScreen.dart';
 import 'package:round2crm/screens/tasks/ViewTaskScreen.dart';
 import 'package:round2crm/screens/leads/uploads/StatementUploader.dart';
 import 'package:logger/logger.dart';
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,15 +50,8 @@ class _Round2CRMState extends State<Round2CRM> {
   GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 50,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output: CustomOuput(),
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   @override

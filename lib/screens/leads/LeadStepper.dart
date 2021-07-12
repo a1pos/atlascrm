@@ -14,6 +14,8 @@ import 'package:flutter_masked_text/flutter_masked_text.dart';
 import 'package:round2crm/components/shared/PlacesSuggestions.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:logger/logger.dart';
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 
 class LeadStepper extends StatefulWidget {
   final Function successCallback;
@@ -67,15 +69,8 @@ class LeadStepperState extends State<LeadStepper> {
   };
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 50,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output: CustomOuput(),
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   String formattedAddressCheck;

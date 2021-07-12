@@ -9,6 +9,8 @@ import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:logger/logger.dart';
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 import 'package:round2crm/config/ConfigSettings.dart';
 
 class UserService {
@@ -33,15 +35,8 @@ class UserService {
   static FirebaseAuth firebaseAuth = FirebaseAuth.instance;
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 50,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output: CustomOuput(),
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   getToken() async {
@@ -94,8 +89,7 @@ class UserService {
         final User currentUser = firebaseAuth.currentUser;
         assert(user.uid == currentUser.uid);
 
-        logger.i('signInWithGoogle succeeded: $user');
-        debugPrint('signInWithGoogle succeeded: $user');
+        logger.i('Sign in with Google succeeded: $user');
 
         await linkGoogleAccount();
 
@@ -130,15 +124,18 @@ class UserService {
     try {
       GqlClientFactory.setPublicGraphQLClient();
 
-      logger.i("Connecting to hooks API: " + URLBASE.toString());
-      logger.i("Connecting to Hasura: " + ConfigSettings.HASURA_URL.toString());
-      logger.i("Connecting to Websocket: " +
-          ConfigSettings.HASURA_WEBSOCKET.toString());
+      logger.i(
+        "Connecting to hooks API: " +
+            URLBASE.toString() +
+            "\n" +
+            "Connecting to Hasura: " +
+            ConfigSettings.HASURA_URL.toString() +
+            "\n" +
+            "Connecting to Websocket: " +
+            ConfigSettings.HASURA_WEBSOCKET.toString(),
+      );
 
       var user = firebaseAuth.currentUser;
-
-      logger.i("User: " + user.displayName.toString() + " (" + user.uid + ")");
-      getVersionNumber();
 
       MutationOptions mutateOptions = MutationOptions(
         document: gql("""
@@ -169,6 +166,11 @@ class UserService {
         token = linkResult.data["link_google_account"]["token"];
         rToken = linkResult.data["link_google_account"]["refreshToken"];
         var idTokenResult = await user.getIdToken(true);
+
+        logger
+            .i("User: " + user.displayName.toString() + " (" + user.uid + ")");
+        getVersionNumber();
+
         debugPrint("ID Token result: " + idTokenResult);
 
         var empDecoded = linkResult.data["link_google_account"]["employee"];

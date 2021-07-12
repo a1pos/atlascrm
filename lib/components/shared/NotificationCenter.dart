@@ -1,4 +1,3 @@
-import 'package:logger/logger.dart';
 import 'package:round2crm/services/UserService.dart';
 import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +6,9 @@ import 'package:round2crm/services/ApiService.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:round2crm/components/shared/BuildNotifList.dart';
+import 'package:logger/logger.dart';
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 
 class NotificationCenter extends StatefulWidget {
   final ApiService apiService = new ApiService();
@@ -27,15 +29,8 @@ class _NotificationCenterState extends State<NotificationCenter> {
   var subscription;
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 50,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output: CustomOuput(),
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   @override
