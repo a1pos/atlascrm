@@ -460,7 +460,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
     Map sendable = {"id": inventory["inventory"]};
     FocusScope.of(context).requestFocus(new FocusNode());
     Navigator.pushNamed(context, "/viewinventory", arguments: sendable);
-    logger.i("Inventory device opened: " + sendable.toString());
+    logger.i("Inventory device opened: " + sendable["id"].toString());
   }
 
   @override

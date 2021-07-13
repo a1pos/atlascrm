@@ -212,6 +212,21 @@ class GqlClientFactory {
   }
 
   static void setPublicGraphQLClient() {
+    var logger = Logger(
+      printer: SimpleLogPrinter(),
+      output: CustomOutput(),
+    );
+
+    final String URLBASE = ConfigSettings.HOOK_API_URL;
+    logger.i(
+      "Connecting to Hooks API: " +
+          URLBASE.toString() +
+          "\nConnecting to Hasura: " +
+          ConfigSettings.HASURA_URL.toString() +
+          "\nConnecting to Websocket: " +
+          ConfigSettings.HASURA_WEBSOCKET.toString(),
+    );
+
     try {
       final policies = Policies(
         cacheReread: CacheRereadPolicy.ignoreAll,

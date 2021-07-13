@@ -98,7 +98,7 @@ class LeadStepperState extends State<LeadStepper> {
   var processorDropdownValue;
 
   var _currentStep = 0;
-  var stepsLength = 2;
+  var stepsLength = 3;
   var businessTypes = [];
   var locationValue;
   var businessName = "";
@@ -495,8 +495,8 @@ class LeadStepperState extends State<LeadStepper> {
                       child: AddressSearch(
                         onAddressChange: (val) {
                           logger.i(
-                              "Address returned from Google address search: " +
-                                  val.toString());
+                              "Address searched in Google address search: " +
+                                  val['shortaddress'].toString());
                           nearbySelect(val);
                         },
                         returnNearby: true,
@@ -861,11 +861,11 @@ class LeadStepperState extends State<LeadStepper> {
                             },
                             label: Padding(
                               padding: EdgeInsets.all(20),
-                              child: _currentStep == stepsLength
+                              child: _currentStep == stepsLength - 1
                                   ? Text('Save')
                                   : Text('Next'),
                             ),
-                            icon: _currentStep == stepsLength
+                            icon: _currentStep == stepsLength - 1
                                 ? Icon(Icons.save)
                                 : Icon(Icons.arrow_forward),
                           )

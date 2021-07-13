@@ -144,6 +144,9 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
                               labelText: "Search Employees",
                             ),
                             onChanged: (value) {
+                              logger
+                                  .i("Employees filtered by search: " + value);
+
                               var filtered = employeesFull.where((e) {
                                 String name = e["document"]["displayName"];
 
@@ -194,7 +197,11 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
 
           return GestureDetector(
             onTap: () {
-              logger.i("Employee selected: " + emp["employee"]);
+              logger.i("Employee selected: " +
+                  emp["document"]["displayName"] +
+                  " (" +
+                  emp["employee"] +
+                  ")");
               Navigator.pushNamed(context, "/viewemployee",
                   arguments: emp["employee"]);
             },

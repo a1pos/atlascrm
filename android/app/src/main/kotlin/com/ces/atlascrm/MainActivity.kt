@@ -31,7 +31,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class MainActivity : FlutterActivity() {
-    private val CHANNEL = "com.ces.round2crm.channel"
+    private val CHANNEL = "com.ces.atlascrm.channel"
 
     private var CROP_REQUEST_CODE = 9584
     private var OPEN_CAMERA_REQUEST_CODE = 5469
@@ -77,7 +77,7 @@ class MainActivity : FlutterActivity() {
                             photoFile?.also {
                                 val photoURI: Uri = FileProvider.getUriForFile(
                                         this,
-                                        "com.ces.round2crm.fileprovider",
+                                        "com.ces.atlascrm.fileprovider",
                                         it
                                 )
                                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)

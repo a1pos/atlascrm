@@ -169,9 +169,21 @@ Widget buildDLGridView(BuildContext context, list, scrollController) {
               }
               return GestureDetector(
                 onTap: () {
-                  logger.i("Opening task: $task['task']");
-                  Navigator.pushNamed(context, "/viewtask",
-                      arguments: task["task"]);
+                  Navigator.pushNamed(
+                    context,
+                    "/viewtask",
+                    arguments: task['task'],
+                  );
+
+                  logger.i(
+                    "Opening task: " +
+                        task["document"]["title"] +
+                        " (" +
+                        task["task"].toString() +
+                        ")" +
+                        " on " +
+                        task["date"].toString(),
+                  );
                 },
                 child: TaskItem(
                   title: task["document"]["title"],

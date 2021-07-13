@@ -3,6 +3,7 @@ import 'package:logger/logger.dart';
 import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:round2crm/services/UserService.dart';
 import 'package:round2crm/utils/CustomOutput.dart';
 import 'package:round2crm/utils/LogPrinter.dart';
 import 'package:searchable_dropdown/searchable_dropdown.dart';
@@ -56,7 +57,7 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
     }
 
     options = QueryOptions(
-      document: this.widget.roles == null ? gql("""
+      document: this.widget.roles == null || UserService.isAdmin ? gql("""
         query GET_EMPLOYEES {
           employee (where: {is_active: {_eq: true}}) {
             employee

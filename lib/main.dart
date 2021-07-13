@@ -57,8 +57,7 @@ class _Round2CRMState extends State<Round2CRM> {
   @override
   void initState() {
     super.initState();
-    logger.i("Application initialized and starting PublicGQLClient");
-    debugPrint("Application initialized and starting PublicGQLClient");
+
     GqlClientFactory.setPublicGraphQLClient();
     isAuthCheck();
     UserService.firebaseAuth.authStateChanges().listen((firebaseUser) {
@@ -81,6 +80,7 @@ class _Round2CRMState extends State<Round2CRM> {
         UserService.isAuthenticated = true;
 
         await userService.linkGoogleAccount();
+        logger.i("Application initialized and public gql client starting");
 
         setState(() {
           isLoading = false;
@@ -146,7 +146,6 @@ class _Round2CRMState extends State<Round2CRM> {
           initialRoute: "/",
           onGenerateRoute: (RouteSettings settings) {
             logger.i("Route switched to: " + settings.name);
-            debugPrint("Route switched to: " + settings.name);
             switch (settings.name) {
               case '/dashboard':
                 return MaterialPageRoute(

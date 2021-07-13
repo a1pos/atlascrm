@@ -20,7 +20,7 @@ class FirebaseCESService {
   static final ApiService apiService = new ApiService();
   static final FirebaseMessaging _firebaseMessaging =
       FirebaseMessaging.instance;
-  static const platform = const MethodChannel('com.ces.round2crm.channel');
+  static const platform = const MethodChannel('com.ces.atlascrm.channel');
 
   static String _token;
   static bool _initialized = false;

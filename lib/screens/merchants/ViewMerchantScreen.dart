@@ -134,6 +134,7 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
           var bodyDecoded = body;
 
           setState(() {
+            logger.i("Merchant data loaded");
             merchant = bodyDecoded;
             merchantDocument = bodyDecoded["document"];
             merchantAgreement = merchant["leadByLead"]["agreement_builders"][0]
@@ -193,6 +194,7 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
         debugPrint(
             "Error getting merchant data: " + result.exception.toString());
         logger.e("Error getting merchant data: " + result.exception.toString());
+
         Fluttertoast.showToast(
           msg: "Error getting merchant data: " + result.exception.toString(),
           toastLength: Toast.LENGTH_SHORT,
@@ -203,8 +205,9 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
         );
       }
     } catch (err) {
+      logger.e("Error getting merchant data: " + err.toString());
       Fluttertoast.showToast(
-        msg: err.toString(),
+        msg: "Error getting merchant data: " + err.toString(),
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.BOTTOM,
         backgroundColor: Colors.grey[600],
@@ -284,7 +287,14 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
           var sendable = {"id": device["inventory"], "origin": "merchant"};
           return GestureDetector(
             onTap: () {
-              logger.i("Inventory opened: " + sendable["id"]);
+              logger.i("Inventory opened: " +
+                  device["priceTier"].model.toString() +
+                  "-" +
+                  device["serial"].toString() +
+                  " (" +
+                  device["inventory"].toString() +
+                  ")");
+
               Navigator.pushNamed(context, "/viewinventory",
                   arguments: sendable);
             },
@@ -619,14 +629,19 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                                 ? Text(
                                                     merchant["merchant_configs"]
                                                                         [0]
-                                                                    ["document"][
+                                                                    ["document"]
+                                                                [
                                                                 "cashDiscountingPercent"]
                                                             .toString() +
                                                         "%",
                                                     style:
-                                                        TextStyle(fontSize: 16))
-                                                : Text("",
-                                                    style: TextStyle(fontSize: 16)),
+                                                        TextStyle(fontSize: 16),
+                                                  )
+                                                : Text(
+                                                    "",
+                                                    style:
+                                                        TextStyle(fontSize: 16),
+                                                  ),
                                           ),
                                         ],
                                       ),

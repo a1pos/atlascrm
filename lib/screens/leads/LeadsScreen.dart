@@ -41,7 +41,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
   var employeesFull = [];
   var columns = [];
 
-  var dropdownVal = "2";
+  var dropdownVal = "3";
 
   var currentDate;
   var currentSearch = "";
@@ -50,6 +50,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
   var sortQueries = [
     "leadcreatedat: desc",
     "leadcreatedat: asc",
+    "updated_at: desc",
     "leadbusinessname: asc"
   ];
   var sortQuery = "leadbusinessname: asc";
@@ -303,7 +304,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
         }
       }
 
-      logger.i(params);
+      logger.i("Parameters for getting leads: " + params);
 
       QueryOptions options = QueryOptions(
         document: gql("""
@@ -384,7 +385,10 @@ class _LeadsScreenState extends State<LeadsScreen> {
   }
 
   Future<void> searchLeads(searchString) async {
+    FocusScope.of(context).requestFocus(new FocusNode());
+
     logger.i("Leads filtered by search: " + searchString.toString());
+
     setState(
       () {
         currentSearch = searchString;
@@ -410,6 +414,8 @@ class _LeadsScreenState extends State<LeadsScreen> {
   }
 
   Future<void> clearFilter() async {
+    FocusScope.of(context).requestFocus(new FocusNode());
+
     if (isFiltering) {
       logger.i("Lead filter cleared");
       setState(
@@ -526,7 +532,8 @@ class _LeadsScreenState extends State<LeadsScreen> {
                     items: [
                       {'value': '0', 'text': 'Newest'},
                       {'value': '1', 'text': 'Oldest'},
-                      {'value': '2', 'text': 'Alphabetical'}
+                      {'value': '2', 'text': 'Updated'},
+                      {'value': '3', 'text': 'Alphabetical'}
                     ].map<DropdownMenuItem<String>>(
                       (item) {
                         return DropdownMenuItem<String>(

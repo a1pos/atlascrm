@@ -144,6 +144,11 @@ class _TaskScreenState extends State<TaskScreen> {
             isEmpty = false;
           }
         });
+        logger.i("Date selected on task calendar: " +
+            date.toLocal().toString() +
+            ", " +
+            activeTasks.length.toString() +
+            " tasks loaded");
       },
     );
   }
@@ -646,7 +651,12 @@ class _TaskScreenState extends State<TaskScreen> {
                     }
                     return GestureDetector(
                       onTap: () {
-                        logger.i("Task opened: " + t["task"]);
+                        logger.i("Task opened: " +
+                            t["document"]["title"] +
+                            "(" +
+                            t["task"] +
+                            ")");
+
                         Navigator.pushNamed(context, "/viewtask",
                             arguments: t["task"]);
                       },

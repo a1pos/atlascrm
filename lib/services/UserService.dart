@@ -11,13 +11,10 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:logger/logger.dart';
 import 'package:round2crm/utils/CustomOutput.dart';
 import 'package:round2crm/utils/LogPrinter.dart';
-import 'package:round2crm/config/ConfigSettings.dart';
 
 class UserService {
   final GoogleSignIn googleSignIn =
       GoogleSignIn(scopes: ['https://www.googleapis.com/auth/calendar']);
-
-  final String URLBASE = ConfigSettings.HOOK_API_URL;
 
   static Employee employee;
 
@@ -60,7 +57,7 @@ class UserService {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     String version = packageInfo.version;
 
-    logger.i("App version: " + version);
+    logger.v("App version: " + version);
     return version;
   }
 
@@ -89,7 +86,7 @@ class UserService {
         final User currentUser = firebaseAuth.currentUser;
         assert(user.uid == currentUser.uid);
 
-        logger.i('Sign in with Google succeeded: $user');
+        logger.v('Sign in with Google succeeded: $user');
 
         await linkGoogleAccount();
 
@@ -111,7 +108,7 @@ class UserService {
 
       isAuthenticated = false;
 
-      logger.i("User signed out");
+      logger.v("User signed out");
       debugPrint("User signed out");
     } catch (err) {
       logger.e(err.toString());
@@ -123,17 +120,7 @@ class UserService {
   Future<void> linkGoogleAccount() async {
     try {
       GqlClientFactory.setPublicGraphQLClient();
-
-      logger.i(
-        "Connecting to hooks API: " +
-            URLBASE.toString() +
-            "\n" +
-            "Connecting to Hasura: " +
-            ConfigSettings.HASURA_URL.toString() +
-            "\n" +
-            "Connecting to Websocket: " +
-            ConfigSettings.HASURA_WEBSOCKET.toString(),
-      );
+      getVersionNumber();
 
       var user = firebaseAuth.currentUser;
 
@@ -167,16 +154,12 @@ class UserService {
         rToken = linkResult.data["link_google_account"]["refreshToken"];
         var idTokenResult = await user.getIdToken(true);
 
-        logger
-            .i("User: " + user.displayName.toString() + " (" + user.uid + ")");
-        getVersionNumber();
-
         debugPrint("ID Token result: " + idTokenResult);
 
         var empDecoded = linkResult.data["link_google_account"]["employee"];
 
         employee = Employee.fromJson(empDecoded);
-        logger.i("Employee role: " + employee.role.toString());
+        logger.v("Employee role: " + employee.role.toString());
 
         if (employee.role == "admin" || employee.role == "sa") {
           isAdmin = true;
@@ -238,10 +221,12 @@ class UserService {
             await GqlClientFactory.client
                 .mutate(notificationRegistrationMutateOptions);
 
-        debugPrint("Registration token result: " +
+        logger.v("Registration token result: " +
             notificationRegistrationResult.data['register_notification_token']
                     ['message']
                 .toString());
+        logger
+            .i("User: " + user.displayName.toString() + " (" + user.uid + ")");
       }
     } catch (err) {
       logger.e(err.toString());

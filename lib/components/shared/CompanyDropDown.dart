@@ -152,6 +152,7 @@ class _CompanyDropDownState extends State<CompanyDropDown> {
                 },
           validator: (value) {
             if (value == null) {
+              logger.i("No company entered");
               return "Please select a company";
             }
             return null;

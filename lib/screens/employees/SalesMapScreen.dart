@@ -190,7 +190,11 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
             }
           }
         }
-        logger.i("Sales Map markers loaded");
+        logger.i(
+          "Map markers loaded, " +
+              markerLatLngs.length.toString() +
+              " markers loaded",
+        );
       },
       (error) {
         debugPrint("Error in EmployeeMapScreen: " + error.toString());
@@ -285,7 +289,7 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
         onMapCreated: (GoogleMapController controller) async {
           if (!_fullScreenMapController.isCompleted) {
             _fullScreenMapController.complete(controller);
-            logger.i("EmployeeMap map loaded");
+            logger.i("Employee map loaded");
           }
         },
       ),

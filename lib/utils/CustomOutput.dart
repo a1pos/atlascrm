@@ -1,14 +1,21 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
+import 'package:package_info/package_info.dart';
 import 'package:path_provider/path_provider.dart';
 
 class CustomOutput extends LogOutput {
+  PackageInfo _packageInfo = PackageInfo(
+    appName: 'Unknown',
+    packageName: 'Unknown',
+    version: 'Unknown',
+    buildNumber: 'Unknown',
+  );
+
   final extension = ".txt";
-  var currentDate = DateFormat("yyyy-MM-dd").format(DateTime.now()).toString();
+  var currentDate = DateFormat("yyyyMMdd").format(DateTime.now()).toString();
   var currentTimeStamp;
   var path;
   var file;
@@ -19,15 +26,26 @@ class CustomOutput extends LogOutput {
     return currentTimeStamp;
   }
 
-  _write(String text) async {
-    var timeStamp = getCurrentTimeStamp();
-    final Directory directory = await getExternalStorageDirectory();
-    final fileName = currentDate + extension;
+  Future<void> initPackageInfo() async {
+    final info = await PackageInfo.fromPlatform();
 
-    path = directory.path;
+    _packageInfo = info;
+  }
+
+  _write(String text) async {
+    initPackageInfo();
+    final Directory directory = await getExternalStorageDirectory();
+
+    final fileName = "Round2CRM" +
+        "v" +
+        _packageInfo.version +
+        "-" +
+        currentDate +
+        extension;
 
     final logs = Directory("logs");
     var logsExists = await logs.exists();
+    var timeStamp = getCurrentTimeStamp();
 
     if (!logsExists) {
       await new Directory(directory.path + '/' + 'Logs')
@@ -40,8 +58,8 @@ class CustomOutput extends LogOutput {
     final File file = File('${directory.path}/Logs/$fileName');
 
     file.writeAsString(
-      timeStamp.toString() + " - " + text.trim() + "\n",
-      mode: FileMode.writeOnlyAppend,
+      "\n $timeStamp - " + text.trim(),
+      mode: FileMode.append,
       encoding: utf8,
     );
   }

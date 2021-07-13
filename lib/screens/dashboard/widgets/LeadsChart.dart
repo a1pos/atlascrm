@@ -122,7 +122,10 @@ class LeadsChartState extends State<LeadsChart> {
           }
         }
       },
-      (error) {},
+      (error) {
+        debugPrint("Error in loading leads chart data: " + error.toString());
+        logger.e("Error in loading leads chart data: " + error.toString());
+      },
       () => refreshSub(),
     );
   }

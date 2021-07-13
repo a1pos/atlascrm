@@ -49,10 +49,10 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
 
   var employee;
 
-var logger = Logger(
-printer: SimpleLogPrinter(),
-output: CustomOutput(),
-);
+  var logger = Logger(
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
+  );
 
   List<UnicornButton> childButtons = [];
 
@@ -140,6 +140,7 @@ output: CustomOutput(),
         ),
       );
     }
+    logger.i("Device status: " + deviceStatus);
   }
 
   Future<void> loadInventoryData() async {
@@ -293,6 +294,7 @@ output: CustomOutput(),
         textColor: Colors.white,
         fontSize: 16.0,
       );
+      loadInventoryData();
     } else {
       logger.e("Error checking out device: " + result.exception.toString());
       Fluttertoast.showToast(
