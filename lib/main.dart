@@ -93,8 +93,9 @@ class _Round2CRMState extends State<Round2CRM> {
         );
       }
     } catch (err) {
-      debugPrint("Error checking authorization: " + err.toString());
-      logger.e("Error checking authorization: " + err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error checking authorization: " + err.toString());
+      });
 
       UserService.isAuthenticated = false;
 

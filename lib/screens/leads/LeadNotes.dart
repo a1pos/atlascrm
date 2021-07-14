@@ -108,9 +108,11 @@ class _LeadNotesState extends State<LeadNotes> {
       if (result.hasException == false) {
         var notesArrDecoded = result.data["lead_note"];
         Future.delayed(Duration(seconds: 1), () {
-          logger.i("Lead notes loaded. " +
-              notesArrDecoded.length.toString() +
-              " notes loaded");
+          logger.i(
+            "Lead notes loaded. " +
+                notesArrDecoded.length.toString() +
+                " notes loaded",
+          );
         });
 
         if (notesArrDecoded != null) {
@@ -126,8 +128,10 @@ class _LeadNotesState extends State<LeadNotes> {
           }
         }
       } else {
-        debugPrint("Error getting lead notes: " + result.exception.toString());
-        logger.e("Error getting lead notes: " + result.exception.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: Error getting lead notes: " +
+              result.exception.toString());
+        });
 
         Fluttertoast.showToast(
           msg: result.exception.toString(),
@@ -168,8 +172,10 @@ class _LeadNotesState extends State<LeadNotes> {
 
       loadNotes(this.widget.object[type]);
     } else {
-      debugPrint("Error saving note: " + result.exception.toString());
-      logger.e("Error saving note: " + result.exception.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error saving note: " + result.exception.toString());
+      });
+
       Fluttertoast.showToast(
         msg: result.exception.toString(),
         toastLength: Toast.LENGTH_LONG,
@@ -207,27 +213,20 @@ class _LeadNotesState extends State<LeadNotes> {
         });
 
         if (leadStatus == status) {
-          Future.delayed(Duration(seconds: 1), () {
-            logger.i("Lead is boarded");
-          });
-
           setState(() {
             isBoarded = true;
           });
         } else {
-          Future.delayed(Duration(seconds: 1), () {
-            logger.i("Lead is not boarded");
-          });
-
           setState(() {
             isBoarded = false;
           });
         }
       } else {
-        debugPrint("Error checking if lead is boarded: " +
-            result.exception.toString());
-        logger.e("Error checking if lead is boarded: " +
-            result.exception.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: Error checking if lead is boarded: " +
+              result.exception.toString());
+        });
+
         Fluttertoast.showToast(
           msg: "Error checking if lead is boarded: " +
               result.exception.toString(),
@@ -289,7 +288,7 @@ class _LeadNotesState extends State<LeadNotes> {
                                 borderSide:
                                     BorderSide(color: Colors.grey, width: 0.5),
                               ),
-                              hintText: 'Additional Notes.',
+                              hintText: 'Additional Notes...',
                             ),
                           ),
                         ),
@@ -368,7 +367,7 @@ class _LeadNotesState extends State<LeadNotes> {
                                         utcDate.second);
                                     var localDate = utcDatetime.toLocal();
 
-                                    var viewDate = DateFormat("MM-dd-yyyy,")
+                                    var viewDate = DateFormat("MMM dd, yyyy -")
                                         .add_jm()
                                         .format(localDate);
                                     return Padding(
@@ -388,12 +387,37 @@ class _LeadNotesState extends State<LeadNotes> {
                                                         TextStyle(fontSize: 18),
                                                   )
                                                 : Text(""),
-                                            subtitle: Text(
-                                              viewDate,
-                                              style: TextStyle(
-                                                  color: UniversalStyles
-                                                      .actionColor,
-                                                  fontSize: 11),
+                                            subtitle: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  note["employeeByEmployee"]
+                                                      ["displayName"],
+                                                  style: TextStyle(
+                                                    color: UniversalStyles
+                                                        .actionColor,
+                                                    fontSize: 11,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  " - ",
+                                                  style: TextStyle(
+                                                    color: UniversalStyles
+                                                        .actionColor,
+                                                    fontSize: 11,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  viewDate,
+                                                  style: TextStyle(
+                                                    color: UniversalStyles
+                                                        .actionColor,
+                                                    fontSize: 11,
+                                                    fontStyle: FontStyle.italic,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ),
                                         ),

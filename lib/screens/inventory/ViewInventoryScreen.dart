@@ -221,7 +221,10 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
         );
       }
     } else {
-      logger.e("Error loading Inventory data: " + result.exception.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger
+            .e("Error loading Inventory data: " + result.exception.toString());
+      });
       Fluttertoast.showToast(
         msg: result.exception.toString(),
         toastLength: Toast.LENGTH_LONG,
@@ -302,7 +305,11 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
       );
       loadInventoryData();
     } else {
-      logger.e("Error checking out device: " + result.exception.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e(
+            "ERROR: Error checking out device: " + result.exception.toString());
+      });
+
       Fluttertoast.showToast(
         msg: result.exception.toString(),
         toastLength: Toast.LENGTH_LONG,
@@ -437,9 +444,12 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
         await GqlClientFactory().authGqlmutate(mutateOptions);
 
     if (result.hasException == true) {
-      logger.e(
-        "Error deleting inventory device: " + result.exception.toString(),
-      );
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e(
+          "Error deleting inventory device: " + result.exception.toString(),
+        );
+      });
+
       Fluttertoast.showToast(
         msg: result.exception.toString(),
         toastLength: Toast.LENGTH_LONG,
@@ -492,7 +502,10 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
         textColor: Colors.white,
         fontSize: 16.0,
       );
-      logger.e("Error getting employee data: " + result.exception.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error getting employee data: " +
+            result.exception.toString());
+      });
     }
   }
 

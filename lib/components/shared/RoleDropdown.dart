@@ -78,9 +78,12 @@ class _RoleDropDownState extends State<RoleDropDown> {
           }
         }
       } else {
-        logger.e(
-          "Error getting roles: " + rolesResp.exception.toString(),
-        );
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e(
+            "Error getting roles: " + rolesResp.exception.toString(),
+          );
+        });
+
         Fluttertoast.showToast(
           msg: "Error getting roles: " + rolesResp.exception.toString(),
           toastLength: Toast.LENGTH_LONG,

@@ -87,8 +87,9 @@ class _NotificationCenterState extends State<NotificationCenter> {
         }
       },
       (error) {
-        debugPrint("Error in notifications center: " + error.toString());
-        logger.e("Error in notifications center: " + error.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: Error in notifications center: " + error.toString());
+        });
       },
       () => refreshSub(),
     );
@@ -137,10 +138,10 @@ class _NotificationCenterState extends State<NotificationCenter> {
       );
       Navigator.of(context).pop();
     } else {
-      debugPrint(
-          "Failed to update notifications: " + result.exception.toString());
-      logger
-          .e("Failed to update notifications: " + result.exception.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e(
+            "Failed to update notifications: " + result.exception.toString());
+      });
 
       Fluttertoast.showToast(
         msg: "Failed to update Notifications: " + result.exception.toString(),

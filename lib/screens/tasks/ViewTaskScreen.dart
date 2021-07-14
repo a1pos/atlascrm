@@ -90,9 +90,11 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
           }
         });
       } else {
-        debugPrint(
-            "Error getting task status: " + result0.exception.toString());
-        logger.e("Error getting task status: " + result0.exception.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: Error getting task status: " +
+              result0.exception.toString());
+        });
+
         Fluttertoast.showToast(
           msg: "Error getting task status: " + result0.exception.toString(),
           toastLength: Toast.LENGTH_LONG,
@@ -164,8 +166,10 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
         });
       }
     } else {
-      debugPrint("Error getting task data: " + result.exception.toString());
-      logger.e("Error getting task data: " + result.exception.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e(
+            "ERROR: Error getting task data: " + result.exception.toString());
+      });
 
       Fluttertoast.showToast(
           msg: "Error getting task data: " + result.exception.toString(),
@@ -266,8 +270,10 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
           Navigator.pop(context);
         }
       } else {
-        debugPrint("Error updating task: " + result.exception.toString());
-        logger.e("Error updating task: " + result.exception.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger
+              .e("ERROR: Error updating task: " + result.exception.toString());
+        });
 
         Fluttertoast.showToast(
           msg: "Error updating task: " + result.exception.toString(),
@@ -279,8 +285,9 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
         );
       }
     } catch (err) {
-      debugPrint("Error updating task: " + err.toString());
-      logger.e("Error updating task: " + err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error updating task: " + err.toString());
+      });
     }
   }
 
@@ -313,7 +320,8 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
                       callback: ((val) {
                         setState(() {
                           val = null;
-                          logger.e("Employee cannot be changed for tasks");
+                          logger
+                              .e("ERROR: Employee cannot be changed for tasks");
                           Fluttertoast.showToast(
                             msg: "Employee can not be changed for tasks!",
                             toastLength: Toast.LENGTH_SHORT,

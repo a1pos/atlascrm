@@ -79,10 +79,10 @@ class _InventoryLocationDropDownState extends State<InventoryLocationDropDown> {
           }
         }
       } else {
-        debugPrint("Error loading Inventory locations for dropdown: " +
-            result.exception.toString());
-        logger.e("Error loading Inventory locations for dropdown: " +
-            result.exception.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: Error loading Inventory locations for dropdown: " +
+              result.exception.toString());
+        });
 
         Fluttertoast.showToast(
           msg: "Error loading Inventory locations for dropdown: " +
@@ -152,15 +152,17 @@ class _InventoryLocationDropDownState extends State<InventoryLocationDropDown> {
                       }
                     }
                     startVal = setVal;
-                    Future.delayed(Duration(seconds: 1), () {
-                      logger.i("Location selected: " +
-                          newValue +
-                          " (" +
-                          setVal +
-                          ")");
-                    });
 
-                    this.widget.callback(setVal);
+                    if (startVal != "" && startVal != null) {
+                      Future.delayed(Duration(seconds: 1), () {
+                        logger.i("Location selected: " +
+                            newValue +
+                            " (" +
+                            setVal['location'].toString() +
+                            ")");
+                      });
+                      this.widget.callback(setVal);
+                    }
                   });
                 },
         )

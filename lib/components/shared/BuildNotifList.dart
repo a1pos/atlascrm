@@ -102,8 +102,10 @@ class _BuildNotifListState extends State<BuildNotifList> {
         }
       },
       (error) {
-        debugPrint("Error in loading notifications: " + error.toString());
-        logger.e("Error in loading notifications: " + error.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger
+              .e("ERROR: Error in loading notifications: " + error.toString());
+        });
       },
       () => refreshSub(),
     );
@@ -151,10 +153,10 @@ class _BuildNotifListState extends State<BuildNotifList> {
           fontSize: 16.0);
       getNotifications();
     } else {
-      debugPrint(
-          "Error marking notification as read: " + result.exception.toString());
-      logger.e(
-          "Error marking notification as read: " + result.exception.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error marking notification as read: " +
+            result.exception.toString());
+      });
 
       Fluttertoast.showToast(
           msg: "Failed to mark notification as read: " +
@@ -208,10 +210,11 @@ class _BuildNotifListState extends State<BuildNotifList> {
       );
       Navigator.of(context).pop();
     } else {
-      debugPrint("Error marking all notifications as read: " +
-          result.exception.toString());
-      logger.e("Error marking all notifications as read: " +
-          result.exception.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error marking all notifications as read: " +
+            result.exception.toString());
+      });
+
       Fluttertoast.showToast(
         msg: "Error marking all notifications as read: " +
             result.exception.toString(),

@@ -201,8 +201,9 @@ class _TaskScreenState extends State<TaskScreen> {
       }
       isLoading = false;
     }, (error) {
-      debugPrint("Error getting tasks: " + error.toString());
-      logger.e("Error getting tasks: " + error.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error getting tasks: " + error.toString());
+      });
     }, () => refreshSub());
   }
 
@@ -250,9 +251,10 @@ class _TaskScreenState extends State<TaskScreen> {
 
         await initTasks();
       } else {
-        debugPrint(
-            "Error getting task status: " + result0.exception.toString());
-        logger.e("Error getting task status: " + result0.exception.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: Error getting task status: " +
+              result0.exception.toString());
+        });
 
         Fluttertoast.showToast(
           msg: "Error getting task status: " + result0.exception.toString(),
@@ -314,9 +316,11 @@ class _TaskScreenState extends State<TaskScreen> {
             logger.i("Task successfully added and task data reloaded");
           });
         } else {
-          debugPrint(
-              "Error inserting new task: " + result.exception.toString());
-          logger.e("Error inserting new task: " + result.exception.toString());
+          Future.delayed(Duration(seconds: 1), () {
+            logger.e("ERROR: Error inserting new task: " +
+                result.exception.toString());
+          });
+
           Fluttertoast.showToast(
             msg: "Error inserting new task: " + result.exception.toString(),
             toastLength: msgLength,
@@ -328,8 +332,9 @@ class _TaskScreenState extends State<TaskScreen> {
         }
       }
     } catch (err) {
-      debugPrint("Error inserting new task: " + err.toString());
-      logger.e("Error inserting new task: " + err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error inserting new task: " + err.toString());
+      });
     }
     _formKey.currentState.reset();
   }
@@ -435,10 +440,6 @@ class _TaskScreenState extends State<TaskScreen> {
                                       setState(() {
                                         taskTypeDropdownValue = val;
                                       });
-                                      Future.delayed(Duration(seconds: 1), () {
-                                        logger.i("Task type changed to: " +
-                                            taskTypeDropdownValue);
-                                      });
                                     }),
                                   ),
                                   Divider(
@@ -449,11 +450,6 @@ class _TaskScreenState extends State<TaskScreen> {
                                     callback: (val) {
                                       setState(() {
                                         taskPriorityDropdownValue = val;
-                                      });
-
-                                      Future.delayed(Duration(seconds: 1), () {
-                                        logger.i("Task priorty changed to: " +
-                                            taskPriorityDropdownValue);
                                       });
                                     },
                                   ),

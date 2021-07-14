@@ -172,14 +172,16 @@ class _StatementUploaderState extends State<StatementUploader> {
           }
         }
       } else {
-        debugPrint("Error getting statement information: " +
-            result.exception.toString());
-        logger.e("Error getting statement information: " +
-            result.exception.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: Error getting statement information: " +
+              result.exception.toString());
+        });
       }
     } catch (err) {
-      debugPrint("Error getting statement information: " + err.toString());
-      logger.e("Error getting statement information: " + err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger
+            .e("ERROR: Error getting statement information: " + err.toString());
+      });
     }
   }
 
@@ -209,15 +211,12 @@ class _StatementUploaderState extends State<StatementUploader> {
 
         if (leadStatus == status) {
           isBoarded = true;
-          Future.delayed(Duration(seconds: 1), () {
-            logger.i("Lead is boarded");
-          });
         }
       } else {
-        debugPrint(
-            "Error checking if lead boarded: " + result.exception.toString());
-        logger.e(
-            "Error checking if lead boarded: " + result.exception.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e(
+              "Error checking if lead boarded: " + result.exception.toString());
+        });
       }
     }
   }
@@ -274,12 +273,15 @@ class _StatementUploaderState extends State<StatementUploader> {
 
         rateReviewType = result1.data["task_type"][0]["task_type"];
       } else {
-        debugPrint(
-            "Error getting task status: " + result0.exception.toString());
-        logger.e("Error getting task status: " + result0.exception.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger
+              .e("Error getting task status: " + result0.exception.toString());
+        });
 
-        debugPrint("Error getting task type: " + result1.exception.toString());
-        logger.e("Error getting task type: " + result1.exception.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: Error getting task type: " +
+              result1.exception.toString());
+        });
       }
     }
 
@@ -338,15 +340,18 @@ class _StatementUploaderState extends State<StatementUploader> {
               fontSize: 16.0,
             );
           } else {
-            debugPrint("Error inserting task for rate review: " +
-                result.exception.toString());
-            logger.e("Error inserting task for rate review: " +
-                result.exception.toString());
+            Future.delayed(Duration(seconds: 1), () {
+              logger.e("ERROR: Error inserting task for rate review: " +
+                  result.exception.toString());
+            });
           }
         }
       } catch (err) {
-        debugPrint("Failed to create rate review task: " + err.toString());
-        logger.e("Failed to create rate review task: " + err.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger
+              .e("ERROR: Failed to create rate review task: " + err.toString());
+        });
+
         Fluttertoast.showToast(
           msg: "Failed to create task for employee!",
           toastLength: Toast.LENGTH_SHORT,
@@ -361,6 +366,9 @@ class _StatementUploaderState extends State<StatementUploader> {
 
   Future<void> leaveCheck() async {
     if (prompt) {
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Attempting to leave without sending statement");
+      });
       return showDialog<void>(
         context: context,
         builder: (BuildContext context) {
@@ -695,7 +703,11 @@ class _StatementUploaderState extends State<StatementUploader> {
       path = midPath;
     });
     if (!mounted) {
-      logger.e("PDF not displaying correctly because it is not mounted");
+      Future.delayed(Duration(seconds: 1), () {
+        logger
+            .e("ERROR: PDF not displaying correctly because it is not mounted");
+      });
+
       return;
     }
     showDialog(
@@ -907,7 +919,10 @@ class _StatementUploaderState extends State<StatementUploader> {
       } else {
         Navigator.pop(context);
         Navigator.pop(context);
-        logger.e("Failed to delete image: " + asset.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: Failed to delete image: " + asset.toString());
+        });
+
         Fluttertoast.showToast(
             msg: "Failed to delete image!",
             toastLength: Toast.LENGTH_SHORT,
@@ -917,8 +932,10 @@ class _StatementUploaderState extends State<StatementUploader> {
             fontSize: 16.0);
       }
     } catch (err) {
-      debugPrint("Failed to delete image: " + err.toString());
-      logger.e("Failed to delete image: " + err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Failed to delete image: " + err.toString());
+      });
+
       Fluttertoast.showToast(
           msg: "Failed to delete image!",
           toastLength: Toast.LENGTH_SHORT,
@@ -1028,8 +1045,10 @@ class _StatementUploaderState extends State<StatementUploader> {
         }
       }
     } catch (err) {
-      debugPrint("Failed to download images: " + err.toString());
-      logger.e("Failed to download images: " + err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Failed to download images: " + err.toString());
+      });
+
       Fluttertoast.showToast(
         msg: "Failed to download images!",
         toastLength: Toast.LENGTH_SHORT,
@@ -1104,9 +1123,11 @@ class _StatementUploaderState extends State<StatementUploader> {
             );
           }
         } else {
-          debugPrint(
-              "Failed to submit statment: " + result.exception.toString());
-          logger.e("Failed to submit statment: " + result.exception.toString());
+          Future.delayed(Duration(seconds: 1), () {
+            logger
+                .e("Failed to submit statment: " + result.exception.toString());
+          });
+
           Fluttertoast.showToast(
             msg: "Failed to submit statement! Error: " +
                 result.exception.toString(),
@@ -1124,9 +1145,10 @@ class _StatementUploaderState extends State<StatementUploader> {
         setState(() {
           isLoading = false;
         });
-        debugPrint(
-            "Failed to submit statement because there is no Statement ID");
-        logger.e("Failed to submit statement because there is no Statement ID");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e(
+              "ERROR: Failed to submit statement because there is no Statement ID");
+        });
 
         Fluttertoast.showToast(
           msg: "Failed to submit statement! No Statement ID",
@@ -1138,8 +1160,9 @@ class _StatementUploaderState extends State<StatementUploader> {
         );
       }
     } catch (err) {
-      debugPrint("Error submitting statement: " + err.toString());
-      logger.e("Error submitting statement: " + err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error submitting statement: " + err.toString());
+      });
 
       setState(() {
         isLoading = false;
@@ -1203,6 +1226,9 @@ class _StatementUploaderState extends State<StatementUploader> {
           if (statementActive == false) {
             imageDLList = [];
             loadStatements();
+            Future.delayed(Duration(seconds: 1), () {
+              logger.i("Uploaded file added to list: " + imgUrl.toString());
+            });
           } else {
             imageDLList.add({"name": imgUrl, "url": url});
             Future.delayed(Duration(seconds: 1), () {
@@ -1218,9 +1244,12 @@ class _StatementUploaderState extends State<StatementUploader> {
             emailSent = false;
           });
         } else {
-          logger.e("Failed to upload file" + resp.err);
+          Future.delayed(Duration(seconds: 1), () {
+            logger.e("ERROR: Failed to upload file" + resp.err);
+          });
+
           Fluttertoast.showToast(
-            msg: "Failed to upload file!",
+            msg: "Failed to upload file " + resp.err,
             toastLength: Toast.LENGTH_SHORT,
             gravity: ToastGravity.BOTTOM,
             backgroundColor: Colors.grey[600],
@@ -1238,8 +1267,9 @@ class _StatementUploaderState extends State<StatementUploader> {
         isLoading = false;
       });
 
-      debugPrint("Error adding image: " + err.toString());
-      logger.e("Error adding image: " + err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error adding image: " + err.toString());
+      });
     }
   }
 
@@ -1300,11 +1330,11 @@ class _StatementUploaderState extends State<StatementUploader> {
                             onPressed: uploadsComplete || isBoarded
                                 ? () {}
                                 : () async {
-                                    var result = await platform
-                                        .invokeMethod("openMedia");
                                     Future.delayed(Duration(seconds: 1), () {
                                       logger.i("Media library channel invoked");
                                     });
+                                    var result = await platform
+                                        .invokeMethod("openMedia");
 
                                     if (UserService.isAdmin ||
                                         UserService.isSalesManager) {
@@ -1338,11 +1368,11 @@ class _StatementUploaderState extends State<StatementUploader> {
                           onPressed: uploadsComplete || isBoarded
                               ? () {}
                               : () async {
-                                  var result =
-                                      await platform.invokeMethod("openCamera");
                                   Future.delayed(Duration(seconds: 1), () {
                                     logger.i("Camera channel invoked");
                                   });
+                                  var result =
+                                      await platform.invokeMethod("openCamera");
 
                                   if (UserService.isAdmin ||
                                       UserService.isSalesManager) {
@@ -1377,14 +1407,14 @@ class _StatementUploaderState extends State<StatementUploader> {
                             onPressed: uploadsComplete || isBoarded
                                 ? () {}
                                 : () async {
+                                    Future.delayed(Duration(seconds: 1), () {
+                                      logger.i("File picker invoked");
+                                    });
                                     var result = await FilePicker.platform
                                         .pickFiles(
                                             type: FileType.custom,
                                             allowMultiple: false,
                                             allowedExtensions: ['pdf']);
-                                    Future.delayed(Duration(seconds: 1), () {
-                                      logger.i("File picker invoked");
-                                    });
 
                                     if (UserService.isAdmin ||
                                         UserService.isSalesManager) {

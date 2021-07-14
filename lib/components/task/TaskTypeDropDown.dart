@@ -60,10 +60,10 @@ class _TaskTypeDropDownState extends State<TaskTypeDropDown> {
           });
         }
       } else {
-        print("Error getting task types for dropdown: " +
-            result.exception.toString());
-        logger.e("Error getting task types for dropdown: " +
-            result.exception.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: Error getting task types for dropdown: " +
+              result.exception.toString());
+        });
 
         Fluttertoast.showToast(
           msg: "Error getting task types for dropdown: " +
@@ -124,7 +124,7 @@ class _TaskTypeDropDownState extends State<TaskTypeDropDown> {
           }).toList(),
           onChanged: (newValue) {
             Future.delayed(Duration(seconds: 1), () {
-              logger.i("Task type value changed in ");
+              logger.i("Task type value changed: " + newValue);
             });
 
             this.widget.callback(newValue);

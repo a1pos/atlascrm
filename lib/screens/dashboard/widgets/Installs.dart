@@ -99,8 +99,9 @@ class InstallsState extends State<Installs> {
         }
       },
       (error) {
-        debugPrint("Error in installs widget: " + error.toString());
-        logger.e("Error in installs widget: " + error.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: Error in installs widget: " + error.toString());
+        });
       },
       () => refreshSub(),
     );

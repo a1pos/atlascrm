@@ -239,10 +239,10 @@ class _LeadsScreenState extends State<LeadsScreen> {
             }
           }
         } else {
-          debugPrint(
-              "Error getting initial leads: " + result.exception.toString());
-          logger
-              .e("Error getting initial leads: " + result.exception.toString());
+          Future.delayed(Duration(seconds: 1), () {
+            logger.e(
+                "Error getting initial leads: " + result.exception.toString());
+          });
 
           Fluttertoast.showToast(
               msg:
@@ -260,8 +260,9 @@ class _LeadsScreenState extends State<LeadsScreen> {
         },
       );
     } catch (err) {
-      debugPrint("Error getting initial leads: " + err.toString());
-      logger.e("Error getting initial leads: " + err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error getting initial leads: " + err.toString());
+      });
 
       setState(
         () {
@@ -367,10 +368,11 @@ class _LeadsScreenState extends State<LeadsScreen> {
             }
           }
         } else {
-          debugPrint("Error getting leads data in onScroll: " +
-              result.exception.toString());
-          logger.e("Error getting leads data in onScroll: " +
-              result.exception.toString());
+          Future.delayed(Duration(seconds: 1), () {
+            logger.e("ERROR: Error getting leads data in onScroll: " +
+                result.exception.toString());
+          });
+
           Fluttertoast.showToast(
             msg: "Error getting leads data in onScroll: " +
                 result.exception.toString(),
@@ -389,10 +391,10 @@ class _LeadsScreenState extends State<LeadsScreen> {
         },
       );
     } catch (err) {
-      debugPrint(
-          "Error getting leads data in onScroll: " + err.exception.toString());
-      logger.e(
-          "Error getting leads data in onScroll: " + err.exception.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error getting leads data in onScroll: " +
+            err.exception.toString());
+      });
     }
   }
 
@@ -416,7 +418,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
 
   Future<void> filterByEmployee(employeeId) async {
     Future.delayed(Duration(seconds: 1), () {
-      logger.i("Leads filtered by search: " + employeeId.toString());
+      logger.i("Leads filtered by employee: " + employeeId.toString());
     });
 
     setState(

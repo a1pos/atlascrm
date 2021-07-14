@@ -43,8 +43,8 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
   var pageNum = 0;
   var filterEmployee = "";
   var sortQueries = [
-    "updated_at: desc",
-    "updated_at: asc",
+    "boarded_date: desc",
+    "boarded_date: asc",
     "merchantbusinessname: asc"
   ];
   var sortQuery = "merchantbusinessname: asc";
@@ -132,8 +132,10 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
             }
           }
         } else {
-          debugPrint("Error getting merchants: " + result.exception.toString());
-          logger.e("Error getting merchants: " + result.exception.toString());
+          Future.delayed(Duration(seconds: 1), () {
+            logger.e("ERROR: Error getting merchants: " +
+                result.exception.toString());
+          });
 
           Fluttertoast.showToast(
             msg: "Error getting merchants: " + result.exception.toString(),
@@ -149,8 +151,10 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
         isLoading = false;
       });
     } catch (err) {
-      debugPrint("Error getting merchants: " + err.toString());
-      logger.e("Error getting merchants: " + err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error getting merchants: " + err.toString());
+      });
+
       setState(() {
         isLoading = false;
       });
@@ -228,10 +232,10 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
             }
           }
         } else {
-          debugPrint("Error getting merchant data onScroll: " +
-              result.exception.toString());
-          logger.e("Error getting merchant data onScroll: " +
-              result.exception.toString());
+          Future.delayed(Duration(seconds: 1), () {
+            logger.e("ERROR: Error getting merchant data onScroll: " +
+                result.exception.toString());
+          });
 
           Fluttertoast.showToast(
             msg: "Error getting merchant data onScroll: " +
@@ -249,8 +253,10 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
         isLoading = false;
       });
     } catch (err) {
-      debugPrint("Error getting merchant data onScroll: " + err.toString());
-      logger.e("Error getting merchant data onScroll: " + err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e(
+            "ERROR: Error getting merchant data onScroll: " + err.toString());
+      });
     }
   }
 

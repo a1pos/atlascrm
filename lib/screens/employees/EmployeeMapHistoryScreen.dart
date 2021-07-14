@@ -281,16 +281,20 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
               textColor: Colors.white,
               fontSize: 16.0,
             );
-            logger.e(
-              "Error in EmployeeMapHistory stops count: " +
-                  countResult.toString(),
-            );
+            Future.delayed(Duration(seconds: 1), () {
+              logger.e(
+                "Error in EmployeeMapHistory stops count: " +
+                    countResult.toString(),
+              );
+            });
           }
         }
       } else {
-        logger.e(
-          "Error on EmployeeMapHistory route: " + result.exception.toString(),
-        );
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e(
+            "Error on EmployeeMapHistory route: " + result.exception.toString(),
+          );
+        });
 
         Fluttertoast.showToast(
             msg: result.exception.toString(),
@@ -455,8 +459,9 @@ Future<BitmapDescriptor> getMarkerImageFromCache(pictureUrl) async {
       return BitmapDescriptor.fromBytes(resizedMarkerImageBytes);
     }
   } catch (e) {
-    debugPrint("Error getting marker image from cache: " + e.toString());
-    logger.e("Error getting marker image from cache: " + e.toString());
+    Future.delayed(Duration(seconds: 1), () {
+      logger.e("ERROR: Error getting marker image from cache: " + e.toString());
+    });
   }
 
   return await BitmapDescriptor.fromAssetImage(

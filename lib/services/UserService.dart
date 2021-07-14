@@ -48,7 +48,10 @@ class UserService {
         return idTokenResult;
       }
     } catch (err) {
-      logger.e(err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: " + err.toString());
+      });
+
       throw new Error();
     }
   }
@@ -97,8 +100,9 @@ class UserService {
         return true;
       }
     } catch (err) {
-      logger.e(err.toString());
-      debugPrint(err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: " + err.toString());
+      });
     }
     return false;
   }
@@ -115,11 +119,10 @@ class UserService {
       Future.delayed(Duration(seconds: 1), () {
         logger.i("User signed out");
       });
-
-      debugPrint("User signed out");
     } catch (err) {
-      logger.e(err.toString());
-      debugPrint(err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: " + err.toString());
+      });
       throw new Error();
     }
   }
@@ -155,10 +158,10 @@ class UserService {
           await GqlClientFactory().authGqlmutate(mutateOptions);
 
       if (linkResult.hasException) {
-        debugPrint(
-            "Error linking google account: " + linkResult.exception.toString());
-        logger.e(
-            "Error linking google account: " + linkResult.exception.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: Error linking google account: " +
+              linkResult.exception.toString());
+        });
         throw (linkResult.exception);
       } else {
         token = linkResult.data["link_google_account"]["token"];
@@ -240,12 +243,15 @@ class UserService {
                     ['message']
                 .toString());
 
-        logger
-            .i("User: " + user.displayName.toString() + " (" + user.uid + ")");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i(
+              "User: " + user.displayName.toString() + " (" + user.uid + ")");
+        });
       }
     } catch (err) {
-      logger.e(err.toString());
-      debugPrint(err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: " + err.toString());
+      });
       throw new Error();
     }
   }
@@ -275,14 +281,18 @@ class UserService {
     final QueryResult result =
         await GqlClientFactory().authGqlmutate(mutateOptions);
     if (result.hasException == true) {
-      logger.e(result.exception.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: " + result.exception.toString());
+      });
 
       try {
         signOutGoogle();
         return false;
       } catch (err) {
-        logger.e(err.toString());
-        debugPrint(err.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: " + err.toString());
+        });
+
         throw new Error();
       }
     } else {

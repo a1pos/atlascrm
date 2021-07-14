@@ -51,7 +51,10 @@ class _AuthScreenState extends State<AuthScreen> {
 
         Navigator.of(context).pushReplacementNamed("/dashboard");
       } else {
-        logger.e("ERROR on handleLogin");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: ERROR on handleLogin");
+        });
+
         throw ('ERROR');
       }
     } catch (err) {
@@ -59,8 +62,9 @@ class _AuthScreenState extends State<AuthScreen> {
         isLoading = false;
       });
 
-      debugPrint("Failed to connect: " + err.toString());
-      logger.e("Failed to connect: " + err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Failed to connect: " + err.toString());
+      });
 
       Fluttertoast.showToast(
         msg: "Failed to connect!",

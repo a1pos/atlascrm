@@ -169,10 +169,14 @@ class FirebaseCESService {
 
           await GqlClientFactory().authGqlmutate(options);
           if (resp.statusCode != 200) {
-            debugPrint(resp.toString());
+            Future.delayed(Duration(seconds: 1), () {
+              logger.i(resp.toString());
+            });
           }
         } catch (err) {
-          debugPrint(err.toString());
+          Future.delayed(Duration(seconds: 1), () {
+            logger.e("ERROR: " + err.toString());
+          });
         }
         break;
     }

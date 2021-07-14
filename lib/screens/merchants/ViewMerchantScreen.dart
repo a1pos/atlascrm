@@ -194,9 +194,10 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
           }
         }
       } else {
-        debugPrint(
-            "Error getting merchant data: " + result.exception.toString());
-        logger.e("Error getting merchant data: " + result.exception.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: Error getting merchant data: " +
+              result.exception.toString());
+        });
 
         Fluttertoast.showToast(
           msg: "Error getting merchant data: " + result.exception.toString(),
@@ -208,7 +209,10 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
         );
       }
     } catch (err) {
-      logger.e("Error getting merchant data: " + err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error getting merchant data: " + err.toString());
+      });
+
       Fluttertoast.showToast(
         msg: "Error getting merchant data: " + err.toString(),
         toastLength: Toast.LENGTH_SHORT,
@@ -258,8 +262,9 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
       isLoading = false;
       inventoryLoading = false;
     }, (error) {
-      debugPrint("Error getting merchant devices: " + error.toString());
-      logger.e("Error getting merchant devices: " + error.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error getting merchant devices: " + error.toString());
+      });
     }, () => refreshSub());
   }
 
@@ -297,7 +302,7 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
             onTap: () {
               Future.delayed(Duration(seconds: 1), () {
                 logger.i("Inventory opened: " +
-                    device["priceTier"].model.toString() +
+                    device["priceTier"]['model'].toString() +
                     "-" +
                     device["serial"].toString() +
                     " (" +
@@ -437,8 +442,12 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                                   fontSize: 16.0,
                                                 );
                                         } else {
-                                          logger.e(
-                                              "No email specified for email button");
+                                          Future.delayed(Duration(seconds: 1),
+                                              () {
+                                            logger.e(
+                                                "No email specified for email button");
+                                          });
+
                                           Fluttertoast.showToast(
                                             msg: "No email specified!",
                                             toastLength: Toast.LENGTH_SHORT,
@@ -491,8 +500,12 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                                   fontSize: 16.0,
                                                 );
                                         } else {
-                                          logger.e(
-                                              "No phone number specified for phone button");
+                                          Future.delayed(Duration(seconds: 1),
+                                              () {
+                                            logger.e(
+                                                "No phone number specified for phone button");
+                                          });
+
                                           Fluttertoast.showToast(
                                             msg: "No phone number specified!",
                                             toastLength: Toast.LENGTH_SHORT,
@@ -545,8 +558,12 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                             );
                                           }
                                         } else {
-                                          logger.e(
-                                              "No address specified for map button");
+                                          Future.delayed(Duration(seconds: 1),
+                                              () {
+                                            logger.e(
+                                                "No address specified for map button");
+                                          });
+
                                           Fluttertoast.showToast(
                                               msg: "No address specified!",
                                               toastLength: Toast.LENGTH_SHORT,

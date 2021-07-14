@@ -95,10 +95,10 @@ class _LeadDropDownState extends State<LeadDropDown> {
             }
           }
         } else {
-          debugPrint("Error loading leads for dropdown: " +
-              result.exception.toString());
-          logger.e("Error loading leads for dropdown: " +
-              result.exception.toString());
+          Future.delayed(Duration(seconds: 1), () {
+            logger.e("ERROR: Error loading leads for dropdown: " +
+                result.exception.toString());
+          });
 
           Fluttertoast.showToast(
             msg: "Error loading leads for dropdown: " +

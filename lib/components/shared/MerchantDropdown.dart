@@ -82,10 +82,10 @@ class _MerchantDropDownState extends State<MerchantDropDown> {
           }
         }
       } else {
-        debugPrint("Error getting merchant data for dropdown: " +
-            result.exception.toString());
-        logger.e("Error getting merchant data for dropdown: " +
-            result.exception.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: Error getting merchant data for dropdown: " +
+              result.exception.toString());
+        });
 
         Fluttertoast.showToast(
           msg: "Error getting merchant data for dropdown: " +

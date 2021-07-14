@@ -85,8 +85,10 @@ class _InventoryHistoryListState extends State<InventoryHistoryList> {
         }
       },
       (error) {
-        debugPrint("Error in loading device history list: " + error.toString());
-        logger.e("Error in loading device history list: " + error.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: Error in loading device history list: " +
+              error.toString());
+        });
       },
       () => refreshSub(),
     );

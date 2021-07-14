@@ -155,9 +155,10 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
           });
         }
       } else {
-        debugPrint(
-            "Error checking lead status: " + result.exception.toString());
-        logger.e("Error checking lead status: " + result.exception.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger
+              .e("Error checking lead status: " + result.exception.toString());
+        });
 
         Fluttertoast.showToast(
           msg: "Error checking lead status: " + result.exception.toString(),
@@ -239,10 +240,10 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                   );
                   Navigator.of(context).pop();
                 } else {
-                  debugPrint(
-                      "Stale lead not claimed: " + result.exception.toString());
-                  logger.e(
-                      "Stale lead not claimed: " + result.exception.toString());
+                  Future.delayed(Duration(seconds: 1), () {
+                    logger.e("ERROR: Stale lead not claimed: " +
+                        result.exception.toString());
+                  });
 
                   Fluttertoast.showToast(
                     msg: "Failed to claim lead: " + result.exception.toString(),
@@ -313,8 +314,10 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
           }
         }
       } else {
-        debugPrint("Error getting statement: " + result.exception.toString());
-        logger.e("Error getting statement: " + result.exception.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e(
+              "ERROR: Error getting statement: " + result.exception.toString());
+        });
 
         Fluttertoast.showToast(
           msg: "Error getting statement: " + result.exception.toString(),
@@ -326,8 +329,9 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
         );
       }
     } catch (err) {
-      debugPrint("Error getting statement: " + err.toString());
-      logger.e("Error getting statement: " + err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error getting statement: " + err.toString());
+      });
     }
     if (statementDirty) {
       pulseController.forward();
@@ -375,8 +379,10 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
         );
       }
     } else {
-      debugPrint("Error getting lead data: " + result.exception.toString());
-      logger.e("Error getting lead data: " + result.exception.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e(
+            "ERROR: Error getting lead data: " + result.exception.toString());
+      });
 
       Fluttertoast.showToast(
         msg: "Error getting lead data: " + result.exception.toString(),
@@ -494,8 +500,10 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
           textColor: Colors.white,
           fontSize: 16.0);
     } else {
-      debugPrint("Failed to update lead: " + result.exception.toString());
-      logger.e("Failed to update lead: " + result.exception.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger
+            .e("ERROR: Failed to update lead: " + result.exception.toString());
+      });
 
       Fluttertoast.showToast(
           msg: "Failed to update lead: " + result.exception.toString(),
@@ -681,7 +689,7 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                         UserService.isAdmin || UserService.isSalesManager
                             ? CustomCard(
                                 key: Key("leadEmployee"),
-                                title: 'Employee',
+                                title: 'Employee Assigned',
                                 icon: Icons.person,
                                 child: EmployeeDropDown(
                                   value: leadEmployee,
@@ -904,6 +912,13 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                                 var launchURL2 =
                                                     'tel:${phoneNumberController.text}';
                                                 launch(launchURL2);
+                                                Future.delayed(
+                                                    Duration(seconds: 1), () {
+                                                  logger.i(
+                                                      "Opening phone to call merchant: " +
+                                                          phoneNumberController
+                                                              .text);
+                                                });
                                               } else {
                                                 Fluttertoast.showToast(
                                                     msg:
@@ -950,6 +965,12 @@ class ViewLeadScreenState extends State<ViewLeadScreen>
                                                     businessAddress["state"] +
                                                     ", " +
                                                     businessAddress["zipcode"];
+                                                Future.delayed(
+                                                    Duration(seconds: 1), () {
+                                                  logger.i(
+                                                      "Opening map for merchant address: " +
+                                                          addressText);
+                                                });
                                                 MapsLauncher.launchQuery(
                                                     addressText);
                                               } else {

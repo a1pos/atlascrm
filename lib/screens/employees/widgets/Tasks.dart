@@ -97,8 +97,10 @@ class _TasksState extends State<Tasks> {
         isLoading = false;
       },
       (error) {
-        debugPrint("Error in employee tasks widget: " + error.toString());
-        logger.e("Error in employee tasks widget: " + error.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger
+              .e("ERROR: Error in employee tasks widget: " + error.toString());
+        });
       },
       () => refreshSub(),
     );

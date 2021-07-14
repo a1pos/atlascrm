@@ -87,10 +87,10 @@ class _ProcessorDropDownState extends State<ProcessorDropDown> {
           }
         }
       } else {
-        debugPrint(
-            "Error getting processor data: " + result.exception.toString());
-        logger
-            .e("Error getting processor data: " + result.exception.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e(
+              "Error getting processor data: " + result.exception.toString());
+        });
 
         Fluttertoast.showToast(
           msg: "Error getting processors: " + result.exception.toString(),

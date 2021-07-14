@@ -82,10 +82,10 @@ class _CompanyDropDownState extends State<CompanyDropDown> {
           }
         }
       } else {
-        debugPrint("Error getting companies for dropdown: " +
-            result.exception.toString());
-        logger.e("Error getting companies for dropdown: " +
-            result.exception.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: Error getting companies for dropdown: " +
+              result.exception.toString());
+        });
 
         Fluttertoast.showToast(
           msg: "Error getting companies for dropdown: " +

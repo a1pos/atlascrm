@@ -142,7 +142,11 @@ class _InventoryScreenState extends State<InventoryScreen> {
             }
           }
         } else {
-          logger.e("Error getting Inventory: " + result.exception.toString());
+          Future.delayed(Duration(seconds: 1), () {
+            logger.e("ERROR: Error getting Inventory: " +
+                result.exception.toString());
+          });
+
           Fluttertoast.showToast(
             msg: result.exception.toString(),
             toastLength: Toast.LENGTH_LONG,
@@ -160,8 +164,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
         },
       );
     } catch (err) {
-      debugPrint("Error getting Inventory: " + err.toString());
-      logger.e("Error getting Inventory: " + err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error getting Inventory: " + err.toString());
+      });
     }
   }
 
@@ -182,7 +187,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
       }
       if (isSearching) {
         params =
-            'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {serial: {_eq: "$currentSearch"}}';
+            'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {serial: {_ilike: "$currentSearch"}}';
       }
       if (isLocFiltering) {
         params =
@@ -271,8 +276,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
         },
       );
     } catch (err) {
-      debugPrint("Error refreshing inventory onScroll" + err.toString());
-      logger.e("Error refreshing inventory onScroll" + err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error refreshing inventory onScroll" + err.toString());
+      });
     }
   }
 
@@ -328,8 +334,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
         });
       }
     } catch (err) {
-      debugPrint("Error searching Inventory by barcode: " + err.toString());
-      logger.e("Error searching Inventory by barcode: " + err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e(
+            "ERROR: Error searching Inventory by barcode: " + err.toString());
+      });
     }
   }
 

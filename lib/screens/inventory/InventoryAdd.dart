@@ -145,8 +145,9 @@ class InventoryAddState extends State<InventoryAdd> {
         });
       }
     } catch (err) {
-      debugPrint("Error scanning barcode: " + err.toString());
-      logger.e("Error scanning barcode: " + err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error scanning barcode: " + err.toString());
+      });
     }
   }
 
@@ -205,9 +206,12 @@ class InventoryAddState extends State<InventoryAdd> {
                 cleanPost = false;
               },
             );
-            logger.e(
-              "Error adding inventory device: " + result.exception.toString(),
-            );
+            Future.delayed(Duration(seconds: 1), () {
+              logger.e(
+                "Error adding inventory device: " + result.exception.toString(),
+              );
+            });
+
             Fluttertoast.showToast(
               msg: result.exception.toString(),
               toastLength: Toast.LENGTH_LONG,
@@ -256,8 +260,9 @@ class InventoryAddState extends State<InventoryAdd> {
         );
       }
     } catch (err) {
-      debugPrint("Error adding device: " + err.toString());
-      logger.e("Error adding device: " + err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error adding device: " + err.toString());
+      });
     }
   }
 

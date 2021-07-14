@@ -201,8 +201,9 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
         });
       },
       (error) {
-        debugPrint("Error in EmployeeMapScreen: " + error.toString());
-        logger.e("Error in EmployeeMapScreen: " + error.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: Error in EmployeeMapScreen: " + error.toString());
+        });
       },
       () => refreshSub(),
     );
@@ -268,8 +269,10 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
         return BitmapDescriptor.fromBytes(resizedMarkerImageBytes);
       }
     } catch (e) {
-      debugPrint("Error getting marker image from cache: " + e.toString());
-      logger.e("Error getting marker image from cache: " + e.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger
+            .e("ERROR: Error getting marker image from cache: " + e.toString());
+      });
     }
 
     return await BitmapDescriptor.fromAssetImage(

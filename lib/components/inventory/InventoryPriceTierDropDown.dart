@@ -81,10 +81,10 @@ class _InventoryPriceTierDropDownState
           }
         }
       } else {
-        debugPrint("Error loading inventory price tiers for dropdown: " +
-            locationsResp.exception.toString());
-        logger.e("Error loading inventory price tiers for dropdown: " +
-            locationsResp.exception.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: Error loading inventory price tiers for dropdown: " +
+              locationsResp.exception.toString());
+        });
 
         Fluttertoast.showToast(
           msg: "Error loading inventory price tiers for dropdown: " +

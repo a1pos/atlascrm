@@ -79,10 +79,10 @@ class _DeviceDropDownState extends State<DeviceDropDown> {
           }
         }
       } else {
-        debugPrint(
-            "Error in DeviceDropdown: " + devicesResp.exception.toString());
-        logger
-            .e("Error in DeviceDropdown: " + devicesResp.exception.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e(
+              "Error in DeviceDropdown: " + devicesResp.exception.toString());
+        });
       }
     }
   }
@@ -137,11 +137,16 @@ class _DeviceDropDownState extends State<DeviceDropDown> {
                     }
 
                     startVal = setVal;
-                    this.widget.callback(setVal);
-                    Future.delayed(Duration(seconds: 1), () {
-                      logger.i(
-                          "Device changed: " + newValue + " (" + setVal + ")");
-                    });
+                    if (newValue != "" && newValue != null) {
+                      this.widget.callback(setVal);
+                      Future.delayed(Duration(seconds: 1), () {
+                        logger.i("Device changed: " +
+                            newValue +
+                            " (" +
+                            setVal +
+                            ")");
+                      });
+                    }
                   });
                 },
         )

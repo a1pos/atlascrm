@@ -252,14 +252,16 @@ class LeadStepperState extends State<LeadStepper> {
             }
           }
         } else {
-          debugPrint(
-              "Error checking existing lead: " + result.exception.toString());
-          logger.e("Error existing lead: " + result.exception.toString());
+          Future.delayed(Duration(seconds: 1), () {
+            logger.e(
+                "ERROR: Error existing lead: " + result.exception.toString());
+          });
         }
       }
     } catch (err) {
-      debugPrint("Error checking existing lead: " + err.exception.toString());
-      logger.e("Error existing lead: " + err.exception.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error existing lead: " + err.exception.toString());
+      });
     }
   }
 
@@ -357,8 +359,10 @@ class LeadStepperState extends State<LeadStepper> {
                 }
               }
             } else {
-              debugPrint("Place suggestion from Google did not return a value");
-              logger.e("Place suggestion from Google did not return a value");
+              Future.delayed(Duration(seconds: 1), () {
+                logger.e(
+                    "ERROR: Place suggestion from Google did not return a value");
+              });
             }
           },
         );
@@ -467,8 +471,9 @@ class LeadStepperState extends State<LeadStepper> {
 
         await this.widget.successCallback();
       } else {
-        debugPrint("Failed to add lead: " + result.exception.toString());
-        logger.e("Failed to add lead: " + result.exception.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: Failed to add lead: " + result.exception.toString());
+        });
 
         Fluttertoast.showToast(
             msg: "Failed to add lead: " + result.exception.toString(),
@@ -482,8 +487,9 @@ class LeadStepperState extends State<LeadStepper> {
         });
       }
     } catch (err) {
-      debugPrint("Failed to add lead: " + err.toString());
-      logger.e("Failed to add lead: " + err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Failed to add lead: " + err.toString());
+      });
     }
     isSaveDisabled = false;
   }

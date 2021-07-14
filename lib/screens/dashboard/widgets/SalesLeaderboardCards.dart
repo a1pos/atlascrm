@@ -133,8 +133,10 @@ class SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
         }
       },
       (error) {
-        debugPrint("Error in Sales Leaderboard Cards: " + error.toString());
-        logger.e("Error in Sales Leaderboard Cards: " + error.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e(
+              "ERROR: Error in Sales Leaderboard Cards: " + error.toString());
+        });
       },
       () => refreshSub(),
     );

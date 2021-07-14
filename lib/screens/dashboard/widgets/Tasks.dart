@@ -101,8 +101,9 @@ class TasksState extends State<Tasks> {
         isLoading = false;
       },
       (error) {
-        debugPrint("Error in Tasks: " + error.toString());
-        logger.e("Error in Tasks: " + error.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: Error in Tasks: " + error.toString());
+        });
       },
       () => refreshSub(),
     );

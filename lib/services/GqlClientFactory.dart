@@ -31,7 +31,9 @@ class GqlClientFactory {
         if (result.hasException != false) {
           var errMsg = result.exception.toString();
 
-          logger.e(errMsg);
+          Future.delayed(Duration(seconds: 1), () {
+            logger.e(errMsg);
+          });
 
           if (errMsg.contains("JWTExpired")) {
             await refreshClient();
@@ -40,7 +42,9 @@ class GqlClientFactory {
             });
             result = await client.query(options);
           } else {
-            logger.e(errMsg);
+            Future.delayed(Duration(seconds: 1), () {
+              logger.e(errMsg);
+            });
 
             Fluttertoast.showToast(
               msg: errMsg,
@@ -55,7 +59,10 @@ class GqlClientFactory {
       }
       return result;
     } catch (err) {
-      logger.e(err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e(err.toString());
+      });
+
       throw new Error();
     }
   }
@@ -67,7 +74,9 @@ class GqlClientFactory {
         if (result.hasException != false) {
           var errMsg = result.exception.toString();
 
-          logger.e(errMsg);
+          Future.delayed(Duration(seconds: 1), () {
+            logger.e(errMsg);
+          });
 
           if (errMsg.contains("JWTExpired")) {
             await refreshClient();
@@ -76,7 +85,10 @@ class GqlClientFactory {
             });
             result = await client.mutate(options);
           } else {
-            logger.e(errMsg);
+            Future.delayed(Duration(seconds: 1), () {
+              logger.e("ERROR: " + errMsg);
+            });
+
             Fluttertoast.showToast(
               msg: errMsg,
               toastLength: Toast.LENGTH_LONG,
@@ -90,7 +102,10 @@ class GqlClientFactory {
       }
       return result;
     } catch (err) {
-      logger.e(err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: " + err.toString());
+      });
+
       throw new Error();
     }
   }
@@ -117,7 +132,10 @@ class GqlClientFactory {
             refresh();
           } else {
             onError(error);
-            logger.e(errMsg);
+            Future.delayed(Duration(seconds: 1), () {
+              logger.e("ERROR: " + errMsg);
+            });
+
             Fluttertoast.showToast(
               msg: errMsg,
               toastLength: Toast.LENGTH_LONG,
@@ -131,7 +149,10 @@ class GqlClientFactory {
       );
       return subscription;
     } catch (err) {
-      logger.e(err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: " + err.toString());
+      });
+
       throw new Error();
     }
   }
@@ -160,18 +181,25 @@ class GqlClientFactory {
             logger.i("CLIENT SET TO PRIVATE");
           });
         } else {
-          debugPrint("REFRESH TOKEN TIMED OUT: SIGNING OUT");
-          logger.e("Refresh token timed out: Signing Out");
+          Future.delayed(Duration(seconds: 1), () {
+            logger.e("ERROR: Refresh token timed out: Signing Out");
+          });
         }
         isRefreshing = false;
       }
     } catch (err) {
-      logger.e(err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: " + err.toString());
+      });
       throw new Error();
     }
   }
 
   static void setPrivateGraphQLClient(token) async {
+    var logger = Logger(
+      printer: SimpleLogPrinter(),
+      output: CustomOutput(),
+    );
     try {
       Link link;
       Link authws;
@@ -221,7 +249,9 @@ class GqlClientFactory {
 
       client = aCLient;
     } catch (err) {
-      debugPrint(err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: " + err.toString());
+      });
       throw new Error();
     }
   }
@@ -262,7 +292,9 @@ class GqlClientFactory {
       );
       client = aCLient;
     } catch (err) {
-      debugPrint(err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: " + err.toString());
+      });
       throw new Error();
     }
   }

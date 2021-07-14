@@ -105,10 +105,10 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
           }
         }
       } else {
-        debugPrint(
-            "Error getting employees by role: " + result.exception.toString());
-        logger.e(
-            "Error getting employees by role: " + result.exception.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: Error getting employees by role: " +
+              result.exception.toString());
+        });
 
         Fluttertoast.showToast(
           msg:

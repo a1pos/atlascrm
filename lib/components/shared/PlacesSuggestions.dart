@@ -103,7 +103,10 @@ class _PlacesSuggestionsState extends State<PlacesSuggestions> {
 
       this.widget.onPlaceSelect(mixedReply);
     } else {
-      logger.e("Couldn't find place id");
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Couldn't find place id");
+      });
+
       Fluttertoast.showToast(
           msg: "Couldn't find place id!",
           toastLength: Toast.LENGTH_SHORT,

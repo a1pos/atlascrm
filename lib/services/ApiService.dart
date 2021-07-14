@@ -35,7 +35,10 @@ class ApiService {
         ),
       ).get(url);
     } catch (err) {
-      logger.e(err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e(err.toString());
+      });
+
       throw err;
     }
   }
@@ -60,7 +63,10 @@ class ApiService {
         data: jsonEncode(data),
       );
     } catch (err) {
-      logger.e(err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e(err.toString());
+      });
+
       throw err;
     }
   }
@@ -89,13 +95,19 @@ class ApiService {
       ).get(url);
 
       if (resp.statusCode == 401) {
-        logger.e("401 error code, logging out");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: 401 error code, logging out");
+        });
+
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
       }
       return resp;
     } catch (err) {
-      logger.e(err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e(err.toString());
+      });
+
       if (checkAuthErrorResponse(context, err)) {
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
@@ -130,13 +142,19 @@ class ApiService {
       );
 
       if (resp.statusCode == 401) {
-        logger.e("401 error code, logging out");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: 401 error code, logging out");
+        });
+
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
       }
       return resp;
     } catch (err) {
-      logger.e(err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e(err.toString());
+      });
+
       if (checkAuthErrorResponse(context, err)) {
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
@@ -197,13 +215,19 @@ class ApiService {
       ).post(url, data: formData);
 
       if (resp.statusCode == 401) {
-        logger.e("401 error code, logging out");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: 401 error code, logging out");
+        });
+
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
       }
       return resp;
     } catch (err) {
-      logger.e("Error posting file: " + err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error posting file: " + err.toString());
+      });
+
       throw "Error posting file: " + err.toString();
     }
   }
@@ -238,13 +262,20 @@ class ApiService {
       ).post(url, data: formData);
 
       if (resp.statusCode == 401) {
-        logger.e("401 error code, logging out");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: 401 error code, logging out");
+        });
+
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
       }
       return resp;
     } catch (err) {
-      logger.e("Error posting files with form data: " + err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger
+            .e("ERROR: Error posting files with form data: " + err.toString());
+      });
+
       throw "Error posting files with form data: " + err.toString();
     }
   }
@@ -299,13 +330,19 @@ class ApiService {
       ).post(url, data: formData);
 
       if (resp.statusCode == 401) {
-        logger.e("401 error code, logging out");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: 401 error code, logging out");
+        });
+
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
       }
       return resp;
     } catch (err) {
-      logger.e("Error posting files: " + err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error posting files: " + err.toString());
+      });
+
       if (checkAuthErrorResponse(context, err)) {
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
@@ -336,13 +373,19 @@ class ApiService {
       ).put(url, data: jsonEncode(data));
 
       if (resp.statusCode == 401) {
-        logger.e("401 error code, logging out");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: 401 error code, logging out");
+        });
+
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
       }
       return resp;
     } catch (err) {
-      logger.e(err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e(err.toString());
+      });
+
       if (checkAuthErrorResponse(context, err)) {
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
@@ -373,13 +416,19 @@ class ApiService {
       ).delete(url);
 
       if (resp.statusCode == 401) {
-        logger.e("401 error code, logging out");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: 401 error code, logging out");
+        });
+
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
       }
       return resp;
     } catch (err) {
-      logger.e(err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e(err.toString());
+      });
+
       if (checkAuthErrorResponse(context, err)) {
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
@@ -398,13 +447,18 @@ class ApiService {
       if (msg != null) {
         if (msg.response != null) {
           if (msg.response.statusCode == 401) {
-            logger.e("401 error code");
+            Future.delayed(Duration(seconds: 1), () {
+              logger.e("ERROR: 401 error code");
+            });
+
             return true;
           }
         }
       }
     } catch (err) {
-      logger.e(err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e(err.toString());
+      });
     }
     return false;
   }
