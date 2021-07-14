@@ -379,11 +379,11 @@ class _TaskScreenState extends State<TaskScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
-                    Text('Add New Devices'),
+                    Text('Add New Task'),
                     GestureDetector(
                       onTap: () {
                         Future.delayed(Duration(seconds: 1), () {
-                          logger.i("Add device form closed");
+                          logger.i("Add task form closed");
                         });
 
                         Navigator.of(context).pop();
