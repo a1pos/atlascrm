@@ -6,6 +6,8 @@ import 'package:round2crm/services/UserService.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 
 class SalesLeaderboardCards extends StatefulWidget {
   SalesLeaderboardCards({Key key}) : super(key: key);
@@ -18,15 +20,8 @@ class SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
   final UserService userService = UserService();
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 50,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output: CustomOuput(),
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   final _pageController = PageController(viewportFraction: .8);
@@ -126,8 +121,10 @@ class SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
       (data) {
         var incomingData = data.data["v_leaderboard"];
         if (incomingData != null) {
-          logger.i("Sales Leaderboard Cards widget initialized");
           if (this.mounted) {
+            Future.delayed(Duration(seconds: 1), () {
+              logger.i("Sales Leaderboard Cards widget initialized");
+            });
             setState(() {
               graphList = incomingData;
               isLoading = false;
@@ -136,8 +133,10 @@ class SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
         }
       },
       (error) {
-        debugPrint("Error in Sales Leaderboard Cards: " + error.toString());
-        logger.e("Error in Sales Leaderboard Cards: " + error.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e(
+              "ERROR: Error in Sales Leaderboard Cards: " + error.toString());
+        });
       },
       () => refreshSub(),
     );
@@ -149,7 +148,10 @@ class SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
       subscription = null;
       _scrollController.animateTo(0,
           duration: Duration(milliseconds: 500), curve: Curves.fastOutSlowIn);
-      logger.i("Sales leaderboard cards refreshed");
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Sales leaderboard cards refreshed");
+      });
+
       initSub();
     }
   }

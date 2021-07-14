@@ -2,10 +2,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:logger/logger.dart';
 import 'package:round2crm/components/shared/CenteredLoadingSpinner.dart';
 import 'package:round2crm/components/style/UniversalStyles.dart';
 import 'package:round2crm/services/ApiService.dart';
 import 'package:round2crm/services/GqlClientFactory.dart';
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 
 class InventoryHistoryList extends StatefulWidget {
   final ApiService apiService = new ApiService();
@@ -21,6 +24,11 @@ class _InventoryHistoryListState extends State<InventoryHistoryList> {
   bool isLoading = true;
   var historyList = [];
   var subscription;
+
+  var logger = Logger(
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
+  );
 
   @override
   void initState() {
@@ -66,13 +74,22 @@ class _InventoryHistoryListState extends State<InventoryHistoryList> {
       (data) {
         var inventoryTracking = data.data["inventory_tracking"];
         if (inventoryTracking != null && this.mounted) {
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i("Inventory history data loaded");
+          });
+
           setState(() {
             historyList = inventoryTracking;
             isLoading = false;
           });
         }
       },
-      (error) {},
+      (error) {
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: Error in loading device history list: " +
+              error.toString());
+        });
+      },
       () => refreshSub(),
     );
   }

@@ -12,6 +12,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 
 class EmployeeMapHistoryScreen extends StatefulWidget {
   final Map employee;
@@ -29,15 +31,8 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
   final List<LatLng> markerLatLngs = [];
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 50,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output: CustomOuput(),
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   bool isLoading = true;
@@ -144,12 +139,14 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
             );
             latLngs.add(latLng);
 
-            logger.i(
-              "Sales Map History route loaded for: " +
-                  deviceIdController.text +
-                  " on " +
-                  startDate.toString(),
-            );
+            Future.delayed(Duration(seconds: 1), () {
+              logger.i(
+                "Sales Map History route loaded for: " +
+                    deviceIdController.text +
+                    " on " +
+                    startDate.toString(),
+              );
+            });
 
             setState(
               () {
@@ -267,12 +264,14 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
                 _markers.addAll(markers);
               },
             );
-            logger.i(
-              "Sales Map History stops loaded for: " +
-                  deviceIdController.text +
-                  " on " +
-                  startDate.toString(),
-            );
+            Future.delayed(Duration(seconds: 1), () {
+              logger.i(
+                "Sales Map History stops loaded for: " +
+                    deviceIdController.text +
+                    " on " +
+                    startDate.toString(),
+              );
+            });
           } else {
             Fluttertoast.showToast(
               msg: countResult.exception.toString(),
@@ -282,16 +281,20 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
               textColor: Colors.white,
               fontSize: 16.0,
             );
-            logger.e(
-              "Error in EmployeeMapHistory stops count: " +
-                  countResult.toString(),
-            );
+            Future.delayed(Duration(seconds: 1), () {
+              logger.e(
+                "Error in EmployeeMapHistory stops count: " +
+                    countResult.toString(),
+              );
+            });
           }
         }
       } else {
-        logger.e(
-          "Error on EmployeeMapHistory route: " + result.exception.toString(),
-        );
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e(
+            "Error on EmployeeMapHistory route: " + result.exception.toString(),
+          );
+        });
 
         Fluttertoast.showToast(
             msg: result.exception.toString(),
@@ -368,10 +371,13 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
                                       lastDate: new DateTime(2040));
                                   if (picked != null) {
                                     currentDate = picked;
-                                    logger.i(
-                                      "Date selected on EmployeeHistoryMap: " +
-                                          picked.toString(),
-                                    );
+                                    Future.delayed(Duration(seconds: 1), () {
+                                      logger.i(
+                                        "Date selected on EmployeeHistoryMap: " +
+                                            picked.toString(),
+                                      );
+                                    });
+
                                     await loadMarkerHistory(picked);
                                   }
                                 }
@@ -403,7 +409,9 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
                     onMapCreated: (GoogleMapController controller) async {
                       if (!_fullScreenMapController2.isCompleted) {
                         _fullScreenMapController2.complete(controller);
-                        logger.i("EmployeeMapHistory map loaded");
+                        Future.delayed(Duration(seconds: 1), () {
+                          logger.i("EmployeeMapHistory map loaded");
+                        });
                       }
                     },
                   ),
@@ -416,15 +424,8 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
 
 Future<BitmapDescriptor> getMarkerImageFromCache(pictureUrl) async {
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 50,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output: CustomOuput(),
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   try {
@@ -458,8 +459,9 @@ Future<BitmapDescriptor> getMarkerImageFromCache(pictureUrl) async {
       return BitmapDescriptor.fromBytes(resizedMarkerImageBytes);
     }
   } catch (e) {
-    debugPrint("Error getting marker image from cache: " + e.toString());
-    logger.e("Error getting marker image from cache: " + e.toString());
+    Future.delayed(Duration(seconds: 1), () {
+      logger.e("ERROR: Error getting marker image from cache: " + e.toString());
+    });
   }
 
   return await BitmapDescriptor.fromAssetImage(

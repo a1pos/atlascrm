@@ -1,16 +1,41 @@
 import 'package:flutter/material.dart';
-import 'package:package_info/package_info.dart';
+import 'dart:async';
+import 'package:round2crm/services/ApiService.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
-class AppVersion extends StatelessWidget {
-  final Key key;
+class AppVersion extends StatefulWidget {
+  final ApiService apiService = new ApiService();
 
-  AppVersion({this.key});
+  AppVersion();
 
-  Future<String> getVersionNumber() async {
-    PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    String version = packageInfo.version;
+  @override
+  _AppVersionState createState() => _AppVersionState();
+}
 
-    return version;
+class _AppVersionState extends State<AppVersion> {
+  PackageInfo _packageInfo = PackageInfo(
+    appName: 'Unknown',
+    packageName: 'Unknown',
+    version: 'Unknown',
+    buildNumber: 'Unknown',
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    initPackageInfo();
+  }
+
+  @override
+  void dispose() async {
+    super.dispose();
+  }
+
+  Future<void> initPackageInfo() async {
+    final info = await PackageInfo.fromPlatform();
+    setState(() {
+      _packageInfo = info;
+    });
   }
 
   @override
@@ -21,13 +46,9 @@ class AppVersion extends StatelessWidget {
         ListTile(
           enabled: false,
           title: Text("Version"),
-          trailing: FutureBuilder(
-            future: getVersionNumber(),
-            builder: (BuildContext context, AsyncSnapshot<String> snapshot) =>
-                Text(
-              snapshot.hasData ? snapshot.data : "Loading ...",
-              style: TextStyle(color: Colors.black38),
-            ),
+          trailing: Text(
+            _packageInfo.version,
+            style: TextStyle(color: Colors.black38),
           ),
         )
       ],

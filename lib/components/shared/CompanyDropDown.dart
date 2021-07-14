@@ -1,8 +1,10 @@
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:logger/logger.dart';
 import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:logger/logger.dart';
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 
 class CompanyDropDown extends StatefulWidget {
   final bool disabled;
@@ -23,15 +25,8 @@ class _CompanyDropDownState extends State<CompanyDropDown> {
   String companyDropdownVal = "";
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 50,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output: CustomOuput(),
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   @override
@@ -64,7 +59,10 @@ class _CompanyDropDownState extends State<CompanyDropDown> {
 
     if (result != null) {
       if (result.hasException == false) {
-        logger.i("Company data loaded for dropdown");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Company data loaded for dropdown");
+        });
+
         var companiesArrDecoded = result.data["v_company"];
         if (companiesArrDecoded != null) {
           if (this.mounted) {
@@ -84,10 +82,10 @@ class _CompanyDropDownState extends State<CompanyDropDown> {
           }
         }
       } else {
-        debugPrint("Error getting companies for dropdown: " +
-            result.exception.toString());
-        logger.e("Error getting companies for dropdown: " +
-            result.exception.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: Error getting companies for dropdown: " +
+              result.exception.toString());
+        });
 
         Fluttertoast.showToast(
           msg: "Error getting companies for dropdown: " +
@@ -152,11 +150,18 @@ class _CompanyDropDownState extends State<CompanyDropDown> {
                     startVal = newValue;
                     var returnObj = {"id": setVal, "name": newValue};
                     this.widget.callback(returnObj);
-                    logger.i("Company changed: " + newValue);
+                    Future.delayed(Duration(seconds: 1), () {
+                      logger.i(
+                          "Company changed: " + newValue + " (" + setVal + ")");
+                    });
                   });
                 },
           validator: (value) {
             if (value == null) {
+              Future.delayed(Duration(seconds: 1), () {
+                logger.i("No company entered");
+              });
+
               return "Please select a company";
             }
             return null;

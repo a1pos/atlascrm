@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:logger/logger.dart';
-
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 import 'UserService.dart';
 
 class GqlClientFactory {
@@ -17,15 +18,8 @@ class GqlClientFactory {
   static bool isRefreshing = false;
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 50,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output: CustomOuput(),
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   UserService userService = UserService();
@@ -37,14 +31,20 @@ class GqlClientFactory {
         if (result.hasException != false) {
           var errMsg = result.exception.toString();
 
-          logger.e(errMsg);
+          Future.delayed(Duration(seconds: 1), () {
+            logger.e(errMsg);
+          });
 
           if (errMsg.contains("JWTExpired")) {
             await refreshClient();
-            logger.i("JWTExpired authGqlquery: " + errMsg);
+            Future.delayed(Duration(seconds: 1), () {
+              logger.i("JWTExpired authGqlquery: " + errMsg);
+            });
             result = await client.query(options);
           } else {
-            logger.e(errMsg);
+            Future.delayed(Duration(seconds: 1), () {
+              logger.e(errMsg);
+            });
 
             Fluttertoast.showToast(
               msg: errMsg,
@@ -59,7 +59,10 @@ class GqlClientFactory {
       }
       return result;
     } catch (err) {
-      logger.e(err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e(err.toString());
+      });
+
       throw new Error();
     }
   }
@@ -71,14 +74,21 @@ class GqlClientFactory {
         if (result.hasException != false) {
           var errMsg = result.exception.toString();
 
-          logger.e(errMsg);
+          Future.delayed(Duration(seconds: 1), () {
+            logger.e(errMsg);
+          });
 
           if (errMsg.contains("JWTExpired")) {
             await refreshClient();
-            logger.i("JWTExpired authGqlmutate: " + errMsg);
+            Future.delayed(Duration(seconds: 1), () {
+              logger.i("JWTExpired authGqlmutate: " + errMsg);
+            });
             result = await client.mutate(options);
           } else {
-            logger.e(errMsg);
+            Future.delayed(Duration(seconds: 1), () {
+              logger.e("ERROR: " + errMsg);
+            });
+
             Fluttertoast.showToast(
               msg: errMsg,
               toastLength: Toast.LENGTH_LONG,
@@ -92,7 +102,10 @@ class GqlClientFactory {
       }
       return result;
     } catch (err) {
-      logger.e(err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: " + err.toString());
+      });
+
       throw new Error();
     }
   }
@@ -111,12 +124,18 @@ class GqlClientFactory {
 
           if (errMsg.contains("JWTExpired")) {
             await refreshClient();
-            logger.e("JWTExpired authGqlsubscribe: " + errMsg);
+            Future.delayed(Duration(seconds: 1), () {
+              logger.i("JWTExpired authGqlsubscribe: " + errMsg);
+            });
+
             onError(error);
             refresh();
           } else {
             onError(error);
-            logger.e(errMsg);
+            Future.delayed(Duration(seconds: 1), () {
+              logger.e("ERROR: " + errMsg);
+            });
+
             Fluttertoast.showToast(
               msg: errMsg,
               toastLength: Toast.LENGTH_LONG,
@@ -130,7 +149,10 @@ class GqlClientFactory {
       );
       return subscription;
     } catch (err) {
-      logger.e(err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: " + err.toString());
+      });
+
       throw new Error();
     }
   }
@@ -140,29 +162,44 @@ class GqlClientFactory {
       if (!isRefreshing) {
         isRefreshing = true;
 
-        logger.i("Trying to refresh client");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Trying to refresh client");
+        });
         //set a public client so we can refresh tokens
         setPublicGraphQLClient();
-        logger.i("Client sent to public");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Client sent to public");
+        });
 
         var success = await UserService().exchangeRefreshToken();
         if (success) {
-          logger.i("Token refreshed");
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i("Token refreshed");
+          });
           setPrivateGraphQLClient(UserService.token);
-          logger.i("CLIENT SET TO PRIVATE");
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i("CLIENT SET TO PRIVATE");
+          });
         } else {
-          debugPrint("REFRESH TOKEN TIMED OUT: SIGNING OUT");
-          logger.e("Refresh token timed out: Signing Out");
+          Future.delayed(Duration(seconds: 1), () {
+            logger.e("ERROR: Refresh token timed out: Signing Out");
+          });
         }
         isRefreshing = false;
       }
     } catch (err) {
-      logger.e(err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: " + err.toString());
+      });
       throw new Error();
     }
   }
 
   static void setPrivateGraphQLClient(token) async {
+    var logger = Logger(
+      printer: SimpleLogPrinter(),
+      output: CustomOutput(),
+    );
     try {
       Link link;
       Link authws;
@@ -212,12 +249,32 @@ class GqlClientFactory {
 
       client = aCLient;
     } catch (err) {
-      debugPrint(err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: " + err.toString());
+      });
       throw new Error();
     }
   }
 
   static void setPublicGraphQLClient() {
+    var logger = Logger(
+      printer: SimpleLogPrinter(),
+      output: CustomOutput(),
+    );
+
+    final String URLBASE = ConfigSettings.HOOK_API_URL;
+
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i(
+        "Connecting to Hooks API: " +
+            URLBASE.toString() +
+            "\nConnecting to Hasura: " +
+            ConfigSettings.HASURA_URL.toString() +
+            "\nConnecting to Websocket: " +
+            ConfigSettings.HASURA_WEBSOCKET.toString(),
+      );
+    });
+
     try {
       final policies = Policies(
         cacheReread: CacheRereadPolicy.ignoreAll,
@@ -235,7 +292,9 @@ class GqlClientFactory {
       );
       client = aCLient;
     } catch (err) {
-      debugPrint(err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: " + err.toString());
+      });
       throw new Error();
     }
   }

@@ -3,7 +3,8 @@ import 'package:logger/logger.dart';
 import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 import 'package:searchable_dropdown/searchable_dropdown.dart';
 
 class InventoryPriceTierDropDown extends StatefulWidget {
@@ -27,15 +28,8 @@ class _InventoryPriceTierDropDownState
   var startVal;
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 50,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output: CustomOuput(),
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   @override
@@ -72,7 +66,10 @@ class _InventoryPriceTierDropDownState
         var locationsArrDecoded = locationsResp.data["inventory_price_tier"];
         if (locationsArrDecoded != null) {
           if (this.mounted) {
-            logger.i("Inventory price tiers loaded");
+            Future.delayed(Duration(seconds: 1), () {
+              logger.i("Inventory price tiers loaded");
+            });
+
             setState(() {
               locations = locationsArrDecoded;
             });
@@ -84,10 +81,10 @@ class _InventoryPriceTierDropDownState
           }
         }
       } else {
-        debugPrint("Error loading inventory price tiers for dropdown: " +
-            locationsResp.exception.toString());
-        logger.e("Error loading inventory price tiers for dropdown: " +
-            locationsResp.exception.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: Error loading inventory price tiers for dropdown: " +
+              locationsResp.exception.toString());
+        });
 
         Fluttertoast.showToast(
           msg: "Error loading inventory price tiers for dropdown: " +
@@ -153,18 +150,22 @@ class _InventoryPriceTierDropDownState
                       }
                       startVal = setVal;
                       this.widget.callback(setVal);
-                      logger.i("Changed inventory price tier: " +
-                          newValue +
-                          " (" +
-                          setVal +
-                          ")");
+                      Future.delayed(Duration(seconds: 1), () {
+                        logger.i("Changed inventory price tier: " +
+                            newValue +
+                            " (" +
+                            setVal +
+                            ")");
+                      });
                     });
                   } else {
                     setState(() {
                       startVal = null;
                       this.widget.callback(null);
                     });
-                    logger.i("Inventory price dropdown value cleared");
+                    Future.delayed(Duration(seconds: 1), () {
+                      logger.i("Inventory price dropdown value cleared");
+                    });
                   }
                 },
         )

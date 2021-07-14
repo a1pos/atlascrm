@@ -16,7 +16,8 @@ import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 
@@ -40,15 +41,8 @@ class _TaskScreenState extends State<TaskScreen> {
   List activeTasks = [];
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 50,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output: CustomOuput(),
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   var taskTitleController = TextEditingController();
@@ -150,6 +144,13 @@ class _TaskScreenState extends State<TaskScreen> {
             isEmpty = false;
           }
         });
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Date selected on task calendar: " +
+              date.toLocal().toString() +
+              ", " +
+              activeTasks.length.toString() +
+              " tasks loaded");
+        });
       },
     );
   }
@@ -194,12 +195,15 @@ class _TaskScreenState extends State<TaskScreen> {
           isLoading = false;
         });
         await fillEvents();
-        logger.i("Tasks data loaded and events filled");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Tasks data loaded and events filled");
+        });
       }
       isLoading = false;
     }, (error) {
-      debugPrint("Error getting tasks: " + error.toString());
-      logger.e("Error getting tasks: " + error.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error getting tasks: " + error.toString());
+      });
     }, () => refreshSub());
   }
 
@@ -208,7 +212,9 @@ class _TaskScreenState extends State<TaskScreen> {
       await subscription.cancel();
       subscription = null;
       initTasks();
-      logger.i("Tasks data refreshed");
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Tasks data refreshed");
+      });
     }
   }
 
@@ -245,9 +251,10 @@ class _TaskScreenState extends State<TaskScreen> {
 
         await initTasks();
       } else {
-        debugPrint(
-            "Error getting task status: " + result0.exception.toString());
-        logger.e("Error getting task status: " + result0.exception.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: Error getting task status: " +
+              result0.exception.toString());
+        });
 
         Fluttertoast.showToast(
           msg: "Error getting task status: " + result0.exception.toString(),
@@ -305,11 +312,15 @@ class _TaskScreenState extends State<TaskScreen> {
           );
 
           await initTasks();
-          logger.i("Task successfully added and task data reloaded");
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i("Task successfully added and task data reloaded");
+          });
         } else {
-          debugPrint(
-              "Error inserting new task: " + result.exception.toString());
-          logger.e("Error inserting new task: " + result.exception.toString());
+          Future.delayed(Duration(seconds: 1), () {
+            logger.e("ERROR: Error inserting new task: " +
+                result.exception.toString());
+          });
+
           Fluttertoast.showToast(
             msg: "Error inserting new task: " + result.exception.toString(),
             toastLength: msgLength,
@@ -321,14 +332,18 @@ class _TaskScreenState extends State<TaskScreen> {
         }
       }
     } catch (err) {
-      debugPrint("Error inserting new task: " + err.toString());
-      logger.e("Error inserting new task: " + err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error inserting new task: " + err.toString());
+      });
     }
     _formKey.currentState.reset();
   }
 
   Future<void> openAddTaskForm() async {
-    logger.i("Add task form opened");
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("Add task form opened");
+    });
+
     await showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -364,10 +379,13 @@ class _TaskScreenState extends State<TaskScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
-                    Text('Add New Devices'),
+                    Text('Add New Task'),
                     GestureDetector(
                       onTap: () {
-                        logger.i("Add device form closed");
+                        Future.delayed(Duration(seconds: 1), () {
+                          logger.i("Add task form closed");
+                        });
+
                         Navigator.of(context).pop();
                       },
                       child: Icon(
@@ -403,8 +421,12 @@ class _TaskScreenState extends State<TaskScreen> {
                                                 leadDropdownValue = null;
                                                 employeeDropdownValue = val;
                                               });
-                                              logger.i("Employee changed to: " +
-                                                  employeeDropdownValue);
+                                              Future.delayed(
+                                                  Duration(seconds: 1), () {
+                                                logger.i(
+                                                    "Employee changed to: " +
+                                                        employeeDropdownValue);
+                                              });
                                             }),
                                           )
                                         : Container(),
@@ -418,8 +440,6 @@ class _TaskScreenState extends State<TaskScreen> {
                                       setState(() {
                                         taskTypeDropdownValue = val;
                                       });
-                                      logger.i("Task type changed to: " +
-                                          taskTypeDropdownValue);
                                     }),
                                   ),
                                   Divider(
@@ -431,8 +451,6 @@ class _TaskScreenState extends State<TaskScreen> {
                                       setState(() {
                                         taskPriorityDropdownValue = val;
                                       });
-                                      logger.i("Task priorty changed to: " +
-                                          taskPriorityDropdownValue);
                                     },
                                   ),
                                   Divider(
@@ -456,9 +474,13 @@ class _TaskScreenState extends State<TaskScreen> {
                                                     setState(() {
                                                       leadDropdownValue = val;
                                                     });
-                                                    logger.i(
-                                                        "Lead value changed: " +
-                                                            leadDropdownValue);
+                                                    Future.delayed(
+                                                        Duration(seconds: 1),
+                                                        () {
+                                                      logger.i(
+                                                          "Lead value changed: " +
+                                                              leadDropdownValue);
+                                                    });
                                                   }
                                                 },
                                               ),
@@ -470,7 +492,11 @@ class _TaskScreenState extends State<TaskScreen> {
                                         FocusScope.of(context).nextFocus(),
                                     validator: (value) {
                                       if (value.isEmpty) {
-                                        logger.i("No title entered");
+                                        Future.delayed(Duration(seconds: 1),
+                                            () {
+                                          logger.i("No title entered");
+                                        });
+
                                         return 'Please enter a title';
                                       }
                                       return null;
@@ -488,7 +514,11 @@ class _TaskScreenState extends State<TaskScreen> {
                                         FocusScope.of(context).nextFocus(),
                                     validator: (DateTime dateTime) {
                                       if (dateTime == null) {
-                                        logger.i("No date entered");
+                                        Future.delayed(Duration(seconds: 1),
+                                            () {
+                                          logger.i("No date entered");
+                                        });
+
                                         return 'Please select a date';
                                       }
                                       return null;
@@ -605,7 +635,10 @@ class _TaskScreenState extends State<TaskScreen> {
             ),
             onChanged: (value) {
               if (value.isNotEmpty) {
-                logger.i("Tasks filtered by search: " + value.toString());
+                Future.delayed(Duration(seconds: 1), () {
+                  logger.i("Tasks filtered by search: " + value.toString());
+                });
+
                 var filtered = tasksFull.where((e) {
                   String title = e["document"]["title"];
                   String notes = e["document"]["notes"];
@@ -652,7 +685,14 @@ class _TaskScreenState extends State<TaskScreen> {
                     }
                     return GestureDetector(
                       onTap: () {
-                        logger.i("Task opened: " + t["task"]);
+                        Future.delayed(Duration(seconds: 1), () {
+                          logger.i("Task opened: " +
+                              t["document"]["title"] +
+                              "(" +
+                              t["task"] +
+                              ")");
+                        });
+
                         Navigator.pushNamed(context, "/viewtask",
                             arguments: t["task"]);
                       },

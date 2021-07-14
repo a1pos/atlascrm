@@ -3,6 +3,8 @@ import 'package:google_maps_webservice/places.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:logger/logger.dart';
 import 'package:round2crm/components/shared/CenteredLoadingSpinner.dart';
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 
 const kGoogleApiKey = "AIzaSyB-rMAdwtIjM7s_4Lb8SdRXAfhbiLTVl7s";
 
@@ -26,15 +28,8 @@ final searchScaffoldKey = GlobalKey<ScaffoldState>();
 var locationTextController = TextEditingController();
 
 var logger = Logger(
-  printer: PrettyPrinter(
-    methodCount: 1,
-    errorMethodCount: 8,
-    lineLength: 50,
-    colors: true,
-    printEmojis: true,
-    printTime: true,
-  ),
-  // output: CustomOuput(),
+  printer: SimpleLogPrinter(),
+  output: CustomOutput(),
 );
 
 class _PlacesSuggestionsState extends State<PlacesSuggestions> {
@@ -57,7 +52,10 @@ class _PlacesSuggestionsState extends State<PlacesSuggestions> {
       PlaceDetails placeDetails = respo.result;
       List placeAddress = placeDetails.addressComponents;
 
-      logger.i("Place selected on place suggestions: " + placeId.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Place selected on place suggestions: " +
+            placeDetails.name.toString());
+      });
 
       Map addressInfo = {
         "address": "",
@@ -105,7 +103,10 @@ class _PlacesSuggestionsState extends State<PlacesSuggestions> {
 
       this.widget.onPlaceSelect(mixedReply);
     } else {
-      logger.e("Couldn't find place id");
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Couldn't find place id");
+      });
+
       Fluttertoast.showToast(
           msg: "Couldn't find place id!",
           toastLength: Toast.LENGTH_SHORT,
@@ -118,7 +119,10 @@ class _PlacesSuggestionsState extends State<PlacesSuggestions> {
   }
 
   Future<void> notListed(addrObj) async {
-    logger.i("Not listed selected for: " + addrObj.toString());
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("Not listed selected for: " + addrObj.toString());
+    });
+
     this.widget.onPlaceSelect(addrObj);
     Navigator.of(context).pop();
   }

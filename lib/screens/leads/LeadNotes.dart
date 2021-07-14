@@ -9,6 +9,8 @@ import 'package:intl/intl.dart';
 import 'package:round2crm/components/shared/Empty.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:logger/logger.dart';
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 
 class LeadNotes extends StatefulWidget {
   final Map object;
@@ -33,15 +35,8 @@ var typeUpper;
 var type = "lead";
 
 var logger = Logger(
-  printer: PrettyPrinter(
-    methodCount: 1,
-    errorMethodCount: 8,
-    lineLength: 50,
-    colors: true,
-    printEmojis: true,
-    printTime: true,
-  ),
-  // output: CustomOuput(),
+  printer: SimpleLogPrinter(),
+  output: CustomOutput(),
 );
 
 ScrollController _scrollController = ScrollController();
@@ -112,9 +107,14 @@ class _LeadNotesState extends State<LeadNotes> {
     if (result != null) {
       if (result.hasException == false) {
         var notesArrDecoded = result.data["lead_note"];
-        logger.i("Lead notes loaded. " +
-            notesArrDecoded.length.toString() +
-            " notes loaded");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i(
+            "Lead notes loaded. " +
+                notesArrDecoded.length.toString() +
+                " notes loaded",
+          );
+        });
+
         if (notesArrDecoded != null) {
           var notesArr = List.from(notesArrDecoded);
           if (notesArr.length > 0) {
@@ -128,8 +128,10 @@ class _LeadNotesState extends State<LeadNotes> {
           }
         }
       } else {
-        debugPrint("Error getting lead notes: " + result.exception.toString());
-        logger.e("Error getting lead notes: " + result.exception.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: Error getting lead notes: " +
+              result.exception.toString());
+        });
 
         Fluttertoast.showToast(
           msg: result.exception.toString(),
@@ -164,11 +166,16 @@ class _LeadNotesState extends State<LeadNotes> {
     final QueryResult result =
         await GqlClientFactory().authGqlmutate(mutateOptions);
     if (result.hasException == false) {
-      logger.i("Note successfully added: " + sendNote["note_text"]);
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Note successfully added: " + sendNote["note_text"]);
+      });
+
       loadNotes(this.widget.object[type]);
     } else {
-      debugPrint("Error saving note: " + result.exception.toString());
-      logger.e("Error saving note: " + result.exception.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error saving note: " + result.exception.toString());
+      });
+
       Fluttertoast.showToast(
         msg: result.exception.toString(),
         toastLength: Toast.LENGTH_LONG,
@@ -206,21 +213,20 @@ class _LeadNotesState extends State<LeadNotes> {
         });
 
         if (leadStatus == status) {
-          logger.i("Lead is boarded");
           setState(() {
             isBoarded = true;
           });
         } else {
-          logger.i("Lead is not boarded");
           setState(() {
             isBoarded = false;
           });
         }
       } else {
-        debugPrint("Error checking if lead is boarded: " +
-            result.exception.toString());
-        logger.e("Error checking if lead is boarded: " +
-            result.exception.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: Error checking if lead is boarded: " +
+              result.exception.toString());
+        });
+
         Fluttertoast.showToast(
           msg: "Error checking if lead is boarded: " +
               result.exception.toString(),
@@ -282,7 +288,7 @@ class _LeadNotesState extends State<LeadNotes> {
                                 borderSide:
                                     BorderSide(color: Colors.grey, width: 0.5),
                               ),
-                              hintText: 'Additional Notes.',
+                              hintText: 'Additional Notes...',
                             ),
                           ),
                         ),
@@ -291,7 +297,10 @@ class _LeadNotesState extends State<LeadNotes> {
                           onPressed: () {
                             if (notesController.text == null ||
                                 notesController.text == "") {
-                              logger.i("Attempted to add blank note");
+                              Future.delayed(Duration(seconds: 1), () {
+                                logger.i("Attempted to add blank note");
+                              });
+
                               Fluttertoast.showToast(
                                 msg: "Cannot add blank note!",
                                 toastLength: Toast.LENGTH_SHORT,
@@ -358,7 +367,7 @@ class _LeadNotesState extends State<LeadNotes> {
                                         utcDate.second);
                                     var localDate = utcDatetime.toLocal();
 
-                                    var viewDate = DateFormat("MM-dd-yyyy,")
+                                    var viewDate = DateFormat("MMM dd, yyyy -")
                                         .add_jm()
                                         .format(localDate);
                                     return Padding(
@@ -378,12 +387,37 @@ class _LeadNotesState extends State<LeadNotes> {
                                                         TextStyle(fontSize: 18),
                                                   )
                                                 : Text(""),
-                                            subtitle: Text(
-                                              viewDate,
-                                              style: TextStyle(
-                                                  color: UniversalStyles
-                                                      .actionColor,
-                                                  fontSize: 11),
+                                            subtitle: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  note["employeeByEmployee"]
+                                                      ["displayName"],
+                                                  style: TextStyle(
+                                                    color: UniversalStyles
+                                                        .actionColor,
+                                                    fontSize: 11,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  " - ",
+                                                  style: TextStyle(
+                                                    color: UniversalStyles
+                                                        .actionColor,
+                                                    fontSize: 11,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  viewDate,
+                                                  style: TextStyle(
+                                                    color: UniversalStyles
+                                                        .actionColor,
+                                                    fontSize: 11,
+                                                    fontStyle: FontStyle.italic,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ),
                                         ),

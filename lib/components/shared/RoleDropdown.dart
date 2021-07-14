@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:logger/logger.dart';
-
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 import 'package:searchable_dropdown/searchable_dropdown.dart';
 
 class RoleDropDown extends StatefulWidget {
@@ -23,15 +24,8 @@ class _RoleDropDownState extends State<RoleDropDown> {
   var startVal;
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 50,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output: CustomOuput(),
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   @override
@@ -69,7 +63,10 @@ class _RoleDropDownState extends State<RoleDropDown> {
         var rolesArrDecoded = rolesResp.data["role"];
         if (rolesArrDecoded != null) {
           if (this.mounted) {
-            logger.i("Role data loaded for dropdown");
+            Future.delayed(Duration(seconds: 1), () {
+              logger.i("Role data loaded for dropdown");
+            });
+
             setState(() {
               roles = rolesArrDecoded;
             });
@@ -81,9 +78,12 @@ class _RoleDropDownState extends State<RoleDropDown> {
           }
         }
       } else {
-        logger.e(
-          "Error getting roles: " + rolesResp.exception.toString(),
-        );
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e(
+            "Error getting roles: " + rolesResp.exception.toString(),
+          );
+        });
+
         Fluttertoast.showToast(
           msg: "Error getting roles: " + rolesResp.exception.toString(),
           toastLength: Toast.LENGTH_LONG,
@@ -113,7 +113,10 @@ class _RoleDropDownState extends State<RoleDropDown> {
           onClear: () {
             setState(() {
               startVal = null;
-              logger.i("Role cleared for user");
+              Future.delayed(Duration(seconds: 1), () {
+                logger.i("Role cleared for user");
+              });
+
               this.widget.callback("");
             });
           },
@@ -146,7 +149,10 @@ class _RoleDropDownState extends State<RoleDropDown> {
                       }
                     }
                     startVal = setVal;
-                    logger.i("Role changed on dropdown: " + startVal);
+                    Future.delayed(Duration(seconds: 1), () {
+                      logger.i("Role changed on dropdown: " + startVal);
+                    });
+
                     this.widget.callback(setVal);
                   });
                 },

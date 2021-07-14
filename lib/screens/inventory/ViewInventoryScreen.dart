@@ -11,7 +11,8 @@ import 'package:round2crm/services/UserService.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
-
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 import 'package:unicorndial/unicorndial.dart';
 import 'package:round2crm/components/shared/MerchantDropdown.dart';
 
@@ -49,15 +50,8 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
   var employee;
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 50,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output: CustomOuput(),
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   List<UnicornButton> childButtons = [];
@@ -146,6 +140,9 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
         ),
       );
     }
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("Device status: " + deviceStatus);
+    });
   }
 
   Future<void> loadInventoryData() async {
@@ -182,7 +179,9 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
       var body = result.data["inventory_by_pk"];
       if (body != null) {
         var bodyDecoded = body;
-        logger.i("Device information loaded");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Device information loaded");
+        });
 
         setState(
           () {
@@ -222,7 +221,10 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
         );
       }
     } else {
-      logger.e("Error loading Inventory data: " + result.exception.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger
+            .e("Error loading Inventory data: " + result.exception.toString());
+      });
       Fluttertoast.showToast(
         msg: result.exception.toString(),
         toastLength: Toast.LENGTH_LONG,
@@ -285,12 +287,14 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
         await GqlClientFactory().authGqlmutate(mutateOptions);
 
     if (result.hasException == false) {
-      logger.i(alert +
-          " Merchant: " +
-          merchantNameController.text +
-          " (" +
-          merchantController.text +
-          ")");
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i(alert +
+            " Merchant: " +
+            merchantNameController.text +
+            " (" +
+            merchantController.text +
+            ")");
+      });
       Fluttertoast.showToast(
         msg: alert,
         toastLength: Toast.LENGTH_SHORT,
@@ -299,8 +303,13 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
         textColor: Colors.white,
         fontSize: 16.0,
       );
+      loadInventoryData();
     } else {
-      logger.e("Error checking out device: " + result.exception.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e(
+            "ERROR: Error checking out device: " + result.exception.toString());
+      });
+
       Fluttertoast.showToast(
         msg: result.exception.toString(),
         toastLength: Toast.LENGTH_LONG,
@@ -334,7 +343,9 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
                       },
                     );
                     if (newValue[0] != null) {
-                      logger.i("Merchant selected: " + newValue["name"]);
+                      Future.delayed(Duration(seconds: 1), () {
+                        logger.i("Merchant selected: " + newValue["name"]);
+                      });
                     }
                   },
                 )
@@ -356,7 +367,10 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
 
                   Navigator.of(context).pop();
                 } else {
-                  logger.i("Merchant not selected for checkout");
+                  Future.delayed(Duration(seconds: 1), () {
+                    logger.i("Merchant not selected for checkout");
+                  });
+
                   Fluttertoast.showToast(
                     msg: "Please select a merchant",
                     toastLength: Toast.LENGTH_SHORT,
@@ -430,9 +444,12 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
         await GqlClientFactory().authGqlmutate(mutateOptions);
 
     if (result.hasException == true) {
-      logger.e(
-        "Error deleting inventory device: " + result.exception.toString(),
-      );
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e(
+          "Error deleting inventory device: " + result.exception.toString(),
+        );
+      });
+
       Fluttertoast.showToast(
         msg: result.exception.toString(),
         toastLength: Toast.LENGTH_LONG,
@@ -443,7 +460,10 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
       );
     } else {
       Navigator.popAndPushNamed(context, "/inventory");
-      logger.i("Inventory device deleted: " + inventory["inventory"]);
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Inventory device deleted: " + inventory["inventory"]);
+      });
+
       Fluttertoast.showToast(
         msg: "Device deleted!",
         toastLength: Toast.LENGTH_SHORT,
@@ -482,7 +502,10 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
         textColor: Colors.white,
         fontSize: 16.0,
       );
-      logger.e("Error getting employee data: " + result.exception.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error getting employee data: " +
+            result.exception.toString());
+      });
     }
   }
 
@@ -493,7 +516,9 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
       historyList = reversed;
     }
 
-    logger.i("Device history list built");
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("Device history list built");
+    });
 
     return ListView(
       shrinkWrap: true,

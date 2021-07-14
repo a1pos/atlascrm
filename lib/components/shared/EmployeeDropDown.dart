@@ -3,7 +3,9 @@ import 'package:logger/logger.dart';
 import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-
+import 'package:round2crm/services/UserService.dart';
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 import 'package:searchable_dropdown/searchable_dropdown.dart';
 
 class EmployeeDropDown extends StatefulWidget {
@@ -32,15 +34,8 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
   var employees = [];
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 50,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output: CustomOuput(),
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   @override
@@ -62,7 +57,7 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
     }
 
     options = QueryOptions(
-      document: this.widget.roles == null ? gql("""
+      document: this.widget.roles == null || UserService.isAdmin ? gql("""
         query GET_EMPLOYEES {
           employee (where: {is_active: {_eq: true}}) {
             employee
@@ -90,7 +85,10 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
         var employeeArrDecoded = result.data["employee"];
         if (employeeArrDecoded != null) {
           if (this.mounted) {
-            logger.i("Employee data loaded");
+            Future.delayed(Duration(seconds: 1), () {
+              logger.i("Employee data loaded");
+            });
+
             employeeArrDecoded.sort(
               (a, b) => a["displayName"]
                   .toString()
@@ -107,10 +105,10 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
           }
         }
       } else {
-        debugPrint(
-            "Error getting employees by role: " + result.exception.toString());
-        logger.e(
-            "Error getting employees by role: " + result.exception.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: Error getting employees by role: " +
+              result.exception.toString());
+        });
 
         Fluttertoast.showToast(
           msg:
@@ -177,15 +175,19 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
                         }
                       }
 
-                      logger.i("Employee changed to: " +
-                          newValue +
-                          " in role(s): " +
-                          this.widget.roles.toString());
+                      Future.delayed(Duration(seconds: 1), () {
+                        logger.i("Employee changed to: " +
+                            newValue +
+                            " in role(s): " +
+                            this.widget.roles.toString());
+                      });
                     } else {
                       newValue = "";
-                      logger.i("Employee filter cleared " +
-                          "in role(s): " +
-                          this.widget.roles.toString());
+                      Future.delayed(Duration(seconds: 1), () {
+                        logger.i("Employee filter cleared " +
+                            "in role(s): " +
+                            this.widget.roles.toString());
+                      });
                     }
                     startVal = newValue;
                     this.widget.callback(setVal);

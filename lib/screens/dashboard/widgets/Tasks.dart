@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:logger/logger.dart';
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 
 class Tasks extends StatefulWidget {
   Tasks({Key key}) : super(key: key);
@@ -27,15 +29,8 @@ class TasksState extends State<Tasks> {
   var subscription;
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 50,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output: CustomOuput(),
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   @override
@@ -88,7 +83,10 @@ class TasksState extends State<Tasks> {
       (data) {
         var tasksArrDecoded = data.data["employee_by_pk"]["tasks"];
         if (tasksArrDecoded != null && this.mounted) {
-          logger.i("Tasks widget initialized");
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i("Tasks widget initialized");
+          });
+
           setState(
             () {
               tasks = tasksArrDecoded;
@@ -103,8 +101,9 @@ class TasksState extends State<Tasks> {
         isLoading = false;
       },
       (error) {
-        debugPrint("Error in Tasks: " + error.toString());
-        logger.e("Error in Tasks: " + error.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: Error in Tasks: " + error.toString());
+        });
       },
       () => refreshSub(),
     );
@@ -116,7 +115,10 @@ class TasksState extends State<Tasks> {
       subscription = null;
       scrollController.animateTo(0,
           duration: Duration(milliseconds: 500), curve: Curves.fastOutSlowIn);
-      logger.i("Tasks refreshed");
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Tasks refreshed");
+      });
+
       initTasks();
     }
   }
@@ -141,15 +143,8 @@ class TasksState extends State<Tasks> {
 
 Widget buildDLGridView(BuildContext context, list, scrollController) {
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 50,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output: CustomOuput(),
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   return list.length == 0
@@ -181,9 +176,23 @@ Widget buildDLGridView(BuildContext context, list, scrollController) {
               }
               return GestureDetector(
                 onTap: () {
-                  logger.i("Opening task: $task['task']");
-                  Navigator.pushNamed(context, "/viewtask",
-                      arguments: task["task"]);
+                  Navigator.pushNamed(
+                    context,
+                    "/viewtask",
+                    arguments: task['task'],
+                  );
+
+                  Future.delayed(Duration(seconds: 1), () {
+                    logger.i(
+                      "Opening task: " +
+                          task["document"]["title"] +
+                          " (" +
+                          task["task"].toString() +
+                          ")" +
+                          " on " +
+                          task["date"].toString(),
+                    );
+                  });
                 },
                 child: TaskItem(
                   title: task["document"]["title"],

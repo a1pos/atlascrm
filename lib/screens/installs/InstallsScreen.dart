@@ -9,7 +9,8 @@ import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:logger/logger.dart';
-
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 
@@ -24,15 +25,8 @@ class _InstallsScreenState extends State<InstallsScreen> {
   bool installsIncludeAll = false;
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 50,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output: CustomOuput(),
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   TimeOfDay initTime;
@@ -144,10 +138,12 @@ class _InstallsScreenState extends State<InstallsScreen> {
             isEmpty = false;
           }
         });
-        logger.i("Day selected: " +
-            daySelected.toString() +
-            ", events found on day: " +
-            activeInstalls.length.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Day selected: " +
+              daySelected.toString() +
+              ", events found on day: " +
+              activeInstalls.length.toString());
+        });
       },
     );
   }
@@ -190,12 +186,15 @@ class _InstallsScreenState extends State<InstallsScreen> {
         });
 
         await fillEvents();
-        logger.i("Installs data initialized and events filled on calendar");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Installs data initialized and events filled on calendar");
+        });
       }
       isLoading = false;
     }, (error) {
-      debugPrint("Error initializing installs: " + error.toString());
-      logger.e("Error initializing installs: " + error.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error initializing installs: " + error.toString());
+      });
     }, () => refreshSub());
   }
 
@@ -204,7 +203,9 @@ class _InstallsScreenState extends State<InstallsScreen> {
       await subscription.cancel();
       subscription = null;
       initInstallData();
-      logger.i("Refreshing installs subscription");
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Refreshing installs subscription");
+      });
     }
   }
 
@@ -265,16 +266,20 @@ class _InstallsScreenState extends State<InstallsScreen> {
 
                   if (activeInstalls.length > 0) {
                     isEmpty = false;
-                    logger.i("Search performed for " +
-                        value.toString() +
-                        " and " +
-                        activeInstalls.length.toString() +
-                        " events found");
+                    Future.delayed(Duration(seconds: 1), () {
+                      logger.i("Search performed for " +
+                          value.toString() +
+                          " and " +
+                          activeInstalls.length.toString() +
+                          " events found");
+                    });
                   } else {
                     isEmpty = true;
-                    logger.i("Search performed for " +
-                        value.toString() +
-                        " but no events were found");
+                    Future.delayed(Duration(seconds: 1), () {
+                      logger.i("Search performed for " +
+                          value.toString() +
+                          " but no events were found");
+                    });
                   }
                 });
               } else {
@@ -315,9 +320,11 @@ class _InstallsScreenState extends State<InstallsScreen> {
                               });
                             }
                             fillEvents();
-                            logger.i("Active Installs switch tapped to " +
-                                value.toString() +
-                                " and events filtered");
+                            Future.delayed(Duration(seconds: 1), () {
+                              logger.i("Active Installs switch tapped to " +
+                                  value.toString() +
+                                  " and events filtered");
+                            });
                           },
                         ),
                         Text("Active Installs"),
@@ -351,9 +358,11 @@ class _InstallsScreenState extends State<InstallsScreen> {
                         });
                       }
                       fillEvents();
-                      logger.i("Employee filter switched to " +
-                          val.toString() +
-                          " and events filtered");
+                      Future.delayed(Duration(seconds: 1), () {
+                        logger.i("Employee filter switched to " +
+                            val.toString() +
+                            " and events filtered");
+                      });
                     },
                     roles: ["tech", "corporate_tech"],
                   ),

@@ -9,6 +9,8 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:round2crm/screens/employees/widgets/Tasks.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:logger/logger.dart';
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 
 class ViewEmployeeScreen extends StatefulWidget {
   final String employeeId;
@@ -25,15 +27,8 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
   final _formKey = new GlobalKey<FormState>();
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 50,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output: CustomOuput(),
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   bool isLoading = true;
@@ -64,10 +59,13 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
     try {
       await loadEmployeeData();
       await loadDevices();
-      logger.i("ViewEmployeeScreen initialized");
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("ViewEmployeeScreen initialized");
+      });
     } catch (err) {
-      debugPrint("Error initializing employee data: " + err.toString());
-      logger.e("Error initializing employee data: " + err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error initializing employee data: " + err.toString());
+      });
     }
     setState(
       () {
@@ -105,8 +103,9 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
         }
       },
       (error) {
-        debugPrint("Error in employee devices sub: " + error.toString());
-        logger.e("Error in employee devices sub: " + error.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: Error in employee devices sub: " + error.toString());
+        });
       },
       () => refreshSub(),
     );
@@ -171,7 +170,9 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
     final QueryResult result =
         await GqlClientFactory().authGqlmutate(mutateOptions);
     if (result.hasException == true) {
-      logger.e("Error updating role: " + result.exception.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error updating role: " + result.exception.toString());
+      });
 
       Fluttertoast.showToast(
         msg: result.exception.toString(),
@@ -183,11 +184,14 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
       );
     }
 
-    logger.i(
-      "Role set to " +
-          result.data["update_employee_by_pk"]["roleByRole"]["title"] +
-          "!",
-    );
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i(
+        "Role set to " +
+            result.data["update_employee_by_pk"]["roleByRole"]["title"] +
+            "!",
+      );
+    });
+
     Fluttertoast.showToast(
       msg: "Role set to " +
           result.data["update_employee_by_pk"]["roleByRole"]["title"] +
@@ -286,10 +290,13 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                       await GqlClientFactory().authGqlmutate(mutateOptions);
 
                   if (result.hasException == true) {
-                    logger.e(
-                      "Error adding employee device: " +
-                          result.exception.toString(),
-                    );
+                    Future.delayed(Duration(seconds: 1), () {
+                      logger.e(
+                        "Error adding employee device: " +
+                            result.exception.toString(),
+                      );
+                    });
+
                     Fluttertoast.showToast(
                       msg: result.exception.toString(),
                       toastLength: Toast.LENGTH_LONG,
@@ -305,7 +312,9 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
 
                   Navigator.pop(context);
 
-                  logger.i("Device added");
+                  Future.delayed(Duration(seconds: 1), () {
+                    logger.i("Device added");
+                  });
 
                   Fluttertoast.showToast(
                       msg: "Device Added!",
@@ -357,10 +366,13 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                     await GqlClientFactory().authGqlmutate(mutateOptions);
 
                 if (result.hasException == true) {
-                  logger.e(
-                    "Error deleting employee device: " +
-                        result.exception.toString(),
-                  );
+                  Future.delayed(Duration(seconds: 1), () {
+                    logger.e(
+                      "Error deleting employee device: " +
+                          result.exception.toString(),
+                    );
+                  });
+
                   Fluttertoast.showToast(
                     msg: result.exception.toString(),
                     toastLength: Toast.LENGTH_LONG,
@@ -372,7 +384,10 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                 }
                 Navigator.pop(context);
 
-                logger.i("Device deleted!");
+                Future.delayed(Duration(seconds: 1), () {
+                  logger.i("Device deleted!");
+                });
+
                 Fluttertoast.showToast(
                   msg: "Device Deleted!",
                   toastLength: Toast.LENGTH_SHORT,

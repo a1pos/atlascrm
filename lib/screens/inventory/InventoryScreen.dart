@@ -13,9 +13,9 @@ import 'package:round2crm/components/shared/Empty.dart';
 import 'package:flutter/material.dart';
 import 'package:dan_barcode_scan/dan_barcode_scan.dart';
 import 'package:logger/logger.dart';
-
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 import 'package:unicorndial/unicorndial.dart';
-
 import 'InventoryAdd.dart';
 
 class InventoryScreen extends StatefulWidget {
@@ -36,15 +36,8 @@ class _InventoryScreenState extends State<InventoryScreen> {
   List<UnicornButton> childButtons = [];
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 50,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output: CustomOuput(),
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   var inventory = [];
@@ -83,7 +76,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
   }
 
   Future<void> initInventoryData() async {
-    logger.i("Parameters for inventory query: " + initParams);
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("Parameters for inventory query: " + initParams);
+    });
+
     try {
       QueryOptions options = QueryOptions(
         document: gql("""
@@ -116,7 +112,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
       final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
       if (result != null) {
-        logger.i("Inventory data initialized");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Inventory data initialized");
+        });
+
         if (result.hasException == false) {
           var inventoryArrDecoded = result.data["inventory"];
           if (inventoryArrDecoded != null) {
@@ -143,7 +142,11 @@ class _InventoryScreenState extends State<InventoryScreen> {
             }
           }
         } else {
-          logger.e("Error getting Inventory: " + result.exception.toString());
+          Future.delayed(Duration(seconds: 1), () {
+            logger.e("ERROR: Error getting Inventory: " +
+                result.exception.toString());
+          });
+
           Fluttertoast.showToast(
             msg: result.exception.toString(),
             toastLength: Toast.LENGTH_LONG,
@@ -161,8 +164,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
         },
       );
     } catch (err) {
-      debugPrint("Error getting Inventory: " + err.toString());
-      logger.e("Error getting Inventory: " + err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error getting Inventory: " + err.toString());
+      });
     }
   }
 
@@ -183,7 +187,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
       }
       if (isSearching) {
         params =
-            'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {serial: {_eq: "$currentSearch"}}';
+            'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where: {serial: {_ilike: "$currentSearch"}}';
       }
       if (isLocFiltering) {
         params =
@@ -226,7 +230,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
       final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
       if (result != null) {
-        logger.i("Inventory onScroll parameters: " + params);
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Inventory onScroll parameters: " + params);
+        });
 
         if (result.hasException == false) {
           var inventoryArrDecoded = result.data["inventory"];
@@ -270,8 +276,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
         },
       );
     } catch (err) {
-      debugPrint("Error refreshing inventory onScroll" + err.toString());
-      logger.e("Error refreshing inventory onScroll" + err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error refreshing inventory onScroll" + err.toString());
+      });
     }
   }
 
@@ -286,22 +293,32 @@ class _InventoryScreenState extends State<InventoryScreen> {
         "flash_off": "flash off",
       });
       var result = await BarcodeScanner.scan(options: options);
-      logger.i("BarcodeScanner opened");
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("BarcodeScanner opened");
+      });
 
       if (result.type != ResultType.Cancelled) {
-        logger.i(
-          "Inventory searched by BarCode: " + result.rawContent.toString(),
-        );
-
-        bool isMac = searchPat.hasMatch(result.rawContent.toString());
-        if (!isMac) {
+        Future.delayed(Duration(seconds: 1), () {
           logger.i(
             "Inventory searched by BarCode: " + result.rawContent.toString(),
           );
+        });
+
+        bool isMac = searchPat.hasMatch(result.rawContent.toString());
+        if (!isMac) {
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i(
+              "Inventory searched by BarCode: " + result.rawContent.toString(),
+            );
+          });
+
           searchInventory(result.rawContent.toString());
           _searchController.text = result.rawContent.toString();
         } else {
-          logger.i("MAC address scanned on Inventory Barcode search");
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i("MAC address scanned on Inventory Barcode search");
+          });
+
           Fluttertoast.showToast(
             msg: "That's the MAC address!",
             toastLength: Toast.LENGTH_SHORT,
@@ -312,16 +329,23 @@ class _InventoryScreenState extends State<InventoryScreen> {
           );
         }
       } else {
-        logger.i("BarcodeScanner closed");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("BarcodeScanner closed");
+        });
       }
     } catch (err) {
-      debugPrint("Error searching Inventory by barcode: " + err.toString());
-      logger.e("Error searching Inventory by barcode: " + err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e(
+            "ERROR: Error searching Inventory by barcode: " + err.toString());
+      });
     }
   }
 
   Future<void> searchInventory(searchString) async {
-    logger.i("Inventory search filtered: " + searchString);
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("Inventory search filtered: " + searchString);
+    });
+
     setState(() {
       currentSearch = searchString;
       pageNum = 0;
@@ -332,7 +356,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
   }
 
   Future<void> filterByEmployee(employeeId) async {
-    logger.i("Search filtered by employee: " + employeeId);
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("Search filtered by employee: " + employeeId);
+    });
+
     setState(() {
       filterEmployee = employeeId;
       pageNum = 0;
@@ -343,7 +370,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
   }
 
   Future<void> filterByLocation(locItem) async {
-    logger.i("Search filtered by location: " + locItem.toString());
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("Search filtered by location: " + locItem.toString());
+    });
 
     setState(() {
       locationSearch = locItem["name"];
@@ -357,7 +386,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
   }
 
   Future<void> clearLocFilter() async {
-    logger.i("Search filter by location cleared");
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("Search filter by location cleared");
+    });
+
     if (isLocFiltering) {
       setState(() {
         pageNum = 0;
@@ -371,7 +403,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
   }
 
   Future<void> clearFilter() async {
-    logger.i("Search filters cleared");
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("Search filters cleared");
+    });
 
     if (isFiltering) {
       setState(() {
@@ -385,7 +419,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
   }
 
   Future<void> clearSearch() async {
-    logger.i("Search bar cleared");
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("Search bar cleared");
+    });
+
     setState(() {
       pageNum = 0;
       currentSearch = "";
@@ -399,7 +436,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
   }
 
   void openAddInventoryForm() {
-    logger.i("Add device form opened");
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("Add device form opened");
+    });
+
     showDialog(
       barrierDismissible: false,
       context: context,
@@ -413,7 +453,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
                 Text('Add New Devices'),
                 GestureDetector(
                   onTap: () {
-                    logger.i("Add device form closed");
+                    Future.delayed(Duration(seconds: 1), () {
+                      logger.i("Add device form closed");
+                    });
+
                     Navigator.of(context).pop();
                   },
                   child: Icon(
@@ -437,6 +480,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
   }
 
   void openLocationFilter() {
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("Location filter opened");
+    });
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -467,7 +514,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
     Map sendable = {"id": inventory["inventory"]};
     FocusScope.of(context).requestFocus(new FocusNode());
     Navigator.pushNamed(context, "/viewinventory", arguments: sendable);
-    logger.i("Inventory device opened: " + sendable.toString());
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("Inventory device opened: " + sendable["id"].toString());
+    });
   }
 
   @override

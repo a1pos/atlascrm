@@ -4,6 +4,8 @@ import 'package:round2crm/services/UserService.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:logger/logger.dart';
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 
 class AuthScreen extends StatefulWidget {
   final UserService userService = new UserService();
@@ -16,15 +18,8 @@ class _AuthScreenState extends State<AuthScreen> {
   bool isLoading = false;
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 50,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output: CustomOuput(),
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   @override
@@ -35,7 +30,10 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   void handleLogin() async {
-    logger.i("User attempting to login");
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("User attempting to login");
+    });
+
     setState(() {
       isLoading = true;
     });
@@ -47,10 +45,16 @@ class _AuthScreenState extends State<AuthScreen> {
           isLoading = false;
           UserService.isAuthenticated = true;
         });
-        logger.i("User successfully logged in using Google");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("User successfully logged in using Google");
+        });
+
         Navigator.of(context).pushReplacementNamed("/dashboard");
       } else {
-        logger.e("ERROR on handleLogin");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: ERROR on handleLogin");
+        });
+
         throw ('ERROR');
       }
     } catch (err) {
@@ -58,7 +62,9 @@ class _AuthScreenState extends State<AuthScreen> {
         isLoading = false;
       });
 
-      logger.e("Failed to connect: " + err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Failed to connect: " + err.toString());
+      });
 
       Fluttertoast.showToast(
         msg: "Failed to connect!",

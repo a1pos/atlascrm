@@ -3,7 +3,8 @@ import 'package:logger/logger.dart';
 import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 import 'package:searchable_dropdown/searchable_dropdown.dart';
 
 class LeadDropDown extends StatefulWidget {
@@ -26,15 +27,8 @@ class _LeadDropDownState extends State<LeadDropDown> {
   var startVal;
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 50,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output: CustomOuput(),
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   @override
@@ -79,7 +73,10 @@ class _LeadDropDownState extends State<LeadDropDown> {
       var leadsArrDecoded;
       if (result != null) {
         if (result.hasException == false) {
-          logger.i("Leads loaded for lead dropdown");
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i("Leads loaded for lead dropdown");
+          });
+
           if (this.widget.employeeId == null) {
             leadsArrDecoded = result.data["lead"];
           } else {
@@ -98,10 +95,10 @@ class _LeadDropDownState extends State<LeadDropDown> {
             }
           }
         } else {
-          debugPrint("Error loading leads for dropdown: " +
-              result.exception.toString());
-          logger.e("Error loading leads for dropdown: " +
-              result.exception.toString());
+          Future.delayed(Duration(seconds: 1), () {
+            logger.e("ERROR: Error loading leads for dropdown: " +
+                result.exception.toString());
+          });
 
           Fluttertoast.showToast(
             msg: "Error loading leads for dropdown: " +
@@ -173,18 +170,22 @@ class _LeadDropDownState extends State<LeadDropDown> {
                       }
                       startVal = newValue;
                       this.widget.callback(setVal);
-                      logger.i("Lead dropdown value set: " +
-                          newValue +
-                          " (" +
-                          setVal.toString() +
-                          ")");
+                      Future.delayed(Duration(seconds: 1), () {
+                        logger.i("Lead dropdown value set: " +
+                            newValue +
+                            " (" +
+                            setVal.toString() +
+                            ")");
+                      });
                     });
                   } else {
                     setState(() {
                       startVal = null;
                       this.widget.callback(null);
                     });
-                    logger.i("Lead dropdown value cleared");
+                    Future.delayed(Duration(seconds: 1), () {
+                      logger.i("Lead dropdown value cleared");
+                    });
                   }
                 },
         )

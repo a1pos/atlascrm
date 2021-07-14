@@ -1,8 +1,10 @@
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:logger/logger.dart';
 import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:logger/logger.dart';
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 
 class TaskTypeDropDown extends StatefulWidget {
   final String employeeId;
@@ -19,15 +21,8 @@ class _TaskTypeDropDownState extends State<TaskTypeDropDown> {
   var types = [];
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 50,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output: CustomOuput(),
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   @override
@@ -60,13 +55,15 @@ class _TaskTypeDropDownState extends State<TaskTypeDropDown> {
           setState(() {
             types = taskTypesArrDecoded;
           });
-          logger.i("Task types loaded for dropdown");
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i("Task types loaded for dropdown");
+          });
         }
       } else {
-        print("Error getting task types for dropdown: " +
-            result.exception.toString());
-        logger.e("Error getting task types for dropdown: " +
-            result.exception.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: Error getting task types for dropdown: " +
+              result.exception.toString());
+        });
 
         Fluttertoast.showToast(
           msg: "Error getting task types for dropdown: " +
@@ -96,7 +93,10 @@ class _TaskTypeDropDownState extends State<TaskTypeDropDown> {
         DropdownButtonFormField<String>(
           validator: (value) {
             if (value == null) {
-              logger.i("No task type selected for dropdown");
+              Future.delayed(Duration(seconds: 1), () {
+                logger.i("No task type selected for dropdown");
+              });
+
               return 'Please select a task type';
             }
             return null;
@@ -123,7 +123,10 @@ class _TaskTypeDropDownState extends State<TaskTypeDropDown> {
             );
           }).toList(),
           onChanged: (newValue) {
-            logger.i("Task type value changed in ");
+            Future.delayed(Duration(seconds: 1), () {
+              logger.i("Task type value changed: " + newValue);
+            });
+
             this.widget.callback(newValue);
           },
         ),

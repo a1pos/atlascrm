@@ -14,6 +14,8 @@ import 'package:flutter_masked_text/flutter_masked_text.dart';
 import 'package:round2crm/components/shared/PlacesSuggestions.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:logger/logger.dart';
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 
 class LeadStepper extends StatefulWidget {
   final Function successCallback;
@@ -67,15 +69,8 @@ class LeadStepperState extends State<LeadStepper> {
   };
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 50,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output: CustomOuput(),
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   String formattedAddressCheck;
@@ -103,7 +98,7 @@ class LeadStepperState extends State<LeadStepper> {
   var processorDropdownValue;
 
   var _currentStep = 0;
-  var stepsLength = 2;
+  var stepsLength = 3;
   var businessTypes = [];
   var locationValue;
   var businessName = "";
@@ -227,8 +222,10 @@ class LeadStepperState extends State<LeadStepper> {
                   nextButtonDisabled = false;
                 },
               );
-              logger.i(
-                  "Location value field set to: " + locationValue.toString());
+              Future.delayed(Duration(seconds: 1), () {
+                logger.i(
+                    "Location value field set to: " + locationValue.toString());
+              });
             } else {
               setState(
                 () {
@@ -248,19 +245,23 @@ class LeadStepperState extends State<LeadStepper> {
                 },
               );
 
-              logger.i(
-                  "Location value field set to: " + locationValue.toString());
+              Future.delayed(Duration(seconds: 1), () {
+                logger.i(
+                    "Location value field set to: " + locationValue.toString());
+              });
             }
           }
         } else {
-          debugPrint(
-              "Error checking existing lead: " + result.exception.toString());
-          logger.e("Error existing lead: " + result.exception.toString());
+          Future.delayed(Duration(seconds: 1), () {
+            logger.e(
+                "ERROR: Error existing lead: " + result.exception.toString());
+          });
         }
       }
     } catch (err) {
-      debugPrint("Error checking existing lead: " + err.exception.toString());
-      logger.e("Error existing lead: " + err.exception.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error existing lead: " + err.exception.toString());
+      });
     }
   }
 
@@ -300,11 +301,16 @@ class LeadStepperState extends State<LeadStepper> {
                   visible = false;
                   validStreetAddress = true;
                 });
-                logger.i(
-                    "Location value field set to: " + locationValue.toString());
-                logger.i(
-                    "Place suggestions did not return a place, address check manually built: " +
-                        mixedReplyCheck.toString());
+                Future.delayed(Duration(seconds: 1), () {
+                  logger.i("Location value field set to: " +
+                      locationValue.toString());
+                });
+
+                Future.delayed(Duration(seconds: 1), () {
+                  logger.i(
+                      "Place suggestions did not return a place, address check manually built: " +
+                          mixedReplyCheck.toString());
+                });
               } else {
                 if (val["address"]["address"] == "") {
                   setState(
@@ -325,11 +331,16 @@ class LeadStepperState extends State<LeadStepper> {
                       nextButtonDisabled = false;
                     },
                   );
-                  logger.i("Location value field set to: " +
-                      locationValue.toString());
-                  logger.i(
-                    "No verified address returned, requesting business address to be input manually",
-                  );
+                  Future.delayed(Duration(seconds: 1), () {
+                    logger.i("Location value field set to: " +
+                        locationValue.toString());
+                  });
+
+                  Future.delayed(Duration(seconds: 1), () {
+                    logger.i(
+                      "No verified address returned, requesting business address to be input manually",
+                    );
+                  });
                   Fluttertoast.showToast(
                     msg:
                         "No verified address found, please input business address",
@@ -348,8 +359,10 @@ class LeadStepperState extends State<LeadStepper> {
                 }
               }
             } else {
-              debugPrint("Place suggestion from Google did not return a value");
-              logger.e("Place suggestion from Google did not return a value");
+              Future.delayed(Duration(seconds: 1), () {
+                logger.e(
+                    "ERROR: Place suggestion from Google did not return a value");
+              });
             }
           },
         );
@@ -361,7 +374,9 @@ class LeadStepperState extends State<LeadStepper> {
     return showDialog<void>(
       context: context,
       builder: (BuildContext context) {
-        logger.i("Duplicate lead caught: " + message.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Duplicate lead caught: " + message.toString());
+        });
         return AlertDialog(
           title: Text('Duplicate Lead'),
           content: SingleChildScrollView(
@@ -442,8 +457,10 @@ class LeadStepperState extends State<LeadStepper> {
 
       if (result.hasException == false) {
         Navigator.popAndPushNamed(context, "/leads");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Successfully added lead: " + businessNameTrim.toString());
+        });
 
-        logger.i("Successfully added lead: " + businessNameTrim.toString());
         Fluttertoast.showToast(
             msg: "Successfully added lead!",
             toastLength: Toast.LENGTH_SHORT,
@@ -454,8 +471,9 @@ class LeadStepperState extends State<LeadStepper> {
 
         await this.widget.successCallback();
       } else {
-        debugPrint("Failed to add lead: " + result.exception.toString());
-        logger.e("Failed to add lead: " + result.exception.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: Failed to add lead: " + result.exception.toString());
+        });
 
         Fluttertoast.showToast(
             msg: "Failed to add lead: " + result.exception.toString(),
@@ -469,8 +487,9 @@ class LeadStepperState extends State<LeadStepper> {
         });
       }
     } catch (err) {
-      debugPrint("Failed to add lead: " + err.toString());
-      logger.e("Failed to add lead: " + err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Failed to add lead: " + err.toString());
+      });
     }
     isSaveDisabled = false;
   }
@@ -482,7 +501,9 @@ class LeadStepperState extends State<LeadStepper> {
           _currentStep < stepsLength - 1 ? _currentStep += 1 : null;
         },
       );
-      logger.i("Next step tapped: " + _currentStep.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Next step tapped: " + _currentStep.toString());
+      });
     }
   }
 
@@ -499,9 +520,11 @@ class LeadStepperState extends State<LeadStepper> {
                       padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
                       child: AddressSearch(
                         onAddressChange: (val) {
-                          logger.i(
-                              "Address returned from Google address search: " +
-                                  val.toString());
+                          Future.delayed(Duration(seconds: 1), () {
+                            logger.i(
+                                "Address searched in Google address search: " +
+                                    val['shortaddress'].toString());
+                          });
                           nearbySelect(val);
                         },
                         returnNearby: true,
@@ -552,7 +575,9 @@ class LeadStepperState extends State<LeadStepper> {
                             controller: address1Controller,
                             validator: (value) {
                               if (value.isEmpty) {
-                                logger.i("No address 1 entered");
+                                Future.delayed(Duration(seconds: 1), () {
+                                  logger.i("No address 1 entered");
+                                });
                                 return 'Please enter an address 1';
                               }
                               return null;
@@ -572,7 +597,9 @@ class LeadStepperState extends State<LeadStepper> {
                             controller: cityController,
                             validator: (value) {
                               if (value.isEmpty) {
-                                logger.i("No city entered");
+                                Future.delayed(Duration(seconds: 1), () {
+                                  logger.i("No city entered");
+                                });
                                 return 'Please enter a city';
                               }
                               return null;
@@ -586,7 +613,9 @@ class LeadStepperState extends State<LeadStepper> {
                             controller: stateController,
                             validator: (value) {
                               if (value.isEmpty) {
-                                logger.i("No state entered");
+                                Future.delayed(Duration(seconds: 1), () {
+                                  logger.i("No state entered");
+                                });
                                 return 'Please enter a state';
                               }
                               return null;
@@ -600,7 +629,9 @@ class LeadStepperState extends State<LeadStepper> {
                             controller: zipController,
                             validator: (value) {
                               if (value.isEmpty) {
-                                logger.i("No zip code entered");
+                                Future.delayed(Duration(seconds: 1), () {
+                                  logger.i("No zip code entered");
+                                });
                                 return 'Please enter a zip';
                               }
                               return null;
@@ -618,7 +649,9 @@ class LeadStepperState extends State<LeadStepper> {
                       validator: (value) {
                         businessName = value;
                         if (value.isEmpty) {
-                          logger.i("No business name entered");
+                          Future.delayed(Duration(seconds: 1), () {
+                            logger.i("No business name entered");
+                          });
                           return 'Please enter a business name';
                         }
                         return null;
@@ -630,7 +663,9 @@ class LeadStepperState extends State<LeadStepper> {
                       child: ProcessorDropDown(
                         value: processorDropdownValue,
                         callback: ((val) {
-                          logger.i("Processor changed: " + val.toString());
+                          Future.delayed(Duration(seconds: 1), () {
+                            logger.i("Processor changed: " + val.toString());
+                          });
                           setState(() {
                             processorDropdownValue = val;
                           });
@@ -667,7 +702,9 @@ class LeadStepperState extends State<LeadStepper> {
                 validator: (value) {
                   if (value.isEmpty || value.trim() == "") {
                     firstNameController.clear();
-                    logger.i("No contact first name entered");
+                    Future.delayed(Duration(seconds: 1), () {
+                      logger.i("No contact first name entered");
+                    });
                     return 'Please enter a contact first name';
                   }
                   return null;
@@ -684,7 +721,9 @@ class LeadStepperState extends State<LeadStepper> {
                 controller: emailAddrController,
                 validator: (value) {
                   if (value.isNotEmpty && !value.contains('@')) {
-                    logger.i("No valid email entered");
+                    Future.delayed(Duration(seconds: 1), () {
+                      logger.i("No valid email entered");
+                    });
                     return 'Please enter a valid email';
                   }
                   return null;
@@ -696,8 +735,10 @@ class LeadStepperState extends State<LeadStepper> {
                       child: CompanyDropDown(
                         callback: (newValue) {
                           if (newValue != null) {
-                            logger.i("Company value changed: " +
-                                newValue["name"].toString());
+                            Future.delayed(Duration(seconds: 1), () {
+                              logger.i("Company value changed: " +
+                                  newValue["name"].toString());
+                            });
                             setState(
                               () {
                                 companyController.text = newValue["id"];
@@ -806,8 +847,10 @@ class LeadStepperState extends State<LeadStepper> {
                             },
                           );
 
-                          logger.i("Previous step tapped: " +
-                              _currentStep.toString());
+                          Future.delayed(Duration(seconds: 1), () {
+                            logger.i("Previous step tapped: " +
+                                _currentStep.toString());
+                          });
                         }
                       },
                       steps: _buildSteps(),
@@ -851,8 +894,9 @@ class LeadStepperState extends State<LeadStepper> {
                                   Stepper stepper = _stepperKey.currentWidget;
                                   stepper.onStepContinue();
                                 } else {
-                                  debugPrint("No address entered");
-                                  logger.i("No address entered");
+                                  Future.delayed(Duration(seconds: 1), () {
+                                    logger.i("No address entered");
+                                  });
                                   Fluttertoast.showToast(
                                     msg: "Please Enter an Address!",
                                     toastLength: Toast.LENGTH_SHORT,
@@ -866,11 +910,11 @@ class LeadStepperState extends State<LeadStepper> {
                             },
                             label: Padding(
                               padding: EdgeInsets.all(20),
-                              child: _currentStep == stepsLength
+                              child: _currentStep == stepsLength - 1
                                   ? Text('Save')
                                   : Text('Next'),
                             ),
-                            icon: _currentStep == stepsLength
+                            icon: _currentStep == stepsLength - 1
                                 ? Icon(Icons.save)
                                 : Icon(Icons.arrow_forward),
                           )

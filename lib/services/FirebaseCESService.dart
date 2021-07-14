@@ -9,7 +9,8 @@ import 'package:flutter/widgets.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:async';
-
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 import 'package:logger/logger.dart';
 
 enum FirebaseCMType { launch, resume, backgroundMessage, message }
@@ -35,15 +36,8 @@ class FirebaseCESService {
       FlutterLocalNotificationsPlugin();
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 50,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output: CustomOuput(),
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   factory FirebaseCESService() {
@@ -58,7 +52,6 @@ class FirebaseCESService {
 
     if (!_initialized) {
       // For iOS request permission first.
-
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         FirebaseMessaging.onBackgroundMessage(myBackgroundMessageHandler);
         RemoteNotification notification = message.notification;
@@ -82,7 +75,9 @@ class FirebaseCESService {
       });
 
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-        logger.i("A new onMessageOpenedApp event was published");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("A new onMessageOpenedApp event was published");
+        });
 
         RemoteNotification notification = message.notification;
         AndroidNotification android = message.notification?.android;
@@ -120,14 +115,20 @@ class FirebaseCESService {
   Future<void> myBackgroundMessageHandler(RemoteMessage message) async {
     await Firebase.initializeApp();
 
-    logger.i("Handling a background message ${message.messageId}");
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("Handling a background message ${message.messageId}");
+    });
   }
 
   Future<void> handleFirebaseMessage(message) async {
-    logger.i("{$message}");
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("{$message}");
+    });
 
     if (message == null) return null;
-    logger.i(message.body);
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i(message.body);
+    });
 
     var messageActionType = "IGNORE";
     if (messageActionType == null) return null;
@@ -168,10 +169,14 @@ class FirebaseCESService {
 
           await GqlClientFactory().authGqlmutate(options);
           if (resp.statusCode != 200) {
-            debugPrint(resp.toString());
+            Future.delayed(Duration(seconds: 1), () {
+              logger.i(resp.toString());
+            });
           }
         } catch (err) {
-          debugPrint(err.toString());
+          Future.delayed(Duration(seconds: 1), () {
+            logger.e("ERROR: " + err.toString());
+          });
         }
         break;
     }

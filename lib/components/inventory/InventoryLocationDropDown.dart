@@ -3,6 +3,8 @@ import 'package:logger/logger.dart';
 import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 import 'package:searchable_dropdown/searchable_dropdown.dart';
 
 class InventoryLocationDropDown extends StatefulWidget {
@@ -25,15 +27,8 @@ class _InventoryLocationDropDownState extends State<InventoryLocationDropDown> {
   var startVal;
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 120,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output:
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   @override
@@ -66,6 +61,10 @@ class _InventoryLocationDropDownState extends State<InventoryLocationDropDown> {
 
     if (result != null) {
       if (result.hasException == false) {
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Location data loaded for dropdown");
+        });
+
         var locationsArrDecoded = result.data["inventory_location"];
         if (locationsArrDecoded != null) {
           if (this.mounted) {
@@ -80,10 +79,10 @@ class _InventoryLocationDropDownState extends State<InventoryLocationDropDown> {
           }
         }
       } else {
-        debugPrint("Error loading Inventory locations for dropdown: " +
-            result.exception.toString());
-        logger.e("Error loading Inventory locations for dropdown: " +
-            result.exception.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: Error loading Inventory locations for dropdown: " +
+              result.exception.toString());
+        });
 
         Fluttertoast.showToast(
           msg: "Error loading Inventory locations for dropdown: " +
@@ -115,6 +114,9 @@ class _InventoryLocationDropDownState extends State<InventoryLocationDropDown> {
           onClear: () {
             setState(() {
               startVal = null;
+              Future.delayed(Duration(seconds: 1), () {
+                logger.i("Location value cleared");
+              });
               this.widget.callback(null);
             });
           },
@@ -150,7 +152,17 @@ class _InventoryLocationDropDownState extends State<InventoryLocationDropDown> {
                       }
                     }
                     startVal = setVal;
-                    this.widget.callback(setVal);
+
+                    if (startVal != "" && startVal != null) {
+                      Future.delayed(Duration(seconds: 1), () {
+                        logger.i("Location selected: " +
+                            newValue +
+                            " (" +
+                            setVal['location'].toString() +
+                            ")");
+                      });
+                      this.widget.callback(setVal);
+                    }
                   });
                 },
         )

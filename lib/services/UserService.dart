@@ -9,13 +9,12 @@ import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:logger/logger.dart';
-import 'package:round2crm/config/ConfigSettings.dart';
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 
 class UserService {
   final GoogleSignIn googleSignIn =
       GoogleSignIn(scopes: ['https://www.googleapis.com/auth/calendar']);
-
-  final String URLBASE = ConfigSettings.HOOK_API_URL;
 
   static Employee employee;
 
@@ -33,15 +32,8 @@ class UserService {
   static FirebaseAuth firebaseAuth = FirebaseAuth.instance;
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 50,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output: CustomOuput(),
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   getToken() async {
@@ -56,7 +48,10 @@ class UserService {
         return idTokenResult;
       }
     } catch (err) {
-      logger.e(err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: " + err.toString());
+      });
+
       throw new Error();
     }
   }
@@ -65,7 +60,9 @@ class UserService {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     String version = packageInfo.version;
 
-    logger.i("App version: " + version);
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("App version: " + version);
+    });
     return version;
   }
 
@@ -94,15 +91,18 @@ class UserService {
         final User currentUser = firebaseAuth.currentUser;
         assert(user.uid == currentUser.uid);
 
-        logger.i('signInWithGoogle succeeded: $user');
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i('Sign in with Google succeeded: $user');
+        });
 
         await linkGoogleAccount();
 
         return true;
       }
     } catch (err) {
-      logger.e(err.toString());
-      debugPrint(err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: " + err.toString());
+      });
     }
     return false;
   }
@@ -116,28 +116,27 @@ class UserService {
 
       isAuthenticated = false;
 
-      logger.i("User signed out");
-      debugPrint("User signed out");
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("User signed out");
+      });
     } catch (err) {
-      logger.e(err.toString());
-      debugPrint(err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: " + err.toString());
+      });
       throw new Error();
     }
   }
 
   Future<void> linkGoogleAccount() async {
     try {
-      GqlClientFactory.setPublicGraphQLClient();
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Application initialized and public gql client started...");
+      });
 
-      logger.i("Connecting to hooks API: " + URLBASE.toString());
-      logger.i("Connecting to Hasura: " + ConfigSettings.HASURA_URL.toString());
-      logger.i("Connecting to Websocket: " +
-          ConfigSettings.HASURA_WEBSOCKET.toString());
+      GqlClientFactory.setPublicGraphQLClient();
+      getVersionNumber();
 
       var user = firebaseAuth.currentUser;
-
-      logger.i("User: " + user.displayName.toString() + " (" + user.uid + ")");
-      getVersionNumber();
 
       MutationOptions mutateOptions = MutationOptions(
         document: gql("""
@@ -159,21 +158,25 @@ class UserService {
           await GqlClientFactory().authGqlmutate(mutateOptions);
 
       if (linkResult.hasException) {
-        debugPrint(
-            "Error linking google account: " + linkResult.exception.toString());
-        logger.e(
-            "Error linking google account: " + linkResult.exception.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: Error linking google account: " +
+              linkResult.exception.toString());
+        });
         throw (linkResult.exception);
       } else {
         token = linkResult.data["link_google_account"]["token"];
         rToken = linkResult.data["link_google_account"]["refreshToken"];
         var idTokenResult = await user.getIdToken(true);
+
         debugPrint("ID Token result: " + idTokenResult);
 
         var empDecoded = linkResult.data["link_google_account"]["employee"];
 
         employee = Employee.fromJson(empDecoded);
-        logger.i("Employee role: " + employee.role.toString());
+
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Employee role: " + employee.role.toString());
+        });
 
         if (employee.role == "admin" || employee.role == "sa") {
           isAdmin = true;
@@ -239,16 +242,18 @@ class UserService {
             notificationRegistrationResult.data['register_notification_token']
                     ['message']
                 .toString());
+
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i(
+              "User: " + user.displayName.toString() + " (" + user.uid + ")");
+        });
       }
     } catch (err) {
-      logger.e(err.toString());
-      debugPrint(err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: " + err.toString());
+      });
       throw new Error();
     }
-  }
-
-  Employee getCurrentEmployee() {
-    return employee;
   }
 
   static Future<User> getCurrentUser() async {
@@ -276,14 +281,18 @@ class UserService {
     final QueryResult result =
         await GqlClientFactory().authGqlmutate(mutateOptions);
     if (result.hasException == true) {
-      logger.e(result.exception.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: " + result.exception.toString());
+      });
 
       try {
         signOutGoogle();
         return false;
       } catch (err) {
-        logger.e(err.toString());
-        debugPrint(err.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: " + err.toString());
+        });
+
         throw new Error();
       }
     } else {

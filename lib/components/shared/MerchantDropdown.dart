@@ -3,7 +3,8 @@ import 'package:logger/logger.dart';
 import 'package:round2crm/services/GqlClientFactory.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 import 'package:searchable_dropdown/searchable_dropdown.dart';
 
 class MerchantDropDown extends StatefulWidget {
@@ -24,15 +25,8 @@ class _MerchantDropDownState extends State<MerchantDropDown> {
   var startVal;
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 50,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output: CustomOuput(),
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   @override
@@ -68,7 +62,10 @@ class _MerchantDropDownState extends State<MerchantDropDown> {
         var merchantsArrDecoded = result.data["merchant"];
         if (merchantsArrDecoded != null) {
           if (this.mounted) {
-            logger.i("Merchant data loaded for dropdown");
+            Future.delayed(Duration(seconds: 1), () {
+              logger.i("Merchant data loaded for dropdown");
+            });
+
             merchantsArrDecoded.sort((a, b) => a["businessName"]
                 .toString()
                 .toUpperCase()
@@ -85,10 +82,10 @@ class _MerchantDropDownState extends State<MerchantDropDown> {
           }
         }
       } else {
-        debugPrint("Error getting merchant data for dropdown: " +
-            result.exception.toString());
-        logger.e("Error getting merchant data for dropdown: " +
-            result.exception.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: Error getting merchant data for dropdown: " +
+              result.exception.toString());
+        });
 
         Fluttertoast.showToast(
           msg: "Error getting merchant data for dropdown: " +
@@ -156,11 +153,13 @@ class _MerchantDropDownState extends State<MerchantDropDown> {
                       }
                       if (newValue == merchantBusinessName) {
                         setVal = merchant["merchant"];
-                        logger.i("Merchant changed to: " +
-                            merchantBusinessName +
-                            " (" +
-                            setVal.toString() +
-                            ")");
+                        Future.delayed(Duration(seconds: 1), () {
+                          logger.i("Merchant changed to: " +
+                              merchantBusinessName +
+                              " (" +
+                              setVal.toString() +
+                              ")");
+                        });
                       }
                     }
                     startVal = newValue;

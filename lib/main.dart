@@ -27,6 +27,8 @@ import 'package:round2crm/screens/merchants/ViewMerchantScreen.dart';
 import 'package:round2crm/screens/tasks/ViewTaskScreen.dart';
 import 'package:round2crm/screens/leads/uploads/StatementUploader.dart';
 import 'package:logger/logger.dart';
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,24 +50,17 @@ class _Round2CRMState extends State<Round2CRM> {
   GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 50,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output: CustomOuput(),
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   @override
   void initState() {
     super.initState();
-    logger.i("Application initialized and starting PublicGQLClient");
-    debugPrint("Application initialized and starting PublicGQLClient");
+
     GqlClientFactory.setPublicGraphQLClient();
     isAuthCheck();
+
     UserService.firebaseAuth.authStateChanges().listen((firebaseUser) {
       if (firebaseUser == null && UserService.isAuthenticated) {
         navigatorKey.currentState.popAndPushNamed('/logout');
@@ -98,8 +93,9 @@ class _Round2CRMState extends State<Round2CRM> {
         );
       }
     } catch (err) {
-      debugPrint("Error checking authorization: " + err.toString());
-      logger.e("Error checking authorization: " + err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error checking authorization: " + err.toString());
+      });
 
       UserService.isAuthenticated = false;
 
@@ -150,8 +146,10 @@ class _Round2CRMState extends State<Round2CRM> {
                 ),
           initialRoute: "/",
           onGenerateRoute: (RouteSettings settings) {
-            logger.i("Route switched to: " + settings.name);
-            debugPrint("Route switched to: " + settings.name);
+            Future.delayed(Duration(seconds: 1), () {
+              logger.i("Route switched to: " + settings.name);
+            });
+
             switch (settings.name) {
               case '/dashboard':
                 return MaterialPageRoute(

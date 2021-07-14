@@ -12,9 +12,9 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:logger/logger.dart';
-
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 import 'package:table_calendar/table_calendar.dart';
-
 import 'package:intl/intl.dart';
 
 class LeadTasks extends StatefulWidget {
@@ -38,15 +38,8 @@ class _LeadTasksState extends State<LeadTasks> {
   bool isBoarded;
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 50,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output: CustomOuput(),
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   var tasks = [];
@@ -210,12 +203,15 @@ class _LeadTasksState extends State<LeadTasks> {
           isLoading = false;
         });
         await fillEvents();
-        logger.i("Lead task data loaded and events filled");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Lead task data loaded and events filled");
+        });
       }
       isLoading = false;
     }, (error) {
-      debugPrint("Error in getting lead tasks: " + error.toString());
-      logger.e("Error in getting lead tasks: " + error.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error in getting lead tasks: " + error.toString());
+      });
     }, () => refreshSub());
   }
 
@@ -224,7 +220,9 @@ class _LeadTasksState extends State<LeadTasks> {
       await subscription.cancel();
       subscription = null;
       initTasks();
-      logger.i("Lead tasks data refreshed");
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Lead tasks data refreshed");
+      });
     }
   }
 
@@ -249,7 +247,9 @@ class _LeadTasksState extends State<LeadTasks> {
     final QueryResult result0 = await GqlClientFactory().authGqlquery(options);
 
     if (result0 != null) {
-      logger.i("Task status loaded");
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Task status loaded");
+      });
       if (result0.hasException == false) {
         result0.data["task_status"].forEach((item) {
           if (item["title"] == "Open") {
@@ -260,8 +260,10 @@ class _LeadTasksState extends State<LeadTasks> {
         await initTasks();
       }
     } else {
-      debugPrint("Error getting task status: " + result0.exception.toString());
-      logger.e("Error getting task status: " + result0.exception.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error getting task status: " +
+            result0.exception.toString());
+      });
     }
     var saveDate = DateTime.parse(taskDateController.text).toUtc();
     var saveDateFormat = DateFormat("yyyy-MM-dd HH:mm").format(saveDate);
@@ -299,14 +301,16 @@ class _LeadTasksState extends State<LeadTasks> {
 
       if (result != null) {
         if (result.hasException == false) {
-          logger.i(
-            "Task successfully created for " +
-                data["lead"].toString() +
-                " for a " +
-                taskTypeDropdownValue.toString() +
-                " at " +
-                data["date"].toString(),
-          );
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i(
+              "Task successfully created for " +
+                  data["lead"].toString() +
+                  " for a " +
+                  taskTypeDropdownValue.toString() +
+                  " at " +
+                  data["date"].toString(),
+            );
+          });
 
           Fluttertoast.showToast(
             msg: "Task successfully created!",
@@ -320,8 +324,10 @@ class _LeadTasksState extends State<LeadTasks> {
           await initTasks();
         }
       } else {
-        debugPrint("Error inserting task: " + result.exception.toString());
-        logger.e("Error inserting task: " + result.exception.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger
+              .e("ERROR: Error inserting task: " + result.exception.toString());
+        });
 
         Fluttertoast.showToast(
           msg: "Error inserting task: " + result.exception.toString(),
@@ -333,8 +339,9 @@ class _LeadTasksState extends State<LeadTasks> {
         );
       }
     } catch (err) {
-      debugPrint("Error inserting task: " + err.toString());
-      logger.e("Error inserting task: " + err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error inserting task: " + err.toString());
+      });
     }
     _formKey.currentState.reset();
   }
@@ -365,17 +372,17 @@ class _LeadTasksState extends State<LeadTasks> {
 
         if (leadStatus == status) {
           isBoarded = true;
-          logger.i("Lead is boarded");
         } else {
           setState(() {
             isBoarded = false;
           });
-          logger.i("Lead is not boarded");
         }
       } else {
-        debugPrint(
-            "Error checking lead status: " + result.exception.toString());
-        logger.e("Error checking lead status: " + result.exception.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger
+              .e("Error checking lead status: " + result.exception.toString());
+        });
+
         Fluttertoast.showToast(
           msg: "Error inserting task: " + result.exception.toString(),
           toastLength: Toast.LENGTH_LONG,
@@ -389,7 +396,9 @@ class _LeadTasksState extends State<LeadTasks> {
   }
 
   Future<void> openAddTaskForm() async {
-    logger.i("Add task form opened");
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("Add task form opened");
+    });
     await showDialog(
       barrierDismissible: false,
       context: context,
@@ -439,7 +448,9 @@ class _LeadTasksState extends State<LeadTasks> {
                     Container(),
                     GestureDetector(
                       onTap: () {
-                        logger.i("Add task form closed");
+                        Future.delayed(Duration(seconds: 1), () {
+                          logger.i("Add task form closed");
+                        });
                         Navigator.of(context).pop();
                       },
                       child: Icon(
@@ -477,8 +488,10 @@ class _LeadTasksState extends State<LeadTasks> {
                                           taskTypeDropdownValue = val;
                                         },
                                       );
-                                      logger.i("Task type changed: " +
-                                          val.toString());
+                                      Future.delayed(Duration(seconds: 1), () {
+                                        logger.i("Task type changed: " +
+                                            val.toString());
+                                      });
                                     }),
                                   ),
                                   Divider(
@@ -492,8 +505,6 @@ class _LeadTasksState extends State<LeadTasks> {
                                           taskPriorityDropdownValue = val;
                                         },
                                       );
-                                      logger.i("Task priorty level changed: " +
-                                          val.toString());
                                     },
                                   ),
                                   Divider(
@@ -504,7 +515,10 @@ class _LeadTasksState extends State<LeadTasks> {
                                         FocusScope.of(context).nextFocus(),
                                     validator: (value) {
                                       if (value.isEmpty) {
-                                        logger.i("No title entered");
+                                        Future.delayed(Duration(seconds: 1),
+                                            () {
+                                          logger.i("No title entered");
+                                        });
                                         return 'Please enter a title';
                                       }
                                       return null;
@@ -522,7 +536,10 @@ class _LeadTasksState extends State<LeadTasks> {
                                         FocusScope.of(context).nextFocus(),
                                     validator: (DateTime dateTime) {
                                       if (dateTime == null) {
-                                        logger.i("No date selected");
+                                        Future.delayed(Duration(seconds: 1),
+                                            () {
+                                          logger.i("No date selected");
+                                        });
                                         return 'Please select a date';
                                       }
                                       return null;

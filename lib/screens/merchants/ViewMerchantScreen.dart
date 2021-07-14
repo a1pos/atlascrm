@@ -11,7 +11,8 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:logger/logger.dart';
 import 'package:maps_launcher/maps_launcher.dart';
-
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
 
@@ -42,15 +43,8 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
   List merchantInfoEntries = [];
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 50,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output: CustomOuput(),
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   var firstNameController = TextEditingController();
@@ -140,6 +134,10 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
           var bodyDecoded = body;
 
           setState(() {
+            Future.delayed(Duration(seconds: 1), () {
+              logger.i("Merchant data loaded");
+            });
+
             merchant = bodyDecoded;
             merchantDocument = bodyDecoded["document"];
             merchantAgreement = merchant["leadByLead"]["agreement_builders"][0]
@@ -196,9 +194,11 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
           }
         }
       } else {
-        debugPrint(
-            "Error getting merchant data: " + result.exception.toString());
-        logger.e("Error getting merchant data: " + result.exception.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: Error getting merchant data: " +
+              result.exception.toString());
+        });
+
         Fluttertoast.showToast(
           msg: "Error getting merchant data: " + result.exception.toString(),
           toastLength: Toast.LENGTH_SHORT,
@@ -209,8 +209,12 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
         );
       }
     } catch (err) {
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error getting merchant data: " + err.toString());
+      });
+
       Fluttertoast.showToast(
-        msg: err.toString(),
+        msg: "Error getting merchant data: " + err.toString(),
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.BOTTOM,
         backgroundColor: Colors.grey[600],
@@ -247,7 +251,10 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
         await GqlClientFactory().authGqlsubscribe(deviceOptions, (data) {
       var devicesArrDecoded = data.data["inventory"];
       if (devicesArrDecoded != null && this.mounted) {
-        logger.i("Merchant devices loaded");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Merchant devices loaded");
+        });
+
         setState(() {
           devices = devicesArrDecoded;
         });
@@ -255,8 +262,9 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
       isLoading = false;
       inventoryLoading = false;
     }, (error) {
-      debugPrint("Error getting merchant devices: " + error.toString());
-      logger.e("Error getting merchant devices: " + error.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error getting merchant devices: " + error.toString());
+      });
     }, () => refreshSub());
   }
 
@@ -265,7 +273,9 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
       await subscription.cancel();
       subscription = null;
       loadMerchantData(this.widget.merchantId);
-      logger.i("Merchant data refreshed");
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Merchant data refreshed");
+      });
     }
   }
 
@@ -290,7 +300,16 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
           var sendable = {"id": device["inventory"], "origin": "merchant"};
           return GestureDetector(
             onTap: () {
-              logger.i("Inventory opened: " + sendable["id"]);
+              Future.delayed(Duration(seconds: 1), () {
+                logger.i("Inventory opened: " +
+                    device["priceTier"]['model'].toString() +
+                    "-" +
+                    device["serial"].toString() +
+                    " (" +
+                    device["inventory"].toString() +
+                    ")");
+              });
+
               Navigator.pushNamed(context, "/viewinventory",
                   arguments: sendable);
             },
@@ -423,8 +442,12 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                                   fontSize: 16.0,
                                                 );
                                         } else {
-                                          logger.e(
-                                              "No email specified for email button");
+                                          Future.delayed(Duration(seconds: 1),
+                                              () {
+                                            logger.e(
+                                                "No email specified for email button");
+                                          });
+
                                           Fluttertoast.showToast(
                                             msg: "No email specified!",
                                             toastLength: Toast.LENGTH_SHORT,
@@ -477,8 +500,12 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                                   fontSize: 16.0,
                                                 );
                                         } else {
-                                          logger.e(
-                                              "No phone number specified for phone button");
+                                          Future.delayed(Duration(seconds: 1),
+                                              () {
+                                            logger.e(
+                                                "No phone number specified for phone button");
+                                          });
+
                                           Fluttertoast.showToast(
                                             msg: "No phone number specified!",
                                             toastLength: Toast.LENGTH_SHORT,
@@ -531,8 +558,12 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                             );
                                           }
                                         } else {
-                                          logger.e(
-                                              "No address specified for map button");
+                                          Future.delayed(Duration(seconds: 1),
+                                              () {
+                                            logger.e(
+                                                "No address specified for map button");
+                                          });
+
                                           Fluttertoast.showToast(
                                               msg: "No address specified!",
                                               toastLength: Toast.LENGTH_SHORT,
@@ -625,14 +656,19 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
                                                 ? Text(
                                                     merchant["merchant_configs"]
                                                                         [0]
-                                                                    ["document"][
+                                                                    ["document"]
+                                                                [
                                                                 "cashDiscountingPercent"]
                                                             .toString() +
                                                         "%",
                                                     style:
-                                                        TextStyle(fontSize: 16))
-                                                : Text("",
-                                                    style: TextStyle(fontSize: 16)),
+                                                        TextStyle(fontSize: 16),
+                                                  )
+                                                : Text(
+                                                    "",
+                                                    style:
+                                                        TextStyle(fontSize: 16),
+                                                  ),
                                           ),
                                         ],
                                       ),

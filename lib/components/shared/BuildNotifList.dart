@@ -8,7 +8,8 @@ import 'dart:async';
 import 'package:round2crm/services/ApiService.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 import 'package:simple_moment/simple_moment.dart';
 import 'Empty.dart';
 
@@ -30,15 +31,8 @@ class _BuildNotifListState extends State<BuildNotifList> {
   var subscription;
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 50,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output: CustomOuput(),
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   @override
@@ -85,7 +79,10 @@ class _BuildNotifListState extends State<BuildNotifList> {
       (data) {
         var notificationsArrDecoded = data.data["notification"];
         if (notificationsArrDecoded != null && this.mounted) {
-          logger.i("Notifications loaded in notifications center");
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i("Notifications loaded in notifications center");
+          });
+
           setState(
             () {
               isLoading = false;
@@ -105,8 +102,10 @@ class _BuildNotifListState extends State<BuildNotifList> {
         }
       },
       (error) {
-        debugPrint("Error in loading notifications: " + error.toString());
-        logger.e("Error in loading notifications: " + error.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger
+              .e("ERROR: Error in loading notifications: " + error.toString());
+        });
       },
       () => refreshSub(),
     );
@@ -117,7 +116,9 @@ class _BuildNotifListState extends State<BuildNotifList> {
       await subscription.cancel();
       subscription = null;
       getNotifications();
-      logger.i("Notifications refreshed");
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Notifications refreshed");
+      });
     }
   }
 
@@ -139,7 +140,10 @@ class _BuildNotifListState extends State<BuildNotifList> {
         await GqlClientFactory().authGqlmutate(mutateOptions);
 
     if (result.hasException == false) {
-      logger.i("Notification marked as read: " + notification.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Notification marked as read: " + notification.toString());
+      });
+
       Fluttertoast.showToast(
           msg: "Notification Marked as Read!",
           toastLength: Toast.LENGTH_SHORT,
@@ -149,10 +153,10 @@ class _BuildNotifListState extends State<BuildNotifList> {
           fontSize: 16.0);
       getNotifications();
     } else {
-      debugPrint(
-          "Error marking notification as read: " + result.exception.toString());
-      logger.e(
-          "Error marking notification as read: " + result.exception.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error marking notification as read: " +
+            result.exception.toString());
+      });
 
       Fluttertoast.showToast(
           msg: "Failed to mark notification as read: " +
@@ -166,7 +170,10 @@ class _BuildNotifListState extends State<BuildNotifList> {
 
     notifCount--;
     if (notifCount == 0) {
-      logger.i("Notification count 0, closing notifications panel");
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Notification count 0, closing notifications panel");
+      });
+
       Navigator.of(context).pop();
     }
   }
@@ -189,7 +196,10 @@ class _BuildNotifListState extends State<BuildNotifList> {
         await GqlClientFactory().authGqlmutate(mutateOptions);
 
     if (result.hasException == false) {
-      logger.i("Notifications marked as read");
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Notifications marked as read");
+      });
+
       Fluttertoast.showToast(
         msg: "Notifications Marked as Read!",
         toastLength: Toast.LENGTH_SHORT,
@@ -200,10 +210,11 @@ class _BuildNotifListState extends State<BuildNotifList> {
       );
       Navigator.of(context).pop();
     } else {
-      debugPrint("Error marking all notifications as read: " +
-          result.exception.toString());
-      logger.e("Error marking all notifications as read: " +
-          result.exception.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error marking all notifications as read: " +
+            result.exception.toString());
+      });
+
       Fluttertoast.showToast(
         msg: "Error marking all notifications as read: " +
             result.exception.toString(),
@@ -325,7 +336,10 @@ class _BuildNotifListState extends State<BuildNotifList> {
               ),
               GestureDetector(
                 onTap: () {
-                  logger.i("Notifications panel closed");
+                  Future.delayed(Duration(seconds: 1), () {
+                    logger.i("Notifications panel closed");
+                  });
+
                   Navigator.of(context).pop();
                 },
                 child: Icon(

@@ -5,7 +5,8 @@ import 'package:round2crm/config/ConfigSettings.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/widgets.dart';
 import 'package:logger/logger.dart';
-
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 import 'UserService.dart';
 
 class ApiService {
@@ -13,19 +14,15 @@ class ApiService {
   final int TIMEOUT = 10000;
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 50,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output: CustomOuput(),
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   Future<Response> publicGet(url, data) async {
-    logger.i("Connecting to: " + URLBASE.toString());
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("Connecting to: " + URLBASE.toString());
+    });
+
     try {
       return await Dio(
         BaseOptions(
@@ -38,14 +35,19 @@ class ApiService {
         ),
       ).get(url);
     } catch (err) {
-      logger.e(err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e(err.toString());
+      });
+
       throw err;
     }
   }
 
   Future<Response> publicPost(url, data) async {
     try {
-      logger.i("Connecting to: " + URLBASE.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Connecting to: " + URLBASE.toString());
+      });
 
       return await Dio(
         BaseOptions(
@@ -61,14 +63,19 @@ class ApiService {
         data: jsonEncode(data),
       );
     } catch (err) {
-      logger.e(err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e(err.toString());
+      });
+
       throw err;
     }
   }
 
   Future<Response> authGet(context, url, {isRetry: false}) async {
     try {
-      logger.i("Connecting to: " + URLBASE.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Connecting to: " + URLBASE.toString());
+      });
 
       var token = UserService.token;
 
@@ -88,13 +95,19 @@ class ApiService {
       ).get(url);
 
       if (resp.statusCode == 401) {
-        logger.e("401 error code, logging out");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: 401 error code, logging out");
+        });
+
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
       }
       return resp;
     } catch (err) {
-      logger.e(err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e(err.toString());
+      });
+
       if (checkAuthErrorResponse(context, err)) {
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
@@ -107,7 +120,9 @@ class ApiService {
   Future<Response> authPost(context, url, data,
       {isFile = false, isRetry: false}) async {
     try {
-      logger.i("Connecting to: " + URLBASE.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Connecting to: " + URLBASE.toString());
+      });
 
       var token = UserService.token;
 
@@ -127,13 +142,19 @@ class ApiService {
       );
 
       if (resp.statusCode == 401) {
-        logger.e("401 error code, logging out");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: 401 error code, logging out");
+        });
+
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
       }
       return resp;
     } catch (err) {
-      logger.e(err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e(err.toString());
+      });
+
       if (checkAuthErrorResponse(context, err)) {
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
@@ -145,14 +166,19 @@ class ApiService {
 
   Future<Response> authFilePost(context, url, filePath, {isRetry: true}) async {
     try {
-      logger.i("Connecting to: " + URLBASE.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Connecting to: " + URLBASE.toString());
+      });
 
-      logger.i("Context: " +
-          context.toString() +
-          ", \nUrl: " +
-          url.toString() +
-          ", \nfilePath: " +
-          filePath.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Context: " +
+            context.toString() +
+            ", \nUrl: " +
+            url.toString() +
+            ", \nfilePath: " +
+            filePath.toString());
+      });
+
       var token = UserService.token;
 
       var type = "application";
@@ -189,13 +215,19 @@ class ApiService {
       ).post(url, data: formData);
 
       if (resp.statusCode == 401) {
-        logger.e("401 error code, logging out");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: 401 error code, logging out");
+        });
+
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
       }
       return resp;
     } catch (err) {
-      logger.e("Error posting file: " + err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error posting file: " + err.toString());
+      });
+
       throw "Error posting file: " + err.toString();
     }
   }
@@ -207,9 +239,14 @@ class ApiService {
       "url": url,
       "formData": formData,
     };
-    logger.i(message.toString());
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i(message.toString());
+    });
+
     try {
-      logger.i("Connecting to: " + URLBASE.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Connecting to: " + URLBASE.toString());
+      });
 
       var token = UserService.token;
 
@@ -225,13 +262,20 @@ class ApiService {
       ).post(url, data: formData);
 
       if (resp.statusCode == 401) {
-        logger.e("401 error code, logging out");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: 401 error code, logging out");
+        });
+
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
       }
       return resp;
     } catch (err) {
-      logger.e("Error posting files with form data: " + err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger
+            .e("ERROR: Error posting files with form data: " + err.toString());
+      });
+
       throw "Error posting files with form data: " + err.toString();
     }
   }
@@ -239,7 +283,9 @@ class ApiService {
   Future<Response> authFilesPost(context, url, filePaths,
       {isRetry: true, fileName: "file"}) async {
     try {
-      logger.i("Connecting to: " + URLBASE.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Connecting to: " + URLBASE.toString());
+      });
 
       var token = UserService.token;
 
@@ -284,13 +330,19 @@ class ApiService {
       ).post(url, data: formData);
 
       if (resp.statusCode == 401) {
-        logger.e("401 error code, logging out");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: 401 error code, logging out");
+        });
+
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
       }
       return resp;
     } catch (err) {
-      logger.e("Error posting files: " + err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error posting files: " + err.toString());
+      });
+
       if (checkAuthErrorResponse(context, err)) {
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
@@ -302,7 +354,9 @@ class ApiService {
 
   Future<Response> authPut(context, url, data, {isRetry: false}) async {
     try {
-      logger.i("Connecting to: " + URLBASE.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Connecting to: " + URLBASE.toString());
+      });
 
       var token = UserService.token;
 
@@ -319,13 +373,19 @@ class ApiService {
       ).put(url, data: jsonEncode(data));
 
       if (resp.statusCode == 401) {
-        logger.e("401 error code, logging out");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: 401 error code, logging out");
+        });
+
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
       }
       return resp;
     } catch (err) {
-      logger.e(err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e(err.toString());
+      });
+
       if (checkAuthErrorResponse(context, err)) {
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
@@ -337,7 +397,9 @@ class ApiService {
 
   Future<Response> authDelete(context, url, data, {isRetry: false}) async {
     try {
-      logger.i("Connecting to: " + URLBASE.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Connecting to: " + URLBASE.toString());
+      });
 
       var token = UserService.token;
 
@@ -354,13 +416,19 @@ class ApiService {
       ).delete(url);
 
       if (resp.statusCode == 401) {
-        logger.e("401 error code, logging out");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: 401 error code, logging out");
+        });
+
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
       }
       return resp;
     } catch (err) {
-      logger.e(err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e(err.toString());
+      });
+
       if (checkAuthErrorResponse(context, err)) {
         Navigator.of(context).popAndPushNamed('/logout');
         return null;
@@ -372,18 +440,25 @@ class ApiService {
 
   bool checkAuthErrorResponse(context, msg) {
     try {
-      logger.i("Connecting to: " + URLBASE.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Connecting to: " + URLBASE.toString());
+      });
 
       if (msg != null) {
         if (msg.response != null) {
           if (msg.response.statusCode == 401) {
-            logger.e("401 error code");
+            Future.delayed(Duration(seconds: 1), () {
+              logger.e("ERROR: 401 error code");
+            });
+
             return true;
           }
         }
       }
     } catch (err) {
-      logger.e(err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e(err.toString());
+      });
     }
     return false;
   }

@@ -10,6 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:logger/logger.dart';
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 
 class MerchantsScreen extends StatefulWidget {
   @override
@@ -26,15 +28,8 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
   TextEditingController _searchController = TextEditingController();
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 50,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output: CustomOuput(),
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   var merchants = [];
@@ -48,8 +43,8 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
   var pageNum = 0;
   var filterEmployee = "";
   var sortQueries = [
-    "updated_at: desc",
-    "updated_at: asc",
+    "boarded_date: desc",
+    "boarded_date: asc",
     "merchantbusinessname: asc"
   ];
   var sortQuery = "merchantbusinessname: asc";
@@ -82,7 +77,9 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
             'offset: 0, limit: 10, order_by: {merchantbusinessname: asc}';
       }
 
-      logger.i(initParams);
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Parameters for merchants: " + initParams);
+      });
 
       QueryOptions options = QueryOptions(
         document: gql("""
@@ -110,7 +107,10 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
 
       if (result != null) {
         if (result.hasException == false) {
-          logger.i("Merchant data loaded");
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i("Merchant data loaded");
+          });
+
           var merchantsArrDecoded = result.data["v_merchant"];
           if (merchantsArrDecoded != null) {
             var merchantsArr = List.from(merchantsArrDecoded);
@@ -132,8 +132,10 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
             }
           }
         } else {
-          debugPrint("Error getting merchants: " + result.exception.toString());
-          logger.e("Error getting merchants: " + result.exception.toString());
+          Future.delayed(Duration(seconds: 1), () {
+            logger.e("ERROR: Error getting merchants: " +
+                result.exception.toString());
+          });
 
           Fluttertoast.showToast(
             msg: "Error getting merchants: " + result.exception.toString(),
@@ -149,8 +151,10 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
         isLoading = false;
       });
     } catch (err) {
-      debugPrint("Error getting merchants: " + err.toString());
-      logger.e("Error getting merchants: " + err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e("ERROR: Error getting merchants: " + err.toString());
+      });
+
       setState(() {
         isLoading = false;
       });
@@ -171,7 +175,9 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
             'offset: $offsetAmount, limit: $limitAmount, order_by: {$sortQuery}, where:{_and:[{is_active:{_eq: true}},{$searchParams}]}';
       }
 
-      logger.i(params);
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Parameters for merchants onScroll: " + params);
+      });
 
       QueryOptions options = QueryOptions(
         document: gql("""
@@ -199,7 +205,10 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
 
       if (result != null) {
         if (result.hasException == false) {
-          logger.i("Merchant data reloaded onScroll");
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i("Merchant data reloaded onScroll");
+          });
+
           var merchantsArrDecoded = result.data["v_merchant"];
           if (merchantsArrDecoded != null) {
             var merchantsArr = List.from(merchantsArrDecoded);
@@ -223,10 +232,10 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
             }
           }
         } else {
-          debugPrint("Error getting merchant data onScroll: " +
-              result.exception.toString());
-          logger.e("Error getting merchant data onScroll: " +
-              result.exception.toString());
+          Future.delayed(Duration(seconds: 1), () {
+            logger.e("ERROR: Error getting merchant data onScroll: " +
+                result.exception.toString());
+          });
 
           Fluttertoast.showToast(
             msg: "Error getting merchant data onScroll: " +
@@ -244,13 +253,17 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
         isLoading = false;
       });
     } catch (err) {
-      debugPrint("Error getting merchant data onScroll: " + err.toString());
-      logger.e("Error getting merchant data onScroll: " + err.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.e(
+            "ERROR: Error getting merchant data onScroll: " + err.toString());
+      });
     }
   }
 
   Future<void> searchMerchants(searchString) async {
-    logger.i("Filtering merchants by search: " + searchString);
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("Filtering merchants by search: " + searchString);
+    });
     setState(
       () {
         currentSearch = searchString;
@@ -263,7 +276,9 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
   }
 
   Future<void> filterByEmployee(employeeId) async {
-    logger.i("Filtering merchants by employee: " + employeeId);
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("Filtering merchants by employee: " + employeeId);
+    });
     setState(() {
       filterEmployee = employeeId;
       pageNum = 0;
@@ -274,7 +289,9 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
   }
 
   Future<void> clearFilter() async {
-    logger.i("Filtering merchants cleared");
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("Filtering merchants cleared");
+    });
 
     if (isFiltering) {
       setState(
@@ -290,7 +307,9 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
   }
 
   Future<void> clearSearch() async {
-    logger.i("Filtering merchants by search cleared");
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("Filtering merchants by search cleared");
+    });
 
     if (isSearching) {
       setState(
@@ -307,7 +326,15 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
   }
 
   void openMerchant(merchant) {
-    logger.i("Merchant opened: " + merchant["merchant"]);
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i(
+        "Merchant opened: " +
+            merchant["merchantbusinessname"] +
+            " (" +
+            merchant["merchant"] +
+            ")",
+      );
+    });
     Navigator.pushNamed(
       context,
       "/viewmerchant",
@@ -361,7 +388,9 @@ class _MerchantsScreenState extends State<MerchantsScreen> {
                           onScroll();
                         },
                       );
-                      logger.i("Merchant sort changed: " + sortQuery);
+                      Future.delayed(Duration(seconds: 1), () {
+                        logger.i("Merchant sort changed: " + sortQuery);
+                      });
                     },
                   ),
                 ),

@@ -10,6 +10,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
+import 'package:round2crm/utils/CustomOutput.dart';
+import 'package:round2crm/utils/LogPrinter.dart';
 
 class EmployeeMapScreen extends StatefulWidget {
   @override
@@ -25,15 +27,8 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
   );
 
   var logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 8,
-      lineLength: 50,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
-    ),
-    // output: CustomOuput(),
+    printer: SimpleLogPrinter(),
+    output: CustomOutput(),
   );
 
   bool runOnce = true;
@@ -125,10 +120,12 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
                   stopCount = stopsArrDecoded.toString();
                 }
               } else {
-                logger.i(
-                  "Error in EmployeeMap stop count: " +
-                      result2.exception.toString(),
-                );
+                Future.delayed(Duration(seconds: 1), () {
+                  logger.i(
+                    "Error in EmployeeMap stop count: " +
+                        result2.exception.toString(),
+                  );
+                });
 
                 Fluttertoast.showToast(
                   msg: result2.exception.toString(),
@@ -195,11 +192,18 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
             }
           }
         }
-        logger.i("Sales Map markers loaded");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i(
+            "Map markers loaded, " +
+                markerLatLngs.length.toString() +
+                " markers loaded",
+          );
+        });
       },
       (error) {
-        debugPrint("Error in EmployeeMapScreen: " + error.toString());
-        logger.e("Error in EmployeeMapScreen: " + error.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.e("ERROR: Error in EmployeeMapScreen: " + error.toString());
+        });
       },
       () => refreshSub(),
     );
@@ -265,8 +269,10 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
         return BitmapDescriptor.fromBytes(resizedMarkerImageBytes);
       }
     } catch (e) {
-      debugPrint("Error getting marker image from cache: " + e.toString());
-      logger.e("Error getting marker image from cache: " + e.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger
+            .e("ERROR: Error getting marker image from cache: " + e.toString());
+      });
     }
 
     return await BitmapDescriptor.fromAssetImage(
@@ -290,7 +296,9 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
         onMapCreated: (GoogleMapController controller) async {
           if (!_fullScreenMapController.isCompleted) {
             _fullScreenMapController.complete(controller);
-            logger.i("EmployeeMap map loaded");
+            Future.delayed(Duration(seconds: 1), () {
+              logger.i("Employee map loaded");
+            });
           }
         },
       ),
