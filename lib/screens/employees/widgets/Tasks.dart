@@ -82,7 +82,9 @@ class _TasksState extends State<Tasks> {
       (data) {
         var tasksArrDecoded = data.data["employee_by_pk"]["tasks"];
         if (tasksArrDecoded != null && this.mounted) {
-          logger.i("Employee Tasks widget initialized");
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i("Employee Tasks widget initialized");
+          });
           setState(() {
             tasks = tasksArrDecoded;
             activeTasks = tasks;
@@ -106,7 +108,10 @@ class _TasksState extends State<Tasks> {
     if (subscription != null) {
       await subscription.cancel();
       subscription = null;
-      logger.i("Employee tasks widget refreshed");
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Employee tasks widget refreshed");
+      });
+
       initTasks();
     }
   }

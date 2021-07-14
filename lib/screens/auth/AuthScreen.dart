@@ -30,7 +30,10 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   void handleLogin() async {
-    logger.i("User attempting to login");
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("User attempting to login");
+    });
+
     setState(() {
       isLoading = true;
     });
@@ -42,7 +45,10 @@ class _AuthScreenState extends State<AuthScreen> {
           isLoading = false;
           UserService.isAuthenticated = true;
         });
-        logger.i("User successfully logged in using Google");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("User successfully logged in using Google");
+        });
+
         Navigator.of(context).pushReplacementNamed("/dashboard");
       } else {
         logger.e("ERROR on handleLogin");

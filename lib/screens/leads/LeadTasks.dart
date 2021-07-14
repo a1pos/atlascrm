@@ -203,7 +203,9 @@ class _LeadTasksState extends State<LeadTasks> {
           isLoading = false;
         });
         await fillEvents();
-        logger.i("Lead task data loaded and events filled");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Lead task data loaded and events filled");
+        });
       }
       isLoading = false;
     }, (error) {
@@ -217,7 +219,9 @@ class _LeadTasksState extends State<LeadTasks> {
       await subscription.cancel();
       subscription = null;
       initTasks();
-      logger.i("Lead tasks data refreshed");
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Lead tasks data refreshed");
+      });
     }
   }
 
@@ -242,7 +246,9 @@ class _LeadTasksState extends State<LeadTasks> {
     final QueryResult result0 = await GqlClientFactory().authGqlquery(options);
 
     if (result0 != null) {
-      logger.i("Task status loaded");
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Task status loaded");
+      });
       if (result0.hasException == false) {
         result0.data["task_status"].forEach((item) {
           if (item["title"] == "Open") {
@@ -292,14 +298,16 @@ class _LeadTasksState extends State<LeadTasks> {
 
       if (result != null) {
         if (result.hasException == false) {
-          logger.i(
-            "Task successfully created for " +
-                data["lead"].toString() +
-                " for a " +
-                taskTypeDropdownValue.toString() +
-                " at " +
-                data["date"].toString(),
-          );
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i(
+              "Task successfully created for " +
+                  data["lead"].toString() +
+                  " for a " +
+                  taskTypeDropdownValue.toString() +
+                  " at " +
+                  data["date"].toString(),
+            );
+          });
 
           Fluttertoast.showToast(
             msg: "Task successfully created!",
@@ -358,12 +366,16 @@ class _LeadTasksState extends State<LeadTasks> {
 
         if (leadStatus == status) {
           isBoarded = true;
-          logger.i("Lead is boarded");
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i("Lead is boarded");
+          });
         } else {
           setState(() {
             isBoarded = false;
           });
-          logger.i("Lead is not boarded");
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i("Lead is not boarded");
+          });
         }
       } else {
         debugPrint(
@@ -382,7 +394,9 @@ class _LeadTasksState extends State<LeadTasks> {
   }
 
   Future<void> openAddTaskForm() async {
-    logger.i("Add task form opened");
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("Add task form opened");
+    });
     await showDialog(
       barrierDismissible: false,
       context: context,
@@ -432,7 +446,9 @@ class _LeadTasksState extends State<LeadTasks> {
                     Container(),
                     GestureDetector(
                       onTap: () {
-                        logger.i("Add task form closed");
+                        Future.delayed(Duration(seconds: 1), () {
+                          logger.i("Add task form closed");
+                        });
                         Navigator.of(context).pop();
                       },
                       child: Icon(
@@ -470,8 +486,10 @@ class _LeadTasksState extends State<LeadTasks> {
                                           taskTypeDropdownValue = val;
                                         },
                                       );
-                                      logger.i("Task type changed: " +
-                                          val.toString());
+                                      Future.delayed(Duration(seconds: 1), () {
+                                        logger.i("Task type changed: " +
+                                            val.toString());
+                                      });
                                     }),
                                   ),
                                   Divider(
@@ -485,8 +503,11 @@ class _LeadTasksState extends State<LeadTasks> {
                                           taskPriorityDropdownValue = val;
                                         },
                                       );
-                                      logger.i("Task priorty level changed: " +
-                                          val.toString());
+                                      Future.delayed(Duration(seconds: 1), () {
+                                        logger.i(
+                                            "Task priorty level changed: " +
+                                                val.toString());
+                                      });
                                     },
                                   ),
                                   Divider(
@@ -497,7 +518,10 @@ class _LeadTasksState extends State<LeadTasks> {
                                         FocusScope.of(context).nextFocus(),
                                     validator: (value) {
                                       if (value.isEmpty) {
-                                        logger.i("No title entered");
+                                        Future.delayed(Duration(seconds: 1),
+                                            () {
+                                          logger.i("No title entered");
+                                        });
                                         return 'Please enter a title';
                                       }
                                       return null;
@@ -515,7 +539,10 @@ class _LeadTasksState extends State<LeadTasks> {
                                         FocusScope.of(context).nextFocus(),
                                     validator: (DateTime dateTime) {
                                       if (dateTime == null) {
-                                        logger.i("No date selected");
+                                        Future.delayed(Duration(seconds: 1),
+                                            () {
+                                          logger.i("No date selected");
+                                        });
                                         return 'Please select a date';
                                       }
                                       return null;

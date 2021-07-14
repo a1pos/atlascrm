@@ -107,9 +107,12 @@ class _LeadNotesState extends State<LeadNotes> {
     if (result != null) {
       if (result.hasException == false) {
         var notesArrDecoded = result.data["lead_note"];
-        logger.i("Lead notes loaded. " +
-            notesArrDecoded.length.toString() +
-            " notes loaded");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Lead notes loaded. " +
+              notesArrDecoded.length.toString() +
+              " notes loaded");
+        });
+
         if (notesArrDecoded != null) {
           var notesArr = List.from(notesArrDecoded);
           if (notesArr.length > 0) {
@@ -159,7 +162,10 @@ class _LeadNotesState extends State<LeadNotes> {
     final QueryResult result =
         await GqlClientFactory().authGqlmutate(mutateOptions);
     if (result.hasException == false) {
-      logger.i("Note successfully added: " + sendNote["note_text"]);
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Note successfully added: " + sendNote["note_text"]);
+      });
+
       loadNotes(this.widget.object[type]);
     } else {
       debugPrint("Error saving note: " + result.exception.toString());
@@ -201,12 +207,18 @@ class _LeadNotesState extends State<LeadNotes> {
         });
 
         if (leadStatus == status) {
-          logger.i("Lead is boarded");
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i("Lead is boarded");
+          });
+
           setState(() {
             isBoarded = true;
           });
         } else {
-          logger.i("Lead is not boarded");
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i("Lead is not boarded");
+          });
+
           setState(() {
             isBoarded = false;
           });
@@ -286,7 +298,10 @@ class _LeadNotesState extends State<LeadNotes> {
                           onPressed: () {
                             if (notesController.text == null ||
                                 notesController.text == "") {
-                              logger.i("Attempted to add blank note");
+                              Future.delayed(Duration(seconds: 1), () {
+                                logger.i("Attempted to add blank note");
+                              });
+
                               Fluttertoast.showToast(
                                 msg: "Cannot add blank note!",
                                 toastLength: Toast.LENGTH_SHORT,

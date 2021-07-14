@@ -78,9 +78,12 @@ class _NotificationCenterState extends State<NotificationCenter> {
           setState(() {
             notifCountIcon = notificationsArrDecoded.length;
           });
-          logger.i("Notification center data initialized, " +
-              notifCountIcon.toString() +
-              " notifications loaded");
+
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i("Notification center data initialized, " +
+                notifCountIcon.toString() +
+                " notifications loaded");
+          });
         }
       },
       (error) {
@@ -96,7 +99,9 @@ class _NotificationCenterState extends State<NotificationCenter> {
       await subscription.cancel();
       subscription = null;
       initNotificationsSub();
-      logger.i("Notifications center data refreshed");
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Notifications center data refreshed");
+      });
     }
   }
 
@@ -118,7 +123,10 @@ class _NotificationCenterState extends State<NotificationCenter> {
         await GqlClientFactory().authGqlmutate(mutateOptions);
 
     if (result.hasException == false) {
-      logger.i("Notifications marked as read");
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Notifications marked as read");
+      });
+
       Fluttertoast.showToast(
         msg: "Notifications Marked as Read!",
         toastLength: Toast.LENGTH_SHORT,
@@ -146,7 +154,10 @@ class _NotificationCenterState extends State<NotificationCenter> {
   }
 
   void openNotificationPanel() {
-    logger.i("Notification panel opened");
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("Notification panel opened");
+    });
+
     showDialog(
       barrierDismissible: false,
       context: context,

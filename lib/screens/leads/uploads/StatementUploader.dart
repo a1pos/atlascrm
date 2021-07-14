@@ -112,7 +112,10 @@ class _StatementUploaderState extends State<StatementUploader> {
       final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
       if (result.hasException == false) {
-        logger.i("Statement data loaded");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Statement data loaded");
+        });
+
         if (result.data != null) {
           var statementsArrDecoded = result.data["statement"];
 
@@ -206,7 +209,9 @@ class _StatementUploaderState extends State<StatementUploader> {
 
         if (leadStatus == status) {
           isBoarded = true;
-          logger.i("Lead is boarded");
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i("Lead is boarded");
+          });
         }
       } else {
         debugPrint(
@@ -255,7 +260,10 @@ class _StatementUploaderState extends State<StatementUploader> {
 
     if (result0 != null && result1 != null) {
       if (result0.hasException == false && result0.hasException == false) {
-        logger.i("Task status and type loaded");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Task status and type loaded");
+        });
+
         result0.data["task_status"].forEach(
           (item) {
             if (item["title"] == "Open") {
@@ -314,10 +322,12 @@ class _StatementUploaderState extends State<StatementUploader> {
 
         if (result != null) {
           if (result.hasException == false) {
-            logger.i("Task for rate review successfully scheduled for " +
-                data["lead"].toString() +
-                " on " +
-                data["date"].toString());
+            Future.delayed(Duration(seconds: 1), () {
+              logger.i("Task for rate review successfully scheduled for " +
+                  data["lead"].toString() +
+                  " on " +
+                  data["date"].toString());
+            });
 
             Fluttertoast.showToast(
               msg: successMsg.toString(),
@@ -393,8 +403,10 @@ class _StatementUploaderState extends State<StatementUploader> {
                               controller: taskDateController,
                               validator: (DateTime dateTime) {
                                 if (dateTime == null) {
-                                  logger.i(
-                                      "No date specified for date rate review date picker");
+                                  Future.delayed(Duration(seconds: 1), () {
+                                    logger.i(
+                                        "No date specified for date rate review date picker");
+                                  });
                                   return 'Please select a date';
                                 }
                                 return null;
@@ -434,7 +446,10 @@ class _StatementUploaderState extends State<StatementUploader> {
                                   TextStyle(color: Colors.white, fontSize: 17),
                             ),
                             onPressed: () {
-                              logger.i("Statement exited without being sent");
+                              Future.delayed(Duration(seconds: 1), () {
+                                logger.i("Statement exited without being sent");
+                              });
+
                               Navigator.pushNamed(
                                 context,
                                 "/viewlead",
@@ -464,8 +479,11 @@ class _StatementUploaderState extends State<StatementUploader> {
                                   Navigator.pop(context);
                                   uploadComplete();
                                 } else {
-                                  logger.i(
-                                      "No task date specified for rate review presentation");
+                                  Future.delayed(Duration(seconds: 1), () {
+                                    logger.i(
+                                        "No task date specified for rate review presentation");
+                                  });
+
                                   Fluttertoast.showToast(
                                     msg: "Please select a date/time!",
                                     toastLength: Toast.LENGTH_SHORT,
@@ -521,7 +539,10 @@ class _StatementUploaderState extends State<StatementUploader> {
                           value: statementEmployee,
                           callback: (value) {
                             statementEmployee = value;
-                            logger.i("Employee selected: " + value.toString());
+                            Future.delayed(Duration(seconds: 1), () {
+                              logger
+                                  .i("Employee selected: " + value.toString());
+                            });
                           },
                         ),
                       ),
@@ -540,7 +561,10 @@ class _StatementUploaderState extends State<StatementUploader> {
                               ),
                             ),
                             onPressed: () {
-                              logger.i("Statement re-assignment cancelled");
+                              Future.delayed(Duration(seconds: 1), () {
+                                logger.i("Statement re-assignment cancelled");
+                              });
+
                               Navigator.of(context).pop();
                             },
                           ),
@@ -554,8 +578,12 @@ class _StatementUploaderState extends State<StatementUploader> {
                               ),
                             ),
                             onPressed: () {
-                              logger.i("Statement assigned to new employee: " +
-                                  statementEmployee.toString());
+                              Future.delayed(Duration(seconds: 1), () {
+                                logger.i(
+                                    "Statement assigned to new employee: " +
+                                        statementEmployee.toString());
+                              });
+
                               addImage(result);
                               Navigator.of(context).pop();
                             },
@@ -763,18 +791,24 @@ class _StatementUploaderState extends State<StatementUploader> {
       children: List.generate(
         imageDLList.length,
         (index) {
-          logger.i("Image gallery built with " +
-              imageDLList.length.toString() +
-              " images");
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i("Image gallery built with " +
+                imageDLList.length.toString() +
+                " images");
+          });
+
           Map imgFile = imageDLList[index];
           var stringLen = imgFile["url"].length;
           var extendo = imgFile["url"].substring(stringLen - 3, stringLen);
           return GestureDetector(
             onTap: () {
-              logger.i("Gallery image selected \ntype: " +
-                  extendo.toString() +
-                  ", \nfile: " +
-                  imgFile.toString());
+              Future.delayed(Duration(seconds: 1), () {
+                logger.i("Gallery image selected \ntype: " +
+                    extendo.toString() +
+                    ", \nfile: " +
+                    imgFile.toString());
+              });
+
               if (extendo == "pdf") {
                 viewPdf(
                   imgFile,
@@ -839,14 +873,19 @@ class _StatementUploaderState extends State<StatementUploader> {
           "/api/upload/statement?lead=${lead["lead"]}&statement=$name", null);
 
       if (resp.statusCode == 200) {
-        logger.i("File deleted " + asset.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("File deleted " + asset.toString());
+        });
+
         if (imageDLList.length == 1) {
           setState(() {
             dirtyFlag = false;
             uploadsComplete = false;
             statementActive = false;
           });
-          logger.i("Gallery list now has 0 images in it, resetting flags");
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i("Gallery list now has 0 images in it, resetting flags");
+          });
         }
 
         Navigator.pop(context);
@@ -868,6 +907,7 @@ class _StatementUploaderState extends State<StatementUploader> {
       } else {
         Navigator.pop(context);
         Navigator.pop(context);
+        logger.e("Failed to delete image: " + asset.toString());
         Fluttertoast.showToast(
             msg: "Failed to delete image!",
             toastLength: Toast.LENGTH_SHORT,
@@ -912,7 +952,10 @@ class _StatementUploaderState extends State<StatementUploader> {
                 ),
               ),
               onPressed: () {
-                logger.i("Delete check canceled for " + asset.toString());
+                Future.delayed(Duration(seconds: 1), () {
+                  logger.i("Delete check canceled for " + asset.toString());
+                });
+
                 Navigator.of(context).pop();
                 Navigator.of(context).pop();
               },
@@ -956,7 +999,10 @@ class _StatementUploaderState extends State<StatementUploader> {
 
       if (result.hasException == false) {
         if (result.data != null) {
-          logger.i("Statement image data loaded");
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i("Statement image data loaded");
+          });
+
           for (var imgUrl in result.data["lead_photos"]["photos"]) {
             var url =
                 "${ConfigSettings.HOOK_API_URL}/uploads/statement/$imgUrl";
@@ -1044,7 +1090,10 @@ class _StatementUploaderState extends State<StatementUploader> {
             );
             Navigator.pushNamed(context, "/viewlead", arguments: lead["lead"]);
 
-            logger.i("Statement submitted successfully");
+            Future.delayed(Duration(seconds: 1), () {
+              logger.i("Statement submitted successfully");
+            });
+
             Fluttertoast.showToast(
               msg: "Statement Submitted!",
               toastLength: Toast.LENGTH_SHORT,
@@ -1135,7 +1184,10 @@ class _StatementUploaderState extends State<StatementUploader> {
 
       if (resp != null) {
         if (resp.statusCode == 200) {
-          logger.i("File uploaded successfully");
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i("File uploaded successfully");
+          });
+
           Fluttertoast.showToast(
             msg: "File Uploaded!",
             toastLength: Toast.LENGTH_SHORT,
@@ -1153,7 +1205,9 @@ class _StatementUploaderState extends State<StatementUploader> {
             loadStatements();
           } else {
             imageDLList.add({"name": imgUrl, "url": url});
-            logger.i("Uploaded file added to list: " + imgUrl.toString());
+            Future.delayed(Duration(seconds: 1), () {
+              logger.i("Uploaded file added to list: " + imgUrl.toString());
+            });
           }
           setState(() {
             statementId = resp.data["statement"];
@@ -1198,12 +1252,16 @@ class _StatementUploaderState extends State<StatementUploader> {
           setState(() {
             prompt = true;
           });
-          logger.i("User will be prompted on leave");
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i("User will be prompted on leave");
+          });
         } else {
           setState(() {
             prompt = false;
           });
-          logger.i("User will not be prompted on leave");
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i("User will not be prompted on leave");
+          });
         }
 
         leaveCheck();
@@ -1244,7 +1302,10 @@ class _StatementUploaderState extends State<StatementUploader> {
                                 : () async {
                                     var result = await platform
                                         .invokeMethod("openMedia");
-                                    logger.i("Media library channel invoked");
+                                    Future.delayed(Duration(seconds: 1), () {
+                                      logger.i("Media library channel invoked");
+                                    });
+
                                     if (UserService.isAdmin ||
                                         UserService.isSalesManager) {
                                       if (imageDLList.length == 0) {
@@ -1279,7 +1340,10 @@ class _StatementUploaderState extends State<StatementUploader> {
                               : () async {
                                   var result =
                                       await platform.invokeMethod("openCamera");
-                                  logger.i("Camera channel invoked");
+                                  Future.delayed(Duration(seconds: 1), () {
+                                    logger.i("Camera channel invoked");
+                                  });
+
                                   if (UserService.isAdmin ||
                                       UserService.isSalesManager) {
                                     if (imageDLList.length == 0) {
@@ -1318,7 +1382,10 @@ class _StatementUploaderState extends State<StatementUploader> {
                                             type: FileType.custom,
                                             allowMultiple: false,
                                             allowedExtensions: ['pdf']);
-                                    logger.i("File picker invoked");
+                                    Future.delayed(Duration(seconds: 1), () {
+                                      logger.i("File picker invoked");
+                                    });
+
                                     if (UserService.isAdmin ||
                                         UserService.isSalesManager) {
                                       if (imageDLList.length == 0) {
@@ -1365,7 +1432,10 @@ class _StatementUploaderState extends State<StatementUploader> {
                               hint: Text("View Past Statements"),
                               items: statements.map<DropdownMenuItem<String>>(
                                 (dynamic value) {
-                                  logger.i("Statements dropdown populated");
+                                  Future.delayed(Duration(seconds: 1), () {
+                                    logger.i("Statements dropdown populated");
+                                  });
+
                                   var dateSubmitted =
                                       DateTime.parse(value["created_at"])
                                           .toUtc();
@@ -1400,27 +1470,41 @@ class _StatementUploaderState extends State<StatementUploader> {
                                         statementActive = false;
                                         emailSent = true;
                                         dirtyFlag = false;
-                                        logger.i(
-                                            "Inactive statement selected: " +
-                                                valueString);
+                                        Future.delayed(Duration(seconds: 1),
+                                            () {
+                                          logger.i(
+                                              "Inactive statement selected: " +
+                                                  valueString);
+                                        });
                                       } else {
-                                        logger.i("Active statement selected: " +
-                                            valueString);
+                                        Future.delayed(Duration(seconds: 1),
+                                            () {
+                                          logger.i(
+                                              "Active statement selected: " +
+                                                  valueString);
+                                        });
+
                                         if (value["document"] != null) {
                                           if (value["document"]["emailSent"] ==
                                               true) {
                                             emailSent = true;
                                             uploadsComplete = true;
                                             statementActive = false;
-                                            logger.i(
-                                                "Active statement email has previously been sent");
+                                            Future.delayed(Duration(seconds: 1),
+                                                () {
+                                              logger.i(
+                                                  "Active statement email has previously been sent");
+                                            });
                                           }
                                         } else {
                                           emailSent = false;
                                           uploadsComplete = false;
                                           statementActive = true;
-                                          logger.i(
-                                              "Active statement email has not been sent yet");
+                                          Future.delayed(Duration(seconds: 1),
+                                              () {
+                                            logger.i(
+                                                "Active statement email has not been sent yet");
+                                          });
                                         }
                                         statementId = value["statement"];
                                         inactiveSelected = false;
@@ -1430,8 +1514,11 @@ class _StatementUploaderState extends State<StatementUploader> {
                                 },
                               ).toList(),
                               onChanged: (newValue) {
-                                logger.i("Dropdown value changed: " +
-                                    newValue.toString());
+                                Future.delayed(Duration(seconds: 1), () {
+                                  logger.i("Dropdown value changed: " +
+                                      newValue.toString());
+                                });
+
                                 setState(
                                   () {
                                     dropdownValue = newValue;

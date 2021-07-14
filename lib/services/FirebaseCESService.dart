@@ -52,7 +52,6 @@ class FirebaseCESService {
 
     if (!_initialized) {
       // For iOS request permission first.
-
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         FirebaseMessaging.onBackgroundMessage(myBackgroundMessageHandler);
         RemoteNotification notification = message.notification;
@@ -76,7 +75,9 @@ class FirebaseCESService {
       });
 
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-        logger.i("A new onMessageOpenedApp event was published");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("A new onMessageOpenedApp event was published");
+        });
 
         RemoteNotification notification = message.notification;
         AndroidNotification android = message.notification?.android;
@@ -114,14 +115,20 @@ class FirebaseCESService {
   Future<void> myBackgroundMessageHandler(RemoteMessage message) async {
     await Firebase.initializeApp();
 
-    logger.i("Handling a background message ${message.messageId}");
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("Handling a background message ${message.messageId}");
+    });
   }
 
   Future<void> handleFirebaseMessage(message) async {
-    logger.i("{$message}");
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("{$message}");
+    });
 
     if (message == null) return null;
-    logger.i(message.body);
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i(message.body);
+    });
 
     var messageActionType = "IGNORE";
     if (messageActionType == null) return null;

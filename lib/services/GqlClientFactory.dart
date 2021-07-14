@@ -35,7 +35,9 @@ class GqlClientFactory {
 
           if (errMsg.contains("JWTExpired")) {
             await refreshClient();
-            logger.i("JWTExpired authGqlquery: " + errMsg);
+            Future.delayed(Duration(seconds: 1), () {
+              logger.i("JWTExpired authGqlquery: " + errMsg);
+            });
             result = await client.query(options);
           } else {
             logger.e(errMsg);
@@ -69,7 +71,9 @@ class GqlClientFactory {
 
           if (errMsg.contains("JWTExpired")) {
             await refreshClient();
-            logger.i("JWTExpired authGqlmutate: " + errMsg);
+            Future.delayed(Duration(seconds: 1), () {
+              logger.i("JWTExpired authGqlmutate: " + errMsg);
+            });
             result = await client.mutate(options);
           } else {
             logger.e(errMsg);
@@ -105,7 +109,10 @@ class GqlClientFactory {
 
           if (errMsg.contains("JWTExpired")) {
             await refreshClient();
-            logger.e("JWTExpired authGqlsubscribe: " + errMsg);
+            Future.delayed(Duration(seconds: 1), () {
+              logger.i("JWTExpired authGqlsubscribe: " + errMsg);
+            });
+
             onError(error);
             refresh();
           } else {
@@ -134,16 +141,24 @@ class GqlClientFactory {
       if (!isRefreshing) {
         isRefreshing = true;
 
-        logger.i("Trying to refresh client");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Trying to refresh client");
+        });
         //set a public client so we can refresh tokens
         setPublicGraphQLClient();
-        logger.i("Client sent to public");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Client sent to public");
+        });
 
         var success = await UserService().exchangeRefreshToken();
         if (success) {
-          logger.i("Token refreshed");
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i("Token refreshed");
+          });
           setPrivateGraphQLClient(UserService.token);
-          logger.i("CLIENT SET TO PRIVATE");
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i("CLIENT SET TO PRIVATE");
+          });
         } else {
           debugPrint("REFRESH TOKEN TIMED OUT: SIGNING OUT");
           logger.e("Refresh token timed out: Signing Out");
@@ -218,14 +233,17 @@ class GqlClientFactory {
     );
 
     final String URLBASE = ConfigSettings.HOOK_API_URL;
-    logger.i(
-      "Connecting to Hooks API: " +
-          URLBASE.toString() +
-          "\nConnecting to Hasura: " +
-          ConfigSettings.HASURA_URL.toString() +
-          "\nConnecting to Websocket: " +
-          ConfigSettings.HASURA_WEBSOCKET.toString(),
-    );
+
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i(
+        "Connecting to Hooks API: " +
+            URLBASE.toString() +
+            "\nConnecting to Hasura: " +
+            ConfigSettings.HASURA_URL.toString() +
+            "\nConnecting to Websocket: " +
+            ConfigSettings.HASURA_WEBSOCKET.toString(),
+      );
+    });
 
     try {
       final policies = Policies(

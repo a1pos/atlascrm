@@ -140,7 +140,9 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
         ),
       );
     }
-    logger.i("Device status: " + deviceStatus);
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("Device status: " + deviceStatus);
+    });
   }
 
   Future<void> loadInventoryData() async {
@@ -177,7 +179,9 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
       var body = result.data["inventory_by_pk"];
       if (body != null) {
         var bodyDecoded = body;
-        logger.i("Device information loaded");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Device information loaded");
+        });
 
         setState(
           () {
@@ -280,12 +284,14 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
         await GqlClientFactory().authGqlmutate(mutateOptions);
 
     if (result.hasException == false) {
-      logger.i(alert +
-          " Merchant: " +
-          merchantNameController.text +
-          " (" +
-          merchantController.text +
-          ")");
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i(alert +
+            " Merchant: " +
+            merchantNameController.text +
+            " (" +
+            merchantController.text +
+            ")");
+      });
       Fluttertoast.showToast(
         msg: alert,
         toastLength: Toast.LENGTH_SHORT,
@@ -330,7 +336,9 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
                       },
                     );
                     if (newValue[0] != null) {
-                      logger.i("Merchant selected: " + newValue["name"]);
+                      Future.delayed(Duration(seconds: 1), () {
+                        logger.i("Merchant selected: " + newValue["name"]);
+                      });
                     }
                   },
                 )
@@ -352,7 +360,10 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
 
                   Navigator.of(context).pop();
                 } else {
-                  logger.i("Merchant not selected for checkout");
+                  Future.delayed(Duration(seconds: 1), () {
+                    logger.i("Merchant not selected for checkout");
+                  });
+
                   Fluttertoast.showToast(
                     msg: "Please select a merchant",
                     toastLength: Toast.LENGTH_SHORT,
@@ -439,7 +450,10 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
       );
     } else {
       Navigator.popAndPushNamed(context, "/inventory");
-      logger.i("Inventory device deleted: " + inventory["inventory"]);
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Inventory device deleted: " + inventory["inventory"]);
+      });
+
       Fluttertoast.showToast(
         msg: "Device deleted!",
         toastLength: Toast.LENGTH_SHORT,
@@ -489,7 +503,9 @@ class ViewInventoryScreenState extends State<ViewInventoryScreen> {
       historyList = reversed;
     }
 
-    logger.i("Device history list built");
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("Device history list built");
+    });
 
     return ListView(
       shrinkWrap: true,

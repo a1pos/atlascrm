@@ -134,7 +134,9 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
       var body = result.data["task_by_pk"];
       if (body != null) {
         var bodyDecoded = body;
-        logger.i("Task data loaded");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Task data loaded");
+        });
 
         if (bodyDecoded["date"] != null) {
           initDate = DateTime.parse(bodyDecoded["date"]).toLocal();
@@ -182,7 +184,10 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
   Future<void> updateTask(complete) async {
     try {
       if (taskDateController.text == null || taskDateController.text == "") {
-        logger.i("Date not entered for updating task");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Date not entered for updating task");
+        });
+
         Fluttertoast.showToast(
           msg: "Date is required!",
           toastLength: Toast.LENGTH_SHORT,
@@ -254,7 +259,10 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
                   textColor: Colors.white,
                   fontSize: 16.0);
           await loadTaskData();
-          logger.i("Task updated successfully and task data reloaded");
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i("Task updated successfully and task data reloaded");
+          });
+
           Navigator.pop(context);
         }
       } else {
@@ -327,8 +335,10 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
                           taskTypeDropdownValue = val;
                           changeButton();
                         });
-                        logger.i("Task type changed and button changed: " +
-                            taskTypeDropdownValue.toString());
+                        Future.delayed(Duration(seconds: 1), () {
+                          logger.i("Task type changed and button changed: " +
+                              taskTypeDropdownValue.toString());
+                        });
                       }),
                     ),
                     Divider(
@@ -341,8 +351,11 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
                           taskPriorityDropdownValue = val;
                           changeButton();
                         });
-                        logger.i("Task priority changed and button changed: " +
-                            taskPriorityDropdownValue.toString());
+                        Future.delayed(Duration(seconds: 1), () {
+                          logger.i(
+                              "Task priority changed and button changed: " +
+                                  taskPriorityDropdownValue.toString());
+                        });
                       },
                     ),
                     Divider(
@@ -359,8 +372,10 @@ class ViewTaskScreenState extends State<ViewTaskScreen> {
                                 leadDropdownValue = val;
                                 changeButton();
                               });
-                              logger.i(
-                                  "Lead value changed: " + leadDropdownValue);
+                              Future.delayed(Duration(seconds: 1), () {
+                                logger.i(
+                                    "Lead value changed: " + leadDropdownValue);
+                              });
                             },
                             employeeId: employeeDropdownValue,
                             disabled: true,

@@ -120,10 +120,12 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
                   stopCount = stopsArrDecoded.toString();
                 }
               } else {
-                logger.i(
-                  "Error in EmployeeMap stop count: " +
-                      result2.exception.toString(),
-                );
+                Future.delayed(Duration(seconds: 1), () {
+                  logger.i(
+                    "Error in EmployeeMap stop count: " +
+                        result2.exception.toString(),
+                  );
+                });
 
                 Fluttertoast.showToast(
                   msg: result2.exception.toString(),
@@ -190,11 +192,13 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
             }
           }
         }
-        logger.i(
-          "Map markers loaded, " +
-              markerLatLngs.length.toString() +
-              " markers loaded",
-        );
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i(
+            "Map markers loaded, " +
+                markerLatLngs.length.toString() +
+                " markers loaded",
+          );
+        });
       },
       (error) {
         debugPrint("Error in EmployeeMapScreen: " + error.toString());
@@ -289,7 +293,9 @@ class _EmployeeMapScreenState extends State<EmployeeMapScreen> {
         onMapCreated: (GoogleMapController controller) async {
           if (!_fullScreenMapController.isCompleted) {
             _fullScreenMapController.complete(controller);
-            logger.i("Employee map loaded");
+            Future.delayed(Duration(seconds: 1), () {
+              logger.i("Employee map loaded");
+            });
           }
         },
       ),

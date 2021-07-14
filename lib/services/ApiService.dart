@@ -19,7 +19,10 @@ class ApiService {
   );
 
   Future<Response> publicGet(url, data) async {
-    logger.i("Connecting to: " + URLBASE.toString());
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("Connecting to: " + URLBASE.toString());
+    });
+
     try {
       return await Dio(
         BaseOptions(
@@ -39,7 +42,9 @@ class ApiService {
 
   Future<Response> publicPost(url, data) async {
     try {
-      logger.i("Connecting to: " + URLBASE.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Connecting to: " + URLBASE.toString());
+      });
 
       return await Dio(
         BaseOptions(
@@ -62,7 +67,9 @@ class ApiService {
 
   Future<Response> authGet(context, url, {isRetry: false}) async {
     try {
-      logger.i("Connecting to: " + URLBASE.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Connecting to: " + URLBASE.toString());
+      });
 
       var token = UserService.token;
 
@@ -101,7 +108,9 @@ class ApiService {
   Future<Response> authPost(context, url, data,
       {isFile = false, isRetry: false}) async {
     try {
-      logger.i("Connecting to: " + URLBASE.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Connecting to: " + URLBASE.toString());
+      });
 
       var token = UserService.token;
 
@@ -139,14 +148,19 @@ class ApiService {
 
   Future<Response> authFilePost(context, url, filePath, {isRetry: true}) async {
     try {
-      logger.i("Connecting to: " + URLBASE.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Connecting to: " + URLBASE.toString());
+      });
 
-      logger.i("Context: " +
-          context.toString() +
-          ", \nUrl: " +
-          url.toString() +
-          ", \nfilePath: " +
-          filePath.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Context: " +
+            context.toString() +
+            ", \nUrl: " +
+            url.toString() +
+            ", \nfilePath: " +
+            filePath.toString());
+      });
+
       var token = UserService.token;
 
       var type = "application";
@@ -201,9 +215,14 @@ class ApiService {
       "url": url,
       "formData": formData,
     };
-    logger.i(message.toString());
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i(message.toString());
+    });
+
     try {
-      logger.i("Connecting to: " + URLBASE.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Connecting to: " + URLBASE.toString());
+      });
 
       var token = UserService.token;
 
@@ -233,7 +252,9 @@ class ApiService {
   Future<Response> authFilesPost(context, url, filePaths,
       {isRetry: true, fileName: "file"}) async {
     try {
-      logger.i("Connecting to: " + URLBASE.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Connecting to: " + URLBASE.toString());
+      });
 
       var token = UserService.token;
 
@@ -296,7 +317,9 @@ class ApiService {
 
   Future<Response> authPut(context, url, data, {isRetry: false}) async {
     try {
-      logger.i("Connecting to: " + URLBASE.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Connecting to: " + URLBASE.toString());
+      });
 
       var token = UserService.token;
 
@@ -331,7 +354,9 @@ class ApiService {
 
   Future<Response> authDelete(context, url, data, {isRetry: false}) async {
     try {
-      logger.i("Connecting to: " + URLBASE.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Connecting to: " + URLBASE.toString());
+      });
 
       var token = UserService.token;
 
@@ -366,7 +391,9 @@ class ApiService {
 
   bool checkAuthErrorResponse(context, msg) {
     try {
-      logger.i("Connecting to: " + URLBASE.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Connecting to: " + URLBASE.toString());
+      });
 
       if (msg != null) {
         if (msg.response != null) {

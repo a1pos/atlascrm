@@ -69,8 +69,11 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
     final QueryResult result = await GqlClientFactory().authGqlquery(options);
     if (result.hasException == false) {
       if (result != null) {
-        logger.i("Employee list initialized");
         if (result.hasException == false) {
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i("Employee list initialized");
+          });
+
           var employeeArrDecoded = result.data["employee"];
           if (employeeArrDecoded != null) {
             var employeeArr = List.from(employeeArrDecoded);
@@ -197,11 +200,14 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
 
           return GestureDetector(
             onTap: () {
-              logger.i("Employee selected: " +
-                  emp["document"]["displayName"] +
-                  " (" +
-                  emp["employee"] +
-                  ")");
+              Future.delayed(Duration(seconds: 1), () {
+                logger.i("Employee selected: " +
+                    emp["document"]["displayName"] +
+                    " (" +
+                    emp["employee"] +
+                    ")");
+              });
+
               Navigator.pushNamed(context, "/viewemployee",
                   arguments: emp["employee"]);
             },

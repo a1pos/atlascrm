@@ -62,7 +62,10 @@ class _MerchantDropDownState extends State<MerchantDropDown> {
         var merchantsArrDecoded = result.data["merchant"];
         if (merchantsArrDecoded != null) {
           if (this.mounted) {
-            logger.i("Merchant data loaded for dropdown");
+            Future.delayed(Duration(seconds: 1), () {
+              logger.i("Merchant data loaded for dropdown");
+            });
+
             merchantsArrDecoded.sort((a, b) => a["businessName"]
                 .toString()
                 .toUpperCase()
@@ -150,11 +153,13 @@ class _MerchantDropDownState extends State<MerchantDropDown> {
                       }
                       if (newValue == merchantBusinessName) {
                         setVal = merchant["merchant"];
-                        logger.i("Merchant changed to: " +
-                            merchantBusinessName +
-                            " (" +
-                            setVal.toString() +
-                            ")");
+                        Future.delayed(Duration(seconds: 1), () {
+                          logger.i("Merchant changed to: " +
+                              merchantBusinessName +
+                              " (" +
+                              setVal.toString() +
+                              ")");
+                        });
                       }
                     }
                     startVal = newValue;

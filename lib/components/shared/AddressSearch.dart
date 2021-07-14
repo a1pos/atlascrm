@@ -51,8 +51,10 @@ class _AddressSearchState extends State<AddressSearch> {
     if (locationText == null) {
       if (this.widget.locationValue != null) {
         locationText = this.widget.locationValue;
-        logger.i("Address added to location value field: " +
-            locationText.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Address added to location value field: " +
+              locationText.toString());
+        });
       } else {
         locationText = "Enter an address";
       }

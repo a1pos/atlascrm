@@ -59,7 +59,9 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
     try {
       await loadEmployeeData();
       await loadDevices();
-      logger.i("ViewEmployeeScreen initialized");
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("ViewEmployeeScreen initialized");
+      });
     } catch (err) {
       debugPrint("Error initializing employee data: " + err.toString());
       logger.e("Error initializing employee data: " + err.toString());
@@ -178,11 +180,14 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
       );
     }
 
-    logger.i(
-      "Role set to " +
-          result.data["update_employee_by_pk"]["roleByRole"]["title"] +
-          "!",
-    );
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i(
+        "Role set to " +
+            result.data["update_employee_by_pk"]["roleByRole"]["title"] +
+            "!",
+      );
+    });
+
     Fluttertoast.showToast(
       msg: "Role set to " +
           result.data["update_employee_by_pk"]["roleByRole"]["title"] +
@@ -300,7 +305,9 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
 
                   Navigator.pop(context);
 
-                  logger.i("Device added");
+                  Future.delayed(Duration(seconds: 1), () {
+                    logger.i("Device added");
+                  });
 
                   Fluttertoast.showToast(
                       msg: "Device Added!",
@@ -367,7 +374,10 @@ class ViewEmployeeScreenState extends State<ViewEmployeeScreen> {
                 }
                 Navigator.pop(context);
 
-                logger.i("Device deleted!");
+                Future.delayed(Duration(seconds: 1), () {
+                  logger.i("Device deleted!");
+                });
+
                 Fluttertoast.showToast(
                   msg: "Device Deleted!",
                   toastLength: Toast.LENGTH_SHORT,

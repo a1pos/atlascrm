@@ -94,7 +94,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                   currentDate = getCurrentDateTime();
 
-                  logger.i("Refresh completed at " + currentDate);
+                  Future.delayed(Duration(seconds: 1), () {
+                    logger.i("Refresh completed at " + currentDate);
+                  });
+
                   Fluttertoast.showToast(
                     msg: "Refresh completed at " + currentDate,
                     toastLength: Toast.LENGTH_LONG,

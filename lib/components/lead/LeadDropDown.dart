@@ -73,7 +73,10 @@ class _LeadDropDownState extends State<LeadDropDown> {
       var leadsArrDecoded;
       if (result != null) {
         if (result.hasException == false) {
-          logger.i("Leads loaded for lead dropdown");
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i("Leads loaded for lead dropdown");
+          });
+
           if (this.widget.employeeId == null) {
             leadsArrDecoded = result.data["lead"];
           } else {
@@ -167,18 +170,22 @@ class _LeadDropDownState extends State<LeadDropDown> {
                       }
                       startVal = newValue;
                       this.widget.callback(setVal);
-                      logger.i("Lead dropdown value set: " +
-                          newValue +
-                          " (" +
-                          setVal.toString() +
-                          ")");
+                      Future.delayed(Duration(seconds: 1), () {
+                        logger.i("Lead dropdown value set: " +
+                            newValue +
+                            " (" +
+                            setVal.toString() +
+                            ")");
+                      });
                     });
                   } else {
                     setState(() {
                       startVal = null;
                       this.widget.callback(null);
                     });
-                    logger.i("Lead dropdown value cleared");
+                    Future.delayed(Duration(seconds: 1), () {
+                      logger.i("Lead dropdown value cleared");
+                    });
                   }
                 },
         )

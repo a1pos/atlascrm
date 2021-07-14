@@ -83,7 +83,10 @@ class TasksState extends State<Tasks> {
       (data) {
         var tasksArrDecoded = data.data["employee_by_pk"]["tasks"];
         if (tasksArrDecoded != null && this.mounted) {
-          logger.i("Tasks widget initialized");
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i("Tasks widget initialized");
+          });
+
           setState(
             () {
               tasks = tasksArrDecoded;
@@ -111,7 +114,10 @@ class TasksState extends State<Tasks> {
       subscription = null;
       scrollController.animateTo(0,
           duration: Duration(milliseconds: 500), curve: Curves.fastOutSlowIn);
-      logger.i("Tasks refreshed");
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Tasks refreshed");
+      });
+
       initTasks();
     }
   }
@@ -175,15 +181,17 @@ Widget buildDLGridView(BuildContext context, list, scrollController) {
                     arguments: task['task'],
                   );
 
-                  logger.i(
-                    "Opening task: " +
-                        task["document"]["title"] +
-                        " (" +
-                        task["task"].toString() +
-                        ")" +
-                        " on " +
-                        task["date"].toString(),
-                  );
+                  Future.delayed(Duration(seconds: 1), () {
+                    logger.i(
+                      "Opening task: " +
+                          task["document"]["title"] +
+                          " (" +
+                          task["task"].toString() +
+                          ")" +
+                          " on " +
+                          task["date"].toString(),
+                    );
+                  });
                 },
                 child: TaskItem(
                   title: task["document"]["title"],

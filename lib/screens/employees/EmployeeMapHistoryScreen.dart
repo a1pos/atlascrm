@@ -139,12 +139,14 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
             );
             latLngs.add(latLng);
 
-            logger.i(
-              "Sales Map History route loaded for: " +
-                  deviceIdController.text +
-                  " on " +
-                  startDate.toString(),
-            );
+            Future.delayed(Duration(seconds: 1), () {
+              logger.i(
+                "Sales Map History route loaded for: " +
+                    deviceIdController.text +
+                    " on " +
+                    startDate.toString(),
+              );
+            });
 
             setState(
               () {
@@ -262,12 +264,14 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
                 _markers.addAll(markers);
               },
             );
-            logger.i(
-              "Sales Map History stops loaded for: " +
-                  deviceIdController.text +
-                  " on " +
-                  startDate.toString(),
-            );
+            Future.delayed(Duration(seconds: 1), () {
+              logger.i(
+                "Sales Map History stops loaded for: " +
+                    deviceIdController.text +
+                    " on " +
+                    startDate.toString(),
+              );
+            });
           } else {
             Fluttertoast.showToast(
               msg: countResult.exception.toString(),
@@ -363,10 +367,13 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
                                       lastDate: new DateTime(2040));
                                   if (picked != null) {
                                     currentDate = picked;
-                                    logger.i(
-                                      "Date selected on EmployeeHistoryMap: " +
-                                          picked.toString(),
-                                    );
+                                    Future.delayed(Duration(seconds: 1), () {
+                                      logger.i(
+                                        "Date selected on EmployeeHistoryMap: " +
+                                            picked.toString(),
+                                      );
+                                    });
+
                                     await loadMarkerHistory(picked);
                                   }
                                 }
@@ -398,7 +405,9 @@ class _EmployeeMapHistoryScreenState extends State<EmployeeMapHistoryScreen> {
                     onMapCreated: (GoogleMapController controller) async {
                       if (!_fullScreenMapController2.isCompleted) {
                         _fullScreenMapController2.complete(controller);
-                        logger.i("EmployeeMapHistory map loaded");
+                        Future.delayed(Duration(seconds: 1), () {
+                          logger.i("EmployeeMapHistory map loaded");
+                        });
                       }
                     },
                   ),

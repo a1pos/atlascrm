@@ -75,11 +75,13 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
                 ? UserService.employee.employee
                 : installList['employee'];
           });
-          logger.i("Install schedule form opened for: " +
-              installList["merchantbusinessname"] +
-              " (" +
-              installList["merchant"] +
-              ")");
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i("Install schedule form opened for: " +
+                installList["merchantbusinessname"] +
+                " (" +
+                installList["merchant"] +
+                ")");
+          });
 
           showDialog(
               context: context,
@@ -89,7 +91,10 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
                     MaterialButton(
                       child: Text('Cancel'),
                       onPressed: () {
-                        logger.i("Install schedule form closed");
+                        Future.delayed(Duration(seconds: 1), () {
+                          logger.i("Install schedule form closed");
+                        });
+
                         Navigator.pop(context);
                       },
                     ),
@@ -146,8 +151,10 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
                                 FocusScope.of(context).nextFocus(),
                             validator: (DateTime dateTime) {
                               if (dateTime == null) {
-                                logger.i(
-                                    "Attempted to schedule install without a date and time");
+                                Future.delayed(Duration(seconds: 1), () {
+                                  logger.i(
+                                      "Attempted to schedule install without a date and time");
+                                });
                                 return 'Please select a date';
                               }
                               return null;
@@ -173,13 +180,19 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
                                     currentValue ?? DateTime.now(),
                                   ),
                                 );
-                                logger.i("Date selected for:install: " +
-                                    DateTimeField.combine(date, time)
-                                        .toString());
+                                Future.delayed(Duration(seconds: 1), () {
+                                  logger.i("Date selected for:install: " +
+                                      DateTimeField.combine(date, time)
+                                          .toString());
+                                });
+
                                 return DateTimeField.combine(date, time);
                               } else {
-                                logger.i("Date selected for:install: " +
-                                    currentValue.toString());
+                                Future.delayed(Duration(seconds: 1), () {
+                                  logger.i("Date selected for:install: " +
+                                      currentValue.toString());
+                                });
+
                                 return currentValue;
                               }
                             },
@@ -235,8 +248,9 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
             ticketStatus = item["ticket_status"];
           }
         });
-        debugPrint("Loaded ticket status: " + ticketStatus.toString());
-        logger.i("Loaded ticket status: " + ticketStatus.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Loaded ticket status: " + ticketStatus.toString());
+        });
       } else {
         debugPrint("Error getting ticket status: " +
             ticketStatusResult.exception.toString());
@@ -275,9 +289,9 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
             ticketCategory = item["ticket_category"];
           }
         });
-
-        debugPrint("Ticket category loaded: " + ticketCategory.toString());
-        logger.i("Ticket category loaded: " + ticketCategory.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Ticket category loaded: " + ticketCategory.toString());
+        });
       } else {
         debugPrint("Error getting ticket category: " +
             ticketCategoryResult.exception.toString());
@@ -317,8 +331,9 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
       if (installDocumentResult.hasException == false) {
         install["document"] =
             installDocumentResult.data["install"][0]["document"];
-        debugPrint("Install document loaded for: " + installID.toString());
-        logger.i("Install document loaded for: " + installID.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Install document loaded for: " + installID.toString());
+        });
 
         if (installDocumentResult.data["install"][0]["ticket"] != null) {
           ticket = installDocumentResult.data["install"][0]["ticket"];
@@ -398,14 +413,12 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
 
     if (updateInstallEmployeeByPKResult != null) {
       if (updateInstallEmployeeByPKResult.hasException == false) {
-        debugPrint("Updated install employee by pk: " +
-            data['employee'].toString() +
-            " for: " +
-            data['install']);
-        logger.i("Updated install employee by pk: " +
-            data['employee'].toString() +
-            " for: " +
-            data['install']);
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Updated install employee by pk: " +
+              data['employee'].toString() +
+              " for: " +
+              data['install']);
+        });
       } else {
         debugPrint("Error updating install employee by pk: " +
             updateInstallEmployeeByPKResult.exception.toString());
@@ -446,14 +459,12 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
 
     if (updateInstallDateByPKResult != null) {
       if (updateInstallDateByPKResult.hasException == false) {
-        debugPrint("Updated install date by pk: " +
-            data['date'].toString() +
-            " for: " +
-            data['install'].toString());
-        logger.i("Updated install date by pk: " +
-            data['date'].toString() +
-            " for: " +
-            data['install'].toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Updated install date by pk: " +
+              data['date'].toString() +
+              " for: " +
+              data['install'].toString());
+        });
       } else {
         debugPrint("Error updating install date by pk: " +
             updateInstallDateByPKResult.exception.toString());
@@ -507,12 +518,11 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
 
     if (insertTicketResult != null) {
       if (insertTicketResult.hasException == false) {
-        debugPrint("Created new ticket: " +
-            insertTicketResult.data["insert_ticket"]["returning"][0]["ticket"]
-                .toString());
-        logger.i("Created new ticket: " +
-            insertTicketResult.data["insert_ticket"]["returning"][0]["ticket"]
-                .toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Created new ticket: " +
+              insertTicketResult.data["insert_ticket"]["returning"][0]["ticket"]
+                  .toString());
+        });
       } else {
         debugPrint("Error creating new ticket: " +
             insertTicketResult.exception.toString());
@@ -556,14 +566,12 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
 
     if (insertAssigneeResult != null) {
       if (insertAssigneeResult.hasException == false) {
-        debugPrint("Inserted ticket assignee: " +
-            data['employee'].toString() +
-            " for: " +
-            ticket.toString());
-        logger.i("Inserted ticket assignee: " +
-            data['employee'].toString() +
-            " for: " +
-            ticket.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Inserted ticket assignee: " +
+              data['employee'].toString() +
+              " for: " +
+              ticket.toString());
+        });
       } else {
         debugPrint("Error inserting ticket assignee: " +
             insertAssigneeResult.exception.toString() +
@@ -609,14 +617,12 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
 
     if (insertTicketMerchantResult != null) {
       if (insertTicketMerchantResult.hasException == false) {
-        debugPrint("Inserted ticket merchant: " +
-            data['merchant'].toString() +
-            " for: " +
-            ticket.toString());
-        logger.i("Inserted ticket merchant: " +
-            data['merchant'].toString() +
-            " for: " +
-            ticket.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Inserted ticket merchant: " +
+              data['merchant'].toString() +
+              " for: " +
+              ticket.toString());
+        });
       } else {
         debugPrint("Error inserting ticket merchant: " +
             insertTicketMerchantResult.exception.toString() +
@@ -662,14 +668,12 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
 
     if (insertTicketLabelResult != null) {
       if (insertTicketLabelResult.hasException == false) {
-        debugPrint("Inserted ticket label: " +
-            data['ticket_category'].toString() +
-            " for: " +
-            ticket.toString());
-        logger.i("Inserted ticket label: " +
-            data['ticket_category'].toString() +
-            " for: " +
-            ticket.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Inserted ticket label: " +
+              data['ticket_category'].toString() +
+              " for: " +
+              ticket.toString());
+        });
       } else {
         debugPrint("Error inserting ticket label: " +
             insertTicketLabelResult.exception.toString() +
@@ -714,14 +718,12 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
 
     if (updateInstallResult != null) {
       if (updateInstallResult.hasException == false) {
-        debugPrint("Inserted ticket into install record: " +
-            ticket.toString() +
-            " for: " +
-            data['install']);
-        logger.i("Inserted ticket into install record: " +
-            ticket.toString() +
-            " for: " +
-            data['install']);
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Inserted ticket into install record: " +
+              ticket.toString() +
+              " for: " +
+              data['install']);
+        });
       } else {
         debugPrint("Error inserting ticket into install record: " +
             updateInstallResult.exception.toString());
@@ -767,14 +769,12 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
 
       if (insertTicketCommentResult != null) {
         if (insertTicketCommentResult.hasException == false) {
-          debugPrint("Inserted initial ticket comment: " +
-              ticketComment.toString() +
-              " for: " +
-              ticket.toString());
-          logger.i("Inserted initial ticket comment: " +
-              ticketComment.toString() +
-              " for: " +
-              ticket.toString());
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i("Inserted initial ticket comment: " +
+                ticketComment.toString() +
+                " for: " +
+                ticket.toString());
+          });
         } else {
           debugPrint("Error inserting initial ticket comment: " +
               insertTicketCommentResult.exception.toString() +
@@ -819,10 +819,10 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
 
       if (updateInstallByPKResult != null) {
         if (updateInstallByPKResult.hasException == false) {
-          debugPrint("Updated install to set ticket created to true for: " +
-              data['install'].toString());
-          logger.i("Updated install to set ticket created to true for: " +
-              data['install'].toString());
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i("Updated install to set ticket created to true for: " +
+                data['install'].toString());
+          });
         } else {
           debugPrint("Error updating install to set ticket to true: " +
               updateInstallByPKResult.exception.toString());
@@ -841,8 +841,10 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
         }
       }
     }
-    debugPrint(successMsg);
-    logger.i(successMsg);
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i(successMsg);
+    });
+
     Fluttertoast.showToast(
       msg: successMsg,
       toastLength: msgLength,
@@ -881,14 +883,12 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
 
     if (updateInstallDateByPKResult != null) {
       if (updateInstallDateByPKResult.hasException == false) {
-        debugPrint("Updated install date to " +
-            data['date'].toString() +
-            " for: " +
-            data['install']);
-        logger.i("Updated install date to " +
-            data['date'].toString() +
-            " for: " +
-            data['install']);
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Updated install date to " +
+              data['date'].toString() +
+              " for: " +
+              data['install']);
+        });
       } else {
         debugPrint("Error updating install date: " +
             updateInstallDateByPKResult.exception.toString());
@@ -929,14 +929,12 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
 
     if (updateInstallEmployeeByPKResult != null) {
       if (updateInstallEmployeeByPKResult.hasException == false) {
-        debugPrint("Updated install employee: " +
-            data['employee'].toString() +
-            " for: " +
-            data['install'].toString());
-        logger.i("Updated install employee: " +
-            data['employee'].toString() +
-            " for: " +
-            data['install'].toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Updated install employee: " +
+              data['employee'].toString() +
+              " for: " +
+              data['install'].toString());
+        });
       } else {
         debugPrint("Error updating install employee: " +
             updateInstallEmployeeByPKResult.exception.toString());
@@ -977,14 +975,12 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
 
     if (updateTicketDateByPKResult != null) {
       if (updateTicketDateByPKResult.hasException == false) {
-        debugPrint("Updated ticket date: " +
-            data['date'].toString() +
-            " for: " +
-            data['ticket'].toString());
-        logger.i("Updated ticket date: " +
-            data['date'].toString() +
-            " for: " +
-            data['ticket'].toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Updated ticket date: " +
+              data['date'].toString() +
+              " for: " +
+              data['ticket'].toString());
+        });
       } else {
         debugPrint("Error updating ticket date: " +
             updateTicketDateByPKResult.exception.toString());
@@ -1027,14 +1023,12 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
 
     if (updateTicketAssigneeResult != null) {
       if (updateTicketAssigneeResult.hasException == false) {
-        debugPrint("Updated ticket assignee: " +
-            data['employee'].toString() +
-            " for: " +
-            data['ticket'].toString());
-        logger.i("Updated ticket assignee: " +
-            data['employee'].toString() +
-            " for: " +
-            data['ticket'].toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Updated ticket assignee: " +
+              data['employee'].toString() +
+              " for: " +
+              data['ticket'].toString());
+        });
       } else {
         debugPrint("Error updating ticket assignee: " +
             updateTicketAssigneeResult.exception.toString());
@@ -1053,8 +1047,10 @@ class _InstallScheduleFormState extends State<InstallScheduleForm> {
       }
     }
 
-    debugPrint(successMsg);
-    logger.i(successMsg);
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i(successMsg);
+    });
+
     Fluttertoast.showToast(
       msg: successMsg,
       toastLength: msgLength,

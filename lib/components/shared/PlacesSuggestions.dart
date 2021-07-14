@@ -52,8 +52,10 @@ class _PlacesSuggestionsState extends State<PlacesSuggestions> {
       PlaceDetails placeDetails = respo.result;
       List placeAddress = placeDetails.addressComponents;
 
-      logger.i("Place selected on place suggestions: " +
-          placeDetails.name.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Place selected on place suggestions: " +
+            placeDetails.name.toString());
+      });
 
       Map addressInfo = {
         "address": "",
@@ -114,7 +116,10 @@ class _PlacesSuggestionsState extends State<PlacesSuggestions> {
   }
 
   Future<void> notListed(addrObj) async {
-    logger.i("Not listed selected for: " + addrObj.toString());
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("Not listed selected for: " + addrObj.toString());
+    });
+
     this.widget.onPlaceSelect(addrObj);
     Navigator.of(context).pop();
   }

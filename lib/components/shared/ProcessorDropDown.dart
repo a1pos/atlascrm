@@ -72,6 +72,10 @@ class _ProcessorDropDownState extends State<ProcessorDropDown> {
         var processorArrDecoded = result.data["processor"];
         if (processorArrDecoded != null) {
           if (this.mounted) {
+            Future.delayed(Duration(seconds: 1), () {
+              logger.i("Processor data loaded for dropdown");
+            });
+
             setState(() {
               processors = processorArrDecoded;
             });
@@ -153,6 +157,14 @@ class _ProcessorDropDownState extends State<ProcessorDropDown> {
                       }
                     }
                     startVal = newValue;
+                    Future.delayed(Duration(seconds: 1), () {
+                      logger.i("Processor selected: " +
+                          startVal +
+                          " (" +
+                          setVal +
+                          ")");
+                    });
+
                     this.widget.callback(setVal);
                   });
                 },

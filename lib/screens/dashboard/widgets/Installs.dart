@@ -79,7 +79,10 @@ class InstallsState extends State<Installs> {
       (data) async {
         var installsArrDecoded = data.data["v_install_table"];
         if (installsArrDecoded != null && this.mounted) {
-          logger.i("Installs widget initialized");
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i("Installs widget initialized");
+          });
+
           setState(() {
             installs = installsArrDecoded;
             activeInstalls = installs
@@ -109,7 +112,10 @@ class InstallsState extends State<Installs> {
       subscription = null;
       _scrollController.animateTo(0,
           duration: Duration(milliseconds: 500), curve: Curves.fastOutSlowIn);
-      logger.i("Installs widget refreshed");
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Installs widget refreshed");
+      });
+
       initInstalls();
     }
   }

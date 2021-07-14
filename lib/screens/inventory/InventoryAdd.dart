@@ -88,7 +88,9 @@ class InventoryAddState extends State<InventoryAdd> {
       );
     } else {
       if (isListed) {
-        logger.i("Scanned duplicate serial number");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Scanned duplicate serial number");
+        });
 
         Fluttertoast.showToast(
           msg: "This serial has already been scanned!",
@@ -99,7 +101,9 @@ class InventoryAddState extends State<InventoryAdd> {
           fontSize: 16.0,
         );
       } else if (isMac) {
-        logger.i("Inventory add MAC address scanned");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Inventory add MAC address scanned");
+        });
 
         Fluttertoast.showToast(
           msg: "That's the MAC address!",
@@ -124,14 +128,21 @@ class InventoryAddState extends State<InventoryAdd> {
         },
       );
       var result = await BarcodeScanner.scan(options: options);
-      logger.i("BarcodeScanner opened");
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("BarcodeScanner opened");
+      });
 
       if (result.type != ResultType.Cancelled) {
         addToList(result.rawContent.toString());
-        logger.i("Device S/N added to list: " + result.rawContent.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Device S/N added to list: " + result.rawContent.toString());
+        });
+
         await scanBarcode();
       } else {
-        logger.i("BarcodeScanner closed");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("BarcodeScanner closed");
+        });
       }
     } catch (err) {
       debugPrint("Error scanning barcode: " + err.toString());
@@ -142,7 +153,10 @@ class InventoryAddState extends State<InventoryAdd> {
   Future<void> addDevice() async {
     try {
       if (serialList.length < 1) {
-        logger.i("No devices scanned");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("No devices scanned");
+        });
+
         Fluttertoast.showToast(
           msg: "No devices scanned!",
           toastLength: Toast.LENGTH_SHORT,
@@ -216,7 +230,10 @@ class InventoryAddState extends State<InventoryAdd> {
       }
 
       if (cleanPost) {
-        logger.i(serialList.length.toString() + " Devices added");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i(serialList.length.toString() + " Devices added");
+        });
+
         Fluttertoast.showToast(
           msg: "Devices Added!",
           toastLength: Toast.LENGTH_SHORT,
@@ -226,7 +243,9 @@ class InventoryAddState extends State<InventoryAdd> {
           fontSize: 16.0,
         );
       } else {
-        logger.i("Some of the scanned devices already exist");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Some of the scanned devices already exist");
+        });
         Fluttertoast.showToast(
           msg: "Some of these devices already exist!",
           toastLength: Toast.LENGTH_SHORT,
@@ -298,9 +317,12 @@ class InventoryAddState extends State<InventoryAdd> {
                         onPressed: () {
                           setState(
                             () {
-                              logger.i(
-                                  "Scanned Device S/N removed from list: " +
-                                      device["serial"]);
+                              Future.delayed(Duration(seconds: 1), () {
+                                logger.i(
+                                    "Scanned Device S/N removed from list: " +
+                                        device["serial"]);
+                              });
+
                               serialList.removeWhere(
                                 (item) => item["serial"] == device["serial"],
                               );
@@ -357,10 +379,15 @@ class InventoryAddState extends State<InventoryAdd> {
                             ? _currentStep += 1
                             : null;
                       });
-                      logger.i("Next step on stepper hit: " +
-                          _currentStep.toString());
+                      Future.delayed(Duration(seconds: 1), () {
+                        logger.i("Next step on stepper hit: " +
+                            _currentStep.toString());
+                      });
                     } else {
-                      logger.i("Tier and Location not selected");
+                      Future.delayed(Duration(seconds: 1), () {
+                        logger.i("Tier and Location not selected");
+                      });
+
                       Fluttertoast.showToast(
                         msg: "Please Select a Tier and Location!",
                         toastLength: Toast.LENGTH_SHORT,
@@ -377,8 +404,10 @@ class InventoryAddState extends State<InventoryAdd> {
                         _currentStep > 0 ? _currentStep -= 1 : null;
                       },
                     );
-                    logger.i("Previous step on stepper hit: " +
-                        _currentStep.toString());
+                    Future.delayed(Duration(seconds: 1), () {
+                      logger.i("Previous step on stepper hit: " +
+                          _currentStep.toString());
+                    });
                   },
                   steps: [
                     Step(
@@ -553,7 +582,10 @@ class InventoryAddState extends State<InventoryAdd> {
 
   bool validationPassed() {
     if (_formKey.currentState.validate()) {
-      logger.i("Inventory add stepper validated");
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Inventory add stepper validated");
+      });
+
       return true;
     }
     return false;

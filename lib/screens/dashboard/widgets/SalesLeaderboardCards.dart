@@ -121,8 +121,10 @@ class SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
       (data) {
         var incomingData = data.data["v_leaderboard"];
         if (incomingData != null) {
-          logger.i("Sales Leaderboard Cards widget initialized");
           if (this.mounted) {
+            Future.delayed(Duration(seconds: 1), () {
+              logger.i("Sales Leaderboard Cards widget initialized");
+            });
             setState(() {
               graphList = incomingData;
               isLoading = false;
@@ -144,7 +146,10 @@ class SalesLeaderboardCardsState extends State<SalesLeaderboardCards> {
       subscription = null;
       _scrollController.animateTo(0,
           duration: Duration(milliseconds: 500), curve: Curves.fastOutSlowIn);
-      logger.i("Sales leaderboard cards refreshed");
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Sales leaderboard cards refreshed");
+      });
+
       initSub();
     }
   }

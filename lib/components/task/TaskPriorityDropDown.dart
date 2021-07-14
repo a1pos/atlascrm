@@ -46,7 +46,10 @@ class _TaskPriorityDropDownState extends State<TaskPriorityDropDown> {
         DropdownButtonFormField<String>(
           validator: (value) {
             if (value == null) {
-              logger.i("No task priority selected for dropdown");
+              Future.delayed(Duration(seconds: 1), () {
+                logger.i("No task priority selected for dropdown");
+              });
+
               return 'Please select a task priority';
             }
             return null;
@@ -61,8 +64,11 @@ class _TaskPriorityDropDownState extends State<TaskPriorityDropDown> {
             );
           }).toList(),
           onChanged: (newValue) {
-            logger.i(
-                "Task priority dropdown value changed: " + newValue.toString());
+            Future.delayed(Duration(seconds: 1), () {
+              logger.i("Task priority dropdown value changed: " +
+                  newValue.toString());
+            });
+
             this.widget.callback(newValue);
           },
         ),

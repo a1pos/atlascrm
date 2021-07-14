@@ -59,7 +59,10 @@ class _CompanyDropDownState extends State<CompanyDropDown> {
 
     if (result != null) {
       if (result.hasException == false) {
-        logger.i("Company data loaded for dropdown");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Company data loaded for dropdown");
+        });
+
         var companiesArrDecoded = result.data["v_company"];
         if (companiesArrDecoded != null) {
           if (this.mounted) {
@@ -147,12 +150,18 @@ class _CompanyDropDownState extends State<CompanyDropDown> {
                     startVal = newValue;
                     var returnObj = {"id": setVal, "name": newValue};
                     this.widget.callback(returnObj);
-                    logger.i("Company changed: " + newValue);
+                    Future.delayed(Duration(seconds: 1), () {
+                      logger.i(
+                          "Company changed: " + newValue + " (" + setVal + ")");
+                    });
                   });
                 },
           validator: (value) {
             if (value == null) {
-              logger.i("No company entered");
+              Future.delayed(Duration(seconds: 1), () {
+                logger.i("No company entered");
+              });
+
               return "Please select a company";
             }
             return null;

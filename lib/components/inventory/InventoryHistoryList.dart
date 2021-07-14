@@ -74,7 +74,10 @@ class _InventoryHistoryListState extends State<InventoryHistoryList> {
       (data) {
         var inventoryTracking = data.data["inventory_tracking"];
         if (inventoryTracking != null && this.mounted) {
-          logger.i("Inventory history data loaded");
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i("Inventory history data loaded");
+          });
+
           setState(() {
             historyList = inventoryTracking;
             isLoading = false;

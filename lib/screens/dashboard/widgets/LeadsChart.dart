@@ -80,7 +80,10 @@ class LeadsChartState extends State<LeadsChart> {
     if (from == null) from = weekStart;
     if (to == null) to = today;
 
-    logger.i("Leads chart parameters set to: " + from + " to " + to);
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("Leads chart parameters set to: " + from + " to " + to);
+    });
+
     SubscriptionOptions leadOptions = SubscriptionOptions(
       operationName: "GET_LEAD_COUNT",
       document: gql("""
@@ -114,7 +117,10 @@ class LeadsChartState extends State<LeadsChart> {
         var incomingData = data.data["employee"];
         if (incomingData != null) {
           if (this.mounted) {
-            logger.i("Leads chart widget initialized");
+            Future.delayed(Duration(seconds: 1), () {
+              logger.i("Leads chart widget initialized");
+            });
+
             setState(() {
               graphList = incomingData;
               isLoading = false;
@@ -168,12 +174,16 @@ class LeadsChartState extends State<LeadsChart> {
     if (subscription != null) {
       await subscription.cancel();
       subscription = null;
-      logger.i("Leads chart subscription refreshed. Params set to: " +
-          from +
-          " " +
-          fromVal +
-          " to " +
-          toVal);
+
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Leads chart subscription refreshed. Params set to: " +
+            from +
+            " " +
+            fromVal +
+            " to " +
+            toVal);
+      });
+
       initSub(fromVal, toVal);
     }
   }
@@ -236,7 +246,9 @@ class LeadsChartState extends State<LeadsChart> {
                 }).toList(),
                 onChanged: (String newValue) {
                   setState(() {
-                    logger.i("Leads chart parameters changed: " + newValue);
+                    Future.delayed(Duration(seconds: 1), () {
+                      logger.i("Leads chart parameters changed: " + newValue);
+                    });
                     isLoading = true;
                     timeDropdownValue = newValue;
                     refreshSub();

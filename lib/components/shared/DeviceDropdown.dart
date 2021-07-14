@@ -64,7 +64,10 @@ class _DeviceDropDownState extends State<DeviceDropDown> {
         var devicesArrDecoded = devicesResp.data["employee_device"];
         if (devicesArrDecoded != null) {
           if (this.mounted) {
-            logger.i("Devices dropdown loaded");
+            Future.delayed(Duration(seconds: 1), () {
+              logger.i("Devices dropdown loaded");
+            });
+
             setState(() {
               devices = devicesArrDecoded;
             });
@@ -135,7 +138,10 @@ class _DeviceDropDownState extends State<DeviceDropDown> {
 
                     startVal = setVal;
                     this.widget.callback(setVal);
-                    logger.i("Device changed: " + newValue);
+                    Future.delayed(Duration(seconds: 1), () {
+                      logger.i(
+                          "Device changed: " + newValue + " (" + setVal + ")");
+                    });
                   });
                 },
         )

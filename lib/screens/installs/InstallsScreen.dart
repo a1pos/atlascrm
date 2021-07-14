@@ -138,10 +138,12 @@ class _InstallsScreenState extends State<InstallsScreen> {
             isEmpty = false;
           }
         });
-        logger.i("Day selected: " +
-            daySelected.toString() +
-            ", events found on day: " +
-            activeInstalls.length.toString());
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Day selected: " +
+              daySelected.toString() +
+              ", events found on day: " +
+              activeInstalls.length.toString());
+        });
       },
     );
   }
@@ -184,7 +186,9 @@ class _InstallsScreenState extends State<InstallsScreen> {
         });
 
         await fillEvents();
-        logger.i("Installs data initialized and events filled on calendar");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Installs data initialized and events filled on calendar");
+        });
       }
       isLoading = false;
     }, (error) {
@@ -198,7 +202,9 @@ class _InstallsScreenState extends State<InstallsScreen> {
       await subscription.cancel();
       subscription = null;
       initInstallData();
-      logger.i("Refreshing installs subscription");
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Refreshing installs subscription");
+      });
     }
   }
 
@@ -259,16 +265,20 @@ class _InstallsScreenState extends State<InstallsScreen> {
 
                   if (activeInstalls.length > 0) {
                     isEmpty = false;
-                    logger.i("Search performed for " +
-                        value.toString() +
-                        " and " +
-                        activeInstalls.length.toString() +
-                        " events found");
+                    Future.delayed(Duration(seconds: 1), () {
+                      logger.i("Search performed for " +
+                          value.toString() +
+                          " and " +
+                          activeInstalls.length.toString() +
+                          " events found");
+                    });
                   } else {
                     isEmpty = true;
-                    logger.i("Search performed for " +
-                        value.toString() +
-                        " but no events were found");
+                    Future.delayed(Duration(seconds: 1), () {
+                      logger.i("Search performed for " +
+                          value.toString() +
+                          " but no events were found");
+                    });
                   }
                 });
               } else {
@@ -309,9 +319,11 @@ class _InstallsScreenState extends State<InstallsScreen> {
                               });
                             }
                             fillEvents();
-                            logger.i("Active Installs switch tapped to " +
-                                value.toString() +
-                                " and events filtered");
+                            Future.delayed(Duration(seconds: 1), () {
+                              logger.i("Active Installs switch tapped to " +
+                                  value.toString() +
+                                  " and events filtered");
+                            });
                           },
                         ),
                         Text("Active Installs"),
@@ -345,9 +357,11 @@ class _InstallsScreenState extends State<InstallsScreen> {
                         });
                       }
                       fillEvents();
-                      logger.i("Employee filter switched to " +
-                          val.toString() +
-                          " and events filtered");
+                      Future.delayed(Duration(seconds: 1), () {
+                        logger.i("Employee filter switched to " +
+                            val.toString() +
+                            " and events filtered");
+                      });
                     },
                     roles: ["tech", "corporate_tech"],
                   ),

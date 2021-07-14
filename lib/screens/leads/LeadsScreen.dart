@@ -101,7 +101,9 @@ class _LeadsScreenState extends State<LeadsScreen> {
                 style: TextStyle(fontSize: 17, color: Colors.red),
               ),
               onPressed: () {
-                logger.i("Stale lead not claimed: " + lead.toString());
+                Future.delayed(Duration(seconds: 1), () {
+                  logger.i("Stale lead not claimed: " + lead.toString());
+                });
                 Navigator.of(context).pop();
                 openLead(lead);
               },
@@ -132,8 +134,9 @@ class _LeadsScreenState extends State<LeadsScreen> {
                     await GqlClientFactory().authGqlmutate(mutateOptions);
 
                 if (result.hasException == false) {
-                  debugPrint("Lead claimed successfully: " + lead.toString());
-                  logger.i("Lead claimed successfully: " + lead.toString());
+                  Future.delayed(Duration(seconds: 1), () {
+                    logger.i("Lead claimed successfully: " + lead.toString());
+                  });
                   Fluttertoast.showToast(
                     msg: "Lead Claimed!",
                     toastLength: Toast.LENGTH_SHORT,
@@ -145,10 +148,10 @@ class _LeadsScreenState extends State<LeadsScreen> {
                   Navigator.of(context).pop();
                   openLead(lead);
                 } else {
-                  debugPrint(
-                      "Failed to claim lead: " + result.exception.toString());
-                  logger.i(
-                      "Failed to claim lead: " + result.exception.toString());
+                  Future.delayed(Duration(seconds: 1), () {
+                    logger.i(
+                        "Failed to claim lead: " + result.exception.toString());
+                  });
 
                   Fluttertoast.showToast(
                     msg: "Failed to claim lead: " + result.exception.toString(),
@@ -202,8 +205,13 @@ class _LeadsScreenState extends State<LeadsScreen> {
       final result = await GqlClientFactory().authGqlquery(options);
 
       if (result != null) {
-        logger.i("Initial leads data loaded");
-        logger.i(initParams);
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Initial leads data loaded");
+        });
+
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i(initParams);
+        });
 
         if (result.hasException == false) {
           var leadsArrDecoded = result.data["v_lead"];
@@ -304,7 +312,9 @@ class _LeadsScreenState extends State<LeadsScreen> {
         }
       }
 
-      logger.i("Parameters for getting leads: " + params);
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Parameters for getting leads: " + params);
+      });
 
       QueryOptions options = QueryOptions(
         document: gql("""
@@ -328,7 +338,9 @@ class _LeadsScreenState extends State<LeadsScreen> {
       final QueryResult result = await GqlClientFactory().authGqlquery(options);
 
       if (result != null) {
-        logger.i("Leads data in onScroll loaded");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Leads data in onScroll loaded");
+        });
         if (result.hasException == false) {
           var leadsArrDecoded = result.data["v_lead"];
           if (leadsArrDecoded != null) {
@@ -387,7 +399,9 @@ class _LeadsScreenState extends State<LeadsScreen> {
   Future<void> searchLeads(searchString) async {
     FocusScope.of(context).requestFocus(new FocusNode());
 
-    logger.i("Leads filtered by search: " + searchString.toString());
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("Leads filtered by search: " + searchString.toString());
+    });
 
     setState(
       () {
@@ -401,7 +415,10 @@ class _LeadsScreenState extends State<LeadsScreen> {
   }
 
   Future<void> filterByEmployee(employeeId) async {
-    logger.i("Leads filtered by search: " + employeeId.toString());
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("Leads filtered by search: " + employeeId.toString());
+    });
+
     setState(
       () {
         filterEmployee = employeeId;
@@ -417,7 +434,10 @@ class _LeadsScreenState extends State<LeadsScreen> {
     FocusScope.of(context).requestFocus(new FocusNode());
 
     if (isFiltering) {
-      logger.i("Lead filter cleared");
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Lead filter cleared");
+      });
+
       setState(
         () {
           filterEmployee = "";
@@ -432,7 +452,10 @@ class _LeadsScreenState extends State<LeadsScreen> {
 
   Future<void> clearSearch() async {
     if (isSearching) {
-      logger.i("Lead search filter cleared");
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Lead search filter cleared");
+      });
+
       setState(
         () {
           pageNum = 0;
@@ -447,7 +470,10 @@ class _LeadsScreenState extends State<LeadsScreen> {
   }
 
   Future<void> toggleStale(value) async {
-    logger.i("Lead stale filter set to " + value.toString());
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("Lead stale filter set to " + value.toString());
+    });
+
     clearSearch();
     setState(
       () {
@@ -463,7 +489,10 @@ class _LeadsScreenState extends State<LeadsScreen> {
   }
 
   void openAddLeadForm() {
-    logger.i("Add lead form opened");
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("Add lead form opened");
+    });
+
     showDialog(
       barrierDismissible: false,
       context: context,
@@ -477,7 +506,10 @@ class _LeadsScreenState extends State<LeadsScreen> {
                 Text('Add New Lead'),
                 GestureDetector(
                   onTap: () {
-                    logger.i("Add lead form closed");
+                    Future.delayed(Duration(seconds: 1), () {
+                      logger.i("Add lead form closed");
+                    });
+
                     Navigator.of(context).pop();
                   },
                   child: Icon(
@@ -503,8 +535,14 @@ class _LeadsScreenState extends State<LeadsScreen> {
   }
 
   void openLead(lead) {
-    logger.i(
-        "Lead opened: " + lead["leadbusinessname"] + " (" + lead["lead"] + ")");
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("Lead opened: " +
+          lead["leadbusinessname"] +
+          " (" +
+          lead["lead"] +
+          ")");
+    });
+
     Navigator.pushNamed(context, "/viewlead", arguments: lead["lead"]);
   }
 
@@ -556,7 +594,9 @@ class _LeadsScreenState extends State<LeadsScreen> {
                           onScroll();
                         },
                       );
-                      logger.i("Lead order set to " + sortQuery);
+                      Future.delayed(Duration(seconds: 1), () {
+                        logger.i("Lead order set to " + sortQuery);
+                      });
                     },
                   ),
                 ),

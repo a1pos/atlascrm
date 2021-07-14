@@ -134,7 +134,10 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
           var bodyDecoded = body;
 
           setState(() {
-            logger.i("Merchant data loaded");
+            Future.delayed(Duration(seconds: 1), () {
+              logger.i("Merchant data loaded");
+            });
+
             merchant = bodyDecoded;
             merchantDocument = bodyDecoded["document"];
             merchantAgreement = merchant["leadByLead"]["agreement_builders"][0]
@@ -244,7 +247,10 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
         await GqlClientFactory().authGqlsubscribe(deviceOptions, (data) {
       var devicesArrDecoded = data.data["inventory"];
       if (devicesArrDecoded != null && this.mounted) {
-        logger.i("Merchant devices loaded");
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Merchant devices loaded");
+        });
+
         setState(() {
           devices = devicesArrDecoded;
         });
@@ -262,7 +268,9 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
       await subscription.cancel();
       subscription = null;
       loadMerchantData(this.widget.merchantId);
-      logger.i("Merchant data refreshed");
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Merchant data refreshed");
+      });
     }
   }
 
@@ -287,13 +295,15 @@ class ViewMerchantScreenState extends State<ViewMerchantScreen> {
           var sendable = {"id": device["inventory"], "origin": "merchant"};
           return GestureDetector(
             onTap: () {
-              logger.i("Inventory opened: " +
-                  device["priceTier"].model.toString() +
-                  "-" +
-                  device["serial"].toString() +
-                  " (" +
-                  device["inventory"].toString() +
-                  ")");
+              Future.delayed(Duration(seconds: 1), () {
+                logger.i("Inventory opened: " +
+                    device["priceTier"].model.toString() +
+                    "-" +
+                    device["serial"].toString() +
+                    " (" +
+                    device["inventory"].toString() +
+                    ")");
+              });
 
               Navigator.pushNamed(context, "/viewinventory",
                   arguments: sendable);

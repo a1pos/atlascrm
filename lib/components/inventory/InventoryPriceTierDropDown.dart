@@ -66,7 +66,10 @@ class _InventoryPriceTierDropDownState
         var locationsArrDecoded = locationsResp.data["inventory_price_tier"];
         if (locationsArrDecoded != null) {
           if (this.mounted) {
-            logger.i("Inventory price tiers loaded");
+            Future.delayed(Duration(seconds: 1), () {
+              logger.i("Inventory price tiers loaded");
+            });
+
             setState(() {
               locations = locationsArrDecoded;
             });
@@ -147,18 +150,22 @@ class _InventoryPriceTierDropDownState
                       }
                       startVal = setVal;
                       this.widget.callback(setVal);
-                      logger.i("Changed inventory price tier: " +
-                          newValue +
-                          " (" +
-                          setVal +
-                          ")");
+                      Future.delayed(Duration(seconds: 1), () {
+                        logger.i("Changed inventory price tier: " +
+                            newValue +
+                            " (" +
+                            setVal +
+                            ")");
+                      });
                     });
                   } else {
                     setState(() {
                       startVal = null;
                       this.widget.callback(null);
                     });
-                    logger.i("Inventory price dropdown value cleared");
+                    Future.delayed(Duration(seconds: 1), () {
+                      logger.i("Inventory price dropdown value cleared");
+                    });
                   }
                 },
         )

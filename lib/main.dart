@@ -60,6 +60,7 @@ class _Round2CRMState extends State<Round2CRM> {
 
     GqlClientFactory.setPublicGraphQLClient();
     isAuthCheck();
+
     UserService.firebaseAuth.authStateChanges().listen((firebaseUser) {
       if (firebaseUser == null && UserService.isAuthenticated) {
         navigatorKey.currentState.popAndPushNamed('/logout');
@@ -80,7 +81,6 @@ class _Round2CRMState extends State<Round2CRM> {
         UserService.isAuthenticated = true;
 
         await userService.linkGoogleAccount();
-        logger.i("Application initialized and public gql client starting");
 
         setState(() {
           isLoading = false;
@@ -145,7 +145,10 @@ class _Round2CRMState extends State<Round2CRM> {
                 ),
           initialRoute: "/",
           onGenerateRoute: (RouteSettings settings) {
-            logger.i("Route switched to: " + settings.name);
+            Future.delayed(Duration(seconds: 1), () {
+              logger.i("Route switched to: " + settings.name);
+            });
+
             switch (settings.name) {
               case '/dashboard':
                 return MaterialPageRoute(

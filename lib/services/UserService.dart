@@ -57,7 +57,9 @@ class UserService {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     String version = packageInfo.version;
 
-    logger.v("App version: " + version);
+    Future.delayed(Duration(seconds: 1), () {
+      logger.i("App version: " + version);
+    });
     return version;
   }
 
@@ -86,7 +88,9 @@ class UserService {
         final User currentUser = firebaseAuth.currentUser;
         assert(user.uid == currentUser.uid);
 
-        logger.v('Sign in with Google succeeded: $user');
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i('Sign in with Google succeeded: $user');
+        });
 
         await linkGoogleAccount();
 
@@ -108,7 +112,10 @@ class UserService {
 
       isAuthenticated = false;
 
-      logger.v("User signed out");
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("User signed out");
+      });
+
       debugPrint("User signed out");
     } catch (err) {
       logger.e(err.toString());
@@ -119,6 +126,10 @@ class UserService {
 
   Future<void> linkGoogleAccount() async {
     try {
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Application initialized and public gql client started...");
+      });
+
       GqlClientFactory.setPublicGraphQLClient();
       getVersionNumber();
 
@@ -159,7 +170,10 @@ class UserService {
         var empDecoded = linkResult.data["link_google_account"]["employee"];
 
         employee = Employee.fromJson(empDecoded);
-        logger.v("Employee role: " + employee.role.toString());
+
+        Future.delayed(Duration(seconds: 1), () {
+          logger.i("Employee role: " + employee.role.toString());
+        });
 
         if (employee.role == "admin" || employee.role == "sa") {
           isAdmin = true;
@@ -221,10 +235,11 @@ class UserService {
             await GqlClientFactory.client
                 .mutate(notificationRegistrationMutateOptions);
 
-        logger.v("Registration token result: " +
+        debugPrint("Registration token result: " +
             notificationRegistrationResult.data['register_notification_token']
                     ['message']
                 .toString());
+
         logger
             .i("User: " + user.displayName.toString() + " (" + user.uid + ")");
       }
@@ -233,10 +248,6 @@ class UserService {
       debugPrint(err.toString());
       throw new Error();
     }
-  }
-
-  Employee getCurrentEmployee() {
-    return employee;
   }
 
   static Future<User> getCurrentUser() async {

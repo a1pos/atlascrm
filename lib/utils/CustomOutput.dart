@@ -65,8 +65,10 @@ class CustomOutput extends LogOutput {
   }
 
   void output(OutputEvent event) {
-    for (var line in event.lines) {
-      this._write(line);
-    }
+    Future.delayed(Duration(seconds: 1), () {
+      for (var line in event.lines) {
+        this._write(line);
+      }
+    });
   }
 }

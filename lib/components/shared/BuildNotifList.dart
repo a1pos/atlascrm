@@ -79,7 +79,10 @@ class _BuildNotifListState extends State<BuildNotifList> {
       (data) {
         var notificationsArrDecoded = data.data["notification"];
         if (notificationsArrDecoded != null && this.mounted) {
-          logger.i("Notifications loaded in notifications center");
+          Future.delayed(Duration(seconds: 1), () {
+            logger.i("Notifications loaded in notifications center");
+          });
+
           setState(
             () {
               isLoading = false;
@@ -111,7 +114,9 @@ class _BuildNotifListState extends State<BuildNotifList> {
       await subscription.cancel();
       subscription = null;
       getNotifications();
-      logger.i("Notifications refreshed");
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Notifications refreshed");
+      });
     }
   }
 
@@ -133,7 +138,10 @@ class _BuildNotifListState extends State<BuildNotifList> {
         await GqlClientFactory().authGqlmutate(mutateOptions);
 
     if (result.hasException == false) {
-      logger.i("Notification marked as read: " + notification.toString());
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Notification marked as read: " + notification.toString());
+      });
+
       Fluttertoast.showToast(
           msg: "Notification Marked as Read!",
           toastLength: Toast.LENGTH_SHORT,
@@ -160,7 +168,10 @@ class _BuildNotifListState extends State<BuildNotifList> {
 
     notifCount--;
     if (notifCount == 0) {
-      logger.i("Notification count 0, closing notifications panel");
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Notification count 0, closing notifications panel");
+      });
+
       Navigator.of(context).pop();
     }
   }
@@ -183,7 +194,10 @@ class _BuildNotifListState extends State<BuildNotifList> {
         await GqlClientFactory().authGqlmutate(mutateOptions);
 
     if (result.hasException == false) {
-      logger.i("Notifications marked as read");
+      Future.delayed(Duration(seconds: 1), () {
+        logger.i("Notifications marked as read");
+      });
+
       Fluttertoast.showToast(
         msg: "Notifications Marked as Read!",
         toastLength: Toast.LENGTH_SHORT,
@@ -319,7 +333,10 @@ class _BuildNotifListState extends State<BuildNotifList> {
               ),
               GestureDetector(
                 onTap: () {
-                  logger.i("Notifications panel closed");
+                  Future.delayed(Duration(seconds: 1), () {
+                    logger.i("Notifications panel closed");
+                  });
+
                   Navigator.of(context).pop();
                 },
                 child: Icon(

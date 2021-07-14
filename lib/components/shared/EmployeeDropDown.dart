@@ -85,7 +85,10 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
         var employeeArrDecoded = result.data["employee"];
         if (employeeArrDecoded != null) {
           if (this.mounted) {
-            logger.i("Employee data loaded");
+            Future.delayed(Duration(seconds: 1), () {
+              logger.i("Employee data loaded");
+            });
+
             employeeArrDecoded.sort(
               (a, b) => a["displayName"]
                   .toString()
@@ -172,15 +175,19 @@ class _EmployeeDropDownState extends State<EmployeeDropDown> {
                         }
                       }
 
-                      logger.i("Employee changed to: " +
-                          newValue +
-                          " in role(s): " +
-                          this.widget.roles.toString());
+                      Future.delayed(Duration(seconds: 1), () {
+                        logger.i("Employee changed to: " +
+                            newValue +
+                            " in role(s): " +
+                            this.widget.roles.toString());
+                      });
                     } else {
                       newValue = "";
-                      logger.i("Employee filter cleared " +
-                          "in role(s): " +
-                          this.widget.roles.toString());
+                      Future.delayed(Duration(seconds: 1), () {
+                        logger.i("Employee filter cleared " +
+                            "in role(s): " +
+                            this.widget.roles.toString());
+                      });
                     }
                     startVal = newValue;
                     this.widget.callback(setVal);
